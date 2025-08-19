@@ -85,12 +85,11 @@ class BotsController extends GetxController {
     },
   ].obs;
 
-  // Método opcional para agregar un bot
+
   void agregarBot(Map<String, String> bot) {
     bots.add(bot);
   }
 
-  // Método opcional para eliminar un bot
   void eliminarBot(int index) {
     bots.removeAt(index);
   }
