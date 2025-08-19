@@ -61,60 +61,56 @@ class BotsPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      child: ListTile(
-                        dense: true,
-                        visualDensity: const VisualDensity(vertical: -4),
-                        contentPadding: EdgeInsets.zero,
-                        leading: SvgPicture.asset(
-                          'assets/icons/binance.svg',
-                          width: 30,
-                          height: 30,
+                    ListTile(
+                      dense: true,
+                      visualDensity: const VisualDensity(vertical: -4),
+                      contentPadding: EdgeInsets.zero,
+                      leading: SvgPicture.asset(
+                        'assets/icons/binance.svg',
+                        width: 30,
+                        height: 30,
+                      ),
+                      title: Text(
+                        bot["name"] ?? "Nombre desconocido",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
-                        title: Text(
-                          bot["name"] ?? "Nombre desconocido",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      ),
+                      subtitle: Text(
+                        bot["description"] ?? "Sin descripción",
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
                         ),
-                        subtitle: Text(
-                          bot["description"] ?? "Sin descripción",
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        trailing: Switch(
-                          value: bot["enabled"]?.value ?? false,
-                          onChanged: (value) {
-                            controller.updateBotStatus(bot, value);
-                          },
-                          activeThumbColor: Colors.blue,
-                          activeTrackColor: Colors.grey.withAlpha(40),
-                          inactiveThumbColor: Colors.grey,
-                          inactiveTrackColor: Colors.grey.withAlpha(100),
-                        ),
+                      ),
+                      trailing: Switch(
+                        value: bot["enabled"]?.value ?? false,
+                        onChanged: (value) {
+                          controller.updateBotStatus(bot, value);
+                        },
+                        activeThumbColor: Colors.blue,
+                        activeTrackColor: Colors.grey.withAlpha(40),
+                        inactiveThumbColor: Colors.grey,
+                        inactiveTrackColor: Colors.grey.withAlpha(100),
                       ),
                     ),
-                    Container(
-                      child: ListTile(
-                        dense: true,
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text(
-                          'PnL',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                        subtitle: const Text(
-                          '\$1,250.50',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        onTap: () => print("${bot["name"]} - PnL presionado"),
+                    ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text(
+                        'PnL',
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
                       ),
+                      subtitle: const Text(
+                        '\$1,250.50',
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      onTap: () => print("${bot["name"]} - PnL presionado"),
                     ),
                     SizedBox(
                       height: gridHeight,
