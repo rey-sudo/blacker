@@ -25,6 +25,7 @@ class BotsPage extends StatelessWidget {
                   labelColor: Colors.blue,
                   unselectedLabelColor: Colors.grey,
                   indicatorColor: Colors.blue,
+                  dividerColor: Theme.of(context).dividerColor,
                   tabs: const [
                     Tab(text: "All Bots"),
                     Tab(text: "Binance"),
