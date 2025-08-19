@@ -82,7 +82,7 @@ class BotsPage extends StatelessWidget {
 
   Widget _buildBotList(List bots, BotsController controller) {
     final actions = [
-      {"title": "Runtime", "subtitle": "24h 5m 16s"},
+      {"title": "Runtime", "subtitle": "3d 8h 55m"},
       {"title": "Status", "subtitle": "Running"},
       {"title": "Rules", "subtitle": "3/4"},
       {"title": "Executed", "subtitle": "True"},
