@@ -85,18 +85,16 @@ class BotsPage extends StatelessWidget {
                             color: Colors.grey,
                           ),
                         ),
-                        trailing: Obx(() {
-                          return Switch(
-                            value: bot["enabled"]?.value ?? false,
-                            onChanged: (value) {
-                              controller.updateBotStatus(bot, value);
-                            },
-                            activeThumbColor: Colors.blue,
-                            activeTrackColor: Colors.grey.withAlpha(40),
-                            inactiveThumbColor: Colors.grey,
-                            inactiveTrackColor: Colors.grey.withAlpha(100),
-                          );
-                        }),
+                        trailing: Switch(
+                          value: bot["enabled"]?.value ?? false,
+                          onChanged: (value) {
+                            controller.updateBotStatus(bot, value);
+                          },
+                          activeThumbColor: Colors.blue,
+                          activeTrackColor: Colors.grey.withAlpha(40),
+                          inactiveThumbColor: Colors.grey,
+                          inactiveTrackColor: Colors.grey.withAlpha(100),
+                        ),
                       ),
                     ),
                     Container(
