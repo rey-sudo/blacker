@@ -36,7 +36,7 @@ class HomePage extends StatelessWidget {
           ),
           IconButton(
             icon: SvgPicture.asset(
-              "assets/icons/search.svg",
+              "assets/icons/orders.svg",
               width: 24,
               height: 24,
               colorFilter: const ColorFilter.mode(Colors.grey, BlendMode.srcIn),
@@ -117,7 +117,7 @@ class HomePage extends StatelessWidget {
                 ),
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(
-                    "assets/icons/search.svg",
+                    "assets/icons/orders.svg",
                     width: 24,
                     height: 24,
                     colorFilter: const ColorFilter.mode(
@@ -126,7 +126,7 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   activeIcon: SvgPicture.asset(
-                    "assets/icons/search.svg",
+                    "assets/icons/orders.svg",
                     width: 24,
                     height: 24,
                     colorFilter: const ColorFilter.mode(
@@ -134,7 +134,7 @@ class HomePage extends StatelessWidget {
                       BlendMode.srcIn,
                     ),
                   ),
-                  label: "Search",
+                  label: "Orders",
                 ),
               ],
             ),
