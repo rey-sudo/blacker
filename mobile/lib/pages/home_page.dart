@@ -36,7 +36,7 @@ class HomePage extends StatelessWidget {
           ),
           IconButton(
             icon: SvgPicture.asset(
-              "assets/icons/orders.svg",
+              "assets/icons/search.svg",
               width: 24,
               height: 24,
               colorFilter: const ColorFilter.mode(Colors.grey, BlendMode.srcIn),
