@@ -20,6 +20,7 @@ class MyApp extends StatelessWidget {
           title: 'Blacker',
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
+            fontFamily: 'Inter',
             primarySwatch: Colors.blue,
             textTheme: TextTheme(
               bodySmall: TextStyle(fontSize: 11.sp),

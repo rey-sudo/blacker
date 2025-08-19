@@ -22,9 +22,9 @@ class BotsPage extends StatelessWidget {
                 unselectedLabelColor: Colors.grey,
                 indicatorColor: Colors.blue,
                 tabs: [
-                  Tab(text: "Todos"),
-                  Tab(text: "Activos"),
-                  Tab(text: "Inactivos"),
+                  Tab(text: "All Bots"),
+                  Tab(text: "Binance"),
+                  Tab(text: "Bybit"),
                 ],
               ),
             ),
@@ -61,8 +61,7 @@ class BotsPage extends StatelessWidget {
                         .where((bot) => bot["enabled"]?.value == false)
                         .toList();
                     if (inactivos.isEmpty) {
-                      return const Center(
-                          child: Text("No hay bots inactivos"));
+                      return const Center(child: Text("No hay bots inactivos"));
                     }
                     return _buildBotList(inactivos, controller);
                   }),
@@ -74,7 +73,6 @@ class BotsPage extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildBotList(List bots, BotsController controller) {
     final actions = [
@@ -107,10 +105,7 @@ class BotsPage extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.grey.withAlpha(50),
-                width: 1,
-              ),
+              border: Border.all(color: Colors.grey.withAlpha(50), width: 1),
             ),
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -122,8 +117,8 @@ class BotsPage extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: SvgPicture.asset(
                     'assets/icons/binance.svg',
-                    width: 30,
-                    height: 30,
+                    width: 32,
+                    height: 32,
                   ),
                   title: Text(
                     bot["name"] ?? "Nombre desconocido",
@@ -134,36 +129,35 @@ class BotsPage extends StatelessWidget {
                   ),
                   subtitle: Text(
                     bot["description"] ?? "Sin descripción",
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                  trailing: Obx(
+                    () => Switch(
+                      value: bot["enabled"]?.value ?? false,
+                      onChanged: (value) {
+                        controller.updateBotStatus(bot, value);
+                      },
+                      activeThumbColor: Colors.blue,
+                      activeTrackColor: Colors.grey.withAlpha(40),
+                      inactiveThumbColor: Colors.grey,
+                      inactiveTrackColor: Colors.grey.withAlpha(100),
                     ),
                   ),
-                  trailing: Obx(() => Switch(
-                        value: bot["enabled"]?.value ?? false,
-                        onChanged: (value) {
-                          controller.updateBotStatus(bot, value);
-                        },
-                        activeThumbColor: Colors.blue,
-                        activeTrackColor: Colors.grey.withAlpha(40),
-                        inactiveThumbColor: Colors.grey,
-                        inactiveTrackColor: Colors.grey.withAlpha(100),
-                      )),
                 ),
                 ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  title: const Text(
+                  title: Text(
                     'PnL',
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                   ),
-                  subtitle: const Text(
+                  subtitle: Text(
                     '\$1,250.50',
-                    style: TextStyle(
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: Colors.green, fontWeight: FontWeight.bold),
                   ),
                   onTap: () => print("${bot["name"]} - PnL presionado"),
                 ),
@@ -209,17 +203,13 @@ class BotsPage extends StatelessWidget {
                             children: [
                               Text(
                                 actions[i]["title"]!,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(color: Colors.grey),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 actions[i]["subtitle"]!,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(color: Colors.black),
                               ),
                             ],
