@@ -11,27 +11,32 @@ class BotsPage extends StatelessWidget {
     final BotsController controller = Get.put(BotsController());
 
     return DefaultTabController(
-      length: 3, // Número de pestañas
+      length: 3,
       child: Scaffold(
         backgroundColor: Colors.white,
         body: Column(
           children: [
-            const SafeArea(
-              child: TabBar(
-                labelColor: Colors.blue,
-                unselectedLabelColor: Colors.grey,
-                indicatorColor: Colors.blue,
-                tabs: [
-                  Tab(text: "All Bots"),
-                  Tab(text: "Binance"),
-                  Tab(text: "ByBit"),
-                ],
+            SafeArea(
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.zero,
+                child: TabBar(
+                  isScrollable: false,
+                  labelColor: Colors.blue,
+                  unselectedLabelColor: Colors.grey,
+                  indicatorColor: Colors.blue,
+                  tabs: const [
+                    Tab(text: "All Bots"),
+                    Tab(text: "Binance"),
+                    Tab(text: "ByBit"),
+                  ],
+                ),
               ),
             ),
+
             Expanded(
               child: TabBarView(
                 children: [
-                  // 🔹 TAB 1 → Todos los bots
                   Obx(() {
                     if (controller.bots.isEmpty) {
                       return Center(
@@ -46,24 +51,22 @@ class BotsPage extends StatelessWidget {
                     return _buildBotList(controller.bots, controller);
                   }),
 
-                  // 🔹 TAB 2 → Solo bots activos
                   Obx(() {
                     final activos = controller.bots
                         .where((bot) => bot["enabled"]?.value == true)
                         .toList();
                     if (activos.isEmpty) {
-                      return const Center(child: Text("No hay bots activos"));
+                      return const Center(child: Text("No bots available"));
                     }
                     return _buildBotList(activos, controller);
                   }),
 
-                  // 🔹 TAB 3 → Solo bots inactivos
                   Obx(() {
                     final inactivos = controller.bots
                         .where((bot) => bot["enabled"]?.value == false)
                         .toList();
                     if (inactivos.isEmpty) {
-                      return const Center(child: Text("No hay bots inactivos"));
+                      return const Center(child: Text("No bots available"));
                     }
                     return _buildBotList(inactivos, controller);
                   }),
@@ -107,7 +110,10 @@ class BotsPage extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withAlpha(50), width: 1),
+              border: Border.all(
+                color: Theme.of(context).dividerColor,
+                width: 1,
+              ),
             ),
             padding: const EdgeInsets.all(16),
             child: Column(

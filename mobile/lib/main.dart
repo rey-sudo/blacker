@@ -22,6 +22,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             fontFamily: 'Inter',
             primarySwatch: Colors.blue,
+            dividerColor: Colors.grey.withAlpha(50),
             textTheme: TextTheme(
               bodySmall: TextStyle(fontSize: 11.sp),
               bodyMedium: TextStyle(fontSize: 14.sp),

@@ -58,7 +58,7 @@ class HomePage extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             border: Border(
-              top: BorderSide(color: Colors.grey.withAlpha(30), width: 1),
+              top: BorderSide(color: Theme.of(context).dividerColor, width: 1),
             ),
           ),
           child: Obx(
