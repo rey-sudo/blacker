@@ -52,7 +52,7 @@ class BotsPage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.withAlpha(100), width: 1),
+                border: Border.all(color: Colors.grey.withAlpha(50), width: 1),
               ),
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -82,6 +82,26 @@ class BotsPage extends StatelessWidget {
                           color: Colors.grey,
                         ),
                       ),
+                      trailing: Obx(() {
+                        return Switch(
+                          value: bot["enabled"]?.value ?? false,
+                          onChanged: (value) {
+                            controller.updateBotStatus(bot, value);
+                          },
+
+                          activeThumbColor: Colors
+                              .blue, 
+                          activeTrackColor: Colors.grey.withAlpha(
+                            40,
+                          ), 
+                          inactiveThumbColor: Colors
+                              .grey, 
+                          inactiveTrackColor: Colors.grey.withAlpha(
+                            100,
+                          ), 
+                          
+                        );
+                      }),
                     ),
                   ),
 
