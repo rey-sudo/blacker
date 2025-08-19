@@ -146,7 +146,7 @@ class BotsPage extends StatelessWidget {
                       onChanged: (value) {
                         controller.updateBotStatus(bot, value);
                       },
-                      activeThumbColor: Colors.blue,
+                      activeThumbColor: Colors.white,
                       activeTrackColor: Colors.grey.withAlpha(40),
                       inactiveThumbColor: Colors.grey,
                       inactiveTrackColor: Colors.grey.withAlpha(100),
