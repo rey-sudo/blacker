@@ -21,6 +21,7 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text("Home"),
         centerTitle: true,
+        backgroundColor: Colors.white,
         actions: [
           IconButton(
             icon: SvgPicture.asset(
