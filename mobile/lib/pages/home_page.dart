@@ -8,9 +8,9 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final MainController controlador = Get.put(MainController());
+    final MainController controller = Get.put(MainController());
 
-    final List<Widget> paginas = const [
+    final List<Widget> pages = const [
       Center(child: Text("🏠 Página Inicio", style: TextStyle(fontSize: 24))),
       Center(child: Text("🔍 Página Buscar", style: TextStyle(fontSize: 24))),
       Center(child: Text("👤 Página Perfil", style: TextStyle(fontSize: 24))),
@@ -46,7 +46,7 @@ class HomePage extends StatelessWidget {
         ],
       ),
 
-      body: Obx(() => paginas[controlador.indiceActual.value]),
+      body: Obx(() => pages[controller.currentIndex.value]),
 
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
@@ -60,8 +60,8 @@ class HomePage extends StatelessWidget {
           child: Obx(
             () => BottomNavigationBar(
               type: BottomNavigationBarType.fixed,
-              currentIndex: controlador.indiceActual.value,
-              onTap: controlador.cambiarIndice,
+              currentIndex: controller.currentIndex.value,
+              onTap: controller.cambiarIndice,
               selectedItemColor: Colors.blue,
               unselectedItemColor: Colors.grey,
               selectedFontSize: 11,
