@@ -17,6 +17,7 @@ class BotsPage extends StatelessWidget {
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8),
           elevation: 3,
+          shadowColor: Colors.black.withAlpha((0.3 * 255).toInt()),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
