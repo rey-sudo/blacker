@@ -46,44 +46,179 @@ class BotsPage extends StatelessWidget {
                     bot["description"] ?? "Sin descripción",
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
-                  const SizedBox(height: 16),
 
+                  ListTile(
+                    title: const Text('PnL'),
+                    subtitle: const Text(
+                      '\$1,250.50',
+                      style: TextStyle(color: Colors.green),
+                    ),
+                    onTap: () => print("${bot["name"]} - PnL presionado"),
+                  ),
+                  
                   Expanded(
-                    child: GridView.builder(
+                    child: GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            childAspectRatio: 3.0,
-                            crossAxisSpacing: 2,
-                            mainAxisSpacing: 2,
-                          ),
-                      itemCount: 9,
-                      itemBuilder: (context, gridIndex) {
-                        return ListTile(
+                      crossAxisCount: 3,
+                      childAspectRatio: 3.0,
+                      crossAxisSpacing: 2,
+                      mainAxisSpacing: 2,
+                      children: [
+                        ListTile(
                           dense: true,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 4,
                             vertical: 2,
                           ),
-                          title: Text(
-                            'Item ${gridIndex + 1}',
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
-                            overflow: TextOverflow.ellipsis,
+                          title: const Text(
+                            'Chat',
+                            style: TextStyle(fontSize: 10),
                           ),
-                          subtitle: Text(
-                            'Sub ${gridIndex + 1}',
-                            style: const TextStyle(fontSize: 12, color: Colors.black),
-                            overflow: TextOverflow.ellipsis,
+                          subtitle: const Text(
+                            'Conversar',
+                            style: TextStyle(fontSize: 8),
                           ),
-                          onTap: () {
-                            print(
-                              "${bot["name"]} - Item ${gridIndex + 1} presionado",
-                            );
-                          },
-                        );
-                      },
+                          onTap: () =>
+                              print("${bot["name"]} - Chat presionado"),
+                        ),
+                        ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          title: const Text(
+                            'Info',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          subtitle: const Text(
+                            'Detalles',
+                            style: TextStyle(fontSize: 8),
+                          ),
+                          onTap: () =>
+                              print("${bot["name"]} - Info presionado"),
+                        ),
+                        ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          title: const Text(
+                            'Config',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          subtitle: const Text(
+                            'Ajustes',
+                            style: TextStyle(fontSize: 8),
+                          ),
+                          onTap: () =>
+                              print("${bot["name"]} - Config presionado"),
+                        ),
+                        ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          title: const Text(
+                            'Stats',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          subtitle: const Text(
+                            'Estadísticas',
+                            style: TextStyle(fontSize: 8),
+                          ),
+                          onTap: () =>
+                              print("${bot["name"]} - Stats presionado"),
+                        ),
+                        ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          title: const Text(
+                            'Help',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          subtitle: const Text(
+                            'Ayuda',
+                            style: TextStyle(fontSize: 8),
+                          ),
+                          onTap: () =>
+                              print("${bot["name"]} - Help presionado"),
+                        ),
+                        ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          title: const Text(
+                            'Share',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          subtitle: const Text(
+                            'Compartir',
+                            style: TextStyle(fontSize: 8),
+                          ),
+                          onTap: () =>
+                              print("${bot["name"]} - Share presionado"),
+                        ),
+                        ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          title: const Text(
+                            'Rate',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          subtitle: const Text(
+                            'Calificar',
+                            style: TextStyle(fontSize: 8),
+                          ),
+                          onTap: () =>
+                              print("${bot["name"]} - Rate presionado"),
+                        ),
+                        ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          title: const Text(
+                            'Report',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          subtitle: const Text(
+                            'Reportar',
+                            style: TextStyle(fontSize: 8),
+                          ),
+                          onTap: () =>
+                              print("${bot["name"]} - Report presionado"),
+                        ),
+                        ListTile(
+                          dense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          title: const Text(
+                            'More',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          subtitle: const Text(
+                            'Más opciones',
+                            style: TextStyle(fontSize: 8),
+                          ),
+                          onTap: () =>
+                              print("${bot["name"]} - More presionado"),
+                        ),
+                      ],
                     ),
                   ),
                 ],
