@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../controllers/main_controller.dart';
+import 'bots_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -12,7 +13,7 @@ class HomePage extends StatelessWidget {
 
     final List<Widget> pages = const [
       Center(child: Text("🏠 Página Inicio", style: TextStyle(fontSize: 24))),
-      Center(child: Text("🔍 Página Buscar", style: TextStyle(fontSize: 24))),
+      const BotsPage(),
       Center(child: Text("👤 Página Perfil", style: TextStyle(fontSize: 24))),
     ];
 
@@ -55,7 +56,9 @@ class HomePage extends StatelessWidget {
         ),
         child: Container(
           decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: Colors.grey.withOpacity(0.1), width: 1)),
+            border: Border(
+              top: BorderSide(color: Colors.grey.withOpacity(0.1), width: 1),
+            ),
           ),
           child: Obx(
             () => BottomNavigationBar(
@@ -66,7 +69,7 @@ class HomePage extends StatelessWidget {
               unselectedItemColor: Colors.grey,
               selectedFontSize: 11,
               unselectedFontSize: 11,
-              elevation: 1, 
+              elevation: 1,
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,
               items: [
                 BottomNavigationBarItem(
