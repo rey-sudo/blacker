@@ -29,7 +29,7 @@ class BotsPage extends StatelessWidget {
 
           // Lista de acciones
           final actions = [
-            {"title": "Chat", "subtitle": "Conversar"},
+            {"title": "Runtime", "subtitle": "24h 5m 16s"},
             {"title": "Info", "subtitle": "Detalles"},
             {"title": "Config", "subtitle": "Ajustes"},
             {"title": "Stats", "subtitle": "Estadísticas"},
@@ -42,8 +42,8 @@ class BotsPage extends StatelessWidget {
 
           // Número de filas necesarias para el Grid
           final crossAxisCount = 3;
+          final tileHeight = 40.0;
           final rowCount = (actions.length / crossAxisCount).ceil();
-          final tileHeight = 45.0; // altura estimada de cada ListTile
           final gridHeight = rowCount * tileHeight;
 
           return Card(
@@ -76,13 +76,20 @@ class BotsPage extends StatelessWidget {
                       style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   ),
-                
+
                   ListTile(
-                    title: const Text('PnL', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                    title: const Text(
+                      'PnL',
+                      style: TextStyle(color: Colors.grey, fontSize: 10),
+                    ),
                     contentPadding: EdgeInsets.zero,
                     subtitle: const Text(
                       '\$1,250.50',
-                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     onTap: () => print("${bot["name"]} - PnL presionado"),
                   ),
@@ -93,29 +100,69 @@ class BotsPage extends StatelessWidget {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       crossAxisCount: crossAxisCount,
-                      childAspectRatio: 3.0,
-                      crossAxisSpacing: 2,
-                      mainAxisSpacing: 2,
-                      children: actions.map((action) {
-                        return ListTile(
-                          dense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
-                          ),
-                          title: Text(
-                            action["title"]!,
-                            style: const TextStyle(fontSize: 10, color: Colors.grey),
-                          ),
-                          subtitle: Text(
-                            action["subtitle"]!,
-                            style: const TextStyle(fontSize: 10, color: Colors.black),
-                          ),
+                      childAspectRatio: 3 / 1,
+                      crossAxisSpacing: 4,
+                      mainAxisSpacing: 4,
+                      children: List.generate(actions.length, (i) {
+                        int colPosition = i % crossAxisCount;
+
+                        Alignment alignment;
+                        CrossAxisAlignment crossAlign;
+
+                        switch (colPosition) {
+                          case 0:
+                            alignment = Alignment
+                                .centerLeft; // columna pegada a la izquierda
+                            crossAlign = CrossAxisAlignment
+                                .start; // texto alineado a la izquierda
+                            break;                          
+                          case 1:
+                            alignment = Alignment
+                                .centerLeft; // columna pegada a la izquierda
+                            crossAlign = CrossAxisAlignment
+                                .start; // texto alineado a la izquierda
+                            break;
+                          case 2:
+                            alignment = Alignment
+                                .centerRight; // columna pegada a la derecha
+                            crossAlign = CrossAxisAlignment
+                                .end; // texto alineado a la derecha
+                            break;
+                          default:
+                            alignment = Alignment.centerLeft;
+                            crossAlign = CrossAxisAlignment.start;
+                        }
+
+                        return InkWell(
                           onTap: () => print(
-                            "${bot["name"]} - ${action["title"]} presionado",
+                            "${bot["name"]} - ${actions[i]["title"]} presionado",
+                          ),
+                          child: Align(
+                            alignment: alignment,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: crossAlign,
+                              children: [
+                                Text(
+                                  actions[i]["title"]!,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  actions[i]["subtitle"]!,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         );
-                      }).toList(),
+                      }),
                     ),
                   ),
                 ],
