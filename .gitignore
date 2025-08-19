@@ -1,0 +1,12 @@
+secrets.sh
+__pycache__
+*.pyc
+*.pyo
+/output
+.env
+*.deb
+.sha256
+kubectl
+skaffold
+.sha256
+

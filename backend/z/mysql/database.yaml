@@ -1,0 +1,132 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+        - name: MYSQL_USER
+          value: blacker
+        - name: MYSQL_PASSWORD
+          value: password
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: mysql-storage
+          mountPath: /var/lib/mysql
+        - name: mysql-config
+          mountPath: /etc/mysql/my.cnf
+          subPath: my.cnf  
+        - name: init-scripts
+          mountPath: /docker-entrypoint-initdb.d/init.sql
+          subPath: init.sql              
+      volumes:
+      - name: mysql-storage
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+      - name: mysql-config
+        configMap:
+          name: mysql-config   
+      - name: init-scripts
+        configMap:
+          name: init-scripts            
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-config
+data:
+  my.cnf: |
+    [mysqld]
+
+    bind-address = 0.0.0.0
+
+    innodb_buffer_pool_size = 512M
+    innodb_buffer_pool_instances = 1
+    innodb_io_capacity = 1000
+    innodb_io_capacity_max = 2000
+
+    tmp_table_size = 67108864
+    max_heap_table_size = 67108864
+    sort_buffer_size = 2097152
+    join_buffer_size = 2097152
+
+    max_connections = 100
+    wait_timeout = 300
+    interactive_timeout = 300
+
+    thread_cache_size = 64
+
+    max_allowed_packet = 67108864
+
+    innodb_flush_log_at_trx_commit = 1
+    innodb_log_buffer_size = 33554432
+    innodb_redo_log_capacity = 268435456
+    innodb_flush_method = O_DIRECT
+    innodb_file_per_table = 1
+    transaction-isolation = REPEATABLE-READ
+    innodb_thread_concurrency = 4
+    innodb_lock_wait_timeout = 50
+    innodb_flush_log_at_timeout = 1
+    sync_binlog = 1
+    innodb_autoinc_lock_mode = 2               
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-scripts
+data:
+  init.sql: |
+    GRANT ALL PRIVILEGES ON *.* TO 'blacker'@'%';
+
+    GRANT CREATE, ALTER, DROP, INDEX, CREATE TEMPORARY TABLES, LOCK TABLES, REFERENCES ON *.* TO 'blacker'@'%';
+
+    GRANT SELECT, RELOAD, SHOW DATABASES, REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'blacker'@'%';
+
+    ALTER USER 'blacker'@'%' IDENTIFIED BY 'password';
+
+
+    SELECT variable_value as "BINARY LOGGING STATUS (log-bin) ::"
+    FROM performance_schema.global_variables WHERE variable_name='log_bin';
+
+
+    FLUSH PRIVILEGES;
+     
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  selector:
+    app: mysql
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+

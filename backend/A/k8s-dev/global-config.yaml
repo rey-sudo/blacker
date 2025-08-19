@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: database-config
+data:
+  name: blacker
+  user: blackeruser
+  master: postgres-service
+  slave: postgres-service
+  port: "5432"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: streaming-config
+data:
+  redis: redis://redis-streaming-srv:6379
+

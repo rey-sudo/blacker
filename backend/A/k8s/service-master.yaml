@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: service-master
+  template:
+    metadata:
+      labels:
+        role: service-master
+    spec:
+      containers:
+        - name: service-master
+          image: pairfy/service-master
+          env:
+            - name: NODE_ENV
+              value: "development" 
+            - name: CHANNEL_PREFIX
+              value: "blacker"   
+            - name: SLAVE_PORT
+              value: "3000"       
+            - name: HUNTER_HOST
+              value: "http://service-hunter:3001"                                                   
+            - name: DATABASE_HOST  
+              value: "mysql"      
+            - name: DATABASE_PORT
+              value: "3306"        
+            - name: DATABASE_USER
+              value: blacker                               
+            - name: DATABASE_NAME
+              value: service_slave 
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-password-secret
+                  key: password              
+            - name: TELEGRAM_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: telegram-token-secret
+                  key: token
+            - name: BINANCE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: binance-key-secret
+                  key: key  
+            - name: BINANCE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: binance-secret-secret
+                  key: secret
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"  
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-master
+spec:
+  selector:
+    role: service-master
+  ports:
+    - name: service-master
+      protocol: TCP
+      port: 8000
+      targetPort: 8000

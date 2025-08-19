@@ -1,0 +1,57 @@
+apiVersion: skaffold/v2alpha3
+kind: Config
+
+build:
+  local:
+    useDockerCLI: true
+    push: false
+    concurrency: 0
+  tagPolicy:
+    sha256: {}
+  artifacts:       
+    - image: pairfy/service-master
+      context: service-master
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/**/*.{ts,js,json,vue}'
+            dest: .  
+            
+    - image: pairfy/service-slave
+      context: service-slave
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/**/*.{ts,js,json,vue}'
+            dest: .
+
+    - image: pairfy/service-hunter
+      context: service-hunter
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/**/*.{ts,js,json,vue}'
+            dest: .
+
+deploy:
+  statusCheckDeadlineSeconds: 600
+  kubectl:
+    manifests:
+      - ./A/k8s/*
+      - ./A/k8s-dev/*
+
+portForward:
+  - resourceType: service
+    resourceName: service-slave-0
+    namespace: default
+    port: 3000
+    localPort: 3000
+
+  - resourceType: service
+    resourceName: service-hunter
+    namespace: default
+    port: 3001
+    localPort: 3001
