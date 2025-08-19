@@ -13,13 +13,13 @@ class HomePage extends StatelessWidget {
 
     final List<Widget> pages = const [
       Center(child: Text("🏠 Página Inicio", style: TextStyle(fontSize: 24))),
-      const BotsPage(),
+      BotsPage(),
       Center(child: Text("👤 Página Perfil", style: TextStyle(fontSize: 24))),
     ];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Demo con GetX"),
+        title: const Text("Home"),
         centerTitle: true,
         actions: [
           IconButton(
