@@ -34,10 +34,12 @@ class BotsPage extends StatelessWidget {
                   // 🔹 TAB 1 → Todos los bots
                   Obx(() {
                     if (controller.bots.isEmpty) {
-                      return const Center(
+                      return Center(
                         child: Text(
-                          "No hay bots disponibles",
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                          "No bots available",
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(color: Colors.black),
                         ),
                       );
                     }
@@ -79,7 +81,7 @@ class BotsPage extends StatelessWidget {
       {"title": "Runtime", "subtitle": "24h 5m 16s"},
       {"title": "Info", "subtitle": "Detalles"},
       {"title": "Config", "subtitle": "Ajustes"},
-      {"title": "Stats", "subtitle": "Estadísticas"},
+      {"title": "Rules", "subtitle": "******"},
       {"title": "Help", "subtitle": "Ayuda"},
       {"title": "Share", "subtitle": "Compartir"},
       {"title": "Rate", "subtitle": "Calificar"},
@@ -122,14 +124,16 @@ class BotsPage extends StatelessWidget {
                   ),
                   title: Text(
                     bot["name"] ?? "Nombre desconocido",
-                    style: const TextStyle(
-                      fontSize: 18,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   subtitle: Text(
                     bot["description"] ?? "Sin descripción",
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                   ),
                   trailing: Obx(
                     () => Switch(
@@ -155,9 +159,10 @@ class BotsPage extends StatelessWidget {
                   ),
                   subtitle: Text(
                     '\$1,250.50',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(color: Colors.green, fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   onTap: () => print("${bot["name"]} - PnL presionado"),
                 ),
