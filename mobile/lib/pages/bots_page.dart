@@ -115,7 +115,6 @@ class BotsPage extends StatelessWidget {
               children: [
                 ListTile(
                   dense: true,
-                  visualDensity: const VisualDensity(vertical: -4),
                   contentPadding: EdgeInsets.zero,
                   leading: SvgPicture.asset(
                     'assets/icons/binance.svg',
