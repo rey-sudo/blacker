@@ -79,14 +79,14 @@ class BotsPage extends StatelessWidget {
   Widget _buildBotList(List bots, BotsController controller) {
     final actions = [
       {"title": "Runtime", "subtitle": "24h 5m 16s"},
-      {"title": "Info", "subtitle": "Detalles"},
-      {"title": "Config", "subtitle": "Ajustes"},
-      {"title": "Rules", "subtitle": "******"},
-      {"title": "Help", "subtitle": "Ayuda"},
-      {"title": "Share", "subtitle": "Compartir"},
-      {"title": "Rate", "subtitle": "Calificar"},
-      {"title": "Report", "subtitle": "Reportar"},
-      {"title": "More", "subtitle": "Más opciones"},
+      {"title": "Status", "subtitle": "Running"},
+      {"title": "Rules", "subtitle": "3/4"},
+      {"title": "Executed", "subtitle": "True"},
+      {"title": "Finished", "subtitle": "False"},
+      {"title": "Leverage", "subtitle": "5x"},
+      {"title": "SL", "subtitle": "3%"},
+      {"title": "Amount", "subtitle": "500 USD"},
+      {"title": "Margin", "subtitle": "ISOLATED"},
     ];
 
     final crossAxisCount = 3;
@@ -151,7 +151,7 @@ class BotsPage extends StatelessWidget {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   title: Text(
-                    'PnL',
+                    'PnL (USD)',
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: Colors.grey),
