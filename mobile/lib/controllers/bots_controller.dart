@@ -14,17 +14,17 @@ class BotsController extends GetxController {
       "enabled": true.obs,
     },
     {
-      "name": "Bot Gamma",
+      "name": "ETHUSDT",
       "description": "Este es el bot número 3",
       "enabled": true.obs,
     },
     {
-      "name": "Bot Gamma",
+      "name": "LTEUSDT",
       "description": "Este es el bot número 3",
       "enabled": true.obs,
     },
     {
-      "name": "Bot Gamma",
+      "name": "BNBUSDT",
       "description": "Este es el bot número 3",
       "enabled": true.obs,
     },
