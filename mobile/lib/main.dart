@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'pages/home_page.dart';
 
 void main() {
@@ -11,11 +12,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(  
-      title: 'Blacker',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const HomePage(),
+    return ScreenUtilInit(
+      designSize: const Size(414, 896), 
+      minTextAdapt: true,
+      builder: (context, child) {
+        return GetMaterialApp(
+          title: 'Blacker',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+            textTheme: TextTheme(
+              bodySmall: TextStyle(fontSize: 11.sp),
+              bodyMedium: TextStyle(fontSize: 14.sp),
+              bodyLarge: TextStyle(fontSize: 16.sp),
+              titleMedium: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w500),
+              titleLarge: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
+              headlineMedium: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.bold),
+              headlineLarge: TextStyle(fontSize: 32.sp, fontWeight: FontWeight.bold),
+            ),
+          ),
+          home: child,
+        );
+      },
+      child: const HomePage(),
     );
   }
 }

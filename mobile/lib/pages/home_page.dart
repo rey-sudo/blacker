@@ -19,7 +19,7 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Home"),
+        title: const Text(""),
         centerTitle: true,
         backgroundColor: Colors.white,
         actions: [
@@ -71,7 +71,7 @@ class HomePage extends StatelessWidget {
               selectedFontSize: 11,
               unselectedFontSize: 11,
               elevation: 1,
-              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              backgroundColor: Colors.white,
               items: [
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(

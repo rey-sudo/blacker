@@ -52,7 +52,10 @@ class BotsPage extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.withAlpha(50), width: 1),
+                  border: Border.all(
+                    color: Colors.grey.withAlpha(50),
+                    width: 1,
+                  ),
                 ),
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -157,18 +160,14 @@ class BotsPage extends StatelessWidget {
                                 children: [
                                   Text(
                                     actions[i]["title"]!,
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.grey,
-                                    ),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(color: Colors.grey),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     actions[i]["subtitle"]!,
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.black,
-                                    ),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(color: Colors.black),
                                   ),
                                 ],
                               ),
