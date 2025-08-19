@@ -24,7 +24,7 @@ class BotsPage extends StatelessWidget {
                 tabs: [
                   Tab(text: "All Bots"),
                   Tab(text: "Binance"),
-                  Tab(text: "Bybit"),
+                  Tab(text: "ByBit"),
                 ],
               ),
             ),

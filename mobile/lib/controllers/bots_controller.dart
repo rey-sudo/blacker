@@ -5,12 +5,12 @@ class BotsController extends GetxController {
   var bots = <Map<String, dynamic>>[
     {
       "name": "BTCUSDT",
-      "description": "Este es el bot número 1",
+      "description": "Slave 0",
       "enabled": true.obs,
     },
     {
       "name": "ADAUSDT",
-      "description": "Este es el bot número 2",
+      "description": "Slave 1",
       "enabled": true.obs,
     },
     {
