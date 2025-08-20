@@ -82,21 +82,10 @@ class BotsPage extends StatelessWidget {
   }
 
   Widget _buildBotList(List bots, BotsController controller) {
-    final actions = [
-      {"title": "Runtime", "subtitle": "3d 8h 55m"},
-      {"title": "Status", "subtitle": "Stopped"},
-      {"title": "Rules", "subtitle": "3/4"},
-      {"title": "Executed", "subtitle": "True"},
-      {"title": "Finished", "subtitle": "False"},
-      {"title": "Leverage", "subtitle": "5x"},
-      {"title": "SL", "subtitle": "3%"},
-      {"title": "Amount", "subtitle": "500 USD"},
-      {"title": "Margin", "subtitle": "ISOLATED"},
-    ];
-
+    final infoLength = bots[0]["info"].length;
     final crossAxisCount = 3;
     final tileHeight = 40.0;
-    final rowCount = (actions.length / crossAxisCount).ceil();
+    final rowCount = (infoLength / crossAxisCount).ceil();
     final gridHeight = rowCount * tileHeight;
 
     return ListView.separated(
@@ -193,7 +182,7 @@ class BotsPage extends StatelessWidget {
                     childAspectRatio: 3 / 1,
                     crossAxisSpacing: 4,
                     mainAxisSpacing: 4,
-                    children: List.generate(actions.length, (i) {
+                    children: List.generate(infoLength, (i) {
                       int colPosition = i % crossAxisCount;
 
                       Alignment alignment;
@@ -213,6 +202,8 @@ class BotsPage extends StatelessWidget {
                           alignment = Alignment.centerLeft;
                           crossAlign = CrossAxisAlignment.start;
                       }
+
+                      final actions = bot["info"];
 
                       return InkWell(
                         onTap: () => print(
@@ -236,8 +227,9 @@ class BotsPage extends StatelessWidget {
                                     ?.copyWith(
                                       color:
                                           actions[i]["title"] == "Status" &&
-                                              actions[i]["subtitle"] ==
-                                                  "Stopped"
+                                                  actions[i]["subtitle"] ==
+                                                      "Stopped" ||
+                                              actions[i]["subtitle"] == "Error"
                                           ? Colors.red
                                           : Colors.black,
                                     ),
