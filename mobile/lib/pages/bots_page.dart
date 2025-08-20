@@ -96,151 +96,152 @@ class BotsPage extends StatelessWidget {
       itemBuilder: (context, index) {
         final bot = bots[index];
 
-        return Card(
-          elevation: 0,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Theme.of(context).dividerColor,
-                width: 1,
+        return GestureDetector(
+          onTap: () => Get.to(() => BotPage(bot: bot)),
+          child: Card(
+            elevation: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).dividerColor,
+                  width: 1,
+                ),
               ),
-            ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: SvgPicture.asset(
-                    'assets/icons/binance.svg',
-                    width: 32,
-                    height: 32,
-                  ),
-                  title: Text(
-                    bot["symbol"] ?? "Nombre desconocido",
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: SvgPicture.asset(
+                      'assets/icons/binance.svg',
+                      width: 32,
+                      height: 32,
                     ),
-                  ),
-                  subtitle: Row(
-                    children: [
-                      Text(
-                        bot["description"] ?? "Sin descripción",
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                    title: Text(
+                      bot["symbol"] ?? "Nombre desconocido",
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(width: 8),
-                      Obx(
-                        () => PulsatingIndicator(
-                          isActive:
-                              bot["live"]?.value ?? false, // este valor cambia
-                          size: 5,
+                    ),
+                    subtitle: Row(
+                      children: [
+                        Text(
+                          bot["description"] ?? "Sin descripción",
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                         ),
-                      ),
-                    ],
-                  ),
-                  trailing: Obx(
-                    () => Switch(
-                      value: bot["enabled"]?.value ?? false,
-                      onChanged: (value) {
-                        controller.updateBotStatus(bot, value);
-                      },
-                      activeThumbColor: Colors.white,
-                      activeTrackColor: Colors.grey.withAlpha(40),
-                      inactiveThumbColor: Colors.grey,
-                      inactiveTrackColor: Colors.grey.withAlpha(100),
-                    ),
-                  ),
-                ),
-                ListTile(
-                  dense: true,
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    'PnL (USD)',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.grey),
-                  ),
-                  subtitle: Text(
-                    '\$1,250.50',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  onTap: () => print("${bot["symbol"]} - PnL presionado"),
-                ),
-                SizedBox(
-                  height: gridHeight,
-                  child: GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: crossAxisCount,
-                    childAspectRatio: 3 / 1,
-                    crossAxisSpacing: 4,
-                    mainAxisSpacing: 4,
-                    children: List.generate(infoLength, (i) {
-                      int colPosition = i % crossAxisCount;
-
-                      Alignment alignment;
-                      CrossAxisAlignment crossAlign;
-
-                      switch (colPosition) {
-                        case 0:
-                        case 1:
-                          alignment = Alignment.centerLeft;
-                          crossAlign = CrossAxisAlignment.start;
-                          break;
-                        case 2:
-                          alignment = Alignment.centerRight;
-                          crossAlign = CrossAxisAlignment.end;
-                          break;
-                        default:
-                          alignment = Alignment.centerLeft;
-                          crossAlign = CrossAxisAlignment.start;
-                      }
-
-                      final actions = bot["info"];
-
-                      return InkWell(
-                        onTap: () => Get.to(() => BotPage(bot: bot)),
-                        child: Align(
-                          alignment: alignment,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: crossAlign,
-                            children: [
-                              Text(
-                                actions[i]["title"]!,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: Colors.grey),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                actions[i]["subtitle"]!,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color:
-                                          actions[i]["title"] == "Status" &&
-                                                  actions[i]["subtitle"] ==
-                                                      "Stopped" ||
-                                              actions[i]["subtitle"] == "Error"
-                                          ? Colors.red
-                                          : Colors.black,
-                                    ),
-                              ),
-                            ],
+                        const SizedBox(width: 8),
+                        Obx(
+                          () => PulsatingIndicator(
+                            isActive: bot["live"]?.value ?? false,
+                            size: 6,
                           ),
                         ),
-                      );
-                    }),
+                      ],
+                    ),
+                    trailing: Obx(
+                      () => Switch(
+                        value: bot["enabled"]?.value ?? false,
+                        onChanged: (value) {
+                          controller.updateBotStatus(bot, value);
+                        },
+                        activeThumbColor: Colors.white,
+                        activeTrackColor: Colors.grey.withAlpha(40),
+                        inactiveThumbColor: Colors.grey,
+                        inactiveTrackColor: Colors.grey.withAlpha(100),
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      'PnL (USD)',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                    ),
+                    subtitle: Text(
+                      '\$1,250.50',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: gridHeight,
+                    child: GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: crossAxisCount,
+                      childAspectRatio: 3 / 1,
+                      crossAxisSpacing: 4,
+                      mainAxisSpacing: 4,
+                      children: List.generate(infoLength, (i) {
+                        int colPosition = i % crossAxisCount;
+
+                        Alignment alignment;
+                        CrossAxisAlignment crossAlign;
+
+                        switch (colPosition) {
+                          case 0:
+                          case 1:
+                            alignment = Alignment.centerLeft;
+                            crossAlign = CrossAxisAlignment.start;
+                            break;
+                          case 2:
+                            alignment = Alignment.centerRight;
+                            crossAlign = CrossAxisAlignment.end;
+                            break;
+                          default:
+                            alignment = Alignment.centerLeft;
+                            crossAlign = CrossAxisAlignment.start;
+                        }
+
+                        final actions = bot["info"];
+
+                        return InkWell(
+                          child: Align(
+                            alignment: alignment,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: crossAlign,
+                              children: [
+                                Text(
+                                  actions[i]["title"]!,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: Colors.grey),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  actions[i]["subtitle"]!,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color:
+                                            actions[i]["title"] == "Status" &&
+                                                    actions[i]["subtitle"] ==
+                                                        "Stopped" ||
+                                                actions[i]["subtitle"] ==
+                                                    "Error"
+                                            ? Colors.red
+                                            : Colors.black,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
