@@ -4,10 +4,11 @@ class BotsController extends GetxController {
   var bots = <Map<String, dynamic>>[
     {
       "id": "slave-0",
-      "name": "BTCUSDT",
+      "symbol": "BTCUSDT",
       "description": "ID 0",
       "enabled": true.obs,
       "live": true.obs,
+      "iterations": 53,
       "info": [
         {"title": "Runtime", "subtitle": "3d 8h 55m"},
         {"title": "Status", "subtitle": "Running"},
@@ -22,10 +23,11 @@ class BotsController extends GetxController {
     },
     {
       "id": "slave-1",
-      "name": "ADAUSDT",
+      "symbol": "ADAUSDT",
       "description": "ID 1",
       "enabled": true.obs,
       "live": true.obs,
+      "iterations": 24,
       "info": [
         {"title": "Runtime", "subtitle": "3d 8h 55m"},
         {"title": "Status", "subtitle": "Stopped"},
@@ -40,10 +42,11 @@ class BotsController extends GetxController {
     },
     {
       "id": "slave-2",
-      "name": "ETHUSDT",
+      "symbol": "ETHUSDT",
       "description": "ID 2",
       "enabled": true.obs,
       "live": true.obs,
+      "iterations": 17,
       "info": [
         {"title": "Runtime", "subtitle": "3d 8h 55m"},
         {"title": "Status", "subtitle": "Error"},

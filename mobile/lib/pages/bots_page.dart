@@ -119,7 +119,7 @@ class BotsPage extends StatelessWidget {
                     height: 32,
                   ),
                   title: Text(
-                    bot["name"] ?? "Nombre desconocido",
+                    bot["symbol"] ?? "Nombre desconocido",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
@@ -172,7 +172,7 @@ class BotsPage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  onTap: () => print("${bot["name"]} - PnL presionado"),
+                  onTap: () => print("${bot["symbol"]} - PnL presionado"),
                 ),
                 SizedBox(
                   height: gridHeight,

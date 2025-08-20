@@ -10,7 +10,7 @@ class BotPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(bot["name"] ?? "Bot"),
+        title: Text(bot["symbol"] ?? "Bot"),
         backgroundColor: Colors.white,
       ),
       body: Padding(
