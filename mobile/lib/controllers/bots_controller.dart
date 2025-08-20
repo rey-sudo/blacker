@@ -1,21 +1,21 @@
 import 'package:get/get.dart';
 
 class BotsController extends GetxController {
-  // Lista de bots como estado reactivo
+
   var bots = <Map<String, dynamic>>[
     {
       "name": "BTCUSDT",
-      "description": "Slave 0",
+      "description": "ID 0",
       "enabled": true.obs,
     },
     {
       "name": "ADAUSDT",
-      "description": "Slave 1",
+      "description": "ID 1",
       "enabled": true.obs,
     },
     {
       "name": "ETHUSDT",
-      "description": "Este es el bot número 3",
+      "description": "ID 2",
       "enabled": true.obs,
     },
     {

@@ -1,3 +1,4 @@
+import 'package:blacker/widgets/pulsating_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -121,7 +122,7 @@ class BotsPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ListTile(
-                  dense: true,                 
+                  dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: SvgPicture.asset(
                     'assets/icons/binance.svg',
@@ -135,11 +136,24 @@ class BotsPage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  subtitle: Text(
-                    bot["description"] ?? "Sin descripción",
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                  subtitle: Row(
+                    children: [
+                      Text(
+                        bot["description"] ?? "Sin descripción",
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                      ),
+                      const SizedBox(width: 8),
+                      Obx(
+                        () => PulsatingIndicator(
+                          isActive:
+                              bot["enabled"]?.value ??
+                              false, // este valor cambia
+                          size: 8,
+                        ),
+                      ),
+                    ],
                   ),
                   trailing: Obx(
                     () => Switch(
