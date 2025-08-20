@@ -18,4 +18,5 @@ create table if not exists slaves(
   primary key(id)
 ) ENGINE=InnoDB;
 
+--description iteration rules[] 
 

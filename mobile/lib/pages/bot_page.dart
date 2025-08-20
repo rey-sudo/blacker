@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/pulsating_indicator.dart';
 
 class BotPage extends StatelessWidget {
@@ -20,13 +21,10 @@ class BotPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(bot["id"] ?? "Bot"),
         backgroundColor: Colors.white,
-        elevation: 0, 
+        elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(1.0), 
-          child: Container(
-            color: Theme.of(context).dividerColor,
-            height: 1.0,
-          ),
+          preferredSize: const Size.fromHeight(1.0),
+          child: Container(color: Theme.of(context).dividerColor, height: 1.0),
         ),
       ),
       body: SingleChildScrollView(
@@ -34,45 +32,49 @@ class BotPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              bot["description"] ?? "No description",
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
             const SizedBox(height: 12),
+
             Obx(
               () => Row(
                 children: [
                   Text(
-                    "Status: ",
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  Text(
-                    bot["enabled"]?.value == true ? "Active" : "Inactive",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: bot["enabled"]?.value == true
-                          ? Colors.green
-                          : Colors.red,
+                    bot["symbol"],
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  PulsatingIndicator(
-                    isActive: bot["live"]?.value ?? false,
-                    size: 10,
-                  ),
                   const SizedBox(width: 6),
-                  Text(
-                    bot["live"]?.value == true ? "Live" : "Offline",
-                    style: Theme.of(context).textTheme.bodyMedium,
+                  SvgPicture.asset(
+                    'assets/icons/binance.svg',
+                    width: 20,
+                    height: 20,
+                  ),
+                  const Spacer(), 
+                  Row(
+                    children: [
+                      PulsatingIndicator(
+                        isActive: bot["live"]?.value ?? false,
+                        size: 10,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        bot["live"]?.value == true ? "Live" : "Offline",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
+
             const SizedBox(height: 12),
+
             Text(
-              "Iterations: ${bot["iterations"]}",
+              "Iteration: ${bot["iteration"]}",
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: 16),
+
+            const SizedBox(height: 12),
             SizedBox(
               height: gridHeight,
               child: GridView.count(
@@ -142,6 +144,41 @@ class BotPage extends StatelessWidget {
                 }),
               ),
             ),
+            const SizedBox(height: 16),
+
+            Divider(color: Theme.of(context).dividerColor),
+
+            const SizedBox(height: 16),
+
+            Text(
+              "Description",
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 8),
+
+            Text(
+              bot["description"],
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+
+            Divider(color: Theme.of(context).dividerColor),
+
+            const SizedBox(height: 16),
+
+            Text(
+              "Statistics",
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 8),
+
+            Text("Notes", style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),
       ),

@@ -5,10 +5,10 @@ class BotsController extends GetxController {
     {
       "id": "slave-0",
       "symbol": "BTCUSDT",
-      "description": "ID 0",
+      "description": "Trading bot combining RSI, Squeeze, ADX, and Heikin-Ashi to detect clear trends, breakouts, and reliable signals, optimizing entries, exits, and risk management automatically.",
       "enabled": true.obs,
       "live": true.obs,
-      "iterations": 53,
+      "iteration": 53,
       "info": [
         {"title": "Runtime", "subtitle": "3d 8h 55m"},
         {"title": "Status", "subtitle": "Running"},
@@ -24,10 +24,10 @@ class BotsController extends GetxController {
     {
       "id": "slave-1",
       "symbol": "ADAUSDT",
-      "description": "ID 1",
+      "description": "Trading bot combining RSI, Squeeze, ADX, and Heikin-Ashi to detect clear trends, breakouts, and reliable signals, optimizing entries, exits, and risk management automatically.",
       "enabled": true.obs,
       "live": true.obs,
-      "iterations": 24,
+      "iteration": 24,
       "info": [
         {"title": "Runtime", "subtitle": "3d 8h 55m"},
         {"title": "Status", "subtitle": "Stopped"},
@@ -43,10 +43,10 @@ class BotsController extends GetxController {
     {
       "id": "slave-2",
       "symbol": "ETHUSDT",
-      "description": "ID 2",
+      "description": "Trading bot combining RSI, Squeeze, ADX, and Heikin-Ashi to detect clear trends, breakouts, and reliable signals, optimizing entries, exits, and risk management automatically.",
       "enabled": true.obs,
       "live": true.obs,
-      "iterations": 17,
+      "iteration": 17,
       "info": [
         {"title": "Runtime", "subtitle": "3d 8h 55m"},
         {"title": "Status", "subtitle": "Error"},
