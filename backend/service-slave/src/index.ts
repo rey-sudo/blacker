@@ -24,6 +24,8 @@ const root = path.join(__dirname, '..');
 
 interface BotState {
   id: string
+  iteration: number
+  description: string
   status: 'started' | 'stopped' | 'error' | string
   symbol: string
   symbol_info: FuturesSymbolExchangeInfo | undefined
@@ -35,10 +37,8 @@ interface BotState {
   margin_type: string
   created_at: number
   updated_at: number
-  R0: boolean
-  R1: boolean
-  R2: boolean
-  R3: boolean
+  rule_labels: string[],
+  rule_values: boolean[]
 }
 
 function startHttpServer(bot: SlaveBot) {
@@ -112,6 +112,8 @@ class SlaveBot {
 
     this.state = {
       id: SLAVE_NAME,
+      iteration: 0,
+      description: "description text",
       status: 'started',
       symbol: SYMBOL,
       symbol_info: undefined,
@@ -123,10 +125,8 @@ class SlaveBot {
       margin_type: MARGIN_TYPE,
       created_at: Date.now(),
       updated_at: Date.now(),
-      R0: false,
-      R1: false,
-      R2: false,
-      R3: false
+      rule_labels: ["rsi", "squeeze", "adx", "heikin"],
+      rule_values: [false, false, false, false]
     };
 
     this.config = {
@@ -223,6 +223,8 @@ class SlaveBot {
 
       await connection.commit();
 
+      this.state.iteration++
+
       console.log("✅ State saved")
     } catch (err: any) {
       await connection?.rollback();
@@ -255,45 +257,57 @@ class SlaveBot {
     while (true) {
       try {
         await this.save();
- 
-        if (!this.state.R0) {
-          const klines = await this.getKlines(this.state.symbol, '4h', 100);
-          this.state.R0 = await relativeStrengthIndex({ klines, mark: 5, filename: 'rsi.png', show: this.config.show_plots });
 
-          if (!this.state.R0) {
+        if (!this.state.rule_values[0]) {
+          const klines = await this.getKlines(this.state.symbol, '4h', 100);
+
+          const rsiParams = { klines, mark: 5, filename: `${this.state.rule_labels[0]}.png`, show: this.config.show_plots }
+
+          this.state.rule_values[0] = await relativeStrengthIndex(rsiParams);
+
+          if (!this.state.rule_values[0]) {
             console.log("🕒 Sleeping");
             await sleep(300_000);
             continue;
           }
         }
 
-        if (!this.state.R1) {
+        if (!this.state.rule_values[1]) {
           const klines = await this.getKlines(this.state.symbol, '4h', 200);
-          this.state.R1 = await squeezeMomentumIndicator({ klines, mark: 3, filename: 'squeeze.png', show: this.config.show_plots });
 
-          if (!this.state.R1) {
+          const squeezeParams = { klines, mark: 3, filename: `${this.state.rule_labels[1]}.png`, show: this.config.show_plots }
+
+          this.state.rule_values[1] = await squeezeMomentumIndicator(squeezeParams);
+
+          if (!this.state.rule_values[1]) {
             console.log("🕒 Sleeping");
             await sleep(300_000);
             continue;
           }
         }
 
-        if (!this.state.R2) {
+        if (!this.state.rule_values[2]) {
           const klines = await this.getKlines(this.state.symbol, '4h', 100);
-          this.state.R2 = await averageDirectionalIndex({ klines, mark: 4, filename: 'adx.png', show: this.config.show_plots });
 
-          if (!this.state.R2) {
+          const adxParams = { klines, mark: 4, filename: `${this.state.rule_labels[2]}.png`, show: this.config.show_plots }
+
+          this.state.rule_values[2] = await averageDirectionalIndex(adxParams);
+
+          if (!this.state.rule_values[2]) {
             console.log("🕒 Sleeping");
             await sleep(300_000);
             continue;
           }
         }
 
-        if (!this.state.R3) {
+        if (!this.state.rule_values[3]) {
           const klines = await this.getKlines(this.state.symbol, '2h', 200);
-          this.state.R3 = await heikinAshiBars({ klines, mark: 3, filename: 'heikin.png', show: this.config.show_plots });
 
-          if (!this.state.R3) {
+          const heikinParams = { klines, mark: 3, filename: `${this.state.rule_labels[3]}.png`, show: this.config.show_plots }
+
+          this.state.rule_values[3] = await heikinAshiBars(heikinParams);
+
+          if (!this.state.rule_values[3]) {
             console.log("🕒 Sleeping");
             await sleep(300_000);
             continue;
@@ -414,7 +428,7 @@ class SlaveBot {
     await this.save();
 
     //////////////////////////////////////////////////////////////////////////////// FINISHED
-    
+
     console.log("🕒 Sleeping");
     await sleep(86_400_000)
   }

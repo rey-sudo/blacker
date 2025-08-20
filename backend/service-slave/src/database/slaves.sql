@@ -13,8 +13,8 @@ create table if not exists slaves(
   margin_type VARCHAR(50) NOT NULL,
   created_at BIGINT UNSIGNED NOT NULL,
   updated_at BIGINT UNSIGNED NOT NULL,
-  rule_values JSON NOT NULL, 
   rule_labels JSON NOT NULL,  
+  rule_values JSON NOT NULL, 
   primary key(id)
 ) ENGINE=InnoDB;
 
