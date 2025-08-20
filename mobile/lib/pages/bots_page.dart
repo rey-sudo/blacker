@@ -1,3 +1,4 @@
+import 'package:blacker/pages/bot_page.dart';
 import 'package:blacker/widgets/pulsating_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -206,10 +207,7 @@ class BotsPage extends StatelessWidget {
                       final actions = bot["info"];
 
                       return InkWell(
-                        onTap: () => print(
-                          "${bot["id"]} - ${actions[i]["title"]} presionado",
-                          //redirect to bot_page, bot description, info, etc.
-                        ),
+                        onTap: () => Get.to(() => BotPage(bot: bot)),
                         child: Align(
                           alignment: alignment,
                           child: Column(
