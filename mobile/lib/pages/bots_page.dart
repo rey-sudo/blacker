@@ -117,8 +117,8 @@ class BotsPage extends StatelessWidget {
                     contentPadding: EdgeInsets.zero,
                     leading: SvgPicture.asset(
                       'assets/icons/binance.svg',
-                      width: 32,
-                      height: 32,
+                      width: 35,
+                      height: 35,
                     ),
                     title: Text(
                       bot["symbol"] ?? "Nombre desconocido",
@@ -130,7 +130,7 @@ class BotsPage extends StatelessWidget {
                     subtitle: Row(
                       children: [
                         Text(
-                          bot["description"] ?? "Sin descripción",
+                          bot["id"] ?? "Sin descripción",
                           style: Theme.of(
                             context,
                           ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
