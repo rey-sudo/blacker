@@ -84,7 +84,7 @@ class BotsPage extends StatelessWidget {
   Widget _buildBotList(List bots, BotsController controller) {
     final actions = [
       {"title": "Runtime", "subtitle": "3d 8h 55m"},
-      {"title": "Status", "subtitle": "Running"},
+      {"title": "Status", "subtitle": "Stopped"},
       {"title": "Rules", "subtitle": "3/4"},
       {"title": "Executed", "subtitle": "True"},
       {"title": "Finished", "subtitle": "False"},
@@ -147,8 +147,7 @@ class BotsPage extends StatelessWidget {
                       Obx(
                         () => PulsatingIndicator(
                           isActive:
-                              bot["live"]?.value ??
-                              false, // este valor cambia
+                              bot["live"]?.value ?? false, // este valor cambia
                           size: 6,
                         ),
                       ),
@@ -234,7 +233,14 @@ class BotsPage extends StatelessWidget {
                               Text(
                                 actions[i]["subtitle"]!,
                                 style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: Colors.black),
+                                    ?.copyWith(
+                                      color:
+                                          actions[i]["title"] == "Status" &&
+                                              actions[i]["subtitle"] ==
+                                                  "Stopped"
+                                          ? Colors.red
+                                          : Colors.black,
+                                    ),
                               ),
                             ],
                           ),
