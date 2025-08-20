@@ -122,7 +122,6 @@ class BotsPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ListTile(
-                  dense: true,
                   contentPadding: EdgeInsets.zero,
                   leading: SvgPicture.asset(
                     'assets/icons/binance.svg',

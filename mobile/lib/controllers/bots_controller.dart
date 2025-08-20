@@ -1,28 +1,29 @@
 import 'package:get/get.dart';
 
 class BotsController extends GetxController {
-
   var bots = <Map<String, dynamic>>[
     {
       "name": "BTCUSDT",
       "description": "ID 0",
+      "status": 'Running',
       "enabled": true.obs,
-      "live": true.obs
+      "live": true.obs,
     },
     {
       "name": "ADAUSDT",
       "description": "ID 1",
+      "status": 'Error',
       "enabled": true.obs,
-      "live": true.obs
+      "live": true.obs,
     },
     {
       "name": "ETHUSDT",
       "description": "ID 2",
+      "status": 'Stopped',
       "enabled": true.obs,
-      "live": true.obs
-    }
+      "live": true.obs,
+    },
   ].obs;
-
 
   void agregarBot(Map<String, String> bot) {
     bots.add(bot);
