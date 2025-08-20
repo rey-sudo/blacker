@@ -148,7 +148,7 @@ class BotsPage extends StatelessWidget {
                       Obx(
                         () => PulsatingIndicator(
                           isActive:
-                              bot["enabled"]?.value ??
+                              bot["live"]?.value ??
                               false, // este valor cambia
                           size: 6,
                         ),

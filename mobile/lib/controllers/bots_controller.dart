@@ -7,82 +7,20 @@ class BotsController extends GetxController {
       "name": "BTCUSDT",
       "description": "ID 0",
       "enabled": true.obs,
+      "live": true.obs
     },
     {
       "name": "ADAUSDT",
       "description": "ID 1",
       "enabled": true.obs,
+      "live": true.obs
     },
     {
       "name": "ETHUSDT",
       "description": "ID 2",
       "enabled": true.obs,
-    },
-    {
-      "name": "LTEUSDT",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
-    {
-      "name": "BNBUSDT",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
-    {
-      "name": "Bot Gamma",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
-    {
-      "name": "Bot Gamma",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
-    {
-      "name": "Bot Gamma",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
-    {
-      "name": "Bot Gamma",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
-    {
-      "name": "Bot Gamma",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
-    {
-      "name": "Bot Gamma",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
-    {
-      "name": "Bot Gamma",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
-    {
-      "name": "Bot Gamma",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
-    {
-      "name": "Bot Gamma",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
-    {
-      "name": "Bot Gamma",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
-    {
-      "name": "Bot Gamma",
-      "description": "Este es el bot número 3",
-      "enabled": true.obs,
-    },
+      "live": true.obs
+    }
   ].obs;
 
 
