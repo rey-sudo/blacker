@@ -36,7 +36,7 @@ class BotPage extends StatelessWidget {
               labelStyle: Theme.of(context).textTheme.bodyMedium,
               tabs: const [
                 Tab(text: "Overview"),
-                Tab(text: "Trades"),
+                Tab(text: "Logs"),
                 Tab(text: "Config"),
               ],
             ),
@@ -54,17 +54,18 @@ class BotPage extends StatelessWidget {
                   Obx(
                     () => Row(
                       children: [
-                        SvgPicture.asset(
-                          'assets/icons/binance.svg',
-                          width: 20.w,
-                          height: 20.w,
-                        ),
-                        SizedBox(width: 12.w),
                         Text(
                           bot["symbol"],
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
+                        SizedBox(width: 12.w),
+                        SvgPicture.asset(
+                          'assets/icons/binance.svg',
+                          width: 20.w,
+                          height: 20.w,
+                        ),
+
                         const Spacer(),
                         Row(
                           children: [
@@ -83,7 +84,7 @@ class BotPage extends StatelessWidget {
                     ),
                   ),
 
-                  SizedBox(height: 12.h),
+                  SizedBox(height: 24.h),
 
                   Text(
                     "Iteration: ${bot["iteration"]}",
