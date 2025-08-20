@@ -166,7 +166,7 @@ class BotPage extends StatelessWidget {
 
                   Divider(color: Theme.of(context).dividerColor),
 
-                  SizedBox(height: 16.h),
+                  SizedBox(height: 8.h),
 
                   Text(
                     "Description",
