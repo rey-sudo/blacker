@@ -33,7 +33,7 @@ class BotPage extends StatelessWidget {
               unselectedLabelColor: Colors.grey,
               indicatorColor: Theme.of(context).primaryColor,
               dividerColor: Theme.of(context).dividerColor,
-              labelStyle: TextStyle(fontSize: 14.sp),
+              labelStyle: Theme.of(context).textTheme.bodyMedium,
               tabs: const [
                 Tab(text: "Overview"),
                 Tab(text: "Trades"),
@@ -44,7 +44,6 @@ class BotPage extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            /// -------- OVERVIEW TAB --------
             SingleChildScrollView(
               padding: EdgeInsets.all(16.w),
               child: Column(
@@ -52,22 +51,19 @@ class BotPage extends StatelessWidget {
                 children: [
                   SizedBox(height: 12.h),
 
-                  /// HEADER
                   Obx(
                     () => Row(
                       children: [
-                        Text(
-                          bot["symbol"],
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16.sp,
-                              ),
-                        ),
-                        SizedBox(width: 6.w),
                         SvgPicture.asset(
                           'assets/icons/binance.svg',
                           width: 20.w,
                           height: 20.w,
+                        ),
+                        SizedBox(width: 12.w),
+                        Text(
+                          bot["symbol"],
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const Spacer(),
                         Row(
@@ -79,9 +75,7 @@ class BotPage extends StatelessWidget {
                             SizedBox(width: 6.w),
                             Text(
                               bot["live"]?.value == true ? "Live" : "Offline",
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontSize: 12.sp,
-                                  ),
+                              style: Theme.of(context).textTheme.bodyMedium,
                             ),
                           ],
                         ),
@@ -93,14 +87,11 @@ class BotPage extends StatelessWidget {
 
                   Text(
                     "Iteration: ${bot["iteration"]}",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontSize: 12.sp,
-                        ),
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
 
                   SizedBox(height: 12.h),
 
-                  /// GRID INFO (corregido, sin altura fija)
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -134,7 +125,8 @@ class BotPage extends StatelessWidget {
                       final subtitle = actions[i]["subtitle"] ?? "";
 
                       return InkWell(
-                        onTap: () => debugPrint("${bot["id"]} - $title presionado"),
+                        onTap: () =>
+                            debugPrint("${bot["id"]} - $title presionado"),
                         child: Align(
                           alignment: alignment,
                           child: Column(
@@ -143,19 +135,19 @@ class BotPage extends StatelessWidget {
                             children: [
                               Text(
                                 title,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      fontSize: 11.sp,
-                                      color: Colors.grey,
-                                    ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: Colors.grey),
                               ),
                               SizedBox(height: 2.h),
                               Text(
                                 subtitle,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      fontSize: 12.sp,
-                                      color: (title == "Status" && subtitle == "Stopped") ||
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color:
+                                          (title == "Status" &&
+                                                  subtitle == "Stopped") ||
                                               subtitle == "Error"
                                           ? Colors.red
                                           : Colors.black,
@@ -177,36 +169,31 @@ class BotPage extends StatelessWidget {
                   Text(
                     "Description",
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14.sp,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
 
                   SizedBox(height: 8.h),
 
                   Text(
                     bot["description"],
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontSize: 12.sp,
-                        ),
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
               ),
             ),
 
-            /// -------- TRADES TAB --------
             Center(
               child: Text(
                 "Trades history...",
-                style: TextStyle(fontSize: 14.sp),
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
 
-            /// -------- CONFIG TAB --------
             Center(
               child: Text(
                 "Configuration details...",
-                style: TextStyle(fontSize: 14.sp),
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
           ],

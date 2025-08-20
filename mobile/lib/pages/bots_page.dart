@@ -3,6 +3,7 @@ import 'package:blacker/widgets/pulsating_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../controllers/bots_controller.dart';
 
 class BotsPage extends StatelessWidget {
@@ -85,9 +86,6 @@ class BotsPage extends StatelessWidget {
   Widget _buildBotList(List bots, BotsController controller) {
     final infoLength = bots[0]["info"].length;
     final crossAxisCount = 3;
-    final tileHeight = 40.0;
-    final rowCount = (infoLength / crossAxisCount).ceil();
-    final gridHeight = rowCount * tileHeight;
 
     return ListView.separated(
       padding: const EdgeInsets.all(12),
@@ -175,14 +173,13 @@ class BotsPage extends StatelessWidget {
                     ),
                   ),
                   SizedBox(
-                    height: gridHeight,
                     child: GridView.count(
-                      shrinkWrap: true,
+                      shrinkWrap: true, // el grid calcula su propio alto
                       physics: const NeverScrollableScrollPhysics(),
                       crossAxisCount: crossAxisCount,
                       childAspectRatio: 3 / 1,
-                      crossAxisSpacing: 4,
-                      mainAxisSpacing: 4,
+                      crossAxisSpacing: 4.w, // usamos ScreenUtil aquí
+                      mainAxisSpacing: 4.h, // y aquí también
                       children: List.generate(infoLength, (i) {
                         int colPosition = i % crossAxisCount;
 
@@ -218,7 +215,7 @@ class BotsPage extends StatelessWidget {
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(color: Colors.grey),
                                 ),
-                                const SizedBox(height: 2),
+                                SizedBox(height: 2.h),
                                 Text(
                                   actions[i]["subtitle"]!,
                                   style: Theme.of(context).textTheme.bodySmall
