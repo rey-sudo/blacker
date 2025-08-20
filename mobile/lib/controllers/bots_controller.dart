@@ -6,7 +6,7 @@ class BotsController extends GetxController {
       "id": "slave-0",
       "symbol": "BTCUSDT",
       "description":
-          "Trading bot combining RSI, Squeeze, ADX, and Heikin-Ashi to detect clear trends automatically.",
+          "Trading bot that combines RSI, Squeeze, ADX and Heikin-Ashi to detect bullish trends, buy and sell with stop loss.",
       "enabled": true.obs,
       "live": true.obs,
       "iteration": 53.obs,

@@ -1,5 +1,7 @@
 create table if not exists slaves(
   id VARCHAR(100) NOT NULL,
+  iteration INT UNSIGNED NOT NULL,
+  description VARCHAR(200) NOT NULL,
   status VARCHAR(100) NOT NULL,
   symbol VARCHAR(50) NOT NULL,
   symbol_info JSON NOT NULL,
@@ -11,12 +13,8 @@ create table if not exists slaves(
   margin_type VARCHAR(50) NOT NULL,
   created_at BIGINT UNSIGNED NOT NULL,
   updated_at BIGINT UNSIGNED NOT NULL,
-  R0 BOOLEAN NOT NULL,
-  R1 BOOLEAN NOT NULL,
-  R2 BOOLEAN NOT NULL,
-  R3 BOOLEAN NOT NULL,
+  rule_values JSON NOT NULL, 
+  rule_labels JSON NOT NULL,  
   primary key(id)
 ) ENGINE=InnoDB;
-
---description iteration rules[] 
 
