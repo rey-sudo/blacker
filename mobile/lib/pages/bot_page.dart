@@ -16,9 +16,18 @@ class BotPage extends StatelessWidget {
     final gridHeight = rowCount * tileHeight;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(bot["symbol"] ?? "Bot"),
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.white,
+        elevation: 0, 
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1.0), 
+          child: Container(
+            color: Theme.of(context).dividerColor,
+            height: 1.0,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -30,31 +39,34 @@ class BotPage extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
-            Obx(() => Row(
-                  children: [
-                    Text(
-                      "Status: ",
-                      style: Theme.of(context).textTheme.titleMedium,
+            Obx(
+              () => Row(
+                children: [
+                  Text(
+                    "Status: ",
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Text(
+                    bot["enabled"]?.value == true ? "Active" : "Inactive",
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: bot["enabled"]?.value == true
+                          ? Colors.green
+                          : Colors.red,
                     ),
-                    Text(
-                      bot["enabled"]?.value == true ? "Active" : "Inactive",
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: bot["enabled"]?.value == true
-                              ? Colors.green
-                              : Colors.red),
-                    ),
-                    const SizedBox(width: 12),
-                    PulsatingIndicator(
-                      isActive: bot["live"]?.value ?? false,
-                      size: 10,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      bot["live"]?.value == true ? "Live" : "Offline",
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                )),
+                  ),
+                  const SizedBox(width: 12),
+                  PulsatingIndicator(
+                    isActive: bot["live"]?.value ?? false,
+                    size: 10,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    bot["live"]?.value == true ? "Live" : "Offline",
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 12),
             Text(
               "Iterations: ${bot["iterations"]}",
@@ -95,7 +107,8 @@ class BotPage extends StatelessWidget {
 
                   return InkWell(
                     onTap: () => print(
-                        "${bot["id"]} - ${actions[i]["title"]} presionado"),
+                      "${bot["id"]} - ${actions[i]["title"]} presionado",
+                    ),
                     child: Align(
                       alignment: alignment,
                       child: Column(
@@ -104,18 +117,20 @@ class BotPage extends StatelessWidget {
                         children: [
                           Text(
                             actions[i]["title"]!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(color: Colors.grey),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             actions[i]["subtitle"]!,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: actions[i]["title"] == "Status" &&
-                                          actions[i]["subtitle"] == "Stopped" ||
-                                      actions[i]["subtitle"] == "Error"
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color:
+                                      actions[i]["title"] == "Status" &&
+                                              actions[i]["subtitle"] ==
+                                                  "Stopped" ||
+                                          actions[i]["subtitle"] == "Error"
                                       ? Colors.red
                                       : Colors.black,
                                 ),
