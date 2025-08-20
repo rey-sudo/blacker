@@ -20,6 +20,7 @@ class MyApp extends StatelessWidget {
           title: 'Blacker',
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
+            primaryColor: Colors.blue,
             fontFamily: 'Inter',
             primarySwatch: Colors.blue,
             dividerColor: Colors.grey.withAlpha(50),

@@ -34,6 +34,7 @@ class BotPage extends StatelessWidget {
           children: [
             const SizedBox(height: 12),
 
+            /// HEADER
             Obx(
               () => Row(
                 children: [
@@ -49,7 +50,7 @@ class BotPage extends StatelessWidget {
                     width: 20,
                     height: 20,
                   ),
-                  const Spacer(), 
+                  const Spacer(),
                   Row(
                     children: [
                       PulsatingIndicator(
@@ -75,6 +76,8 @@ class BotPage extends StatelessWidget {
             ),
 
             const SizedBox(height: 12),
+
+            /// GRID INFO
             SizedBox(
               height: gridHeight,
               child: GridView.count(
@@ -106,11 +109,11 @@ class BotPage extends StatelessWidget {
                   }
 
                   final actions = bot["info"];
+                  final title = actions[i]["title"] ?? "";
+                  final subtitle = actions[i]["subtitle"] ?? "";
 
                   return InkWell(
-                    onTap: () => print(
-                      "${bot["id"]} - ${actions[i]["title"]} presionado",
-                    ),
+                    onTap: () => print("${bot["id"]} - $title presionado"),
                     child: Align(
                       alignment: alignment,
                       child: Column(
@@ -118,21 +121,20 @@ class BotPage extends StatelessWidget {
                         crossAxisAlignment: crossAlign,
                         children: [
                           Text(
-                            actions[i]["title"]!,
+                            title,
                             style: Theme.of(
                               context,
                             ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            actions[i]["subtitle"]!,
+                            subtitle,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color:
-                                      actions[i]["title"] == "Status" &&
-                                              actions[i]["subtitle"] ==
-                                                  "Stopped" ||
-                                          actions[i]["subtitle"] == "Error"
+                                      (title == "Status" &&
+                                              subtitle == "Stopped") ||
+                                          subtitle == "Error"
                                       ? Colors.red
                                       : Colors.black,
                                 ),
@@ -144,6 +146,7 @@ class BotPage extends StatelessWidget {
                 }),
               ),
             ),
+
             const SizedBox(height: 16),
 
             Divider(color: Theme.of(context).dividerColor),
@@ -163,22 +166,42 @@ class BotPage extends StatelessWidget {
               bot["description"],
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-            const SizedBox(height: 16),
-
-            Divider(color: Theme.of(context).dividerColor),
-
-            const SizedBox(height: 16),
-
-            Text(
-              "Statistics",
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-            ),
 
             const SizedBox(height: 8),
 
-            Text("Notes", style: Theme.of(context).textTheme.bodyMedium),
+            DefaultTabController(
+              length: 3,
+              child: Column(
+                children: [
+                  TabBar(
+                    labelColor: Theme.of(context).primaryColor,
+                    dividerColor: Theme.of(context).dividerColor,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: Theme.of(context).primaryColor,
+                    labelStyle: Theme.of(context).textTheme.bodySmall,
+                    unselectedLabelStyle: Theme.of(context).textTheme.bodySmall,
+                    tabs: const [
+                      Tab(icon: Icon(Icons.show_chart), text: "Performance"),
+                      Tab(
+                        icon: Icon(Icons.account_balance_wallet),
+                        text: "Trades",
+                      ),
+                      Tab(icon: Icon(Icons.settings), text: "Config"),
+                    ],
+                  ),
+                  SizedBox(
+                    height: 200, // altura del contenido
+                    child: const TabBarView(
+                      children: [
+                        Center(child: Text("Performance stats...")),
+                        Center(child: Text("Trades history...")),
+                        Center(child: Text("Configuration details...")),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
