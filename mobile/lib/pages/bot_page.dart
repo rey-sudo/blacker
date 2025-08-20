@@ -181,23 +181,14 @@ class BotPage extends StatelessWidget {
                     bot["description"],
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  
+
                   SizedBox(height: 8.h),
 
                   Divider(color: Theme.of(context).dividerColor),
 
                   SizedBox(height: 8.h),
 
-                  ImageGrid(
-                    images: [
-                      'https://picsum.photos/id/237/400/600',
-                      'https://picsum.photos/id/238/400/600',
-                      'https://picsum.photos/id/239/400/600',
-                      'https://picsum.photos/id/240/400/600',
-                      'https://picsum.photos/id/241/400/600',
-                      'https://picsum.photos/id/242/400/600',
-                    ],
-                  ),
+                  ImageGrid(images: bot["images"]),
                 ],
               ),
             ),

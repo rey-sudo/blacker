@@ -175,12 +175,12 @@ class BotsPage extends StatelessWidget {
                   ),
                   SizedBox(
                     child: GridView.count(
-                      shrinkWrap: true, // el grid calcula su propio alto
+                      shrinkWrap: true, 
                       physics: const NeverScrollableScrollPhysics(),
                       crossAxisCount: crossAxisCount,
                       childAspectRatio: 3 / 1,
-                      crossAxisSpacing: 4.w, // usamos ScreenUtil aquí
-                      mainAxisSpacing: 4.h, // y aquí también
+                      crossAxisSpacing: 4.w, 
+                      mainAxisSpacing: 4.h,
                       children: List.generate(infoLength, (i) {
                         int colPosition = i % crossAxisCount;
 
