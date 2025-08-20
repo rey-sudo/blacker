@@ -148,7 +148,7 @@ class BotsPage extends StatelessWidget {
                         () => PulsatingIndicator(
                           isActive:
                               bot["live"]?.value ?? false, // este valor cambia
-                          size: 6,
+                          size: 5,
                         ),
                       ),
                     ],
