@@ -150,7 +150,7 @@ class BotsPage extends StatelessWidget {
                           isActive:
                               bot["enabled"]?.value ??
                               false, // este valor cambia
-                          size: 8,
+                          size: 6,
                         ),
                       ),
                     ],
