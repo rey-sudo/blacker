@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 class BotsController extends GetxController {
   var bots = <Map<String, dynamic>>[
     {
+      "id": "slave-0",
       "name": "BTCUSDT",
       "description": "ID 0",
       "enabled": true.obs,
@@ -20,6 +21,7 @@ class BotsController extends GetxController {
       ],
     },
     {
+      "id": "slave-1",
       "name": "ADAUSDT",
       "description": "ID 1",
       "enabled": true.obs,
@@ -37,6 +39,7 @@ class BotsController extends GetxController {
       ],
     },
     {
+      "id": "slave-2",
       "name": "ETHUSDT",
       "description": "ID 2",
       "enabled": true.obs,

@@ -207,7 +207,8 @@ class BotsPage extends StatelessWidget {
 
                       return InkWell(
                         onTap: () => print(
-                          "${bot["name"]} - ${actions[i]["title"]} presionado",
+                          "${bot["id"]} - ${actions[i]["title"]} presionado",
+                          //redirect to bot_page, bot description, info, etc.
                         ),
                         child: Align(
                           alignment: alignment,
