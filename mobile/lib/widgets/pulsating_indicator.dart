@@ -28,7 +28,7 @@ class _PulsatingIndicatorState extends State<PulsatingIndicator> with SingleTick
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
 
-    // Se usa un valor fijo, luego se multiplica por widget.size en build
+
     _haloAnimation = Tween<double>(begin: 0.0, end: 24.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
@@ -48,12 +48,12 @@ class _PulsatingIndicatorState extends State<PulsatingIndicator> with SingleTick
       child: AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
-          double haloSize = _haloAnimation.value * (widget.size / 12); // Escalable según tamaño
+          double haloSize = _haloAnimation.value * (widget.size / 12); 
 
           return Stack(
             alignment: Alignment.center,
             children: [
-              // Halo pulsante semi-transparente
+
               Container(
                 width: widget.size + haloSize,
                 height: widget.size + haloSize,
@@ -64,7 +64,7 @@ class _PulsatingIndicatorState extends State<PulsatingIndicator> with SingleTick
                       : Colors.red.withAlpha(20),
                 ),
               ),
-              // Círculo central pulsante
+
               Transform.scale(
                 scale: _scaleAnimation.value,
                 child: Container(
@@ -75,8 +75,8 @@ class _PulsatingIndicatorState extends State<PulsatingIndicator> with SingleTick
                     color: widget.isActive ? Colors.green : Colors.red,
                     boxShadow: [
                       BoxShadow(
-                        color: (widget.isActive ? Colors.green : Colors.red).withOpacity(0.4),
-                        blurRadius: 8,
+                        color: (widget.isActive ? Colors.green : Colors.red).withAlpha(40),
+                        blurRadius: 6,
                         spreadRadius: 1,
                       ),
                     ],
