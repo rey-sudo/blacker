@@ -32,8 +32,8 @@ class BotsPage extends StatelessWidget {
                   labelStyle: Theme.of(context).textTheme.bodyMedium,
                   tabs: const [
                     Tab(text: "All Bots"),
-                    Tab(text: "Binance"),
-                    Tab(text: "ByBit"),
+                    Tab(text: "Live"),
+                    Tab(text: "Stopped"),
                   ],
                 ),
               ),
@@ -42,6 +42,7 @@ class BotsPage extends StatelessWidget {
             Expanded(
               child: TabBarView(
                 children: [
+                  // All Bots
                   Obx(() {
                     if (controller.bots.isEmpty) {
                       return Center(
@@ -56,24 +57,26 @@ class BotsPage extends StatelessWidget {
                     return _buildBotList(controller.bots, controller);
                   }),
 
+                  // Live Bots
                   Obx(() {
-                    final activos = controller.bots
-                        .where((bot) => bot["enabled"]?.value == true)
+                    final liveBots = controller.bots
+                        .where((bot) => bot["live"] == true)
                         .toList();
-                    if (activos.isEmpty) {
-                      return const Center(child: Text("No bots available"));
+                    if (liveBots.isEmpty) {
+                      return const Center(child: Text("No live bots available"));
                     }
-                    return _buildBotList(activos, controller);
+                    return _buildBotList(liveBots, controller);
                   }),
 
+                  // Stopped Bots
                   Obx(() {
-                    final inactivos = controller.bots
-                        .where((bot) => bot["enabled"]?.value == false)
+                    final stoppedBots = controller.bots
+                        .where((bot) => bot["live"] == false)
                         .toList();
-                    if (inactivos.isEmpty) {
-                      return const Center(child: Text("No bots available"));
+                    if (stoppedBots.isEmpty) {
+                      return const Center(child: Text("No stopped bots available"));
                     }
-                    return _buildBotList(inactivos, controller);
+                    return _buildBotList(stoppedBots, controller);
                   }),
                 ],
               ),
@@ -85,7 +88,9 @@ class BotsPage extends StatelessWidget {
   }
 
   Widget _buildBotList(List bots, BotsController controller) {
-    final infoLength = bots[0]["info"].length;
+    if (bots.isEmpty) return const Center(child: Text("No bots available"));
+    
+    final infoLength = bots[0]["info"]?.length ?? 0;
     final crossAxisCount = 3;
 
     return ListView.separated(
@@ -135,109 +140,107 @@ class BotsPage extends StatelessWidget {
                           ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                         ),
                         const SizedBox(width: 8),
-                        Obx(
-                          () => PulsatingIndicator(
-                            isActive: bot["live"]?.value ?? false,
-                            size: 6,
-                          ),
+                        PulsatingIndicator(
+                          isActive: bot["live"] ?? false,
+                          size: 6,
                         ),
                       ],
                     ),
-                    trailing: Obx(
-                      () => Switch(
-                        value: bot["enabled"]?.value ?? false,
-                        onChanged: (value) {
-                         
-                        },
-                        activeThumbColor: Colors.white,
-                        activeTrackColor: Colors.grey.withAlpha(40),
-                        inactiveThumbColor: Colors.grey,
-                        inactiveTrackColor: Colors.grey.withAlpha(100),
-                      ),
+                    trailing: Switch(
+                      value: bot["live"] ?? false, 
+                      onChanged: (value) {
+                        print('Toggle bot ${bot["id"]} to $value');
+                      },
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: Colors.grey.withAlpha(40),
+                      inactiveThumbColor: Colors.grey,
+                      inactiveTrackColor: Colors.grey.withAlpha(100),
                     ),
                   ),
                   ListTile(
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                     title: Text(
-                      'PnL (USD)',
+                      'Iteration',
                       style: Theme.of(
                         context,
                       ).textTheme.bodySmall?.copyWith(color: Colors.grey),
                     ),
                     subtitle: Text(
-                      '\$1,250.50',
+                      '${bot["iteration"] ?? 0}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.green,
+                        color: Colors.blue,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  SizedBox(
-                    child: GridView.count(
-                      shrinkWrap: true, 
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: crossAxisCount,
-                      childAspectRatio: 3 / 1,
-                      crossAxisSpacing: 4.w, 
-                      mainAxisSpacing: 4.h,
-                      children: List.generate(infoLength, (i) {
-                        int colPosition = i % crossAxisCount;
+                  if (bot["info"] != null && bot["info"].isNotEmpty)
+                    SizedBox(
+                      child: GridView.count(
+                        shrinkWrap: true, 
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: crossAxisCount,
+                        childAspectRatio: 3 / 1,
+                        crossAxisSpacing: 4.w, 
+                        mainAxisSpacing: 4.h,
+                        children: List.generate(infoLength, (i) {
+                          int colPosition = i % crossAxisCount;
 
-                        Alignment alignment;
-                        CrossAxisAlignment crossAlign;
+                          Alignment alignment;
+                          CrossAxisAlignment crossAlign;
 
-                        switch (colPosition) {
-                          case 0:
-                          case 1:
-                            alignment = Alignment.centerLeft;
-                            crossAlign = CrossAxisAlignment.start;
-                            break;
-                          case 2:
-                            alignment = Alignment.centerRight;
-                            crossAlign = CrossAxisAlignment.end;
-                            break;
-                          default:
-                            alignment = Alignment.centerLeft;
-                            crossAlign = CrossAxisAlignment.start;
-                        }
+                          switch (colPosition) {
+                            case 0:
+                            case 1:
+                              alignment = Alignment.centerLeft;
+                              crossAlign = CrossAxisAlignment.start;
+                              break;
+                            case 2:
+                              alignment = Alignment.centerRight;
+                              crossAlign = CrossAxisAlignment.end;
+                              break;
+                            default:
+                              alignment = Alignment.centerLeft;
+                              crossAlign = CrossAxisAlignment.start;
+                          }
 
-                        final actions = bot["info"];
+                          final actions = bot["info"];
 
-                        return InkWell(
-                          child: Align(
-                            alignment: alignment,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: crossAlign,
-                              children: [
-                                Text(
-                                  actions[i]["title"]!,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(color: Colors.grey),
-                                ),
-                                SizedBox(height: 2.h),
-                                Text(
-                                  actions[i]["subtitle"]!,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color:
-                                            actions[i]["title"] == "Status" &&
-                                                    actions[i]["subtitle"] ==
-                                                        "Stopped" ||
-                                                actions[i]["subtitle"] ==
-                                                    "Error"
-                                            ? Colors.red
-                                            : Colors.black,
-                                      ),
-                                ),
-                              ],
+                          return InkWell(
+                            child: Align(
+                              alignment: alignment,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: crossAlign,
+                                children: [
+                                  Text(
+                                    actions[i]["title"] ?? "",
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(color: Colors.grey),
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Text(
+                                    actions[i]["subtitle"] ?? "",
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color:
+                                              actions[i]["title"] == "Status" &&
+                                                      (actions[i]["subtitle"] == "stopped" ||
+                                                       actions[i]["subtitle"] == "error")
+                                              ? Colors.red
+                                              : actions[i]["title"] == "Status" &&
+                                                      actions[i]["subtitle"] == "started"
+                                              ? Colors.green
+                                              : Colors.black,
+                                        ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      }),
+                          );
+                        }),
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),

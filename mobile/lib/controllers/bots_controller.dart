@@ -1,81 +1,55 @@
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:async';
 
 class BotsController extends GetxController {
-  var bots = <Map<String, dynamic>>[
-    {
-      "id": "slave-0",
-      "symbol": "BTCUSDT",
-      "description":
-          "Trading bot that combines RSI, Squeeze, ADX and Heikin-Ashi to detect bullish trends, buy and sell with stop loss.",
-      "enabled": true.obs,
-      "live": true.obs,
-      "iteration": 53.obs,
-      "info": [
-        {"title": "Runtime", "subtitle": "3d 8h 55m"}, //obs
-        {"title": "Status", "subtitle": "Running"},
-        {"title": "Rules", "subtitle": "3/4"},
-        {"title": "Executed", "subtitle": "True"},
-        {"title": "Finished", "subtitle": "False"},
-        {"title": "Leverage", "subtitle": "5x"},
-        {"title": "SL", "subtitle": "3%"},
-        {"title": "Amount", "subtitle": "500 USD"},
-        {"title": "Margin", "subtitle": "ISOLATED"},
-      ],
-      "images": [
-        'https://picsum.photos/id/237/400/600',
-        'https://picsum.photos/id/238/400/600',
-        'https://picsum.photos/id/239/400/600',
-      ].obs,
-    },
-    {
-      "id": "slave-1",
-      "symbol": "ADAUSDT",
-      "description":
-          "Trading bot combining RSI, Squeeze, ADX, and Heikin-Ashi to detect clear trends, breakouts, and reliable signals, optimizing entries, exits, and risk management automatically.",
-      "enabled": true.obs,
-      "live": true.obs,
-      "iteration": 24,
-      "info": [
-        {"title": "Runtime", "subtitle": "3d 8h 55m"},
-        {"title": "Status", "subtitle": "Stopped"},
-        {"title": "Rules", "subtitle": "3/4"},
-        {"title": "Executed", "subtitle": "True"},
-        {"title": "Finished", "subtitle": "False"},
-        {"title": "Leverage", "subtitle": "5x"},
-        {"title": "SL", "subtitle": "3%"},
-        {"title": "Amount", "subtitle": "500 USD"},
-        {"title": "Margin", "subtitle": "ISOLATED"},
-      ],
-      "images": [
-        'https://picsum.photos/id/237/400/600',
-        'https://picsum.photos/id/238/400/600',
-        'https://picsum.photos/id/239/400/600',
-      ],
-    },
-    {
-      "id": "slave-2",
-      "symbol": "ETHUSDT",
-      "description":
-          "Trading bot combining RSI, Squeeze, ADX, and Heikin-Ashi to detect clear trends, breakouts, and reliable signals, optimizing entries, exits, and risk management automatically.",
-      "enabled": true.obs,
-      "live": true.obs,
-      "iteration": 17,
-      "info": [
-        {"title": "Runtime", "subtitle": "3d 8h 55m"},
-        {"title": "Status", "subtitle": "Error"},
-        {"title": "Rules", "subtitle": "3/4"},
-        {"title": "Executed", "subtitle": "True"},
-        {"title": "Finished", "subtitle": "False"},
-        {"title": "Leverage", "subtitle": "5x"},
-        {"title": "SL", "subtitle": "3%"},
-        {"title": "Amount", "subtitle": "500 USD"},
-        {"title": "Margin", "subtitle": "ISOLATED"},
-      ],
-      "images": [
-        'https://picsum.photos/id/237/400/600',
-        'https://picsum.photos/id/238/400/600',
-        'https://picsum.photos/id/239/400/600',
-      ],
-    },
-  ].obs;
+  var bots = <Map<String, dynamic>>[].obs;
+  Timer? _timer;
+
+  @override
+  void onInit() {
+    super.onInit();
+    startPolling();
+  }
+
+  @override
+  void onClose() {
+    _timer?.cancel();
+    super.onClose();
+  }
+
+  void startPolling() {
+    fetchBots(); 
+    _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+      fetchBots();
+    });
+  }
+
+  void stopPolling() {
+    _timer?.cancel();
+  }
+
+  Future<void> fetchBots() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://x.ngrok-free.app/api/query/get-slaves'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('Response status: ${response.statusCode}');
+
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonData = json.decode(response.body);
+
+        if (jsonData['success'] == true) {
+          bots.value = List<Map<String, dynamic>>.from(jsonData['data']);
+          print('Bots loaded: ${bots.value}');
+        }
+      }
+    } catch (e) {
+      print('Error fetching bots: $e');
+    }
+  }
 }
