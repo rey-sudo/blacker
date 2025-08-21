@@ -105,7 +105,7 @@ class BotsPage extends StatelessWidget {
         final bot = bots[index];
 
         return GestureDetector(
-          onTap: () => Get.to(() => BotPage(bot: bot)),
+          onTap: () => Get.to(() => BotPage(botId: bot["id"])),
           child: Card(
             elevation: 0,
             child: Container(
