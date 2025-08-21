@@ -78,16 +78,4 @@ class BotsController extends GetxController {
       ],
     },
   ].obs;
-
-  void agregarBot(Map<String, String> bot) {
-    bots.add(bot);
-  }
-
-  void eliminarBot(int index) {
-    bots.removeAt(index);
-  }
-
-  void updateBotStatus(Map<String, dynamic> bot, bool value) {
-    bot["enabled"].value = value;
-  }
 }
