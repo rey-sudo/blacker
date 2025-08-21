@@ -45,6 +45,12 @@ deploy:
 
 portForward:
   - resourceType: service
+    resourceName: service-query
+    namespace: default
+    port: 8000
+    localPort: 8000
+
+  - resourceType: service
     resourceName: service-slave-0
     namespace: default
     port: 3000
