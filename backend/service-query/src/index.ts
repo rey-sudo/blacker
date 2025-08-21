@@ -50,6 +50,8 @@ async function main() {
     database: process.env.DATABASE_NAME!
   });
 
+  axios.defaults.timeout = 5000;
+
   const binance = new USDMClient({
     api_key: process.env.BINANCE_KEY!,
     api_secret: process.env.BINANCE_SECRET!
@@ -69,21 +71,45 @@ async function main() {
     methods: ["GET", "POST"],
   }));
  */
+
   app.use(express.json());
 
   app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
-  axios.defaults.timeout = 5000;
-
   app.get("/api/query/get-slaves", async (_req: Request, res: Response, next: NextFunction) => {
     try {
+      const botScheme = {
+        "id": "slave-0",
+        "iteration": 2,
+        "description": "description text",
+        "status": "started",
+        "symbol": "BTCUSDT",
+        "symbol_info": null,
+        "executed": 0,
+        "finished": 0,
+        "leverage": 5,
+        "stop_loss": "0.97",
+        "order_amount": 500,
+        "margin_type": "ISOLATED",
+        "created_at": 1755732627759,
+        "updated_at": 1755733008739,
+        "rule_labels": [
+          "rsi",
+          "squeeze",
+          "adx",
+          "heikin"
+        ],
+        "rule_values": [false, false, false, false]
+      }
+
+
       const scheme = [
         {
           "id": "slave-0",
           "symbol": "BTCUSDT",
           "description":
             "Trading bot that combines RSI, Squeeze, ADX and Heikin-Ashi to detect bullish trends, buy and sell with stop loss.",
-          "enabled": true,
+          "paused": true,
           "live": true,
           "iteration": 53,
           "info": [
