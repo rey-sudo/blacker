@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { formatSlaveData } from "../utils/format";
-import { findAllSlaves } from "../utils/findAllSlaves";
-import database from "../database/client";
+import { formatSlaveData } from "../utils/format.js";
+import { findAllSlaves } from "../utils/findAllSlaves.js";
+import database from "../database/client.js";
 
 export const getSlavesHandler = async (
     req: Request,

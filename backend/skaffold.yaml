@@ -17,7 +17,16 @@ build:
         manual:
           - src: 'src/**/*.{ts,js,json,vue}'
             dest: .  
-            
+
+    - image: pairfy/service-query
+      context: service-query
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/**/*.{ts,js,json,vue}'
+            dest: . 
+
     - image: pairfy/service-slave
       context: service-slave
       docker:

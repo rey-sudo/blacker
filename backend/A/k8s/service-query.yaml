@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-query
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: service-query
+  template:
+    metadata:
+      labels:
+        role: service-query
+    spec:
+      containers:
+        - name: service-query
+          image: pairfy/service-query
+          env:
+            - name: NODE_ENV
+              value: "development" 
+            - name: HUNTER_HOST
+              value: "http://service-hunter:3001"  
+            - name: SLAVE_HOST
+              value: "http://service-slave-#:3000"                                                      
+            - name: DATABASE_HOST  
+              value: "mysql"      
+            - name: DATABASE_PORT
+              value: "3306"        
+            - name: DATABASE_USER
+              value: blacker                               
+            - name: DATABASE_NAME
+              value: service_slave 
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-password-secret
+                  key: password              
+            - name: BINANCE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: binance-key-secret
+                  key: key  
+            - name: BINANCE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: binance-secret-secret
+                  key: secret
+            - name: IP_WHITELIST
+              valueFrom:
+                secretKeyRef:
+                  name: ip-whitelist-secret
+                  key: ips
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"  
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-query
+spec:
+  selector:
+    role: service-query
+  ports:
+    - name: service-query
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
