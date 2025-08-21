@@ -1,14 +1,14 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import axios from 'axios';
 import dotenv from 'dotenv';
-import retry from 'async-retry';
-import requestIp from "request-ip";
 import database from './database/client.js';
 import { ERROR_EVENTS } from './utils/errors.js';
 import { USDMClient } from 'binance';
-import { formatSlaveData } from './utils/format.js';
+import { getSlavesHandler } from './routes/get-slaves.js';
+import { healthHandler } from './routes/health.js';
+import { ipMiddleware } from './middleware/ip.js';
 
 dotenv.config();
 
@@ -81,76 +81,16 @@ async function main() {
 
   const whitelist: string[] = process.env.IP_WHITELIST!.split(',');
 
-  app.use((req, res, next) => {
-    const clientIP = requestIp.getClientIp(req);
+  app.use(ipMiddleware(whitelist));
 
-    console.log("IP:", clientIP);
+  app.get("/api/query/get-slaves", getSlavesHandler);
 
-    if (!clientIP || !whitelist.includes(clientIP)) {
-      return res.status(403).send("Access denied");
-    }
-
-    next();
-  });
-
-
-  app.get("/api/query/get-slaves", async (_req: Request, res: Response, next: NextFunction) => {
-    try {
-      const botScheme = {
-        "id": "slave-0",
-        "iteration": 2,
-        "description": "description text",
-        "paused": false,
-        "status": "started",
-        "symbol": "BTCUSDT",
-        "symbol_info": null,
-        "executed": 0,
-        "finished": 0,
-        "leverage": 5,
-        "stop_loss": "0.97",
-        "order_amount": 500,
-        "margin_type": "ISOLATED",
-        "created_at": 1755732627759,
-        "updated_at": 1755733008739,
-        "rule_labels": [
-          "rsi",
-          "squeeze",
-          "adx",
-          "heikin"
-        ],
-        "rule_values": [false, false, false, false]
-      }
-
-      const live = true
-
-      const images = [
-        `https://picsum.photos/id/545/400/600`,
-        `https://picsum.photos/id/343/400/600`,
-        `https://picsum.photos/id/323/400/600`
-      ]
-
-      const scheme = [
-        formatSlaveData(botScheme, live, images)
-      ]
-
-      res.json({ success: true, message: 'ok', data: scheme });
-    } catch (error) {
-      next(error);
-    }
-  });
-
-  app.get("/health", async (_req: Request, res: Response) => {
-    try {
-      res.json({ message: "ok", data: null });
-    } catch (error) {
-      res.status(500).json({ status: "error", error: "DB connection failed" });
-    }
-  });
+  app.get("/api/query/health", healthHandler);
 
   app.use((_req: Request, res: Response) => {
     res.status(404).json({ error: "Not Found" });
   });
-
+  
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error("❌ Internal server error:", err);
     res.status(500).json({ error: "Internal server error" });
