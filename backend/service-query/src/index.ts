@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import axios from 'axios';
 import dotenv from 'dotenv';
 import retry from 'async-retry';
+import requestIp from "request-ip";
 import database from './database/client.js';
 import { ERROR_EVENTS } from './utils/errors.js';
 import { USDMClient } from 'binance';
@@ -22,7 +23,8 @@ async function main() {
     "BINANCE_KEY",
     "BINANCE_SECRET",
     "SLAVE_HOST",
-    "HUNTER_HOST"
+    "HUNTER_HOST",
+    "IP_WHITELIST"
   ] as const;
 
   for (const varName of REQUIRED_ENV_VARS) {
@@ -77,6 +79,21 @@ async function main() {
 
   app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
+  const whitelist: string[] = process.env.IP_WHITELIST!.split(',');
+
+  app.use((req, res, next) => {
+    const clientIP = requestIp.getClientIp(req);
+
+    console.log("IP:", clientIP);
+
+    if (!clientIP || !whitelist.includes(clientIP)) {
+      return res.status(403).send("Access denied");
+    }
+
+    next();
+  });
+
+
   app.get("/api/query/get-slaves", async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const botScheme = {
@@ -124,7 +141,6 @@ async function main() {
 
   app.get("/health", async (_req: Request, res: Response) => {
     try {
-
       res.json({ message: "ok", data: null });
     } catch (error) {
       res.status(500).json({ status: "error", error: "DB connection failed" });
