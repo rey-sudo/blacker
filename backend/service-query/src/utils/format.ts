@@ -1,71 +1,72 @@
-export function formatMasterStatus(slaves: any[]): string {
-  const getCircle = (value: number): string => value > 0 ? "🟢" : "🔴";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
 
-  const slavesFormatted = slaves.map((slave, index) => {
-    return `S${index}: ${getCircle(slave.executed)} ${getCircle(slave.finished)} | ${getCircle(slave.R0)} ${getCircle(slave.R1)} ${getCircle(slave.R2)} ${getCircle(slave.R3)} | ${slave.symbol}`;
-  }).join("\n");
+dayjs.extend(duration);
 
-  return `
-${slavesFormatted}
-`;
+interface SlaveState {
+  id: string;
+  iteration: number;
+  description: string;
+  paused: boolean;
+  status: string;
+  symbol: string;
+  symbol_info: any;
+  executed: number;
+  finished: number;
+  leverage: number;
+  stop_loss: string;
+  order_amount: number;
+  margin_type: string;
+  created_at: number;
+  updated_at: number;
+  rule_labels: string[];
+  rule_values: boolean[];
 }
 
-export function formatSlaveStatus(data: any) {
-  const {
-    id,
-    status,
-    symbol,
-    executed,
-    finished,
-    leverage,
-    stop_loss,
-    order_amount,
-    margin_type,
-    created_at,
-    updated_at,
-    R0,
-    R1,
-    R2,
-    R3
-  } = data;
+interface BotInfo {
+  id: string;
+  symbol: string;
+  description: string;
+  paused: boolean;
+  live: boolean;
+  iteration: number;
+  info: { title: string; subtitle: string }[];
+  images: string[];
+}
 
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return date.toISOString().replace('T', ' ').split('.')[0];
+export function formatSlaveData(slaveState: SlaveState, live: boolean, images: string[]): BotInfo {
+  const activeRules = slaveState.rule_values.filter(Boolean).length;
+  const createdAt = slaveState.created_at || Date.now();
+  const updatedAt = slaveState.updated_at || Date.now();
+  const stopLossPercent = ((1 - parseFloat(slaveState.stop_loss)) * 100).toFixed(2)
+  
+  return {
+    id: slaveState.id,
+    symbol: slaveState.symbol,
+    description: slaveState.description,
+    paused: slaveState.paused,
+    live: live,
+    iteration: slaveState.iteration,
+    info: [
+      { title: "Runtime", subtitle: formatRuntime(createdAt, updatedAt) },
+      { title: "Status", subtitle: slaveState.status },
+      { title: "Rules", subtitle: `${activeRules}/${slaveState.rule_labels.length}` },
+      { title: "Executed", subtitle: Boolean(slaveState.executed).toString() },
+      { title: "Finished", subtitle: Boolean(slaveState.finished).toString() },
+      { title: "Leverage", subtitle: `${slaveState.leverage}x` },
+      { title: "SL", subtitle: `${stopLossPercent}%` },
+      { title: "Amount", subtitle: `${slaveState.order_amount} USD` },
+      { title: "Margin", subtitle: slaveState.margin_type }
+    ],
+    images: images
   };
-
-  return `
-*📄 ID:* \`${id}\`
-*📈 Symbol:* \`${symbol}\`
-*📊 Status:* \`${status}\`
-*🧮 Executed:* \`${executed}\`
-*✅ Finished:* \`${finished}\`
-*⚙️ Leverage:* \`${leverage}x\`
-*🛑 Stop Loss:* \`${stop_loss}\`
-*💰 Order Amount:* \`${order_amount}\`
-*🔐 Margin Type:* \`${margin_type}\`
-
-*🕐 Created At:* \`${formatDate(created_at)}\`
-*♻️ Updated At:* \`${formatDate(updated_at)}\`
-
-*🧠 R-Levels:*
-\`R0: ${R0}\`
-\`R1: ${R1}\`
-\`R2: ${R2}\`
-\`R3: ${R3}\`
-`.trim();
 }
 
-export function formatHunterStatus(data: any) {
-  const date = new Date(data.updated_at);
-  const formattedDate = date.toLocaleString('en-US', { timeZone: 'UTC' });
-
-  return `
-📢 *Status:* ${data.status}
-🔄 *Iteration:* ${data.iteration}
-💹 *Symbol:* ${data.symbol}
-✅ *Valid symbols:* ${data.validSymbols}
-📊 *Detected:* ${data.detectedSymbols.length ? data.detectedSymbols.join(', ') : 'None'}
-🕒 *Updated:* ${formattedDate} UTC
-  `.trim();
+function formatRuntime(createdAt: number, updatedAt: number): string {
+  const diffMs = Math.max(0, updatedAt - createdAt);
+  const dur = dayjs.duration(diffMs);
+  const days = dur.days();
+  const hours = dur.hours();
+  const minutes = dur.minutes();
+  return `${days}d ${hours}h ${minutes}m`;
 }

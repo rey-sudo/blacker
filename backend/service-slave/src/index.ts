@@ -26,7 +26,8 @@ interface BotState {
   id: string
   iteration: number
   description: string
-  status: 'started' | 'stopped' | 'error' | string
+  paused: boolean
+  status: 'Started' | 'Paused' | 'Executed' | 'Finished' | 'Error' 
   symbol: string
   symbol_info: FuturesSymbolExchangeInfo | undefined
   executed: boolean
@@ -114,7 +115,8 @@ class SlaveBot {
       id: SLAVE_NAME,
       iteration: 0,
       description: "description text",
-      status: 'started',
+      paused: false,
+      status: 'Started',
       symbol: SYMBOL,
       symbol_info: undefined,
       executed: false,
@@ -317,7 +319,7 @@ class SlaveBot {
         await this.executeOrder()
 
       } catch (err: any) {
-        this.state.status = 'error'
+        this.state.status = 'Error'
         console.error(err)
       }
     }

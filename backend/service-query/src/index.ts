@@ -7,6 +7,7 @@ import retry from 'async-retry';
 import database from './database/client.js';
 import { ERROR_EVENTS } from './utils/errors.js';
 import { USDMClient } from 'binance';
+import { formatSlaveData } from './utils/format.js';
 
 dotenv.config();
 
@@ -82,6 +83,7 @@ async function main() {
         "id": "slave-0",
         "iteration": 2,
         "description": "description text",
+        "paused": false,
         "status": "started",
         "symbol": "BTCUSDT",
         "symbol_info": null,
@@ -102,33 +104,16 @@ async function main() {
         "rule_values": [false, false, false, false]
       }
 
+      const live = true
+
+      const images = [
+        `https://picsum.photos/id/545/400/600`,
+        `https://picsum.photos/id/343/400/600`,
+        `https://picsum.photos/id/323/400/600`
+      ]
 
       const scheme = [
-        {
-          "id": "slave-0",
-          "symbol": "BTCUSDT",
-          "description":
-            "Trading bot that combines RSI, Squeeze, ADX and Heikin-Ashi to detect bullish trends, buy and sell with stop loss.",
-          "paused": true,
-          "live": true,
-          "iteration": 53,
-          "info": [
-            { "title": "Runtime", "subtitle": "3d 8h 55m" },
-            { "title": "Status", "subtitle": "Running" },
-            { "title": "Rules", "subtitle": "3/4" },
-            { "title": "Executed", "subtitle": "True" },
-            { "title": "Finished", "subtitle": "False" },
-            { "title": "Leverage", "subtitle": "5x" },
-            { "title": "SL", "subtitle": "3%" },
-            { "title": "Amount", "subtitle": "500 USD" },
-            { "title": "Margin", "subtitle": "ISOLATED" }
-          ],
-          "images": [
-            "https://picsum.photos/id/237/400/600",
-            "https://picsum.photos/id/238/400/600",
-            "https://picsum.photos/id/239/400/600"
-          ]
-        }
+        formatSlaveData(botScheme, live, images)
       ]
 
       res.json({ success: true, message: 'ok', data: scheme });
