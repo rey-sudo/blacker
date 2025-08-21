@@ -63,7 +63,9 @@ class BotsPage extends StatelessWidget {
                         .where((bot) => bot["live"] == true)
                         .toList();
                     if (liveBots.isEmpty) {
-                      return const Center(child: Text("No live bots available"));
+                      return const Center(
+                        child: Text("No live bots available"),
+                      );
                     }
                     return _buildBotList(liveBots, controller);
                   }),
@@ -74,7 +76,9 @@ class BotsPage extends StatelessWidget {
                         .where((bot) => bot["live"] == false)
                         .toList();
                     if (stoppedBots.isEmpty) {
-                      return const Center(child: Text("No stopped bots available"));
+                      return const Center(
+                        child: Text("No stopped bots available"),
+                      );
                     }
                     return _buildBotList(stoppedBots, controller);
                   }),
@@ -89,7 +93,7 @@ class BotsPage extends StatelessWidget {
 
   Widget _buildBotList(List bots, BotsController controller) {
     if (bots.isEmpty) return const Center(child: Text("No bots available"));
-    
+
     final infoLength = bots[0]["info"]?.length ?? 0;
     final crossAxisCount = 3;
 
@@ -147,7 +151,7 @@ class BotsPage extends StatelessWidget {
                       ],
                     ),
                     trailing: Switch(
-                      value: bot["live"] ?? false, 
+                      value: bot["live"] ?? false,
                       onChanged: (value) {
                         print('Toggle bot ${bot["id"]} to $value');
                       },
@@ -157,31 +161,61 @@ class BotsPage extends StatelessWidget {
                       inactiveTrackColor: Colors.grey.withAlpha(100),
                     ),
                   ),
-                  ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(
-                      'Iteration',
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.grey),
-                    ),
-                    subtitle: Text(
-                      '${bot["iteration"] ?? 0}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ListTile(
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            'PnL (USD)',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                          ),
+                          subtitle: Text(
+                            '\$1,250.50',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
                       ),
-                    ),
+                      Expanded(
+                        child: ListTile(
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            'Iteration',
+                            textAlign: TextAlign.right,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                          ),
+                          subtitle: Text(
+                            '${bot["iteration"] ?? 0}',
+                            textAlign: TextAlign.right,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+             
                   if (bot["info"] != null && bot["info"].isNotEmpty)
                     SizedBox(
                       child: GridView.count(
-                        shrinkWrap: true, 
+                        shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: crossAxisCount,
                         childAspectRatio: 3 / 1,
-                        crossAxisSpacing: 4.w, 
+                        crossAxisSpacing: 4.w,
                         mainAxisSpacing: 4.h,
                         children: List.generate(infoLength, (i) {
                           int colPosition = i % crossAxisCount;
@@ -225,11 +259,15 @@ class BotsPage extends StatelessWidget {
                                         ?.copyWith(
                                           color:
                                               actions[i]["title"] == "Status" &&
-                                                      (actions[i]["subtitle"] == "stopped" ||
-                                                       actions[i]["subtitle"] == "error")
+                                                  (actions[i]["subtitle"] ==
+                                                          "stopped" ||
+                                                      actions[i]["subtitle"] ==
+                                                          "error")
                                               ? Colors.red
-                                              : actions[i]["title"] == "Status" &&
-                                                      actions[i]["subtitle"] == "started"
+                                              : actions[i]["title"] ==
+                                                        "Status" &&
+                                                    actions[i]["subtitle"] ==
+                                                        "started"
                                               ? Colors.green
                                               : Colors.black,
                                         ),
