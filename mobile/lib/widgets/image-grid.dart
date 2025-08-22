@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -30,6 +32,36 @@ class ImageGrid extends StatelessWidget {
     );
   }
 
+  bool _isBase64Image(String imageString) {
+    return imageString.startsWith('data:image/');
+  }
+
+  Uint8List _base64ToBytes(String base64String) {
+    final base64Data = base64String.split(',').last;
+    return base64Decode(base64Data);
+  }
+
+  Widget _buildImage(String imageString, {BoxFit fit = BoxFit.cover, int? cacheWidth}) {
+    if (_isBase64Image(imageString)) {
+      final imageBytes = _base64ToBytes(imageString);
+      return Image.memory(
+        imageBytes,
+        fit: fit,
+        cacheWidth: cacheWidth,
+        filterQuality: FilterQuality.high,
+        isAntiAlias: true,
+      );
+    } else {
+      return Image.network(
+        imageString,
+        fit: fit,
+        cacheWidth: cacheWidth,
+        filterQuality: FilterQuality.high,
+        isAntiAlias: true,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
@@ -45,17 +77,16 @@ class ImageGrid extends StatelessWidget {
         childAspectRatio: childAspectRatio ?? 1.0,
       ),
       itemBuilder: (context, index) {
-        final url = images[index];
+        final imageString = images[index];
         return GestureDetector(
           onTap: () => _openGallery(context, index),
           child: Hero(
-            tag: "$url-$index",
+            tag: "$imageString-$index",
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12.r),
-              child: Image.network(
-                url,
-                fit: BoxFit.cover,
-                cacheWidth: (0.5.sw ~/ crossAxisCount), 
+              child: _buildImage(
+                imageString,
+                cacheWidth: (0.75.sw ~/ crossAxisCount), 
               ),
             ),
           ),
@@ -64,7 +95,6 @@ class ImageGrid extends StatelessWidget {
     );
   }
 }
-
 
 class _ImageGallery extends StatefulWidget {
   final List<String> images;
@@ -96,6 +126,32 @@ class _ImageGalleryState extends State<_ImageGallery> {
     super.dispose();
   }
 
+  bool _isBase64Image(String imageString) {
+    return imageString.startsWith('data:image/');
+  }
+
+  Uint8List _base64ToBytes(String base64String) {
+    final base64Data = base64String.split(',').last;
+    return base64Decode(base64Data);
+  }
+
+  Widget _buildImage(String imageString) {
+    if (_isBase64Image(imageString)) {
+      final imageBytes = _base64ToBytes(imageString);
+      return Image.memory(
+        imageBytes,
+        filterQuality: FilterQuality.high,
+        isAntiAlias: true,
+      );
+    } else {
+      return Image.network(
+        imageString,
+        filterQuality: FilterQuality.high,
+        isAntiAlias: true,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,14 +163,14 @@ class _ImageGalleryState extends State<_ImageGallery> {
             itemCount: widget.images.length,
             onPageChanged: (i) => setState(() => _currentIndex = i),
             itemBuilder: (context, index) {
-              final url = widget.images[index];
+              final imageString = widget.images[index];
               return Center(
                 child: Hero(
-                  tag: "$url-$index",
+                  tag: "$imageString-$index",
                   child: InteractiveViewer(
                     child: FittedBox( 
                       fit: BoxFit.contain,
-                      child: Image.network(url),
+                      child: _buildImage(imageString),
                     ),
                   ),
                 ),

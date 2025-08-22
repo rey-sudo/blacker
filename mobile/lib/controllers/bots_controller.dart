@@ -33,7 +33,7 @@ class BotsController extends GetxController {
   Future<void> fetchBots() async {
     try {
       final response = await http.get(
-        Uri.parse('https://x.ngrok-free.app/api/query/get-slaves'),
+        Uri.parse('https://f678856d2f73.ngrok-free.app/api/query/get-slaves'),
         headers: {'Content-Type': 'application/json'},
       );
 
