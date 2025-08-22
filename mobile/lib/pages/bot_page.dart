@@ -114,7 +114,7 @@ class BotPage extends StatelessWidget {
                     ],
                   ),
 
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 16.h),
 
                   Row(
                     children: [
@@ -125,7 +125,7 @@ class BotPage extends StatelessWidget {
                           color: Colors.green,
                         ),
                       ),
-                      SizedBox(width: 12.w),
+                      SizedBox(width: 8.w),
                       Expanded(
                         child: Obx(() {
                           final currentBot = controller.bots.firstWhere(
@@ -142,7 +142,7 @@ class BotPage extends StatelessWidget {
                     ],
                   ),
 
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 16.h),
 
                   Obx(() {
                     final currentBot = controller.bots.firstWhere(
@@ -162,7 +162,7 @@ class BotPage extends StatelessWidget {
                     );
                   }),
 
-                  SizedBox(height: 6.h),
+                  SizedBox(height: 16.h),
 
                   if (bot["description"] != null &&
                       bot["description"].isNotEmpty) ...[
@@ -203,16 +203,16 @@ class BotPage extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        SizedBox(height: 12.h),
 
-                        Container(
-                          height: 1000.h, 
+                        SizedBox(height: 16.h),
+
+                        SizedBox(
+                          height: 1000.h,
                           child: ImageGrid(
                             images: List<String>.from(currentBot["images"]),
-                            scrollable:
-                                false, 
+                            scrollable: false,
                           ),
-                        )
+                        ),
                       ],
                     );
                   }),
