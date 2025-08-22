@@ -157,6 +157,7 @@ class BotPage extends StatelessWidget {
 
                     return InfoGrid(
                       info: currentBot["info"],
+                      crossAxisCount: 3,
                       getSubtitleColor: _getSubtitleColor,
                     );
                   }),

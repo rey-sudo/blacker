@@ -3,11 +3,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class InfoGrid extends StatelessWidget {
   final List<dynamic> info;
+  final int crossAxisCount;
   final Color Function(String title, String subtitle)? getSubtitleColor;
 
   const InfoGrid({
     super.key,
     required this.info,
+    this.crossAxisCount = 3,
     this.getSubtitleColor,
   });
 
