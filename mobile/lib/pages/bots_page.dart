@@ -1,5 +1,6 @@
 import 'package:blacker/pages/bot_page.dart';
 import 'package:blacker/widgets/info_grid.dart';
+import 'package:blacker/widgets/loading_indicator.dart';
 import 'package:blacker/widgets/pulsating_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -43,8 +44,11 @@ class BotsPage extends StatelessWidget {
             Expanded(
               child: TabBarView(
                 children: [
-                  // All Bots
                   Obx(() {
+                    if (controller.isLoading.value) {
+                      return const LoadingIndicator();
+                    }
+
                     if (controller.bots.isEmpty) {
                       return Center(
                         child: Text(
@@ -58,8 +62,11 @@ class BotsPage extends StatelessWidget {
                     return _buildBotList(controller.bots, controller);
                   }),
 
-                  // Live Bots
                   Obx(() {
+                    if (controller.isLoading.value) {
+                      return const LoadingIndicator();
+                    }
+
                     final liveBots = controller.bots
                         .where((bot) => bot["live"] == true)
                         .toList();
@@ -71,8 +78,11 @@ class BotsPage extends StatelessWidget {
                     return _buildBotList(liveBots, controller);
                   }),
 
-                  // Stopped Bots
                   Obx(() {
+                    if (controller.isLoading.value) {
+                      return const LoadingIndicator();
+                    }
+
                     final stoppedBots = controller.bots
                         .where((bot) => bot["live"] == false)
                         .toList();
