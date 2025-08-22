@@ -1,5 +1,6 @@
 import 'package:blacker/widgets/image_grid.dart';
 import 'package:blacker/widgets/info_card.dart';
+import 'package:blacker/widgets/info_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -151,116 +152,12 @@ class BotPage extends StatelessWidget {
 
                     if (currentBot["info"] == null ||
                         currentBot["info"].isEmpty) {
-                      return SizedBox.shrink();
+                      return const SizedBox.shrink();
                     }
 
-                    final infoLength = currentBot["info"]?.length ?? 0;
-                    final crossAxisCount = 3;
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Details",
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 12.h),
-                        GridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: crossAxisCount,
-                          childAspectRatio: 2.5 / 1,
-                          crossAxisSpacing: 6.w,
-                          mainAxisSpacing: 6.h,
-                          children: List.generate(infoLength, (i) {
-                            int colPosition = i % crossAxisCount;
-
-                            Alignment alignment;
-                            CrossAxisAlignment crossAlign;
-
-                            switch (colPosition) {
-                              case 0:
-                              case 1:
-                                alignment = Alignment.centerLeft;
-                                crossAlign = CrossAxisAlignment.start;
-                                break;
-                              case 2:
-                                alignment = Alignment.centerRight;
-                                crossAlign = CrossAxisAlignment.end;
-                                break;
-                              default:
-                                alignment = Alignment.centerLeft;
-                                crossAlign = CrossAxisAlignment.start;
-                            }
-
-                            final actions = currentBot["info"];
-                            final title = actions[i]["title"] ?? "";
-                            final subtitle = actions[i]["subtitle"] ?? "";
-
-                            return InkWell(
-                              onTap: () => debugPrint(
-                                "${currentBot["id"]} - $title presionado",
-                              ),
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 6.w,
-                                  vertical: 4.h,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withAlpha(0),
-                                  borderRadius: BorderRadius.circular(6.r),
-                                  border: Border.all(
-                                    color: Colors.grey.withAlpha(0),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Align(
-                                  alignment: alignment,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: crossAlign,
-                                    children: [
-                                      Text(
-                                        title,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(
-                                              color: Colors.grey,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                      ),
-                                      SizedBox(height: 2.h),
-                                      Text(
-                                        subtitle,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(
-                                              color:
-                                                  title == "Status" &&
-                                                      (subtitle == "stopped" ||
-                                                          subtitle == "error")
-                                                  ? Colors.red
-                                                  : title == "Status" &&
-                                                        subtitle == "started"
-                                                  ? Colors.green
-                                                  : Colors.black,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                        ),
-                      ],
+                    return InfoGrid(
+                      info: currentBot["info"],
+                      getSubtitleColor: _getSubtitleColor,
                     );
                   }),
 
@@ -352,4 +249,17 @@ class BotPage extends StatelessWidget {
       ),
     );
   }
+}
+
+
+Color _getSubtitleColor(String title, String subtitle) {
+  if (title == "Status") {
+    if (subtitle == "stopped" || subtitle == "error") {
+      return Colors.red;
+    }
+    if (subtitle == "started") {
+      return Colors.green;
+    }
+  }
+  return Colors.black;
 }
