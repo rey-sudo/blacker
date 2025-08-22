@@ -2,6 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import { formatSlaveData } from "../utils/format.js";
 import { findAllSlaves } from "../utils/findAllSlaves.js";
 import database from "../database/client.js";
+import axios from "axios";
+import retry from 'async-retry'
+import { Readable } from "stream";
+import path from "path";
 
 export const getSlavesHandler = async (
     req: Request,
@@ -18,13 +22,16 @@ export const getSlavesHandler = async (
         const response = []
 
         for (const slave of slaves) {
+
+            const slaveId = slave.id
+
+            const prefix = slaveId.split('-').pop();
+
             const live = true
 
-            const images = [
-                `https://picsum.photos/id/545/400/600`,
-                `https://picsum.photos/id/343/400/600`,
-                `https://picsum.photos/id/323/400/600`
-            ]
+            const slaveHost = process.env.SLAVE_HOST!.replace("#", prefix)
+
+            const images = await scrapeImages(`${slaveHost}/api/slave/output/`);
 
             response.push(formatSlaveData(slave, live, images))
         }
@@ -39,4 +46,43 @@ export const getSlavesHandler = async (
 }
 
 
+async function scrapeImages(baseUrl: string): Promise<string[]> {
+    const images: string[] = []
 
+    try {
+        const queryHTML = await retry(() => axios.get(baseUrl), {
+            retries: 2,
+            minTimeout: 500,
+            maxTimeout: 1500
+        });
+
+        const files = String(queryHTML.data).split(',').filter(Boolean);
+        if (files.length === 0) return images;
+
+        const downloads = files.map(async (file) => {
+            const binary = await retry(() =>
+                axios.get(`${baseUrl}${file}`, { responseType: 'arraybuffer' }), {
+                retries: 2,
+                minTimeout: 500,
+                maxTimeout: 1500
+            });
+
+            const buffer = Buffer.from(binary.data);
+            const base64Image = buffer.toString("base64");
+
+            const ext = path.extname(file).toLowerCase().replace(".", "");
+            const mimeType = ext === "jpg" ? "jpeg" : ext;
+
+            const base64DataUri = `data:image/${mimeType};base64,${base64Image}`;
+            return base64DataUri;
+        });
+
+        const results = await Promise.all(downloads);
+        images.push(...results);
+
+    } catch (err) {
+        console.error(`❌ Error scraping:`, err);
+    } finally {
+        return images
+    }
+}
