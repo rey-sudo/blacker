@@ -1,4 +1,5 @@
 import 'package:blacker/widgets/image-grid.dart';
+import 'package:blacker/widgets/info_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -98,10 +99,13 @@ class BotPage extends StatelessWidget {
                             SizedBox(width: 6.w),
                             Text(
                               currentBot["live"] == true ? "Live" : "Offline",
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: currentBot["live"] == true ? Colors.green : Colors.red,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: currentBot["live"] == true
+                                        ? Colors.green
+                                        : Colors.red,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
                           ],
                         );
@@ -114,67 +118,25 @@ class BotPage extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Card(
-                          elevation: 0,
-                          color: Colors.green.withAlpha(25),
-                          child: Padding(
-                            padding: EdgeInsets.all(12.w),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'PnL (USD)',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(color: Colors.grey),
-                                ),
-                                SizedBox(height: 4.h),
-                                Text(
-                                  '\$1,250.50', 
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          ),
+                        child: InfoCard(
+                          label: 'PnL (USD)',
+                          value: '\$1,250.50',
+                          color: Colors.green,
                         ),
                       ),
                       SizedBox(width: 12.w),
                       Expanded(
-                        child: Card(
-                          elevation: 0,
-                          color: Colors.blue.withAlpha(25),
-                          child: Padding(
-                            padding: EdgeInsets.all(12.w),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Iteration',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(color: Colors.grey),
-                                ),
-                                SizedBox(height: 4.h),
-                                Obx(() {
-                                  final currentBot = controller.bots.firstWhere(
-                                    (b) => b["id"] == botId,
-                                    orElse: () => <String, dynamic>{},
-                                  );
-                                  return Text(
-                                    "${currentBot["iteration"] ?? 0}",
-                                    style: Theme.of(context).textTheme.titleMedium
-                                        ?.copyWith(
-                                          color: Colors.blue,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  );
-                                }),
-                              ],
-                            ),
-                          ),
-                        ),
+                        child: Obx(() {
+                          final currentBot = controller.bots.firstWhere(
+                            (b) => b["id"] == botId,
+                            orElse: () => <String, dynamic>{},
+                          );
+                          return InfoCard(
+                            label: 'Iteration',
+                            value: "${currentBot["iteration"] ?? 0}",
+                            color: Colors.blue,
+                          );
+                        }),
                       ),
                     ],
                   ),
@@ -186,8 +148,9 @@ class BotPage extends StatelessWidget {
                       (b) => b["id"] == botId,
                       orElse: () => <String, dynamic>{},
                     );
-                    
-                    if (currentBot["info"] == null || currentBot["info"].isEmpty) {
+
+                    if (currentBot["info"] == null ||
+                        currentBot["info"].isEmpty) {
                       return SizedBox.shrink();
                     }
 
@@ -199,18 +162,17 @@ class BotPage extends StatelessWidget {
                       children: [
                         Text(
                           "Details",
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 12.h),
                         GridView.count(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           crossAxisCount: crossAxisCount,
-                          childAspectRatio: 2.5 / 1, 
-                          crossAxisSpacing: 6.w, 
-                          mainAxisSpacing: 6.h, 
+                          childAspectRatio: 2.5 / 1,
+                          crossAxisSpacing: 6.w,
+                          mainAxisSpacing: 6.h,
                           children: List.generate(infoLength, (i) {
                             int colPosition = i % crossAxisCount;
 
@@ -237,13 +199,17 @@ class BotPage extends StatelessWidget {
                             final subtitle = actions[i]["subtitle"] ?? "";
 
                             return InkWell(
-                              onTap: () =>
-                                  debugPrint("${currentBot["id"]} - $title presionado"),
+                              onTap: () => debugPrint(
+                                "${currentBot["id"]} - $title presionado",
+                              ),
                               child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 6.w,
+                                  vertical: 4.h,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.grey.withAlpha(0),
-                                  borderRadius: BorderRadius.circular(6.r), 
+                                  borderRadius: BorderRadius.circular(6.r),
                                   border: Border.all(
                                     color: Colors.grey.withAlpha(0),
                                     width: 1,
@@ -259,7 +225,9 @@ class BotPage extends StatelessWidget {
                                         title,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context).textTheme.bodySmall
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
                                             ?.copyWith(
                                               color: Colors.grey,
                                               fontWeight: FontWeight.w500,
@@ -270,17 +238,19 @@ class BotPage extends StatelessWidget {
                                         subtitle,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context).textTheme.bodySmall
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
                                             ?.copyWith(
-                                              color: title == "Status" &&
+                                              color:
+                                                  title == "Status" &&
                                                       (subtitle == "stopped" ||
-                                                       subtitle == "error")
+                                                          subtitle == "error")
                                                   ? Colors.red
                                                   : title == "Status" &&
-                                                          subtitle == "started"
+                                                        subtitle == "started"
                                                   ? Colors.green
                                                   : Colors.black,
-                                              
                                             ),
                                       ),
                                     ],
@@ -296,7 +266,8 @@ class BotPage extends StatelessWidget {
 
                   SizedBox(height: 24.h),
 
-                  if (bot["description"] != null && bot["description"].isNotEmpty) ...[
+                  if (bot["description"] != null &&
+                      bot["description"].isNotEmpty) ...[
                     Divider(color: Theme.of(context).dividerColor),
                     SizedBox(height: 16.h),
                     Text(
@@ -318,8 +289,9 @@ class BotPage extends StatelessWidget {
                       (b) => b["id"] == botId,
                       orElse: () => <String, dynamic>{},
                     );
-                    
-                    if (currentBot["images"] == null || currentBot["images"].isEmpty) {
+
+                    if (currentBot["images"] == null ||
+                        currentBot["images"].isEmpty) {
                       return SizedBox.shrink();
                     }
 
@@ -330,12 +302,13 @@ class BotPage extends StatelessWidget {
                         SizedBox(height: 16.h),
                         Text(
                           "Images",
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 12.h),
-                        ImageGrid(images: List<String>.from(currentBot["images"])),
+                        ImageGrid(
+                          images: List<String>.from(currentBot["images"]),
+                        ),
                       ],
                     );
                   }),
@@ -347,17 +320,13 @@ class BotPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.history,
-                    size: 48.w,
-                    color: Colors.grey,
-                  ),
+                  Icon(Icons.history, size: 48.w, color: Colors.grey),
                   SizedBox(height: 16.h),
                   Text(
                     "Trades history...",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                   ),
                 ],
               ),
@@ -367,17 +336,13 @@ class BotPage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.settings,
-                    size: 48.w,
-                    color: Colors.grey,
-                  ),
+                  Icon(Icons.settings, size: 48.w, color: Colors.grey),
                   SizedBox(height: 16.h),
                   Text(
                     "Configuration details...",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                   ),
                 ],
               ),
