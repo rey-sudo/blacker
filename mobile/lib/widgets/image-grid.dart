@@ -13,7 +13,7 @@ class ImageGrid extends StatelessWidget {
   const ImageGrid({
     super.key,
     required this.images,
-    this.crossAxisCount = 2,
+    this.crossAxisCount = 1, 
     this.spacing = 8,
     this.childAspectRatio,
     this.scrollable = false, 
@@ -41,13 +41,12 @@ class ImageGrid extends StatelessWidget {
     return base64Decode(base64Data);
   }
 
-  Widget _buildImage(String imageString, {BoxFit fit = BoxFit.cover, int? cacheWidth}) {
+  Widget _buildImage(String imageString, {BoxFit fit = BoxFit.contain}) {
     if (_isBase64Image(imageString)) {
       final imageBytes = _base64ToBytes(imageString);
       return Image.memory(
         imageBytes,
         fit: fit,
-        cacheWidth: cacheWidth,
         filterQuality: FilterQuality.high,
         isAntiAlias: true,
       );
@@ -55,7 +54,6 @@ class ImageGrid extends StatelessWidget {
       return Image.network(
         imageString,
         fit: fit,
-        cacheWidth: cacheWidth,
         filterQuality: FilterQuality.high,
         isAntiAlias: true,
       );
@@ -64,35 +62,56 @@ class ImageGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      itemCount: images.length,
-      shrinkWrap: !scrollable,
-      physics: scrollable
-          ? const AlwaysScrollableScrollPhysics()
-          : const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        crossAxisSpacing: spacing.w,
-        mainAxisSpacing: spacing.h,
-        childAspectRatio: childAspectRatio ?? 1.0,
-      ),
-      itemBuilder: (context, index) {
-        final imageString = images[index];
-        return GestureDetector(
-          onTap: () => _openGallery(context, index),
-          child: Hero(
-            tag: "$imageString-$index",
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12.r),
-              child: _buildImage(
-                imageString,
-                cacheWidth: (0.75.sw ~/ crossAxisCount), 
+    if (crossAxisCount == 1) {
+      return ListView.separated(
+        itemCount: images.length,
+        shrinkWrap: !scrollable,
+        physics: scrollable
+            ? const AlwaysScrollableScrollPhysics()
+            : const NeverScrollableScrollPhysics(),
+        separatorBuilder: (context, index) => SizedBox(height: spacing.h),
+        itemBuilder: (context, index) {
+          final imageString = images[index];
+          return GestureDetector(
+            onTap: () => _openGallery(context, index),
+            child: Hero(
+              tag: "$imageString-$index",
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12.r),
+                child: _buildImage(imageString),
               ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
+    } else {
+      return GridView.builder(
+        itemCount: images.length,
+        shrinkWrap: !scrollable,
+        physics: scrollable
+            ? const AlwaysScrollableScrollPhysics()
+            : const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: spacing.w,
+          mainAxisSpacing: spacing.h,
+          childAspectRatio: childAspectRatio ?? 1.0,
+        ),
+        itemBuilder: (context, index) {
+          final imageString = images[index];
+          return GestureDetector(
+            onTap: () => _openGallery(context, index),
+            child: Hero(
+              tag: "$imageString-$index",
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12.r),
+                child: _buildImage(imageString),
+              ),
+            ),
+          );
+        },
+      );
+    }
   }
 }
 

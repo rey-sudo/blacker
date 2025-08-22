@@ -169,7 +169,7 @@ class BotPage extends StatelessWidget {
 
                     if (bot["info"] != null && bot["info"].isNotEmpty) ...[
                       Text(
-                        "Bot Details",
+                        "Details",
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
