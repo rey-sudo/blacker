@@ -162,7 +162,7 @@ class BotPage extends StatelessWidget {
                     );
                   }),
 
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 6.h),
 
                   if (bot["description"] != null &&
                       bot["description"].isNotEmpty) ...[
@@ -251,7 +251,6 @@ class BotPage extends StatelessWidget {
     );
   }
 }
-
 
 Color _getSubtitleColor(String title, String subtitle) {
   if (title == "Status") {

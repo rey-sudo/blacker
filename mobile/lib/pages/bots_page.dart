@@ -1,4 +1,5 @@
 import 'package:blacker/pages/bot_page.dart';
+import 'package:blacker/widgets/info_grid.dart';
 import 'package:blacker/widgets/pulsating_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -93,9 +94,6 @@ class BotsPage extends StatelessWidget {
 
   Widget _buildBotList(List bots, BotsController controller) {
     if (bots.isEmpty) return const Center(child: Text("No bots available"));
-
-    final infoLength = bots[0]["info"]?.length ?? 0;
-    final crossAxisCount = 3;
 
     return ListView.separated(
       padding: const EdgeInsets.all(12),
@@ -207,78 +205,11 @@ class BotsPage extends StatelessWidget {
                       ),
                     ],
                   ),
-             
-                  if (bot["info"] != null && bot["info"].isNotEmpty)
-                    SizedBox(
-                      child: GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: crossAxisCount,
-                        childAspectRatio: 3 / 1,
-                        crossAxisSpacing: 4.w,
-                        mainAxisSpacing: 4.h,
-                        children: List.generate(infoLength, (i) {
-                          int colPosition = i % crossAxisCount;
-
-                          Alignment alignment;
-                          CrossAxisAlignment crossAlign;
-
-                          switch (colPosition) {
-                            case 0:
-                            case 1:
-                              alignment = Alignment.centerLeft;
-                              crossAlign = CrossAxisAlignment.start;
-                              break;
-                            case 2:
-                              alignment = Alignment.centerRight;
-                              crossAlign = CrossAxisAlignment.end;
-                              break;
-                            default:
-                              alignment = Alignment.centerLeft;
-                              crossAlign = CrossAxisAlignment.start;
-                          }
-
-                          final actions = bot["info"];
-
-                          return InkWell(
-                            child: Align(
-                              alignment: alignment,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: crossAlign,
-                                children: [
-                                  Text(
-                                    actions[i]["title"] ?? "",
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(color: Colors.grey),
-                                  ),
-                                  SizedBox(height: 2.h),
-                                  Text(
-                                    actions[i]["subtitle"] ?? "",
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(
-                                          color:
-                                              actions[i]["title"] == "Status" &&
-                                                  (actions[i]["subtitle"] ==
-                                                          "stopped" ||
-                                                      actions[i]["subtitle"] ==
-                                                          "error")
-                                              ? Colors.red
-                                              : actions[i]["title"] ==
-                                                        "Status" &&
-                                                    actions[i]["subtitle"] ==
-                                                        "started"
-                                              ? Colors.green
-                                              : Colors.black,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
+                  InfoGrid(
+                    info: bot["info"],
+                    crossAxisCount: 3,
+                    getSubtitleColor: _getSubtitleColor,
+                  ),
                 ],
               ),
             ),
@@ -287,4 +218,16 @@ class BotsPage extends StatelessWidget {
       },
     );
   }
+}
+
+Color _getSubtitleColor(String title, String subtitle) {
+  if (title == "Status") {
+    if (subtitle == "stopped" || subtitle == "error") {
+      return Colors.red;
+    }
+    if (subtitle == "started") {
+      return Colors.green;
+    }
+  }
+  return Colors.black;
 }

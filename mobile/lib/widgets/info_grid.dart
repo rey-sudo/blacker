@@ -22,18 +22,10 @@ class InfoGrid extends StatelessWidget {
     if (info.isEmpty) {
       return const SizedBox.shrink();
     }
-
-    const int crossAxisCount = 3;
-
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Details",
-          style: Theme.of(context).textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.bold),
-        ),
-        SizedBox(height: 12.h),
         GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
