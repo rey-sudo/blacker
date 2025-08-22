@@ -204,9 +204,15 @@ class BotPage extends StatelessWidget {
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         SizedBox(height: 12.h),
-                        ImageGrid(
-                          images: List<String>.from(currentBot["images"]),
-                        ),
+
+                        Container(
+                          height: 1000.h, 
+                          child: ImageGrid(
+                            images: List<String>.from(currentBot["images"]),
+                            scrollable:
+                                false, 
+                          ),
+                        )
                       ],
                     );
                   }),
