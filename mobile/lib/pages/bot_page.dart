@@ -1,4 +1,4 @@
-import 'package:blacker/widgets/image-grid.dart';
+import 'package:blacker/widgets/image_grid.dart';
 import 'package:blacker/widgets/info_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
