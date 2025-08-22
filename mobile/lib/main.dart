@@ -34,7 +34,10 @@ class MyApp extends StatelessWidget {
               headlineLarge: TextStyle(fontSize: 32.sp, fontWeight: FontWeight.bold),
             ),
           ),
-          home: child,
+          home: PageStorage(
+            bucket: PageStorageBucket(),
+            child: const HomePage()
+          ),
         );
       },
       child: const HomePage(),
