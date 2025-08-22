@@ -31,7 +31,7 @@ export const getSlavesHandler = async (
 
             const slaveHost = process.env.SLAVE_HOST!.replace("#", prefix)
 
-            const images = await scrapeImages(`${slaveHost}/api/slave/output/`);
+            const images = await scrapeImages(`${slaveHost}/api/slave/output/`, slave.rule_labels);
 
             response.push(formatSlaveData(slave, live, images))
         }
@@ -46,7 +46,7 @@ export const getSlavesHandler = async (
 }
 
 
-async function scrapeImages(baseUrl: string): Promise<string[]> {
+async function scrapeImages(baseUrl: string, ruleLabels: string[]): Promise<string[]> {
     const images: string[] = []
 
     try {
@@ -56,10 +56,14 @@ async function scrapeImages(baseUrl: string): Promise<string[]> {
             maxTimeout: 1500
         });
 
-        const files = String(queryHTML.data).split(',').filter(Boolean);
+        const files: string[] = String(queryHTML.data).split(',').filter(Boolean);
         if (files.length === 0) return images;
 
-        const downloads = files.map(async (file) => {
+        const orderedImages: string[] = ruleLabels
+            .map(rule => files.find(img => img.startsWith(rule)))
+            .filter((img): img is string => Boolean(img));
+
+        const downloads = orderedImages.map(async (file) => {
             const binary = await retry(() =>
                 axios.get(`${baseUrl}${file}`, { responseType: 'arraybuffer' }), {
                 retries: 2,
