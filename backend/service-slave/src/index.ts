@@ -1,11 +1,7 @@
 import path from 'path';
 import dotenv from 'dotenv';
-import express from 'express';
 import retry from 'async-retry';
 import database from "./database/client.js";
-import serveIndex from 'serve-index';
-import morgan from 'morgan';
-import helmet from 'helmet';
 import { FuturesExchangeInfo, FuturesSymbolExchangeInfo, NewFuturesOrderParams, NewOrderResult, SymbolConfig, SymbolExchangeInfo, USDMClient } from 'binance';
 import { relativeStrengthIndex } from "./handlers/rsi/index.js";
 import { squeezeMomentumIndicator } from "./handlers/squeeze/index.js";
@@ -18,8 +14,8 @@ import { updateSlave } from "./utils/updateSlave.js";
 import { sleep } from "./utils/sleep.js";
 import { fileURLToPath } from 'url';
 import { logger } from './utils/logger.js';
-import { getLogsHandler } from './routes/get-logs.js';
-import { ipMiddleware } from './middleware/ip.js';
+import { BotState } from './types/index.js';
+import { startHttpServer } from './server/index.js';
 
 dotenv.config();
 
@@ -27,68 +23,7 @@ export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
 export const root = path.join(__dirname, '..');
 
-interface BotState {
-  id: string
-  iteration: number
-  description: string
-  status: 'started' | 'paused' | 'executed' | 'finished' | 'error'
-  symbol: string
-  symbol_info: FuturesSymbolExchangeInfo | undefined
-  executed: boolean
-  finished: boolean
-  leverage: number
-  stop_loss: number
-  order_amount: number
-  margin_type: string
-  created_at: number
-  updated_at: number
-  rule_labels: string[],
-  rule_values: boolean[]
-}
-
-function startHttpServer(bot: SlaveBot) {
-
-  const app = express();
-  
-  app.disable("x-powered-by");
-
-  app.use(helmet({
-    contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
-  }));
-
-  app.use(express.json());
-  
-  app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
-
-  const whitelist: string[] = process.env.IP_WHITELIST!.split(',');
-
-  app.use(ipMiddleware(whitelist));
-
-  const botId = bot.state.id
-
-  app.get(`/api/slave/${botId}/get-slave`, (req, res) => {
-    res.json(bot.state);
-  });
-
-  app.get(`/api/slave/${botId}/get-logs`, getLogsHandler);
-
-  const outputPath = path.join(root, 'output');
-  app.use(`/api/slave/${botId}/output`, express.static(outputPath), serveIndex(outputPath, { icons: true }));
-
-  app.get(`/api/slave/${botId}/health`, (req, res) => {
-    res.status(200).send('Test OK');
-  });
-
-  app.use((req, res) => {
-    res.status(404).send('Not Found');
-  });
-
-  app.listen(3000, () => {
-    logger.info('📡 Server listening port 3000');
-  });
-}
-
-class SlaveBot {
+export class SlaveBot {
   public state: BotState;
   private config: any;
   private binance: any;
