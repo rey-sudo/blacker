@@ -16,19 +16,19 @@ import { updateSlave } from "./utils/updateSlave.js";
 import { sleep } from "./utils/sleep.js";
 import { fileURLToPath } from 'url';
 import { logger } from './utils/logger.js';
+import { getLogsHandler } from './routes/get-logs.js';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const root = path.join(__dirname, '..');
+export const __filename = fileURLToPath(import.meta.url);
+export const __dirname = path.dirname(__filename);
+export const root = path.join(__dirname, '..');
 
 interface BotState {
   id: string
   iteration: number
   description: string
-  paused: boolean
-  status: 'started' | 'paused' | 'executed' | 'finished' | 'error' 
+  status: 'started' | 'paused' | 'executed' | 'finished' | 'error'
   symbol: string
   symbol_info: FuturesSymbolExchangeInfo | undefined
   executed: boolean
@@ -53,10 +53,12 @@ function startHttpServer(bot: SlaveBot) {
     res.json(bot.state);
   });
 
+  app.get("/api/slave/get-logs", getLogsHandler);
+
   const outputPath = path.join(root, 'output');
   app.use(`/api/slave/output`, express.static(outputPath), serveIndex(outputPath, { icons: true }));
 
-  app.get(`/api/slave/ping`, (req, res) => {
+  app.get(`/api/slave/health`, (req, res) => {
     res.status(200).send('Test OK');
   });
 
@@ -65,7 +67,7 @@ function startHttpServer(bot: SlaveBot) {
   });
 
   app.listen(3000, () => {
-    console.log('📡 Server listening port 3000');
+    logger.info('📡 Server listening port 3000');
   });
 }
 
@@ -100,7 +102,7 @@ class SlaveBot {
     }
 
     ERROR_EVENTS.forEach((event: string) => process.on(event, (err) => {
-      console.error(err)
+      logger.error(err)
       process.exit(1);
     }));
 
@@ -116,7 +118,6 @@ class SlaveBot {
       id: SLAVE_NAME,
       iteration: 0,
       description: "description text",
-      paused: false,
       status: 'started',
       symbol: SYMBOL,
       symbol_info: undefined,
@@ -192,10 +193,10 @@ class SlaveBot {
       const findSlave = await findSlaveById(connection, this.state.id);
 
       if (findSlave) {
-        console.log("🔄 Resuming " + findSlave.id)
+        logger.info("🔄 Resuming " + findSlave.id)
         this.state = findSlave;
       } else {
-        console.log("⚠️ Slave not found, creating...")
+        logger.info("⚠️ Slave not found, creating...")
         await createSlave(connection, this.state);
       }
 
@@ -228,7 +229,7 @@ class SlaveBot {
 
       this.state.iteration++
 
-      console.log("✅ State saved")
+      logger.info("✅ State saved")
     } catch (err: any) {
       await connection?.rollback();
       throw err
@@ -269,7 +270,7 @@ class SlaveBot {
           this.state.rule_values[0] = await relativeStrengthIndex(rsiParams);
 
           if (!this.state.rule_values[0]) {
-            console.log("🕒 Sleeping");
+            logger.info("🕒 Sleeping");
             await sleep(300_000);
             continue;
           }
@@ -283,7 +284,7 @@ class SlaveBot {
           this.state.rule_values[1] = await squeezeMomentumIndicator(squeezeParams);
 
           if (!this.state.rule_values[1]) {
-            console.log("🕒 Sleeping");
+            logger.info("🕒 Sleeping");
             await sleep(300_000);
             continue;
           }
@@ -297,7 +298,7 @@ class SlaveBot {
           this.state.rule_values[2] = await averageDirectionalIndex(adxParams);
 
           if (!this.state.rule_values[2]) {
-            console.log("🕒 Sleeping");
+            logger.info("🕒 Sleeping");
             await sleep(300_000);
             continue;
           }
@@ -311,7 +312,7 @@ class SlaveBot {
           this.state.rule_values[3] = await heikinAshiBars(heikinParams);
 
           if (!this.state.rule_values[3]) {
-            console.log("🕒 Sleeping");
+            logger.info("🕒 Sleeping");
             await sleep(300_000);
             continue;
           }
@@ -321,7 +322,7 @@ class SlaveBot {
 
       } catch (err: any) {
         this.state.status = 'error'
-        console.error(err)
+        logger.error(err)
       }
     }
   }
@@ -373,7 +374,8 @@ class SlaveBot {
 
     this.state.executed = true
     await this.save();
-    console.log(price, quantity)
+
+    logger.info(`Buy at ${price}`)
 
     //////////////////////////////////////////////////////////////////////////////// STOP LOSS
 
@@ -390,7 +392,7 @@ class SlaveBot {
       newOrderRespType: 'RESULT'
     }))
 
-    console.log(`🛑 STOP LOSS in ${stopLossPrice}`);
+    logger.info(`🛑 STOP LOSS in ${stopLossPrice}`);
 
     //////////////////////////////////////////////////////////////////////////////// TARGETS
 
@@ -424,7 +426,7 @@ class SlaveBot {
         newOrderRespType: 'RESULT'
       });
 
-      console.log(`🎯 Take profit set at ${stopPrice} USDT for ${qty}`);
+      logger.info(`🎯 Take profit set at ${stopPrice} USDT for ${qty}`);
     }
 
     this.state.finished = true
@@ -432,7 +434,7 @@ class SlaveBot {
 
     //////////////////////////////////////////////////////////////////////////////// FINISHED
 
-    console.log("🕒 Sleeping");
+    logger.info("🕒 Sleeping");
     await sleep(86_400_000)
   }
 
