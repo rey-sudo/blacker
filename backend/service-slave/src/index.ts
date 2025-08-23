@@ -49,16 +49,18 @@ function startHttpServer(bot: SlaveBot) {
 
   app.use(express.json());
 
-  app.get(`/api/slave/get-slave`, (req, res) => {
+  const botId = bot.state.id
+
+  app.get(`/api/slave/${botId}/get-slave`, (req, res) => {
     res.json(bot.state);
   });
 
-  app.get("/api/slave/get-logs", getLogsHandler);
+  app.get(`/api/slave/${botId}/get-logs`, getLogsHandler);
 
   const outputPath = path.join(root, 'output');
-  app.use(`/api/slave/output`, express.static(outputPath), serveIndex(outputPath, { icons: true }));
+  app.use(`/api/slave/${botId}/output`, express.static(outputPath), serveIndex(outputPath, { icons: true }));
 
-  app.get(`/api/slave/health`, (req, res) => {
+  app.get(`/api/slave/${botId}/health`, (req, res) => {
     res.status(200).send('Test OK');
   });
 
@@ -117,7 +119,7 @@ class SlaveBot {
     this.state = {
       id: SLAVE_NAME,
       iteration: 0,
-      description: "description text",
+      description: "description text", //add
       status: 'started',
       symbol: SYMBOL,
       symbol_info: undefined,

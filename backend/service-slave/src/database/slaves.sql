@@ -3,6 +3,7 @@ create table if not exists slaves(
   iteration INT UNSIGNED NOT NULL,
   description VARCHAR(200) NOT NULL,
   paused BOOLEAN NOT NULL,
+  broker VARCHAR(100) NOT NULL,
   status VARCHAR(100) NOT NULL,
   symbol VARCHAR(50) NOT NULL,
   symbol_info JSON NOT NULL,
@@ -18,5 +19,3 @@ create table if not exists slaves(
   rule_values JSON NOT NULL, 
   primary key(id)
 ) ENGINE=InnoDB;
-
---paused, broker
