@@ -8,31 +8,29 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
-    nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: blacker.dev
+    nginx.ingress.kubernetes.io/cors-allow-origin: localhost
     nginx.ingress.kubernetes.io/cors-expose-headers: "Set-Cookie"
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: 20m
-    nginx.ingress.kubernetes.io/websocket-services: "service-binance"
 
 spec:
   ingressClassName: nginx
   rules:
-    - host: blacker.dev
+    - host: localhost
       http:
-        paths:
-          - path: /?(.*)
+        paths:       
+          - path: /api/query/?(.*)
             pathType: ImplementationSpecific
             backend:
               service:
-                name: service-frontend
+                name: service-query
                 port:
-                  number: 8000         
-          - path: /api/binance/graphql
-            pathType: Prefix
+                  number: 3000
+          - path: /api/slave/?(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
-                name: service-binance
+                name: service-slave-0
                 port:
-                  number: 4000
+                  number: 3000
