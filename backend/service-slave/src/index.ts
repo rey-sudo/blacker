@@ -15,6 +15,7 @@ import { createSlave } from "./utils/createSlave.js";
 import { updateSlave } from "./utils/updateSlave.js";
 import { sleep } from "./utils/sleep.js";
 import { fileURLToPath } from 'url';
+import { logger } from './utils/logger.js';
 
 dotenv.config();
 
@@ -152,7 +153,7 @@ class SlaveBot {
   }
 
   private async setup() {
-    console.log("🚀 Starting slave...")
+    logger.info("🚀 Starting slave...")
 
     const exchangeInfo: FuturesExchangeInfo = await this.binance.getExchangeInfo({
       symbol: this.state.symbol
