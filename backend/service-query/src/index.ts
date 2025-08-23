@@ -43,7 +43,7 @@ async function main() {
 
   const SLAVE_PORT = process.env.SLAVE_PORT!;
 
-  const EXPRESS_PORT = 8000
+  const EXPRESS_PORT = 3000
 
   await database.connect({
     host: process.env.DATABASE_HOST!,
