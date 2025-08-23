@@ -4,6 +4,8 @@ import express from 'express';
 import retry from 'async-retry';
 import database from "./database/client.js";
 import serveIndex from 'serve-index';
+import morgan from 'morgan';
+import helmet from 'helmet';
 import { FuturesExchangeInfo, FuturesSymbolExchangeInfo, NewFuturesOrderParams, NewOrderResult, SymbolConfig, SymbolExchangeInfo, USDMClient } from 'binance';
 import { relativeStrengthIndex } from "./handlers/rsi/index.js";
 import { squeezeMomentumIndicator } from "./handlers/squeeze/index.js";
@@ -17,6 +19,7 @@ import { sleep } from "./utils/sleep.js";
 import { fileURLToPath } from 'url';
 import { logger } from './utils/logger.js';
 import { getLogsHandler } from './routes/get-logs.js';
+import { ipMiddleware } from './middleware/ip.js';
 
 dotenv.config();
 
@@ -46,8 +49,20 @@ interface BotState {
 function startHttpServer(bot: SlaveBot) {
 
   const app = express();
+  
+  app.disable("x-powered-by");
+
+  app.use(helmet({
+    contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
+  }));
 
   app.use(express.json());
+  
+  app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+
+  const whitelist: string[] = process.env.IP_WHITELIST!.split(',');
+
+  app.use(ipMiddleware(whitelist));
 
   const botId = bot.state.id
 
@@ -94,7 +109,8 @@ class SlaveBot {
       "LEVERAGE",
       "SHOW_PLOTS",
       "BINANCE_KEY",
-      "BINANCE_SECRET"
+      "BINANCE_SECRET",
+      "IP_WHITELIST"
     ];
 
     for (const envName of requiredEnvVars) {

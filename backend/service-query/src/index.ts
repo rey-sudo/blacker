@@ -1,7 +1,6 @@
 import express, { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
 import helmet from 'helmet';
-import axios from 'axios';
 import dotenv from 'dotenv';
 import database from './database/client.js';
 import { ERROR_EVENTS } from './utils/errors.js';
@@ -52,8 +51,6 @@ async function main() {
     password: process.env.DATABASE_PASSWORD!,
     database: process.env.DATABASE_NAME!
   });
-
-  axios.defaults.timeout = 5000;
 
   const binance = new USDMClient({
     api_key: process.env.BINANCE_KEY!,
