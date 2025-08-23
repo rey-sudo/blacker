@@ -8,7 +8,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: localhost
     nginx.ingress.kubernetes.io/cors-expose-headers: "Set-Cookie"
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
     nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
@@ -17,7 +16,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: localhost
+    - host: ""
       http:
         paths:       
           - path: /api/query/?(.*)
