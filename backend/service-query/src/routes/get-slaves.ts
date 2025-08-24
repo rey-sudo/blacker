@@ -31,7 +31,7 @@ export const getSlavesHandler = async (
 
             const slaveHost = process.env.SLAVE_HOST!.replace("#", prefix)
 
-            const images = await scrapeImages(`${slaveHost}/api/slave/output/`, slave.rule_labels);
+            const images = await scrapeImages(`${slaveHost}/api/slave/${slaveId}/output/`, slave.rule_labels);
 
             response.push(formatSlaveData(slave, live, images))
         }
