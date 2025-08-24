@@ -24,7 +24,7 @@ export function startHttpServer(bot: SlaveBot) {
 
     const whitelist: string[] = process.env.IP_WHITELIST!.split(',');
 
-    app.use(ipMiddleware(whitelist));
+    //app.use(ipMiddleware(whitelist));
 
     const botId = bot.state.id
 

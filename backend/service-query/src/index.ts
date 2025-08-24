@@ -78,7 +78,7 @@ async function main() {
 
   const whitelist: string[] = process.env.IP_WHITELIST!.split(',');
 
-  app.use(ipMiddleware(whitelist));
+  //app.use(ipMiddleware(whitelist));
 
   app.get("/api/query/get-slaves", getSlavesHandler);
 
