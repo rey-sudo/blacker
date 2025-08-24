@@ -1,3 +1,4 @@
+import 'package:blacker/controllers/logs_controller.dart';
 import 'package:blacker/widgets/image_grid.dart';
 import 'package:blacker/widgets/info_card.dart';
 import 'package:blacker/widgets/info_grid.dart';
@@ -16,6 +17,10 @@ class BotPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final BotsController controller = Get.find<BotsController>();
+
+    final LogsController logsController = Get.put(LogsController());
+
+    logsController.listen();
 
     final bot = controller.bots.firstWhere(
       (b) => b["id"] == botId,
