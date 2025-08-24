@@ -25,23 +25,23 @@ COPY . .
 
 RUN npm run build
 
-COPY src/handlers/rsi/main.py dist/handlers/rsi/main.py
-COPY src/handlers/rsi/rsi.py dist/handlers/rsi/rsi.py
+COPY src/tools/rsi/main.py dist/tools/rsi/main.py
+COPY src/tools/rsi/rsi.py dist/tools/rsi/rsi.py
 
-COPY src/handlers/squeeze/main.py dist/handlers/squeeze/main.py
-COPY src/handlers/squeeze/squeeze.py dist/handlers/squeeze/squeeze.py
+COPY src/tools/squeeze/main.py dist/tools/squeeze/main.py
+COPY src/tools/squeeze/squeeze.py dist/tools/squeeze/squeeze.py
 
-COPY src/handlers/squeeze/main.py dist/handlers/squeeze/main.py
-COPY src/handlers/squeeze/squeeze.py dist/handlers/squeeze/squeeze.py
+COPY src/tools/squeeze/main.py dist/tools/squeeze/main.py
+COPY src/tools/squeeze/squeeze.py dist/tools/squeeze/squeeze.py
 
-COPY src/handlers/adx/main.py dist/handlers/adx/main.py
-COPY src/handlers/adx/adx.py dist/handlers/adx/adx.py
+COPY src/tools/adx/main.py dist/tools/adx/main.py
+COPY src/tools/adx/adx.py dist/tools/adx/adx.py
 
-COPY src/handlers/adx/main.py dist/handlers/adx/main.py
-COPY src/handlers/adx/adx.py dist/handlers/adx/adx.py
+COPY src/tools/adx/main.py dist/tools/adx/main.py
+COPY src/tools/adx/adx.py dist/tools/adx/adx.py
 
-COPY src/handlers/heikin/main.py dist/handlers/heikin/main.py
-COPY src/handlers/heikin/heikin.py dist/handlers/heikin/heikin.py
+COPY src/tools/heikin/main.py dist/tools/heikin/main.py
+COPY src/tools/heikin/heikin.py dist/tools/heikin/heikin.py
 
 EXPOSE 3000
 
