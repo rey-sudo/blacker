@@ -2,6 +2,7 @@ import 'package:blacker/controllers/logs_controller.dart';
 import 'package:blacker/widgets/image_grid.dart';
 import 'package:blacker/widgets/info_card.dart';
 import 'package:blacker/widgets/info_grid.dart';
+import 'package:blacker/widgets/logs_terminal.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -225,21 +226,9 @@ class BotPage extends StatelessWidget {
               ),
             ),
 
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.history, size: 48.w, color: Colors.grey),
-                  SizedBox(height: 16.h),
-                  Text(
-                    "Trades history...",
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
+            Obx(() {
+              return LogsTerminal(logs: logsController.events.toList());
+            }),
 
             Center(
               child: Column(
