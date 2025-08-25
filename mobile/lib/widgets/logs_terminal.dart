@@ -12,12 +12,37 @@ class LogsTerminal extends StatefulWidget {
 
 class _LogsTerminalState extends State<LogsTerminal> {
   final ScrollController _scrollController = ScrollController();
+  bool _showScrollButton = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+  }
 
   @override
   void didUpdateWidget(covariant LogsTerminal oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.logs.length != oldWidget.logs.length) {
+
+
+    if (widget.logs.isNotEmpty &&
+        (widget.logs.length != oldWidget.logs.length ||
+            widget.logs.last != oldWidget.logs.last)) {
       _scrollToBottom();
+    }
+  }
+
+  void _scrollListener() {
+    if (!_scrollController.hasClients) return;
+
+    final atBottom =
+        _scrollController.offset >=
+        _scrollController.position.maxScrollExtent - 20;
+
+    if (atBottom && _showScrollButton) {
+      setState(() => _showScrollButton = false);
+    } else if (!atBottom && !_showScrollButton) {
+      setState(() => _showScrollButton = true);
     }
   }
 
@@ -26,50 +51,87 @@ class _LogsTerminalState extends State<LogsTerminal> {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 600), 
+          curve: Curves.easeInOut, // fluida
         );
       }
     });
   }
 
   @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black,
-      padding: const EdgeInsets.all(4),
-      child: ListView.builder(
-        controller: _scrollController,
-        itemCount: widget.logs.length,
-        itemBuilder: (context, index) {
-          final log = widget.logs[index];
+    return Stack(
+      children: [
+        Container(
+          color: Colors.black,
+          padding: const EdgeInsets.all(4),
+          child: ListView.builder(
+            controller: _scrollController,
+            itemCount: widget.logs.length,
+            itemBuilder: (context, index) {
+              final log = widget.logs[index];
 
-          String logString;
-          try {
-            logString = const JsonEncoder.withIndent('  ').convert(log);
-          } catch (e) {
-            logString = log.toString();
-          }
+              String logString;
+              try {
+                logString = const JsonEncoder.withIndent('  ').convert(log);
+              } catch (e) {
+                logString = log.toString();
+              }
 
+              Color textColor = Colors.white;
+              if (logString.contains('✅')) {
+                textColor = Colors.greenAccent;
+              } else if (logString.contains('🕒')) {
+                textColor = Colors.orangeAccent;
+              } else if (logString.contains('ready')) {
+                textColor = Colors.blueAccent;
+              }
 
-          Color textColor = Colors.white;
-          if (logString.contains('✅')) textColor = Colors.greenAccent;
-          else if (logString.contains('🕒')) textColor = Colors.orangeAccent;
-          else if (logString.contains('ready')) textColor = Colors.blueAccent;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Text(
+                  logString,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 14,
+                    color: textColor,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Text(
-              logString,
-              style: TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 14,
-                color: textColor,
+        Positioned(
+          bottom: 16,
+          right: 16,
+          child: AnimatedOpacity(
+            opacity: _showScrollButton ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 300),
+            child: IgnorePointer(
+              ignoring: !_showScrollButton,
+              child: FloatingActionButton(
+                backgroundColor: Colors.black,
+                shape: const CircleBorder(
+                  side: BorderSide(
+                    color: Colors.white,
+                    width: 2,
+                  ), // borde blanco
+                ),
+                onPressed: _scrollToBottom,
+                child: const Icon(Icons.arrow_downward, color: Colors.white),
               ),
             ),
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
   }
 }
