@@ -27,6 +27,7 @@ interface BotInfo {
   id: string;
   symbol: string;
   description: string;
+  status: string;
   paused: boolean;
   live: boolean;
   iteration: number;
@@ -44,6 +45,7 @@ export function formatSlaveData(slaveState: SlaveState, live: boolean, images: s
     id: slaveState.id,
     symbol: slaveState.symbol,
     description: slaveState.description,
+    status: slaveState.status,
     paused: slaveState.paused,
     live: live,
     iteration: slaveState.iteration,
