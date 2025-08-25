@@ -5,21 +5,21 @@ import 'package:flutter_client_sse/flutter_client_sse.dart';
 import 'package:get/get.dart';
 
 class LogsController extends GetxController {
-  var events = <Map<String, dynamic>>[].obs; // Lista reactiva de JSON
+  var events = <Map<String, dynamic>>[].obs;
   StreamSubscription<SSEModel>? _subscription;
 
-  void listen() {
+  void listen(String botId) {
+    unsubscribeFromSSE();
     _subscription =
         SSEClient.subscribeToSSE(
-          method: SSERequestType.GET, // Según el ejemplo oficial
-          url: 'https://492131f574ab.ngrok-free.app/api/slave/slave-0/get-logs',
+          method: SSERequestType.GET,
+          url: 'https://x.ngrok-free.app/api/slave/$botId/get-logs',
           header: {"Accept": "text/event-stream", "Cache-Control": "no-cache"},
         ).listen(
           (SSEModel event) {
-            // Manejar nulos con el operador '!'
             final dataString = event.data ?? '{}';
             print(dataString);
-            
+
             try {
               final jsonData = jsonDecode(dataString) as Map<String, dynamic>;
               events.add(jsonData);
@@ -27,10 +27,22 @@ class LogsController extends GetxController {
               print('Error parseando JSON SSE: $e');
             }
           },
+          onDone: () {
+            print('SSE cerrado por el servidor.');
+            _scheduleReconnect(botId);
+          },
           onError: (err) {
             print('Error SSE: $err');
+            _scheduleReconnect(botId);
           },
         );
+  }
+
+  void _scheduleReconnect(String botId) {
+    Future.delayed(const Duration(seconds: 3), () {
+      unsubscribeFromSSE();
+      listen(botId);
+    });
   }
 
   void unsubscribeFromSSE() {
