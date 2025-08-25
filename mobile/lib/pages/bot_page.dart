@@ -20,8 +20,8 @@ class BotPage extends StatelessWidget {
     final BotsController controller = Get.find<BotsController>();
 
     final LogsController logsController = Get.put(LogsController());
-
-    logsController.listen();
+    
+    logsController.listen(botId);
 
     final bot = controller.bots.firstWhere(
       (b) => b["id"] == botId,
