@@ -1,15 +1,15 @@
 import {EventSource} from "eventsource";
 
-const es = new EventSource("http://localhost:3000/api/slave/get-logs");
+const es = new EventSource("https://x.ngrok-free.app/api/slave/slave-0/get-logs");
 
 es.addEventListener("log", (event) => {
-    console.log("Nuevo log:", event.data);
+    console.log(event.data);
 });
 
 es.addEventListener("ready", (event) => {
-    console.log("Dump inicial completo:", event.data);
+    console.log(event.data);
 });
 
 es.onerror = (err) => {
-    console.error("Error SSE:", err);
+    console.error(err);
 };
