@@ -20,7 +20,7 @@ class BotPage extends StatelessWidget {
     final BotsController controller = Get.find<BotsController>();
 
     final LogsController logsController = Get.put(LogsController());
-    
+
     logsController.listen(botId);
 
     final bot = controller.bots.firstWhere(
@@ -70,10 +70,17 @@ class BotPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 12.h),
+                  SizedBox(height: 16.h),
 
                   Row(
                     children: [
+                      SvgPicture.asset(
+                        'assets/icons/binance.svg',
+                        width: 20.w,
+                        height: 20.w,
+                      ),
+                      SizedBox(width: 12.w),
+
                       Obx(() {
                         final currentBot = controller.bots.firstWhere(
                           (b) => b["id"] == botId,
@@ -85,12 +92,7 @@ class BotPage extends StatelessWidget {
                               ?.copyWith(fontWeight: FontWeight.bold),
                         );
                       }),
-                      SizedBox(width: 12.w),
-                      SvgPicture.asset(
-                        'assets/icons/binance.svg',
-                        width: 20.w,
-                        height: 20.w,
-                      ),
+
                       const Spacer(),
                       Obx(() {
                         final currentBot = controller.bots.firstWhere(
@@ -120,9 +122,10 @@ class BotPage extends StatelessWidget {
                     ],
                   ),
 
-                  SizedBox(height: 16.h),
+                  SizedBox(height: 24.h),
 
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: InfoCard(
@@ -131,7 +134,7 @@ class BotPage extends StatelessWidget {
                           color: Colors.green,
                         ),
                       ),
-                      SizedBox(width: 8.w),
+                      SizedBox(width: 16.w),
                       Expanded(
                         child: Obx(() {
                           final currentBot = controller.bots.firstWhere(
@@ -147,7 +150,8 @@ class BotPage extends StatelessWidget {
                       ),
                     ],
                   ),
-
+                  SizedBox(height: 16.h),
+                  Divider(color: Theme.of(context).dividerColor),
                   SizedBox(height: 16.h),
 
                   Obx(() {
