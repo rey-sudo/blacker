@@ -25,7 +25,8 @@
     "pino-pretty": "^13.1.1",
     "request-ip": "^3.3.0",
     "serve-index": "^1.9.1",
-    "tail": "^2.2.6"
+    "tail": "^2.2.6",
+    "timeago.js": "^4.0.2"
   },
   "devDependencies": {
     "@types/async-retry": "^1.4.9",

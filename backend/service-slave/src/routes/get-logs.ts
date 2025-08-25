@@ -1,6 +1,7 @@
 import fs from "fs";
 import { Request, Response } from "express";
 import { Tail } from "tail";
+import { format } from 'timeago.js';
 
 const LOG_FILE_PATH = "./logs/app.log";
 const SSE_HEADERS = {
@@ -25,8 +26,11 @@ function broadcastToAll(event: string, data: object) {
 }
 
 function addSSEMetadata(data: object, type: string = 'info') {
+  const { timestamp } = data as any
+
   return {
     ...data,
+    time: format(timestamp),
     sseType: type,
     sseTimestamp: new Date().toISOString()
   };
