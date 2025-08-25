@@ -1,10 +1,12 @@
 import { FuturesSymbolExchangeInfo } from "binance"
 
+type Status = "started" | "running" | "paused" | "executed" | "finished" | "error";
+
 export interface BotState {
     id: string
     iteration: number
     description: string
-    status: 'started' | 'paused' | 'executed' | 'finished' | 'error'
+    status: Status
     symbol: string
     symbol_info: FuturesSymbolExchangeInfo | undefined
     executed: boolean

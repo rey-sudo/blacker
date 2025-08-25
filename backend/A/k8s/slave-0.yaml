@@ -34,6 +34,8 @@ spec:
               value: "500"
             - name: SHOW_PLOTS
               value: "false"
+            - name: DESCRIPTION
+              value: "RSI,Squeeze,ADX,Heikin"  
             - name: DATABASE_HOST
               value: "mysql"
             - name: DATABASE_PORT

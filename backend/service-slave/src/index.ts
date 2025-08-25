@@ -45,7 +45,8 @@ export class SlaveBot {
       "SHOW_PLOTS",
       "BINANCE_KEY",
       "BINANCE_SECRET",
-      "IP_WHITELIST"
+      "IP_WHITELIST",
+      "DESCRIPTION"
     ];
 
     for (const envName of requiredEnvVars) {
@@ -70,7 +71,7 @@ export class SlaveBot {
     this.state = {
       id: SLAVE_NAME,
       iteration: 0,
-      description: "description text", //add
+      description: process.env.DESCRIPTION!,
       status: 'started',
       symbol: SYMBOL,
       symbol_info: undefined,
@@ -153,6 +154,8 @@ export class SlaveBot {
         await createSlave(connection, this.state);
       }
 
+      this.state.status = 'running';
+
       await connection.commit();
     } catch (err: any) {
       await connection?.rollback();
@@ -207,6 +210,11 @@ export class SlaveBot {
     });
   }
 
+  private async sleep(timeMs: number) {
+    logger.info("🕒 Sleeping");
+    return await sleep(timeMs);
+  }
+
   public async run() {
 
     await this.setup();
@@ -223,8 +231,7 @@ export class SlaveBot {
           this.state.rule_values[0] = await relativeStrengthIndex(rsiParams);
 
           if (!this.state.rule_values[0]) {
-            logger.info("🕒 Sleeping");
-            await sleep(300_000);
+            await this.sleep(300_000)
             continue;
           }
         }
@@ -237,8 +244,7 @@ export class SlaveBot {
           this.state.rule_values[1] = await squeezeMomentumIndicator(squeezeParams);
 
           if (!this.state.rule_values[1]) {
-            logger.info("🕒 Sleeping");
-            await sleep(300_000);
+            await this.sleep(300_000)
             continue;
           }
         }
@@ -251,8 +257,7 @@ export class SlaveBot {
           this.state.rule_values[2] = await averageDirectionalIndex(adxParams);
 
           if (!this.state.rule_values[2]) {
-            logger.info("🕒 Sleeping");
-            await sleep(300_000);
+            await this.sleep(300_000)
             continue;
           }
         }
@@ -265,8 +270,7 @@ export class SlaveBot {
           this.state.rule_values[3] = await heikinAshiBars(heikinParams);
 
           if (!this.state.rule_values[3]) {
-            logger.info("🕒 Sleeping");
-            await sleep(300_000);
+            await this.sleep(300_000)
             continue;
           }
         }
@@ -326,6 +330,7 @@ export class SlaveBot {
     }))
 
     this.state.executed = true
+    this.state.status = "executed"
     await this.save();
 
     logger.info(`Buy at ${price}`)
@@ -383,12 +388,10 @@ export class SlaveBot {
     }
 
     this.state.finished = true
+    this.state.status = "finished"
     await this.save();
 
-    //////////////////////////////////////////////////////////////////////////////// FINISHED
-
-    logger.info("🕒 Sleeping");
-    await sleep(86_400_000)
+    await this.sleep(86_400_000)
   }
 
 }
