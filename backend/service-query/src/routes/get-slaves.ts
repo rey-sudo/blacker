@@ -27,9 +27,9 @@ export const getSlavesHandler = async (
 
             const prefix = slaveId.split('-').pop();
 
-            const live = true
-
             const slaveHost = process.env.SLAVE_HOST!.replace("#", prefix)
+
+            const live = await getSlaveHealth(slaveHost, slaveId)
 
             const images = await scrapeImages(`${slaveHost}/api/slave/${slaveId}/output/`, slave.rule_labels);
 
@@ -88,5 +88,25 @@ async function scrapeImages(baseUrl: string, ruleLabels: string[]): Promise<stri
         console.error(`❌ Error scraping:`, err);
     } finally {
         return images
+    }
+}
+
+
+async function getSlaveHealth(baseUrl: string, slaveId: string) {
+    let response = false;
+    try {
+        const querySlave = await retry(() => axios.get(`${baseUrl}/api/slave/${slaveId}/health`), {
+            retries: 2,
+            minTimeout: 500,
+            maxTimeout: 1500
+        });
+
+        const { success } = querySlave.data;
+
+        response = success
+    } catch (err) {
+        console.error(`❌ Error health:`, err);
+    } finally {
+        return response
     }
 }

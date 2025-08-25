@@ -38,7 +38,10 @@ export function startHttpServer(bot: SlaveBot) {
     app.use(`/api/slave/${botId}/output`, express.static(outputPath), serveIndex(outputPath, { icons: true }));
 
     app.get(`/api/slave/${botId}/health`, (req, res) => {
-        res.status(200).send('Test OK');
+        res.status(200).json({
+            success: true,
+            message: "test OK"
+        });
     });
 
     app.use((req, res) => {
