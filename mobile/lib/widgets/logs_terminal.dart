@@ -52,7 +52,7 @@ class _LogsTerminalState extends State<LogsTerminal> {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 600), 
-          curve: Curves.easeInOut, // fluida
+          curve: Curves.easeInOut, 
         );
       }
     });
@@ -123,7 +123,7 @@ class _LogsTerminalState extends State<LogsTerminal> {
                   side: BorderSide(
                     color: Colors.white,
                     width: 2,
-                  ), // borde blanco
+                  ), 
                 ),
                 onPressed: _scrollToBottom,
                 child: const Icon(Icons.arrow_downward, color: Colors.white),
