@@ -26,11 +26,11 @@ function broadcastToAll(event: string, data: object) {
 }
 
 function addSSEMetadata(data: object, type: string = 'info') {
-  const { timestamp } = data as any
+  const { time } = data as any
 
   return {
     ...data,
-    time: format(timestamp),
+    ago: format(time),
     sseType: type,
     sseTimestamp: new Date().toISOString()
   };
