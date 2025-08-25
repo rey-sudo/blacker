@@ -36,8 +36,8 @@ function processLogLine(line: string) {
   return addSSEMetadata(JSON.parse(line));
 }
 
-function createSystemMessage(message: string, type: string = 'info') {
-  return addSSEMetadata({ message }, type);
+function createSystemMessage(msg: string, type: string = 'info') {
+  return addSSEMetadata({ msg }, type);
 }
 
 export function getLogsHandler(req: Request, res: Response) {
