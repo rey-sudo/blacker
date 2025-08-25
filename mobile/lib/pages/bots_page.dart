@@ -67,15 +67,15 @@ class BotsPage extends StatelessWidget {
                       return const LoadingIndicator();
                     }
 
-                    final liveBots = controller.bots
-                        .where((bot) => bot["live"] == true)
+                    final executedBots = controller.bots
+                        .where((bot) => bot["status"] == "executed")
                         .toList();
-                    if (liveBots.isEmpty) {
+                    if (executedBots.isEmpty) {
                       return const Center(
-                        child: Text("No live bots available"),
+                        child: Text("No executed bots available"),
                       );
                     }
-                    return _buildBotList(liveBots, controller);
+                    return _buildBotList(executedBots, controller);
                   }),
 
                   Obx(() {
