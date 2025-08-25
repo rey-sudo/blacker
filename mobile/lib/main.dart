@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'pages/home_page.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //  --dart-define (default: development)
+  const String env = String.fromEnvironment('ENV', defaultValue: 'development');
+
+  final envFile = switch (env) {
+    'production' => '.env.production',
+    'staging' => '.env.staging',
+    _ => '.env.development',
+  };
+
+  await dotenv.load(fileName: envFile);
+
   runApp(const MyApp());
 }
 
@@ -13,7 +27,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: const Size(414, 896), 
+      designSize: const Size(414, 896),
       minTextAdapt: true,
       builder: (context, child) {
         return GetMaterialApp(
@@ -36,7 +50,7 @@ class MyApp extends StatelessWidget {
           ),
           home: PageStorage(
             bucket: PageStorageBucket(),
-            child: const HomePage()
+            child: const HomePage(),
           ),
         );
       },

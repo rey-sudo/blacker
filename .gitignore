@@ -9,4 +9,4 @@ __pycache__
 kubectl
 skaffold
 .sha256
-
+.env.*

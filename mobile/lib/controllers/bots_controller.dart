@@ -1,9 +1,12 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 
 class BotsController extends GetxController {
+  final String baseUrl = dotenv.env['BASE_URL']!;
+  
   var bots = <Map<String, dynamic>>[].obs;
   var isLoading = true.obs;
   Timer? _timer;
@@ -43,7 +46,7 @@ class BotsController extends GetxController {
   Future<void> fetchBots() async {
     try {
       final response = await http.get(
-        Uri.parse('https://x.ngrok-free.app/api/query/get-slaves'),
+        Uri.parse('$baseUrl/api/query/get-slaves'),
         headers: {'Content-Type': 'application/json'},
       );
 

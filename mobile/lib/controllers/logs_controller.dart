@@ -2,9 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_client_sse/constants/sse_request_type_enum.dart';
 import 'package:flutter_client_sse/flutter_client_sse.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 
 class LogsController extends GetxController {
+  final String baseUrl = dotenv.env['BASE_URL']!;
+  
   var events = <Map<String, dynamic>>[].obs;
   StreamSubscription<SSEModel>? _subscription;
 
@@ -13,7 +16,7 @@ class LogsController extends GetxController {
     _subscription =
         SSEClient.subscribeToSSE(
           method: SSERequestType.GET,
-          url: 'https://x.ngrok-free.app/api/slave/$botId/get-logs',
+          url: '$baseUrl/api/slave/$botId/get-logs',
           header: {"Accept": "text/event-stream", "Cache-Control": "no-cache"},
         ).listen(
           (SSEModel event) {

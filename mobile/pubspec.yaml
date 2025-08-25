@@ -37,6 +37,7 @@ dependencies:
   sse: ^4.1.8
   cupertino_icons: ^1.0.8
   flutter_client_sse: ^2.0.3
+  flutter_dotenv: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +63,7 @@ flutter:
   assets:
     - assets/icons/
     - assets/fonts/
+    - .env.development
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
