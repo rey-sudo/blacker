@@ -34,8 +34,8 @@ class BotsPage extends StatelessWidget {
                   labelStyle: Theme.of(context).textTheme.bodyMedium,
                   tabs: const [
                     Tab(text: "All Bots"),
-                    Tab(text: "Live"),
-                    Tab(text: "Stopped"),
+                    Tab(text: "Executed"),
+                    Tab(text: "Finished"),
                   ],
                 ),
               ),
