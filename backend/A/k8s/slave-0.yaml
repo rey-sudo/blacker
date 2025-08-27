@@ -59,11 +59,6 @@ spec:
                 secretKeyRef:
                   name: binance-secret-secret
                   key: secret
-            - name: IP_WHITELIST
-              valueFrom:
-                secretKeyRef:
-                  name: ip-whitelist-secret
-                  key: ips
                                     
           resources:
             requests:

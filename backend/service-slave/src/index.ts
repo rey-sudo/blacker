@@ -45,7 +45,6 @@ export class SlaveBot {
       "SHOW_PLOTS",
       "BINANCE_KEY",
       "BINANCE_SECRET",
-      "IP_WHITELIST",
       "DESCRIPTION"
     ];
 

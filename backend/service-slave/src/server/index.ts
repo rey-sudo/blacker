@@ -3,7 +3,6 @@ import morgan from "morgan";
 import helmet from "helmet";
 import express from 'express';
 import serveIndex from 'serve-index';
-import { ipMiddleware } from "../middleware/ip.js";
 import { root, SlaveBot } from "../index.js";
 import { logger } from "../utils/logger.js";
 import { getLogsHandler } from "../routes/get-logs.js";
@@ -21,10 +20,6 @@ export function startHttpServer(bot: SlaveBot) {
     app.use(express.json());
 
     app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
-
-    const whitelist: string[] = process.env.IP_WHITELIST!.split(',');
-
-    //app.use(ipMiddleware(whitelist));
 
     const botId = bot.state.id
 

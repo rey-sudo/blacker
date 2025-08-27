@@ -7,7 +7,6 @@ import { ERROR_EVENTS } from './utils/errors.js';
 import { USDMClient } from 'binance';
 import { getSlavesHandler } from './routes/get-slaves.js';
 import { healthHandler } from './routes/health.js';
-import { ipMiddleware } from './middleware/ip.js';
 
 dotenv.config();
 
@@ -22,8 +21,7 @@ async function main() {
     "BINANCE_KEY",
     "BINANCE_SECRET",
     "SLAVE_HOST",
-    "HUNTER_HOST",
-    "IP_WHITELIST"
+    "HUNTER_HOST"
   ] as const;
 
   for (const varName of REQUIRED_ENV_VARS) {
@@ -75,10 +73,6 @@ async function main() {
   app.use(express.json());
 
   app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
-
-  const whitelist: string[] = process.env.IP_WHITELIST!.split(',');
-
-  //app.use(ipMiddleware(whitelist));
 
   app.get("/api/query/get-slaves", getSlavesHandler);
 
