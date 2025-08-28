@@ -59,12 +59,12 @@ export class SlaveBot {
       process.exit(0);
     }));
 
-    const SLAVE_NAME = process.env.SLAVE_NAME as string
-    const SYMBOL = process.env.SYMBOL as string
-    const MARGIN_TYPE = process.env.MARGIN_TYPE as string
-    const ORDER_AMOUNT = parseInt(process.env.ORDER_AMOUNT as string, 10)
-    const STOP_LOSS = parseFloat(process.env.STOP_LOSS as string)
-    const LEVERAGE = parseInt(process.env.LEVERAGE as string, 10)
+    const SLAVE_NAME = process.env.SLAVE_NAME!
+    const SYMBOL = process.env.SYMBOL!
+    const MARGIN_TYPE = process.env.MARGIN_TYPE!
+    const ORDER_AMOUNT = parseInt(process.env.ORDER_AMOUNT!, 10)
+    const STOP_LOSS = parseFloat(process.env.STOP_LOSS!)
+    const LEVERAGE = parseInt(process.env.LEVERAGE!, 10)
     const SHOW_PLOTS = process.env.SHOW_PLOTS === 'true'
 
     this.state = {
@@ -92,8 +92,8 @@ export class SlaveBot {
     }
 
     this.binance = new USDMClient({
-      api_key: process.env.BINANCE_KEY as string,
-      api_secret: process.env.BINANCE_SECRET as string
+      api_key: process.env.BINANCE_KEY!,
+      api_secret: process.env.BINANCE_SECRET!
     });
 
     database.connect({
@@ -107,45 +107,60 @@ export class SlaveBot {
     startHttpServer(this);
   }
 
-  private async setup() {
-    let connection = null;
 
+  private async setup() {
     try {
       logger.info("🚀 Starting slave...")
 
-      const exchangeInfo: FuturesExchangeInfo = await this.binance.getExchangeInfo({
-        symbol: this.state.symbol
+      await this.setupSymbol()
+      await this.setupDatabase()
+
+    } catch (err: any) {
+      logger.error(err)
+      this.state.status = "error"
+      throw err
+    }
+  }
+
+  private async setupSymbol() {
+    logger.info("🛠️ Configuring symbol...")
+
+    const exchangeInfo: FuturesExchangeInfo = await this.binance.getExchangeInfo({
+      symbol: this.state.symbol
+    })
+
+    const symbolInfo = exchangeInfo.symbols.find((item: FuturesSymbolExchangeInfo) => item.symbol === this.state.symbol);
+
+    if (!symbolInfo) {
+      throw new Error('❌ Error symbol not found')
+    }
+
+    this.state.symbol_info = symbolInfo
+
+    const symbolConfig: SymbolConfig[] = await this.binance.getFuturesSymbolConfig({ symbol: this.state.symbol });
+
+    if (symbolConfig[0].marginType !== this.state.margin_type) {
+      await this.binance.setMarginType({
+        symbol: this.state.symbol,
+        marginType: this.state.margin_type
       })
+    }
 
-      const symbolInfo = exchangeInfo.symbols.find((item: FuturesSymbolExchangeInfo) => item.symbol === this.state.symbol);
+    if (symbolConfig[0].leverage !== this.state.leverage) {
+      await this.binance.setLeverage({
+        symbol: this.state.symbol,
+        leverage: this.state.leverage
+      })
+    }
+  }
 
-      if (!symbolInfo) {
-        throw new Error('❌ Error symbol not found')
-      }
+  private async setupDatabase() {
+    let connection = null;
 
-      this.state.symbol_info = symbolInfo
-
-      const symbolConfig: SymbolConfig[] = await this.binance.getFuturesSymbolConfig({ symbol: this.state.symbol });
-
-      if (symbolConfig[0].marginType !== this.state.margin_type) {
-        await this.binance.setMarginType({
-          symbol: this.state.symbol,
-          marginType: this.state.margin_type
-        })
-      }
-
-      if (symbolConfig[0].leverage !== this.state.leverage) {
-        await this.binance.setLeverage({
-          symbol: this.state.symbol,
-          leverage: this.state.leverage
-        })
-      }
-
-      logger.info("🛠️ Connecting to database.")
+    try {
+      logger.info("🛠️ Connecting to database...")
 
       connection = await database.client.getConnection();
-
-      await connection.ping();
 
       await connection.beginTransaction();
 
@@ -163,7 +178,6 @@ export class SlaveBot {
 
       await connection.commit();
     } catch (err: any) {
-      logger.error(err)
       await connection?.rollback();
       throw err
     } finally {
@@ -219,75 +233,6 @@ export class SlaveBot {
   private async sleep(timeMs: number) {
     logger.info("🕒 Sleeping");
     return await sleep(timeMs);
-  }
-
-  public async run() {
-
-    await this.setup();
-
-    while (true) {
-      try {
-        await this.save();
-
-        if (!this.state.rule_values[0]) {
-          const klines = await this.getKlines(this.state.symbol, '4h', 100);
-
-          const rsiParams = { klines, mark: 5, filename: `${this.state.rule_labels[0]}.png`, show: this.config.show_plots }
-
-          this.state.rule_values[0] = await relativeStrengthIndex(rsiParams);
-
-          if (!this.state.rule_values[0]) {
-            await this.sleep(300_000)
-            continue;
-          }
-        }
-
-        if (!this.state.rule_values[1]) {
-          const klines = await this.getKlines(this.state.symbol, '4h', 200);
-
-          const squeezeParams = { klines, mark: 3, filename: `${this.state.rule_labels[1]}.png`, show: this.config.show_plots }
-
-          this.state.rule_values[1] = await squeezeMomentumIndicator(squeezeParams);
-
-          if (!this.state.rule_values[1]) {
-            await this.sleep(300_000)
-            continue;
-          }
-        }
-
-        if (!this.state.rule_values[2]) {
-          const klines = await this.getKlines(this.state.symbol, '4h', 100);
-
-          const adxParams = { klines, mark: 4, filename: `${this.state.rule_labels[2]}.png`, show: this.config.show_plots }
-
-          this.state.rule_values[2] = await averageDirectionalIndex(adxParams);
-
-          if (!this.state.rule_values[2]) {
-            await this.sleep(300_000)
-            continue;
-          }
-        }
-
-        if (!this.state.rule_values[3]) {
-          const klines = await this.getKlines(this.state.symbol, '2h', 200);
-
-          const heikinParams = { klines, mark: 3, filename: `${this.state.rule_labels[3]}.png`, show: this.config.show_plots }
-
-          this.state.rule_values[3] = await heikinAshiBars(heikinParams);
-
-          if (!this.state.rule_values[3]) {
-            await this.sleep(300_000)
-            continue;
-          }
-        }
-
-        await this.executeOrder()
-
-      } catch (err: any) {
-        this.state.status = 'error'
-        logger.error(err)
-      }
-    }
   }
 
   public async executeOrder() {
@@ -400,6 +345,74 @@ export class SlaveBot {
     await this.sleep(86_400_000)
   }
 
+  public async run() {
+
+    await this.setup();
+
+    while (true) {
+      try {
+        await this.save();
+
+        if (!this.state.rule_values[0]) {
+          const klines = await this.getKlines(this.state.symbol, '4h', 100);
+
+          const rsiParams = { klines, mark: 5, filename: `${this.state.rule_labels[0]}.png`, show: this.config.show_plots }
+
+          this.state.rule_values[0] = await relativeStrengthIndex(rsiParams);
+
+          if (!this.state.rule_values[0]) {
+            await this.sleep(300_000)
+            continue;
+          }
+        }
+
+        if (!this.state.rule_values[1]) {
+          const klines = await this.getKlines(this.state.symbol, '4h', 200);
+
+          const squeezeParams = { klines, mark: 3, filename: `${this.state.rule_labels[1]}.png`, show: this.config.show_plots }
+
+          this.state.rule_values[1] = await squeezeMomentumIndicator(squeezeParams);
+
+          if (!this.state.rule_values[1]) {
+            await this.sleep(300_000)
+            continue;
+          }
+        }
+
+        if (!this.state.rule_values[2]) {
+          const klines = await this.getKlines(this.state.symbol, '4h', 100);
+
+          const adxParams = { klines, mark: 4, filename: `${this.state.rule_labels[2]}.png`, show: this.config.show_plots }
+
+          this.state.rule_values[2] = await averageDirectionalIndex(adxParams);
+
+          if (!this.state.rule_values[2]) {
+            await this.sleep(300_000)
+            continue;
+          }
+        }
+
+        if (!this.state.rule_values[3]) {
+          const klines = await this.getKlines(this.state.symbol, '2h', 200);
+
+          const heikinParams = { klines, mark: 3, filename: `${this.state.rule_labels[3]}.png`, show: this.config.show_plots }
+
+          this.state.rule_values[3] = await heikinAshiBars(heikinParams);
+
+          if (!this.state.rule_values[3]) {
+            await this.sleep(300_000)
+            continue;
+          }
+        }
+
+        await this.executeOrder()
+
+      } catch (err: any) {
+        this.state.status = 'error'
+        logger.error(err)
+      }
+    }
+  }
 }
 
 async function main() {
