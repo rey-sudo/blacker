@@ -2,7 +2,7 @@ import sys
 import json
 import time
 from rsi import relative_strength_index
-from color import has_blue_color
+from has_blue_color import has_blue_color
 
 
 def main():

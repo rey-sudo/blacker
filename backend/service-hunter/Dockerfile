@@ -25,9 +25,8 @@ COPY . .
 
 RUN npm run build
 
-COPY src/handlers/rsi/main.py dist/handlers/rsi/main.py
-COPY src/handlers/rsi/color.py dist/handlers/rsi/color.py
-COPY src/handlers/rsi/rsi.py dist/handlers/rsi/rsi.py
+COPY src/tools/rsi/main.py dist/tools/rsi/main.py
+COPY src/tools/rsi/rsi.py dist/tools/rsi/rsi.py
 
 EXPOSE 3001
 

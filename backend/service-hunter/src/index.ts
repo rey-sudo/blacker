@@ -5,7 +5,7 @@ import retry from 'async-retry';
 import serveIndex from 'serve-index';
 import Coingecko from '@coingecko/coingecko-typescript';
 import { FuturesExchangeInfo, FuturesSymbolExchangeInfo, USDMClient } from 'binance';
-import { relativeStrengthIndex } from "./handlers/rsi/index.js";
+import { relativeStrengthIndex } from "./tools/rsi/index.js";
 import { ERROR_EVENTS } from "./utils/errors.js";
 import { sleep } from "./utils/sleep.js";
 import { fileURLToPath } from 'url';
