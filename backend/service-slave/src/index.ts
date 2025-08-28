@@ -16,6 +16,7 @@ import { fileURLToPath } from 'url';
 import { logger } from './utils/logger.js';
 import { BotState } from './types/index.js';
 import { startHttpServer } from './server/index.js';
+import { withRetry } from './utils/index.js';
 
 dotenv.config();
 
@@ -268,9 +269,6 @@ export class SlaveBot {
       throw new Error(`❌ Total value (${notional.toFixed(2)} USDT) must be at least ${minNotional} USDT.`);
     }
 
-    const withRetry = (fn: () => Promise<any>) =>
-      retry(fn, { retries: 3, minTimeout: 1000, factor: 1.5 });
-
     //////////////////////////////////////////////////////////////////////////////// CREATE ORDER
 
     await withRetry(() => this.binance.testOrder({
@@ -289,7 +287,7 @@ export class SlaveBot {
 
     //////////////////////////////////////////////////////////////////////////////// STOP LOSS
 
-    const stopLossPrice = adjust(price * 0.96, tickSize, pricePrecision);
+    const stopLossPrice = adjust(price * this.state.stop_loss, tickSize, pricePrecision);
 
     await withRetry(() => this.binance.testOrder({
       symbol: this.state.symbol,
