@@ -23,7 +23,7 @@ spec:
             - name: SHOW_PLOTS
               value: "false"
             - name: START_AT
-              value: "93"
+              value: "0"
             - name: COINGECKO_API_KEY
               valueFrom:
                 secretKeyRef:

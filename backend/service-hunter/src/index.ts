@@ -151,10 +151,10 @@ class HunterBot {
 
     this.state.validSymbols = geckoSymbols.filter(e => binanceSymbols.has(e));
 
-    if(this.state.iteration >= this.state.validSymbols.length){
+    if (this.state.iteration >= this.state.validSymbols.length) {
       throw new Error('iteration > validSymbol length')
     }
-    
+
     console.log(`✅ Setup: ${this.state.validSymbols.length} valid symbols`)
   }
 
@@ -201,9 +201,11 @@ class HunterBot {
           this.state.detectedSymbols.push(symbol)
         }
 
+        console.log(this.state.detectedSymbols)
+
         this.state.iteration += 1
         this.state.updated_at = Date.now()
-        
+
         console.log("🕒 Sleeping");
         await sleep(60_000);
       } catch (err: any) {

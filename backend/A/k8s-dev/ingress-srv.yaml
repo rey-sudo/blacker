@@ -33,3 +33,10 @@ spec:
                 name: service-slave-0
                 port:
                   number: 3000
+          - path: /api/hunter/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-hunter
+                port:
+                  number: 3001                  
