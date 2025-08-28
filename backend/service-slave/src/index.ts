@@ -174,9 +174,10 @@ export class SlaveBot {
         await createSlave(connection, this.state);
       }
 
+      await connection.commit();
+
       this.state.status = 'running';
 
-      await connection.commit();
     } catch (err: any) {
       await connection?.rollback();
       throw err
@@ -197,11 +198,11 @@ export class SlaveBot {
 
       await connection.beginTransaction();
 
-      this.state.updated_at = Date.now();
-
       await updateSlave(connection, this.state.id, this.state);
 
       await connection.commit();
+      
+      this.state.updated_at = Date.now();
 
       this.state.iteration++
 
