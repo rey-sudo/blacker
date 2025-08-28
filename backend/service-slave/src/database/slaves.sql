@@ -2,7 +2,6 @@ create table if not exists slaves(
   id VARCHAR(100) NOT NULL,
   iteration INT UNSIGNED NOT NULL,
   description VARCHAR(200) NOT NULL,
-  paused BOOLEAN NOT NULL,
   broker VARCHAR(100) NOT NULL,
   status VARCHAR(100) NOT NULL,
   symbol VARCHAR(50) NOT NULL,

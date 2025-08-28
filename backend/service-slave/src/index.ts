@@ -56,7 +56,7 @@ export class SlaveBot {
 
     ERROR_EVENTS.forEach((event: string) => process.on(event, (err) => {
       logger.error(err)
-      process.exit(1);
+      process.exit(0);
     }));
 
     const SLAVE_NAME = process.env.SLAVE_NAME as string
@@ -71,6 +71,7 @@ export class SlaveBot {
       id: SLAVE_NAME,
       iteration: 0,
       description: process.env.DESCRIPTION!,
+      broker: 'binance',
       status: 'started',
       symbol: SYMBOL,
       symbol_info: undefined,
@@ -107,40 +108,45 @@ export class SlaveBot {
   }
 
   private async setup() {
-    logger.info("🚀 Starting slave...")
-
-    const exchangeInfo: FuturesExchangeInfo = await this.binance.getExchangeInfo({
-      symbol: this.state.symbol
-    })
-
-    const symbolInfo = exchangeInfo.symbols.find((item: FuturesSymbolExchangeInfo) => item.symbol === this.state.symbol);
-
-    if (!symbolInfo) {
-      throw new Error('❌ Error symbol not found')
-    }
-
-    this.state.symbol_info = symbolInfo
-
-    const symbolConfig: SymbolConfig[] = await this.binance.getFuturesSymbolConfig({ symbol: this.state.symbol });
-
-    if (symbolConfig[0].marginType !== this.state.margin_type) {
-      await this.binance.setMarginType({
-        symbol: this.state.symbol,
-        marginType: this.state.margin_type
-      })
-    }
-
-    if (symbolConfig[0].leverage !== this.state.leverage) {
-      await this.binance.setLeverage({
-        symbol: this.state.symbol,
-        leverage: this.state.leverage
-      })
-    }
-
     let connection = null;
 
     try {
+      logger.info("🚀 Starting slave...")
+
+      const exchangeInfo: FuturesExchangeInfo = await this.binance.getExchangeInfo({
+        symbol: this.state.symbol
+      })
+
+      const symbolInfo = exchangeInfo.symbols.find((item: FuturesSymbolExchangeInfo) => item.symbol === this.state.symbol);
+
+      if (!symbolInfo) {
+        throw new Error('❌ Error symbol not found')
+      }
+
+      this.state.symbol_info = symbolInfo
+
+      const symbolConfig: SymbolConfig[] = await this.binance.getFuturesSymbolConfig({ symbol: this.state.symbol });
+
+      if (symbolConfig[0].marginType !== this.state.margin_type) {
+        await this.binance.setMarginType({
+          symbol: this.state.symbol,
+          marginType: this.state.margin_type
+        })
+      }
+
+      if (symbolConfig[0].leverage !== this.state.leverage) {
+        await this.binance.setLeverage({
+          symbol: this.state.symbol,
+          leverage: this.state.leverage
+        })
+      }
+
+      logger.info("🛠️ Connecting to database.")
+
       connection = await database.client.getConnection();
+
+      await connection.ping();
+
       await connection.beginTransaction();
 
       const findSlave = await findSlaveById(connection, this.state.id);
@@ -157,6 +163,7 @@ export class SlaveBot {
 
       await connection.commit();
     } catch (err: any) {
+      logger.error(err)
       await connection?.rollback();
       throw err
     } finally {

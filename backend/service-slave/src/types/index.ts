@@ -6,6 +6,7 @@ export interface BotState {
     id: string
     iteration: number
     description: string
+    broker: string
     status: Status
     symbol: string
     symbol_info: FuturesSymbolExchangeInfo | undefined
