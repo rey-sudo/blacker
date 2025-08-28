@@ -202,7 +202,7 @@ export class SlaveBot {
       await updateSlave(connection, this.state.id, this.state);
 
       await connection.commit();
-      
+
       this.state.updated_at = Date.now();
 
       this.state.iteration++
@@ -322,7 +322,7 @@ export class SlaveBot {
       const qty = adjust(correctedQty, stepSize, quantityPrecision);
       const stopPrice = adjust(price * target.multiplier, tickSize, pricePrecision);
 
-      await this.binance.testOrder({
+      await withRetry(() => this.binance.testOrder({
         symbol: this.state.symbol,
         side: 'SELL',
         type: 'TAKE_PROFIT_MARKET',
@@ -332,7 +332,7 @@ export class SlaveBot {
         workingType: 'MARK_PRICE',
         reduceOnly: 'true',
         newOrderRespType: 'RESULT'
-      });
+      }));
 
       logger.info(`🎯 Take profit set at ${stopPrice} USDT for ${qty}`);
     }
