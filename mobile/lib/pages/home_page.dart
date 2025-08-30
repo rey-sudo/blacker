@@ -14,7 +14,8 @@ class HomePage extends StatelessWidget {
     final List<Widget> pages = const [
       Center(child: Text("🏠 Página Inicio", style: TextStyle(fontSize: 24))),
       BotsPage(),
-      Center(child: Text("👤 Página Perfil", style: TextStyle(fontSize: 24))),
+      Center(child: Text("👤 Alerts", style: TextStyle(fontSize: 24))),
+      Center(child: Text("👤 Orders", style: TextStyle(fontSize: 24))),
     ];
 
     return Scaffold(
@@ -34,6 +35,7 @@ class HomePage extends StatelessWidget {
               print("Buscar presionado");
             },
           ),
+
           IconButton(
             icon: SvgPicture.asset(
               "assets/icons/search.svg",
@@ -96,7 +98,7 @@ class HomePage extends StatelessWidget {
                 ),
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(
-                    "assets/icons/list.svg",
+                    "assets/icons/bots.svg",
                     width: 24,
                     height: 24,
                     colorFilter: const ColorFilter.mode(
@@ -105,7 +107,7 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   activeIcon: SvgPicture.asset(
-                    "assets/icons/list.svg",
+                    "assets/icons/bots.svg",
                     width: 24,
                     height: 24,
                     colorFilter: const ColorFilter.mode(
@@ -135,6 +137,27 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   label: "Orders",
+                ),
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    "assets/icons/bell.svg",
+                    width: 24,
+                    height: 24,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.grey,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  activeIcon: SvgPicture.asset(
+                    "assets/icons/bell.svg",
+                    width: 24,
+                    height: 24,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.blue,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: "Alerts",
                 ),
               ],
             ),
