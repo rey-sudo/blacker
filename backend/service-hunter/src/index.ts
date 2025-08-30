@@ -8,6 +8,7 @@ import { sleep } from "./utils/sleep.js";
 import { fileURLToPath } from 'url';
 import { startHttpServer } from './server/index.js';
 import { withRetry } from './utils/index.js';
+import { redisClient } from './database/index.js';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ export class HunterBot {
   public state: HunterState;
   private config: any;
   private binance: any;
+  private redis: any
 
   constructor() {
     const requiredEnvVars = [
@@ -76,59 +78,75 @@ export class HunterBot {
   }
 
   private async setup() {
-    console.log("🚀 Starting hunter...")
+    try {
+      console.log("🚀 Starting hunter...")
 
-    const exchangeInfo: FuturesExchangeInfo = await this.binance.getExchangeInfo();
-    const exchangeSymbols: FuturesSymbolExchangeInfo[] = exchangeInfo.symbols ?? [];
+      await redisClient.connect({
+        url: "redis://redis-main:6379",
+        socket: {
+          connectTimeout: 100000,
+          keepAlive: 100000,
+        } as any,
+        service: "service-hunter",
+      });
 
-    const binanceSymbols = new Set(
-      exchangeSymbols
-        .filter(
-          s =>
-            s?.contractType === 'PERPETUAL' &&
-            s?.status === 'TRADING' &&
-            s?.quoteAsset?.toUpperCase() === 'USDT'
-        )
-        .map(s => s.symbol.toUpperCase())
-    );
+      this.redis = redisClient.client;
 
-    const geckoClient = new Coingecko({
-      environment: 'demo',
-      demoAPIKey: process.env['COINGECKO_API_KEY']
-    });
+      const exchangeInfo: FuturesExchangeInfo = await this.binance.getExchangeInfo();
+      const exchangeSymbols: FuturesSymbolExchangeInfo[] = exchangeInfo.symbols ?? [];
 
-    const [page1, page2] = await Promise.all([
-      geckoClient.coins.markets.get({
-        vs_currency: 'usd',
-        order: 'market_cap_desc',
-        per_page: 100,
-        page: 1,
-      }),
-      geckoClient.coins.markets.get({
-        vs_currency: 'usd',
-        order: 'market_cap_desc',
-        per_page: 100,
-        page: 2,
-      }),
-    ]);
+      const binanceSymbols = new Set(
+        exchangeSymbols
+          .filter(
+            s =>
+              s?.contractType === 'PERPETUAL' &&
+              s?.status === 'TRADING' &&
+              s?.quoteAsset?.toUpperCase() === 'USDT'
+          )
+          .map(s => s.symbol.toUpperCase())
+      );
 
-    const uniqueGecko = Array.from(
-      new Map(
-        [...page1, ...page2]
-          .filter(({ symbol }) => typeof symbol === 'string')
-          .map(e => [e.symbol!.toUpperCase(), e])
-      ).values()
-    );
+      const geckoClient = new Coingecko({
+        environment: 'demo',
+        demoAPIKey: process.env['COINGECKO_API_KEY']
+      });
 
-    const geckoSymbols = uniqueGecko.map(e => `${e.symbol!.toUpperCase()}USDT`);
+      const [page1, page2] = await Promise.all([
+        geckoClient.coins.markets.get({
+          vs_currency: 'usd',
+          order: 'market_cap_desc',
+          per_page: 100,
+          page: 1,
+        }),
+        geckoClient.coins.markets.get({
+          vs_currency: 'usd',
+          order: 'market_cap_desc',
+          per_page: 100,
+          page: 2,
+        }),
+      ]);
 
-    this.state.validSymbols = geckoSymbols.filter(e => binanceSymbols.has(e));
+      const uniqueGecko = Array.from(
+        new Map(
+          [...page1, ...page2]
+            .filter(({ symbol }) => typeof symbol === 'string')
+            .map(e => [e.symbol!.toUpperCase(), e])
+        ).values()
+      );
 
-    if (this.state.iteration >= this.state.validSymbols.length) {
-      throw new Error('iteration > validSymbol length')
+      const geckoSymbols = uniqueGecko.map(e => `${e.symbol!.toUpperCase()}USDT`);
+
+      this.state.validSymbols = geckoSymbols.filter(e => binanceSymbols.has(e));
+
+      if (this.state.iteration >= this.state.validSymbols.length) {
+        throw new Error('iteration > validSymbol length')
+      }
+
+      console.log(`✅ Setup: ${this.state.validSymbols.length} valid symbols`)
+    } catch (err) {
+      console.log(err)
+      throw err
     }
-
-    console.log(`✅ Setup: ${this.state.validSymbols.length} valid symbols`)
   }
 
   private async getKlines(symbol: string, interval: any, limit: number) {
@@ -180,6 +198,9 @@ export class HunterBot {
         this.state.iteration += 1
         this.state.updated_at = Date.now()
 
+        await this.redis.set("key", "value");
+        const value = await this.redis.get("key");
+        console.log(value)
 
         await this.sleep(60_000)
       } catch (err: any) {
