@@ -1,22 +1,21 @@
 import path from 'path';
 import dotenv from 'dotenv';
-import express from 'express';
 import retry from 'async-retry';
-import serveIndex from 'serve-index';
 import Coingecko from '@coingecko/coingecko-typescript';
 import { FuturesExchangeInfo, FuturesSymbolExchangeInfo, USDMClient } from 'binance';
 import { relativeStrengthIndex } from "./tools/rsi/index.js";
 import { ERROR_EVENTS } from "./utils/errors.js";
 import { sleep } from "./utils/sleep.js";
 import { fileURLToPath } from 'url';
+import { startHttpServer } from './server/index.js';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const root = path.join(__dirname, '..');
+export const __filename = fileURLToPath(import.meta.url);
+export const __dirname = path.dirname(__filename);
+export const root = path.join(__dirname, '..');
 
-interface BotState {
+export interface HunterState {
   status: 'started' | 'stopped' | 'error' | string
   iteration: number
   symbol: string
@@ -25,34 +24,8 @@ interface BotState {
   updated_at: number
 }
 
-function startHttpServer(bot: HunterBot) {
-
-  const app = express();
-
-  app.use(express.json());
-
-  app.get(`/api/hunter/get-hunter`, (req, res) => {
-    res.json(bot.state);
-  });
-
-  const outputPath = path.join(root, 'output');
-  app.use(`/api/hunter/output`, express.static(outputPath), serveIndex(outputPath, { icons: true }));
-
-  app.get(`/api/hunter/ping`, (req, res) => {
-    res.status(200).send('Test OK');
-  });
-
-  app.use((req, res) => {
-    res.status(404).send('Not Found');
-  });
-
-  app.listen(3001, () => {
-    console.log('📡 Server listening port 3001');
-  });
-}
-
-class HunterBot {
-  public state: BotState;
+export class HunterBot {
+  public state: HunterState;
   private config: any;
   private binance: any;
 
