@@ -141,6 +141,11 @@ export class HunterBot {
     )
   }
 
+  public async sleep(ms: number) {
+    console.log("🕒 Sleeping");
+    await sleep(ms);
+  }
+
   public async run() {
 
     await this.setup();
@@ -152,7 +157,7 @@ export class HunterBot {
           this.state.detectedSymbols = []
 
           console.log("🔄 Reseted");
-          await sleep(900_000);
+          await this.sleep(900_900)
           continue
         }
 
@@ -162,7 +167,9 @@ export class HunterBot {
         console.log(`Analizing ${symbol} iteration ${this.state.iteration}`);
 
         const klines = await this.getKlines(symbol, '4h', 100);
-        const result = await relativeStrengthIndex({ klines, mark: 6, filename: 'rsi.png', show: this.config.show_plots });
+
+        const rsiParams = { klines, mark: 6, filename: 'rsi.png', show: this.config.show_plots }
+        const result = await relativeStrengthIndex(rsiParams);
 
         if (result) {
           this.state.detectedSymbols.push(symbol)
@@ -173,8 +180,8 @@ export class HunterBot {
         this.state.iteration += 1
         this.state.updated_at = Date.now()
 
-        console.log("🕒 Sleeping");
-        await sleep(60_000);
+
+        await this.sleep(60_000)
       } catch (err: any) {
         this.state.status = 'error'
         console.error(err)
