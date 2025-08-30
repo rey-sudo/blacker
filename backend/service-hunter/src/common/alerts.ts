@@ -2,35 +2,60 @@ import { RedisClientType } from "redis";
 import { v7 as uuidv7 } from "uuid";
 import { logger } from "./logger.js";
 
+interface Alert {
+    id: string;
+    message: string;
+    timestamp: number;
+}
+
+const ALERTS_KEY = "alerts";
+
 export async function createAlert(redisClient: RedisClientType, message: string): Promise<number | null> {
     try {
-        const scheme = { id: uuidv7(), message, timestamp: Date.now() };
+        const alert: Alert = { id: uuidv7(), message, timestamp: Date.now() };
+        const result = await redisClient.hSet(ALERTS_KEY, alert.id, JSON.stringify(alert));
 
-        const result = await redisClient.lPush("alerts", JSON.stringify(scheme));
-
-        return result
- 
-    } catch (err) {
-        logger.error({ 
-            service: process.env.SERVICE_NAME,
-            event: "create:alert",
-            error: err
-        })
-        return null
+        return result;
+    } catch (err: any) {
+        logger.error({
+            service: process.env.SERVICE_NAME!,
+            event: "alert:create",
+            error: err.message,
+            stack: err.stack
+        });
+        return null;
     }
 }
 
-
-export async function getAlerts(redisClient: RedisClientType) {
-  const raw = await redisClient.lRange("alerts", 0, -1);
-  return raw.map((a) => JSON.parse(a));
+export async function getAlerts(redisClient: RedisClientType): Promise<Alert[]> {
+    try {
+        const raw = await redisClient.hGetAll(ALERTS_KEY);
+        return Object.values(raw)
+            .map((a) => JSON.parse(a) as Alert)
+            .sort((a, b) => a.timestamp - b.timestamp);
+    } catch (err: any) {
+        logger.error({
+            service: process.env.SERVICE_NAME!,
+            event: "alert:get",
+            error: err.message,
+            stack: err.stack
+        });
+        return []
+    }
 }
 
+export async function deleteAlert(redisClient: RedisClientType, id: string): Promise<boolean> {
+    try {
+        const deleted = await redisClient.hDel(ALERTS_KEY, id);
+        return deleted > 0;
+    } catch (err: any) {
+        logger.error({
+            service: process.env.SERVICE_NAME!,
+            event: "alert:delete",
+            error: err.message,
+            stack: err.stack
+        });
 
-export async function deleteAlert(redisClient: RedisClientType, id: string) {
-  const alerts = await getAlerts(redisClient);
-  const item = alerts.find((a) => a.id === id);
-  if (item) {
-    await redisClient.lRem("alerts", 1, JSON.stringify(item));
-  }
+        return false
+    }
 }

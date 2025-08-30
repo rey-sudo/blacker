@@ -185,13 +185,13 @@ export class HunterBot {
 
         if (result) {
           this.state.detectedSymbols.push(symbol)
-          const alert = await createAlert(this.redis, `RSI alert for ${symbol}`)
-          console.log(alert)
+          await createAlert(this.redis, `RSI alert for ${symbol}`)
+
         }
 
         this.state.iteration += 1
         this.state.updated_at = Date.now()
-
+        
         await this.sleep(60_000)
       } catch (err) {
         this.state.status = 'error'
