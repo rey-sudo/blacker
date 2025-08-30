@@ -20,9 +20,13 @@ spec:
           envFrom:
             - configMapRef:
                 name: slave-config       
+            - configMapRef:
+                name: redis-config                     
           env:
             - name: NODE_ENV
               value: "development"
+            - name: SERVICE_NAME
+              value: "slave-0"  
             - name: SLAVE_NAME
               value: "slave-0"
             - name: SYMBOL

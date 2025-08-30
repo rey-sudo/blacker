@@ -17,6 +17,9 @@ spec:
       containers:
         - name: service-hunter
           image: pairfy/service-hunter
+          envFrom:    
+            - configMapRef:
+                name: redis-config             
           env:
             - name: NODE_ENV
               value: "development"
@@ -25,9 +28,7 @@ spec:
             - name: SHOW_PLOTS
               value: "false"
             - name: START_AT
-              value: "0"
-            - name: REDIS_HOST
-              value: "redis://redis-main:6379"              
+              value: "0"            
             - name: COINGECKO_API_KEY
               valueFrom:
                 secretKeyRef:

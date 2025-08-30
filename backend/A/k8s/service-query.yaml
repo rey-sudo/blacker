@@ -15,21 +15,20 @@ spec:
       containers:
         - name: service-query
           image: pairfy/service-query
+          envFrom:
+            - configMapRef:
+                name: slave-config       
+            - configMapRef:
+                name: redis-config             
           env:
             - name: NODE_ENV
               value: "development" 
+            - name: SERVICE_NAME
+              value: "service-query"                
             - name: HUNTER_HOST
               value: "http://service-hunter:3001"  
             - name: SLAVE_HOST
               value: "http://service-slave-#:3000"                                                      
-            - name: DATABASE_HOST  
-              value: "mysql"      
-            - name: DATABASE_PORT
-              value: "3306"        
-            - name: DATABASE_USER
-              value: blacker                               
-            - name: DATABASE_NAME
-              value: service_slave 
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:

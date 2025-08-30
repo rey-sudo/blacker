@@ -2,17 +2,19 @@ import express, { NextFunction, Request, Response } from 'express';
 import morgan from 'morgan';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import database from './database/client.js';
+import { redisClient, database } from './database/client.js';
+import { getSlavesHandler } from './routes/get-slaves.js';
+import { getAlertsHandler } from './routes/get-alerts.js';
+import { healthHandler } from './routes/health.js';
 import { ERROR_EVENTS } from './utils/errors.js';
 import { USDMClient } from 'binance';
-import { getSlavesHandler } from './routes/get-slaves.js';
-import { healthHandler } from './routes/health.js';
 
 dotenv.config();
 
 async function main() {
   const REQUIRED_ENV_VARS = [
     "NODE_ENV",
+    "SERVICE_NAME",
     "DATABASE_HOST",
     "DATABASE_PORT",
     "DATABASE_USER",
@@ -21,7 +23,8 @@ async function main() {
     "BINANCE_KEY",
     "BINANCE_SECRET",
     "SLAVE_HOST",
-    "HUNTER_HOST"
+    "HUNTER_HOST",
+    "REDIS_HOST"
   ] as const;
 
   for (const varName of REQUIRED_ENV_VARS) {
@@ -38,8 +41,6 @@ async function main() {
     });
   }
 
-  const SLAVE_PORT = process.env.SLAVE_PORT!;
-
   const EXPRESS_PORT = 3000
 
   await database.connect({
@@ -48,6 +49,15 @@ async function main() {
     user: process.env.DATABASE_USER!,
     password: process.env.DATABASE_PASSWORD!,
     database: process.env.DATABASE_NAME!
+  });
+
+  await redisClient.connect({
+    url: process.env.REDIS_HOST!,
+    socket: {
+      connectTimeout: 100000,
+      keepAlive: 100000,
+    } as any,
+    service: "service-query",
   });
 
   const binance = new USDMClient({
@@ -63,32 +73,27 @@ async function main() {
     contentSecurityPolicy: process.env.NODE_ENV === "production" ? undefined : false,
   }));
 
-  /** 
-  app.use(cors({
-    origin: process.env.NODE_ENV === "production" ? ["https://tu-dominio.com"] : "*",
-    methods: ["GET", "POST"],
-  }));
- */
-
   app.use(express.json());
 
   app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
   app.get("/api/query/get-slaves", getSlavesHandler);
 
+  app.get("/api/query/get-alerts", getAlertsHandler);
+
   app.get("/api/query/health", healthHandler);
 
   app.use((_req: Request, res: Response) => {
     res.status(404).json({ error: "Not Found" });
   });
-  
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error("❌ Internal server error:", err);
     res.status(500).json({ error: "Internal server error" });
   });
 
   app.listen(EXPRESS_PORT, () => {
-    console.log(`✅ Slave server running on port ${SLAVE_PORT} [${process.env.NODE_ENV}]`);
+    console.log(`✅ Slave server running on port ${EXPRESS_PORT}`);
   });
 }
 

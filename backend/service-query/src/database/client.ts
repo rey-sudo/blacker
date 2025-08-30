@@ -1,5 +1,6 @@
+import { RedisWrapper } from "../common/redisClient.js";
 import { DatabaseWrap } from "../utils/mysql.js";
 
-const database = new DatabaseWrap();
+export const database = new DatabaseWrap();
 
-export default database
+export const redisClient = new RedisWrapper();

@@ -1,10 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { formatSlaveData } from "../utils/format.js";
 import { findAllSlaves } from "../utils/findAllSlaves.js";
-import database from "../database/client.js";
+import { database } from "../database/client.js";
 import axios from "axios";
 import retry from 'async-retry'
-import { Readable } from "stream";
 import path from "path";
 
 export const getSlavesHandler = async (
