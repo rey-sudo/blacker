@@ -1,6 +1,5 @@
 import path from 'path';
 import dotenv from 'dotenv';
-import retry from 'async-retry';
 import Coingecko from '@coingecko/coingecko-typescript';
 import { FuturesExchangeInfo, FuturesSymbolExchangeInfo, USDMClient } from 'binance';
 import { relativeStrengthIndex } from "./tools/rsi/index.js";

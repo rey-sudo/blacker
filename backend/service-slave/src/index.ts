@@ -1,6 +1,5 @@
 import path from 'path';
 import dotenv from 'dotenv';
-import retry from 'async-retry';
 import database from "./database/client.js";
 import { FuturesExchangeInfo, FuturesSymbolExchangeInfo, NewFuturesOrderParams, NewOrderResult, SymbolConfig, SymbolExchangeInfo, USDMClient } from 'binance';
 import { relativeStrengthIndex } from "./tools/rsi/index.js";
