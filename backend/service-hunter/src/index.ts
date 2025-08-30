@@ -8,6 +8,7 @@ import { ERROR_EVENTS } from "./utils/errors.js";
 import { sleep } from "./utils/sleep.js";
 import { fileURLToPath } from 'url';
 import { startHttpServer } from './server/index.js';
+import { withRetry } from './utils/index.js';
 
 dotenv.config();
 
@@ -132,19 +133,13 @@ export class HunterBot {
   }
 
   private async getKlines(symbol: string, interval: any, limit: number) {
-    return retry(async () => {
-      const klines = await this.binance.getKlines({
+    return withRetry(() =>
+      this.binance.getKlines({
         symbol,
         interval,
         limit
-      });
-      return klines;
-    }, {
-      retries: 3,
-      factor: 2,
-      minTimeout: 1000,
-      maxTimeout: 5000,
-    });
+      })
+    )
   }
 
   public async run() {

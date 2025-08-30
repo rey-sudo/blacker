@@ -15,4 +15,14 @@ metadata:
   name: streaming-config
 data:
   redis: redis://redis-streaming-srv:6379
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: slave-config
+data:
+  DATABASE_HOST: "mysql"
+  DATABASE_PORT: "3306"
+  DATABASE_NAME: "service_slave"
+  DATABASE_USER: "blacker"
 

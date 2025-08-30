@@ -217,19 +217,13 @@ export class SlaveBot {
   }
 
   private async getKlines(symbol: string, interval: any, limit: number) {
-    return retry(async () => {
-      const klines = await this.binance.getKlines({
+    return withRetry(() =>
+      this.binance.getKlines({
         symbol,
         interval,
         limit
-      });
-      return klines;
-    }, {
-      retries: 3,
-      factor: 2,
-      minTimeout: 1000,
-      maxTimeout: 5000,
-    });
+      })
+    )
   }
 
   private async sleep(timeMs: number) {

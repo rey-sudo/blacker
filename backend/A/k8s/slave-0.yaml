@@ -17,6 +17,9 @@ spec:
       containers:
         - name: service-slave
           image: pairfy/service-slave
+          envFrom:
+            - configMapRef:
+                name: slave-config       
           env:
             - name: NODE_ENV
               value: "development"
@@ -36,14 +39,6 @@ spec:
               value: "false"
             - name: DESCRIPTION
               value: "RSI,Squeeze,ADX,Heikin"  
-            - name: DATABASE_HOST
-              value: "mysql"
-            - name: DATABASE_PORT
-              value: "3306"
-            - name: DATABASE_NAME
-              value: "service_slave"
-            - name: DATABASE_USER
-              value: "blacker"
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:
