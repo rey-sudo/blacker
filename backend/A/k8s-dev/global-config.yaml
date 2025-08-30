@@ -25,4 +25,4 @@ data:
   DATABASE_PORT: "3306"
   DATABASE_NAME: "service_slave"
   DATABASE_USER: "blacker"
-
+  

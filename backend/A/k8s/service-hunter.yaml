@@ -20,10 +20,14 @@ spec:
           env:
             - name: NODE_ENV
               value: "development"
+            - name: SERVICE_NAME
+              value: "service-hunter"               
             - name: SHOW_PLOTS
               value: "false"
             - name: START_AT
               value: "0"
+            - name: REDIS_HOST
+              value: "redis://redis-main:6379"              
             - name: COINGECKO_API_KEY
               valueFrom:
                 secretKeyRef:

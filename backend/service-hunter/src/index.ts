@@ -9,21 +9,14 @@ import { fileURLToPath } from 'url';
 import { startHttpServer } from './server/index.js';
 import { withRetry } from './utils/index.js';
 import { redisClient } from './database/index.js';
+import { createAlert } from './common/alerts.js';
+import { HunterState } from './types/index.js';
 
 dotenv.config();
 
 export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
 export const root = path.join(__dirname, '..');
-
-export interface HunterState {
-  status: 'started' | 'stopped' | 'error' | string
-  iteration: number
-  symbol: string
-  validSymbols: string[]
-  detectedSymbols: string[]
-  updated_at: number
-}
 
 export class HunterBot {
   public state: HunterState;
@@ -34,11 +27,13 @@ export class HunterBot {
   constructor() {
     const requiredEnvVars = [
       "NODE_ENV",
+      "SERVICE_NAME",
       "SHOW_PLOTS",
       "BINANCE_KEY",
       "BINANCE_SECRET",
       "COINGECKO_API_KEY",
-      "START_AT"
+      "START_AT",
+      "REDIS_HOST"
     ];
 
     for (const envName of requiredEnvVars) {
@@ -82,7 +77,7 @@ export class HunterBot {
       console.log("🚀 Starting hunter...")
 
       await redisClient.connect({
-        url: "redis://redis-main:6379",
+        url: process.env.REDIS_HOST!,
         socket: {
           connectTimeout: 100000,
           keepAlive: 100000,
@@ -175,7 +170,7 @@ export class HunterBot {
           this.state.detectedSymbols = []
 
           console.log("🔄 Reseted");
-          await this.sleep(900_900)
+          await this.sleep(900_000)
           continue
         }
 
@@ -185,25 +180,20 @@ export class HunterBot {
         console.log(`Analizing ${symbol} iteration ${this.state.iteration}`);
 
         const klines = await this.getKlines(symbol, '4h', 100);
-
         const rsiParams = { klines, mark: 6, filename: 'rsi.png', show: this.config.show_plots }
         const result = await relativeStrengthIndex(rsiParams);
 
         if (result) {
           this.state.detectedSymbols.push(symbol)
+          const alert = await createAlert(this.redis, `RSI alert for ${symbol}`)
+          console.log(alert)
         }
-
-        console.log(this.state.detectedSymbols)
 
         this.state.iteration += 1
         this.state.updated_at = Date.now()
 
-        await this.redis.set("key", "value");
-        const value = await this.redis.get("key");
-        console.log(value)
-
         await this.sleep(60_000)
-      } catch (err: any) {
+      } catch (err) {
         this.state.status = 'error'
         console.error(err)
       }
