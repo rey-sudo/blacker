@@ -65,9 +65,14 @@ class AlertsController extends GetxController {
 
           if (alerts.isNotEmpty) {
             await solicitarPermisoNotificaciones();
+
+            int alertsLength = alerts.length;
+
             await mostrarNotificacion(
-              "New Alert",
-              "You have new alerts",
+              "Blacker",
+              alertsLength == 1
+                  ? "🚨 You have 1 new alert!"
+                  : "🚨 You have $alertsLength new alerts!",
             );
           }
         }
