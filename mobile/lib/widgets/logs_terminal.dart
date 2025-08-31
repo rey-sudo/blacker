@@ -20,18 +20,6 @@ class _LogsTerminalState extends State<LogsTerminal> {
     _scrollController.addListener(_scrollListener);
   }
 
-  @override
-  void didUpdateWidget(covariant LogsTerminal oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-
-    if (widget.logs.isNotEmpty &&
-        (widget.logs.length != oldWidget.logs.length ||
-            widget.logs.last != oldWidget.logs.last)) {
-      _scrollToBottom();
-    }
-  }
-
   void _scrollListener() {
     if (!_scrollController.hasClients) return;
 
