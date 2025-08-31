@@ -1,3 +1,4 @@
+import 'package:blacker/main.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
@@ -5,7 +6,6 @@ import 'dart:convert';
 import 'dart:async';
 
 class AlertsController extends GetxController {
-  
   final String baseUrl = dotenv.env['BASE_URL']!;
 
   static const _pollingInterval = Duration(seconds: 60);
@@ -14,7 +14,7 @@ class AlertsController extends GetxController {
   final alerts = <Map<String, dynamic>>[].obs;
   final isLoading = false.obs;
   final error = Rxn<String>();
-  
+
   Timer? _timer;
   bool get isPolling => _timer?.isActive ?? false;
   bool get hasError => error.value != null;
@@ -52,14 +52,24 @@ class AlertsController extends GetxController {
       if (!isPolling) isLoading.value = true;
       error.value = null;
 
-      final response = await http.get(Uri.parse('$baseUrl/api/query/get-alerts')).timeout(_requestTimeout);
-      
+      final response = await http
+          .get(Uri.parse('$baseUrl/api/query/get-alerts'))
+          .timeout(_requestTimeout);
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print('Final data: ${data['data']}');
-        
+
         if (data['success'] == true) {
           alerts.value = List<Map<String, dynamic>>.from(data['data'] ?? []);
+
+          if (alerts.isNotEmpty) {
+            await solicitarPermisoNotificaciones();
+            await mostrarNotificacion(
+              "New Alert",
+              "You have new alerts",
+            );
+          }
         }
       }
     } catch (e) {
