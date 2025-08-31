@@ -1,3 +1,5 @@
+import 'package:blacker/controllers/alerts_controller.dart';
+import 'package:blacker/pages/alerts_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -10,12 +12,13 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final MainController controller = Get.put(MainController());
+    final AlertsController alertsController = Get.put(AlertsController());
 
     final List<Widget> pages = const [
       Center(child: Text("🏠 Página Inicio", style: TextStyle(fontSize: 24))),
       BotsPage(),
       Center(child: Text("👤 Alerts", style: TextStyle(fontSize: 24))),
-      Center(child: Text("👤 Orders", style: TextStyle(fontSize: 24))),
+      AlertsPage()
     ];
 
     return Scaffold(
