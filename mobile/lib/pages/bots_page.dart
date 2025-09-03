@@ -128,46 +128,61 @@ class BotsPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: SvgPicture.asset(
-                      'assets/icons/binance.svg',
-                      width: 35,
-                      height: 35,
-                    ),
-                    title: Text(
-                      bot["symbol"] ?? "Nombre desconocido",
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
+                  Row(
+                    children: [
+                      SvgPicture.asset(
+                        'assets/icons/binance.svg',
+                        width: 35,
+                        height: 35,
                       ),
-                    ),
-                    subtitle: Row(
-                      children: [
-                        Text(
-                          bot["id"] ?? "Sin descripción",
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              bot["symbol"] ?? "Nombre desconocido",
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                            Row(
+                              children: [
+                                Text(
+                                  bot["id"] ?? "Sin descripción",
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(color: Colors.grey),
+                                ),
+                                const SizedBox(width: 8),
+                                PulsatingIndicator(
+                                  isActive: bot["live"] ?? false,
+                                  size: 6,
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        PulsatingIndicator(
-                          isActive: bot["live"] ?? false,
-                          size: 6,
+                      ),
+                      Transform.translate(
+                        offset: const Offset(4, 0),
+                        child: Switch(
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          value: bot["live"] ?? false,
+                          onChanged: (value) {
+                            print('Toggle bot ${bot["id"]} to $value');
+                          },
+                          activeThumbColor: Colors.white,
+                          activeTrackColor: Colors.grey.withAlpha(40),
+                          inactiveThumbColor: Colors.grey,
+                          inactiveTrackColor: Colors.grey.withAlpha(100),
                         ),
-                      ],
-                    ),
-                    trailing: Switch(
-                      value: bot["live"] ?? false,
-                      onChanged: (value) {
-                        print('Toggle bot ${bot["id"]} to $value');
-                      },
-                      activeThumbColor: Colors.white,
-                      activeTrackColor: Colors.grey.withAlpha(40),
-                      inactiveThumbColor: Colors.grey,
-                      inactiveTrackColor: Colors.grey.withAlpha(100),
-                    ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
