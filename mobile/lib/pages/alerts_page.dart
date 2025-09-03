@@ -12,25 +12,6 @@ class AlertsPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          'Alerts',
-          style: TextStyle(fontSize: 20.sp),
-        ),
-        backgroundColor: Colors.white,
-        actions: [
-          Obx(() => IconButton(
-            icon: controller.isLoading.value
-                ? SizedBox(
-                    width: 20.w,
-                    height: 20.h,
-                    child: const CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Icon(Icons.refresh, size: 24.sp),
-            onPressed: controller.isLoading.value ? null : controller.refresh,
-          )),
-        ],
-      ),
       body: Obx(() {
 
         if (controller.hasError) {
