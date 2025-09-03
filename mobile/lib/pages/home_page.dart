@@ -122,7 +122,7 @@ class HomePage extends StatelessWidget {
                 ),
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(
-                    "assets/icons/orders.svg",
+                    "assets/icons/list.svg",
                     width: 24,
                     height: 24,
                     colorFilter: const ColorFilter.mode(
@@ -131,7 +131,7 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                   activeIcon: SvgPicture.asset(
-                    "assets/icons/orders.svg",
+                    "assets/icons/list.svg",
                     width: 24,
                     height: 24,
                     colorFilter: const ColorFilter.mode(

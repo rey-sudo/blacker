@@ -100,7 +100,7 @@ class AlertsPage extends StatelessWidget {
                         BlendMode.srcIn,
                       ),
                     ),
-                    SizedBox(width: 8.w),
+                    SizedBox(width: 6.w),
                     Text(
                       alert['ago'],
                       style: TextStyle(
