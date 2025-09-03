@@ -4,7 +4,7 @@ class PulsatingIndicator extends StatefulWidget {
   final bool isActive;
   final double size;
 
-  const PulsatingIndicator({Key? key, required this.isActive, this.size = 12}) : super(key: key);
+  const PulsatingIndicator({super.key, required this.isActive, this.size = 12});
 
   @override
   _PulsatingIndicatorState createState() => _PulsatingIndicatorState();

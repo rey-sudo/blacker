@@ -33,6 +33,7 @@ class AlertsController extends GetxController {
     super.onClose();
   }
 
+  @override
   Future<void> refresh() async {
     _stopPolling();
     await _fetchAlerts();

@@ -5,7 +5,6 @@ import 'package:blacker/widgets/pulsating_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../controllers/bots_controller.dart';
 
 class BotsPage extends StatelessWidget {
