@@ -3,11 +3,13 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { redisClient, database } from './database/client.js';
+import { deleteAlertHandler } from './routes/delete-alert.js';
 import { getSlavesHandler } from './routes/get-slaves.js';
 import { getAlertsHandler } from './routes/get-alerts.js';
 import { healthHandler } from './routes/health.js';
 import { ERROR_EVENTS } from './utils/errors.js';
 import { USDMClient } from 'binance';
+
 
 dotenv.config();
 
@@ -80,6 +82,8 @@ async function main() {
   app.get("/api/query/get-slaves", getSlavesHandler);
 
   app.get("/api/query/get-alerts", getAlertsHandler);
+
+  app.delete("/api/query/delete-alert/:id", deleteAlertHandler);
 
   app.get("/api/query/health", healthHandler);
 
