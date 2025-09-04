@@ -119,7 +119,9 @@ class AlertsPage extends StatelessWidget {
                     BlendMode.srcIn,
                   ),
                 ),
-                onTap: () {},
+                onTap: () {
+                  controller.deleteAlert(alert["id"]);
+                },
               ),
             );
           },

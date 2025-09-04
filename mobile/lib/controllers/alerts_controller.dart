@@ -94,4 +94,35 @@ class AlertsController extends GetxController {
     _timer?.cancel();
     _timer = null;
   }
+
+  Future<void> deleteAlert(String id) async {
+    try {
+      isLoading.value = true;
+      error.value = null;
+
+      final response = await http
+          .delete(Uri.parse('$baseUrl/api/query/delete-alert/$id'))
+          .timeout(_requestTimeout);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data['success'] == true) {
+
+          alerts.removeWhere((alert) => alert['id'] == id);
+
+          Get.snackbar("Éxito", "Alerta eliminada correctamente ✅");
+        } else {
+          Get.snackbar("Error", data['message'] ?? "No se pudo eliminar la alerta");
+        }
+      } else {
+        Get.snackbar("Error", "Error ${response.statusCode} al eliminar la alerta");
+      }
+    } catch (e) {
+      error.value = "Error eliminando alerta";
+      Get.snackbar("Error", e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
 }
