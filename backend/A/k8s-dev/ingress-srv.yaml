@@ -26,17 +26,87 @@ spec:
                 name: service-query
                 port:
                   number: 3000
-          - path: /api/slave/slave-0/?(.*)
-            pathType: ImplementationSpecific
-            backend:
-              service:
-                name: service-slave-0
-                port:
-                  number: 3000
           - path: /api/hunter/?(.*)
             pathType: ImplementationSpecific
             backend:
               service:
                 name: service-hunter
                 port:
-                  number: 3001                  
+                  number: 3001         
+          - path: /api/slave/slave-0/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-0
+                port:
+                  number: 3000         
+          - path: /api/slave/slave-1/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-1
+                port:
+                  number: 3000        
+          - path: /api/slave/slave-2/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-2
+                port:
+                  number: 3000                                     
+          - path: /api/slave/slave-3/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-3
+                port:
+                  number: 3000                      
+          - path: /api/slave/slave-4/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-4
+                port:
+                  number: 3000                    
+          - path: /api/slave/slave-5/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-5
+                port:
+                  number: 3000    
+          - path: /api/slave/slave-6/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-6
+                port:
+                  number: 3000                          
+          - path: /api/slave/slave-7/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-7
+                port:
+                  number: 3000 
+          - path: /api/slave/slave-8/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-8
+                port:
+                  number: 3000       
+          - path: /api/slave/slave-9/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-9
+                port:
+                  number: 3000       
+          - path: /api/slave/slave-10/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-10
+                port:
+                  number: 3000                                           
