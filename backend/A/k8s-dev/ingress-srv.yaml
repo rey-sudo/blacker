@@ -26,7 +26,7 @@ spec:
                 name: service-query
                 port:
                   number: 3000
-          - path: /api/slave/?(.*)
+          - path: /api/slave/slave-0/?(.*)
             pathType: ImplementationSpecific
             backend:
               service:

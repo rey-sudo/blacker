@@ -12,7 +12,7 @@ class BotsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final BotsController controller = Get.put(BotsController());
+    final BotsController controller = Get.find<BotsController>();
 
     return DefaultTabController(
       length: 3,

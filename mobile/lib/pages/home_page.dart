@@ -1,4 +1,5 @@
 import 'package:blacker/controllers/alerts_controller.dart';
+import 'package:blacker/controllers/bots_controller.dart';
 import 'package:blacker/pages/alerts_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,6 +14,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final MainController controller = Get.put(MainController());
     final AlertsController alertsController = Get.put(AlertsController());
+    final BotsController botsController = Get.put(BotsController());
 
     final List<Widget> pages = const [
       Center(child: Text("🏠 Página Inicio", style: TextStyle(fontSize: 24))),
