@@ -48,16 +48,14 @@ class BotsController extends GetxController {
       final response = await http.get(
         Uri.parse('$baseUrl/api/query/get-slaves'),
         headers: {'Content-Type': 'application/json'},
-      );
-
-      print('Response status: ${response.statusCode}');
+      );      
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);
 
         if (jsonData['success'] == true) {
           bots.value = List<Map<String, dynamic>>.from(jsonData['data']);
-          print('Bots loaded: ${bots.value}');
+          print('Bots loaded: ${bots.length}');
         }
       }
     } catch (e) {

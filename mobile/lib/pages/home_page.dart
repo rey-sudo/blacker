@@ -15,7 +15,7 @@ class HomePage extends StatelessWidget {
     final MainController controller = Get.put(MainController());
     final AlertsController alertsController = Get.put(AlertsController());
     final BotsController botsController = Get.put(BotsController());
-
+    print("HomePage injected");
     final List<Widget> pages = const [
       Center(child: Text("🏠 Página Inicio", style: TextStyle(fontSize: 24))),
       BotsPage(),

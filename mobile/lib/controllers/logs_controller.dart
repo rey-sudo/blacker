@@ -21,11 +21,10 @@ class LogsController extends GetxController {
         ).listen(
           (SSEModel event) {
             final dataString = event.data ?? '{}';
-            print(dataString);
-
             try {
               final jsonData = jsonDecode(dataString) as Map<String, dynamic>;
               events.add(jsonData);
+              print("Logs added");
             } catch (e) {
               print('Error parseando JSON SSE: $e');
             }
