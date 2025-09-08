@@ -1,5 +1,6 @@
 import 'package:blacker/controllers/alerts_controller.dart';
 import 'package:blacker/controllers/bots_controller.dart';
+import 'package:blacker/controllers/theme_controller.dart';
 import 'package:blacker/pages/alerts_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,15 +13,16 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final ThemeController themeController = Get.find();
     final MainController controller = Get.put(MainController());
     final AlertsController alertsController = Get.put(AlertsController());
     final BotsController botsController = Get.put(BotsController());
-    print("HomePage injected");
+
     final List<Widget> pages = const [
       Center(child: Text("🏠 Página Inicio", style: TextStyle(fontSize: 24))),
       BotsPage(),
       Center(child: Text("👤 Alerts", style: TextStyle(fontSize: 24))),
-      AlertsPage()
+      AlertsPage(),
     ];
 
     return Scaffold(
@@ -30,27 +32,22 @@ class HomePage extends StatelessWidget {
         backgroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: SvgPicture.asset(
-              "assets/icons/home.svg",
-              width: 24,
-              height: 24,
-              colorFilter: const ColorFilter.mode(Colors.grey, BlendMode.srcIn),
+            onPressed: themeController.toggleTheme,
+            icon: Obx(
+              () => SvgPicture.asset(
+                themeController.isDark.value
+                    ? "assets/icons/sun.svg"
+                    : "assets/icons/moon.svg",
+                width: 24,
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  Theme.of(context).appBarTheme.iconTheme?.color ??
+                      Theme.of(context).iconTheme.color ??
+                      Colors.white,
+                  BlendMode.srcIn,
+                ),
+              ),
             ),
-            onPressed: () {
-              print("Buscar presionado");
-            },
-          ),
-
-          IconButton(
-            icon: SvgPicture.asset(
-              "assets/icons/search.svg",
-              width: 24,
-              height: 24,
-              colorFilter: const ColorFilter.mode(Colors.grey, BlendMode.srcIn),
-            ),
-            onPressed: () {
-              print("Perfil presionado");
-            },
           ),
         ],
       ),
