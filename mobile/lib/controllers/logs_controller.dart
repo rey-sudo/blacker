@@ -51,6 +51,7 @@ class LogsController extends GetxController {
     _subscription?.cancel();
     SSEClient.unsubscribeFromSSE();
     events.clear();
+    print('SSE unsubscribed and cleared.');
   }
 
   @override
