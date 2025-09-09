@@ -2,17 +2,17 @@ import 'package:blacker/pages/bot_page.dart';
 import 'package:blacker/widgets/info_grid.dart';
 import 'package:blacker/widgets/loading_indicator.dart';
 import 'package:blacker/widgets/pulsating_indicator.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../controllers/bots_controller.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class BotsPage extends StatelessWidget {
   const BotsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final BotsController controller = Get.find<BotsController>();
+    final BotsController controller = Get.put(BotsController());
 
     return DefaultTabController(
       length: 3,

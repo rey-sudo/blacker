@@ -16,23 +16,43 @@ class AppTheme {
   /// 🌙 Tema oscuro estilo "Dark Night"
   static ThemeData darkNight = ThemeData(
     brightness: Brightness.dark,
-    primaryColor: const Color.fromARGB(255, 242, 245, 247),
-    primarySwatch: Colors.blue,
     fontFamily: 'Inter',
-    scaffoldBackgroundColor: const Color(0xFF0D1117),
+    scaffoldBackgroundColor: const Color(0xFF0B0E11),
     dividerColor: Colors.grey.withAlpha(50),
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF58A6FF), // Azul base
+
+    colorScheme: const ColorScheme(
       brightness: Brightness.dark,
-      surface: const Color(0xFF161B22),
-      error: const Color(0xFFFF6B6B),
+      primary: Color(0xFFFCD535),
+      onPrimary: Colors.black,
+      secondary: Color(0xFFFCD535),
+      onSecondary: Colors.black,
+      surface: Color(0xFF181A20),
+      onSurface: Colors.white,
+      error: Color(0xFFCF304A),
+      onError: Colors.white,
     ),
+
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF161B22),
+      backgroundColor: Color(0xFF181A20),
       foregroundColor: Colors.white,
       iconTheme: IconThemeData(color: Colors.white),
       elevation: 0,
+      titleTextStyle: TextStyle(
+        fontFamily: 'Inter',
+        fontWeight: FontWeight.w600,
+        fontSize: 18,
+        color: Colors.white,
+      ),
     ),
+
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Color(0xFF181A20),
+      selectedItemColor: Color(0xFFFCD535),
+      unselectedItemColor: Colors.white54,
+      showSelectedLabels: true,
+      showUnselectedLabels: true,
+    ),
+    
     textTheme: commonTextTheme,
   );
 

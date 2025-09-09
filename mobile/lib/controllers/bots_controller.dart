@@ -28,7 +28,7 @@ class BotsController extends GetxController {
   }
 
   void startPolling() {
-    _timer = Timer.periodic(Duration(seconds: 10), (timer) {
+    _timer = Timer.periodic(Duration(seconds: 30), (timer) {
       fetchBots();
     });
   }

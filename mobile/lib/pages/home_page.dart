@@ -16,12 +16,11 @@ class HomePage extends StatelessWidget {
     final ThemeController themeController = Get.find();
     final MainController controller = Get.put(MainController());
     final AlertsController alertsController = Get.put(AlertsController());
-    final BotsController botsController = Get.put(BotsController());
 
     final List<Widget> pages = const [
-      Center(child: Text("🏠 Página Inicio", style: TextStyle(fontSize: 24))),
+      Center(child: Text("0", style: TextStyle(fontSize: 24))),
       BotsPage(),
-      Center(child: Text("👤 Alerts", style: TextStyle(fontSize: 24))),
+      Center(child: Text("2", style: TextStyle(fontSize: 24))),
       AlertsPage(),
     ];
 
@@ -29,7 +28,7 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(""),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         actions: [
           IconButton(
             onPressed: themeController.toggleTheme,
@@ -70,12 +69,12 @@ class HomePage extends StatelessWidget {
               type: BottomNavigationBarType.fixed,
               currentIndex: controller.currentIndex.value,
               onTap: controller.cambiarIndice,
-              selectedItemColor: Colors.blue,
-              unselectedItemColor: Colors.grey,
+              selectedItemColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
+              unselectedItemColor: Theme.of(context).bottomNavigationBarTheme.unselectedItemColor,
               selectedFontSize: 11,
               unselectedFontSize: 11,
               elevation: 1,
-              backgroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.surface,
               items: [
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(
@@ -91,8 +90,8 @@ class HomePage extends StatelessWidget {
                     "assets/icons/home.svg",
                     width: 24,
                     height: 24,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.blue,
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).colorScheme.primary,
                       BlendMode.srcIn,
                     ),
                   ),
