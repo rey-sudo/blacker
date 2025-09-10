@@ -73,9 +73,15 @@ class HomePage extends StatelessWidget {
               selectedFontSize: 11,
               unselectedFontSize: 11,
               elevation: 1,
-              backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
-              selectedItemColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor, 
-              unselectedItemColor: Theme.of(context).bottomNavigationBarTheme.unselectedItemColor,
+              backgroundColor: Theme.of(
+                context,
+              ).bottomNavigationBarTheme.backgroundColor,
+              selectedItemColor: Theme.of(
+                context,
+              ).bottomNavigationBarTheme.selectedItemColor,
+              unselectedItemColor: Theme.of(
+                context,
+              ).bottomNavigationBarTheme.unselectedItemColor,
               selectedLabelStyle: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(height: 2),
