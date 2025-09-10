@@ -41,12 +41,7 @@ class AppTheme {
       foregroundColor: Colors.white,
       iconTheme: IconThemeData(color: Color(0xFF848e9c)),
       elevation: 0,
-      titleTextStyle: TextStyle(
-        fontFamily: 'Inter',
-        fontWeight: FontWeight.w600,
-        fontSize: 16.sp,
-        color: Colors.grey,
-      ),
+      titleTextStyle: commonTextTheme.bodySmall?.copyWith(color: Colors.red),
     ),
 
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
