@@ -14,9 +14,12 @@ class AppTheme {
   );
 
   static ThemeData darkNight = ThemeData(
+    splashColor: Colors.transparent,
+    highlightColor: Colors.transparent,
+    splashFactory: NoSplash.splashFactory,
     brightness: Brightness.dark,
     fontFamily: 'Inter',
-    scaffoldBackgroundColor:Color(0xFF181A20),
+    scaffoldBackgroundColor: Color(0xFF181A20),
     dividerColor: Color(0xFF848e9c).withAlpha(26),
 
     iconTheme: const IconThemeData(color: Colors.white, size: 24.0),
