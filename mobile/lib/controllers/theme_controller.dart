@@ -13,12 +13,13 @@ class AppTheme {
     headlineLarge: TextStyle(fontSize: 32.sp, fontWeight: FontWeight.bold),
   );
 
-  /// 🌙 Tema oscuro estilo "Dark Night"
   static ThemeData darkNight = ThemeData(
     brightness: Brightness.dark,
     fontFamily: 'Inter',
     scaffoldBackgroundColor: const Color(0xFF0B0E11),
     dividerColor: Colors.grey.withAlpha(50),
+
+    iconTheme: const IconThemeData(color: Colors.white, size: 24.0),
 
     colorScheme: const ColorScheme(
       brightness: Brightness.dark,
@@ -32,16 +33,16 @@ class AppTheme {
       onError: Colors.white,
     ),
 
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: Color(0xFF181A20),
       foregroundColor: Colors.white,
-      iconTheme: IconThemeData(color: Colors.white),
+      iconTheme: IconThemeData(color: Color(0xFF848e9c)),
       elevation: 0,
       titleTextStyle: TextStyle(
         fontFamily: 'Inter',
         fontWeight: FontWeight.w600,
-        fontSize: 18,
-        color: Colors.white,
+        fontSize: 16.sp,
+        color: Colors.grey,
       ),
     ),
 
@@ -52,7 +53,7 @@ class AppTheme {
       showSelectedLabels: true,
       showUnselectedLabels: true,
     ),
-    
+
     textTheme: commonTextTheme,
   );
 

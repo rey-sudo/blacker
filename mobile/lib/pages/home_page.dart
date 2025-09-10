@@ -23,11 +23,14 @@ class HomePage extends StatelessWidget {
       AlertsPage(),
     ];
 
+    final double iconSize = 20.0;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(""),
         centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
         actions: [
           IconButton(
             onPressed: themeController.toggleTheme,
@@ -36,11 +39,10 @@ class HomePage extends StatelessWidget {
                 themeController.isDark.value
                     ? "assets/icons/sun.svg"
                     : "assets/icons/moon.svg",
-                width: 24,
-                height: 24,
+                width: iconSize,
+                height: iconSize,
                 colorFilter: ColorFilter.mode(
                   Theme.of(context).appBarTheme.iconTheme?.color ??
-                      Theme.of(context).iconTheme.color ??
                       Colors.white,
                   BlendMode.srcIn,
                 ),
@@ -68,27 +70,35 @@ class HomePage extends StatelessWidget {
               type: BottomNavigationBarType.fixed,
               currentIndex: controller.currentIndex.value,
               onTap: controller.cambiarIndice,
-              selectedItemColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
-              unselectedItemColor: Theme.of(context).bottomNavigationBarTheme.unselectedItemColor,
+
               selectedFontSize: 11,
               unselectedFontSize: 11,
               elevation: 1,
               backgroundColor: Theme.of(context).colorScheme.surface,
+              selectedItemColor: Colors.white, 
+              unselectedItemColor: Colors.grey,
+              selectedLabelStyle: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(height: 2),
+              unselectedLabelStyle: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(height: 2),
               items: [
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(
                     "assets/icons/home.svg",
-                    width: 24,
-                    height: 24,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.grey,
+                    width: iconSize,
+                    height: iconSize,
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).appBarTheme.iconTheme?.color ??
+                          Colors.white,
                       BlendMode.srcIn,
                     ),
                   ),
                   activeIcon: SvgPicture.asset(
                     "assets/icons/home.svg",
-                    width: 24,
-                    height: 24,
+                    width: iconSize,
+                    height: iconSize,
                     colorFilter: ColorFilter.mode(
                       Theme.of(context).colorScheme.primary,
                       BlendMode.srcIn,
@@ -96,64 +106,70 @@ class HomePage extends StatelessWidget {
                   ),
                   label: "Home",
                 ),
+
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(
                     "assets/icons/bots.svg",
-                    width: 24,
-                    height: 24,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.grey,
+                    width: iconSize,
+                    height: iconSize,
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).appBarTheme.iconTheme?.color ??
+                          Colors.white,
                       BlendMode.srcIn,
                     ),
                   ),
                   activeIcon: SvgPicture.asset(
                     "assets/icons/bots.svg",
-                    width: 24,
-                    height: 24,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.blue,
+                    width: iconSize,
+                    height: iconSize,
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).colorScheme.primary,
                       BlendMode.srcIn,
                     ),
                   ),
                   label: "Bots",
                 ),
+
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(
                     "assets/icons/list.svg",
-                    width: 24,
-                    height: 24,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.grey,
+                    width: iconSize,
+                    height: iconSize,
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).appBarTheme.iconTheme?.color ??
+                          Colors.white,
                       BlendMode.srcIn,
                     ),
                   ),
                   activeIcon: SvgPicture.asset(
                     "assets/icons/list.svg",
-                    width: 24,
-                    height: 24,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.blue,
+                    width: iconSize,
+                    height: iconSize,
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).colorScheme.primary,
                       BlendMode.srcIn,
                     ),
                   ),
                   label: "Orders",
                 ),
+
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(
                     "assets/icons/bell.svg",
-                    width: 24,
-                    height: 24,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.grey,
+                    width: iconSize,
+                    height: iconSize,
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).appBarTheme.iconTheme?.color ??
+                          Colors.white,
                       BlendMode.srcIn,
                     ),
                   ),
                   activeIcon: SvgPicture.asset(
                     "assets/icons/bell.svg",
-                    width: 24,
-                    height: 24,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.blue,
+                    width: iconSize,
+                    height: iconSize,
+                    colorFilter: ColorFilter.mode(
+                      Theme.of(context).colorScheme.primary,
                       BlendMode.srcIn,
                     ),
                   ),
