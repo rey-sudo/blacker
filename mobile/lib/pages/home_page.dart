@@ -1,5 +1,4 @@
 import 'package:blacker/controllers/alerts_controller.dart';
-import 'package:blacker/controllers/bots_controller.dart';
 import 'package:blacker/controllers/theme_controller.dart';
 import 'package:blacker/pages/alerts_page.dart';
 import 'package:flutter/material.dart';
