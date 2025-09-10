@@ -82,12 +82,10 @@ class HomePage extends StatelessWidget {
               unselectedItemColor: Theme.of(
                 context,
               ).bottomNavigationBarTheme.unselectedItemColor,
-              selectedLabelStyle: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(height: 2),
-              unselectedLabelStyle: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(height: 2),
+              selectedLabelStyle: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(height: 2, fontWeight: FontWeight.w500),
+              unselectedLabelStyle: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(height: 2, fontWeight: FontWeight.w500),
               items: [
                 BottomNavigationBarItem(
                   icon: SvgPicture.asset(
