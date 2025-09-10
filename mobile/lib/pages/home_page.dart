@@ -70,13 +70,12 @@ class HomePage extends StatelessWidget {
               type: BottomNavigationBarType.fixed,
               currentIndex: controller.currentIndex.value,
               onTap: controller.cambiarIndice,
-
               selectedFontSize: 11,
               unselectedFontSize: 11,
               elevation: 1,
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              selectedItemColor: Colors.white, 
-              unselectedItemColor: Colors.grey,
+              backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+              selectedItemColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor, 
+              unselectedItemColor: Theme.of(context).bottomNavigationBarTheme.unselectedItemColor,
               selectedLabelStyle: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(height: 2),
