@@ -282,7 +282,7 @@ export class SlaveBot {
 
     const stopLossPrice = adjust(price * this.state.stop_loss, tickSize, pricePrecision);
 
-    await withRetry(() => this.binance.testOrder({
+    const createStopOrder = await withRetry(() => this.binance.submitNewOrder({
       symbol: this.state.symbol,
       side: 'SELL',
       type: 'STOP_MARKET',
@@ -293,7 +293,7 @@ export class SlaveBot {
       newOrderRespType: 'RESULT'
     }))
 
-    logger.info(`🛑 STOP LOSS in ${stopLossPrice}`);
+    logger.info(`🛑 STOP LOSS in ${stopLossPrice} - Status: ${createStopOrder.status} - OrderId: ${createStopOrder.orderId}`);
 
     //////////////////////////////////////////////////////////////////////////////// TARGETS
 
@@ -315,7 +315,7 @@ export class SlaveBot {
       const qty = adjust(correctedQty, stepSize, quantityPrecision);
       const stopPrice = adjust(price * target.multiplier, tickSize, pricePrecision);
 
-      await withRetry(() => this.binance.testOrder({
+      await withRetry(() => this.binance.submitNewOrder({
         symbol: this.state.symbol,
         side: 'SELL',
         type: 'TAKE_PROFIT_MARKET',
