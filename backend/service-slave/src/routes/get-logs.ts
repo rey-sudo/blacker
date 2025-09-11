@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { Tail } from "tail";
 import { format } from 'timeago.js';
 
-const LOG_FILE_PATH = "./logs/app.log";
+const LOG_FILE_PATH = "./output/app.log";
 const SSE_HEADERS = {
   "Content-Type": "text/event-stream; charset=utf-8",
   "Cache-Control": "no-cache",

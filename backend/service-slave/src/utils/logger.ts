@@ -1,8 +1,8 @@
 import pino from "pino";
 import fs from "fs";
 
-if (!fs.existsSync("./logs")) {
-  fs.mkdirSync("./logs");
+if (!fs.existsSync("./output")) {
+  fs.mkdirSync("./output");
 }
 
 export const logger = pino({
@@ -11,7 +11,7 @@ export const logger = pino({
     targets: [
       {
         target: "pino/file", 
-        options: { destination: "./logs/app.log" },
+        options: { destination: "./output/app.log" },
       },
       {
         target: "pino-pretty", 

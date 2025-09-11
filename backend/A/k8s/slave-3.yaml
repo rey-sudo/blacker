@@ -5,7 +5,7 @@ metadata:
   labels:
     role: slave-3
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       role: slave-3
@@ -30,7 +30,7 @@ spec:
             - name: SLAVE_NAME
               value: "slave-3"
             - name: SYMBOL
-              value: "BUSDT"
+              value: "SKYUSDT"
             - name: LEVERAGE
               value: "5"
             - name: STOP_LOSS
