@@ -18,8 +18,9 @@ class BotPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final BotsController controller = Get.find<BotsController>();
-
     final LogsController logsController = Get.put(LogsController());
+
+    final theme = Theme.of(context);
 
     logsController.listen(botId);
 
@@ -42,7 +43,7 @@ class BotPage extends StatelessWidget {
         appBar: AppBar(
           title: Text(
             bot["id"] ?? "Bot",
-            style: Theme.of(context).textTheme.titleMedium,
+            style: theme.textTheme.titleMedium,
           ),
           backgroundColor: Colors.white,
           elevation: 0,
@@ -50,11 +51,11 @@ class BotPage extends StatelessWidget {
             preferredSize: Size.fromHeight(48.h),
             child: TabBar(
               isScrollable: false,
-              labelColor: Theme.of(context).primaryColor,
+              labelColor: theme.primaryColor,
               unselectedLabelColor: Colors.grey,
-              indicatorColor: Theme.of(context).primaryColor,
-              dividerColor: Theme.of(context).dividerColor,
-              labelStyle: Theme.of(context).textTheme.bodyMedium,
+              indicatorColor: theme.primaryColor,
+              dividerColor: theme.dividerColor,
+              labelStyle: theme.textTheme.bodyMedium,
               tabs: const [
                 Tab(text: "Overview"),
                 Tab(text: "Logs"),
@@ -88,7 +89,7 @@ class BotPage extends StatelessWidget {
                         );
                         return Text(
                           currentBot["symbol"] ?? "Unknown",
-                          style: Theme.of(context).textTheme.titleLarge
+                          style: theme.textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.bold),
                         );
                       }),
@@ -108,7 +109,7 @@ class BotPage extends StatelessWidget {
                             SizedBox(width: 6.w),
                             Text(
                               currentBot["live"] == true ? "Live" : "Offline",
-                              style: Theme.of(context).textTheme.bodyMedium
+                              style: theme.textTheme.bodyMedium
                                   ?.copyWith(
                                     color: currentBot["live"] == true
                                         ? Colors.green
@@ -151,7 +152,7 @@ class BotPage extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 16.h),
-                  Divider(color: Theme.of(context).dividerColor),
+                  Divider(color: theme.dividerColor),
                   SizedBox(height: 16.h),
 
                   Obx(() {
@@ -176,18 +177,18 @@ class BotPage extends StatelessWidget {
 
                   if (bot["description"] != null &&
                       bot["description"].isNotEmpty) ...[
-                    Divider(color: Theme.of(context).dividerColor),
+                    Divider(color: theme.dividerColor),
                     SizedBox(height: 16.h),
                     Text(
                       "Description",
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     SizedBox(height: 8.h),
                     Text(
                       bot["description"],
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: theme.textTheme.bodyMedium,
                     ),
                     SizedBox(height: 16.h),
                   ],
@@ -206,11 +207,11 @@ class BotPage extends StatelessWidget {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Divider(color: Theme.of(context).dividerColor),
+                        Divider(color: theme.dividerColor),
                         SizedBox(height: 16.h),
                         Text(
                           "Images",
-                          style: Theme.of(context).textTheme.titleMedium
+                          style: theme.textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
 
@@ -256,7 +257,7 @@ class BotPage extends StatelessWidget {
   }
 }
 
-Color _getSubtitleColor(String title, String subtitle) {
+Color _getSubtitleColor(String title, String subtitle, ThemeData theme) {
   if (title == "Status") {
     if (subtitle == "stopped" || subtitle == "error") {
       return Colors.red;
@@ -265,5 +266,5 @@ Color _getSubtitleColor(String title, String subtitle) {
       return Colors.green;
     }
   }
-  return Colors.black;
+  return theme.colorScheme.surface;
 }

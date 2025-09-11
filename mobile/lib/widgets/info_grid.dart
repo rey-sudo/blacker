@@ -4,7 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class InfoGrid extends StatelessWidget {
   final List<dynamic> info;
   final int crossAxisCount;
-  final Color Function(String title, String subtitle)? getSubtitleColor;
+  final Color Function(String title, String subtitle, ThemeData theme)?
+  getSubtitleColor;
 
   const InfoGrid({
     super.key,
@@ -13,16 +14,22 @@ class InfoGrid extends StatelessWidget {
     this.getSubtitleColor,
   });
 
-  Color _defaultColorFunction(String title, String subtitle) {
+  Color _defaultColorFunction(
+    String title,
+    String subtitle,
+    ThemeData theme,
+  ) {
     return Colors.black;
   }
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+
     if (info.isEmpty) {
       return const SizedBox.shrink();
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -40,31 +47,39 @@ class InfoGrid extends StatelessWidget {
             final bool isRightAligned = (i + 1) % crossAxisCount == 0;
 
             final colorFunction = getSubtitleColor ?? _defaultColorFunction;
-            final subtitleColor = colorFunction(title, subtitle);
+            final subtitleColor = colorFunction(
+              title,
+              subtitle,
+              theme,
+            );
 
             return Align(
-              alignment: isRightAligned ? Alignment.centerRight : Alignment.centerLeft,
+              alignment: isRightAligned
+                  ? Alignment.centerRight
+                  : Alignment.centerLeft,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: isRightAligned ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                crossAxisAlignment: isRightAligned
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w500,
-                        ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   SizedBox(height: 2.h),
                   Text(
                     subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: subtitleColor,
-                        ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: subtitleColor),
                   ),
                 ],
               ),

@@ -20,7 +20,7 @@ class AppTheme {
     brightness: Brightness.dark,
     fontFamily: 'Inter',
     scaffoldBackgroundColor: Color(0xFF181A20),
-    dividerColor: Color(0xFF848e9c).withAlpha(26),
+    dividerColor: Color(0xFF2b3139).withAlpha(255),
 
     iconTheme: const IconThemeData(color: Colors.white, size: 24.0),
 
@@ -30,8 +30,10 @@ class AppTheme {
       onPrimary: Colors.black,
       secondary: Color(0xFFFCD535),
       onSecondary: Colors.black,
-      surface: Color(0xFF181A20),
-      onSurface: Colors.white,
+      tertiary: Color(0xFF2ebd85),
+      onTertiary: Colors.white,
+      surface: Colors.white,
+      onSurface: Color(0xFF848e9c),
       error: Color(0xFFCF304A),
       onError: Colors.white,
     ),
@@ -51,7 +53,13 @@ class AppTheme {
       showSelectedLabels: true,
       showUnselectedLabels: true,
     ),
-
+    cardTheme: CardThemeData(
+      color: Color(0xFF181A20),
+      shadowColor: Colors.black,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: EdgeInsets.all(8),
+    ),
     textTheme: commonTextTheme,
   );
 

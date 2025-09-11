@@ -13,11 +13,12 @@ class BotsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final BotsController controller = Get.put(BotsController());
+    final theme = Theme.of(context);
 
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: Column(
           children: [
             SafeArea(
@@ -26,13 +27,13 @@ class BotsPage extends StatelessWidget {
                 padding: EdgeInsets.zero,
                 child: TabBar(
                   isScrollable: false,
-                  labelColor: Colors.blue,
+                  labelColor: theme.colorScheme.primary,
                   unselectedLabelColor: Colors.grey,
-                  indicatorColor: Colors.blue,
-                  dividerColor: Theme.of(context).dividerColor,
-                  labelStyle: Theme.of(context).textTheme.bodyMedium,
+                  indicatorColor: theme.colorScheme.primary,
+                  dividerColor: theme.dividerColor,
+                  labelStyle: theme.textTheme.bodyMedium,
                   tabs: const [
-                    Tab(text: "All Bots"),
+                    Tab(text: "All"),
                     Tab(text: "Executed"),
                     Tab(text: "Finished"),
                   ],
@@ -111,16 +112,18 @@ class BotsPage extends StatelessWidget {
       itemBuilder: (context, index) {
         final bot = bots[index];
 
+        final theme = Theme.of(context);
+
         return GestureDetector(
           onTap: () => Get.to(() => BotPage(botId: bot["id"])),
           child: Card(
             elevation: 0,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: theme.cardTheme.color,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Theme.of(context).dividerColor,
+                  color: theme.dividerColor,
                   width: 1,
                 ),
               ),
@@ -142,9 +145,9 @@ class BotsPage extends StatelessWidget {
                           children: [
                             Text(
                               bot["symbol"] ?? "Nombre desconocido",
-                              style: Theme.of(context).textTheme.titleMedium
+                              style: theme.textTheme.titleMedium
                                   ?.copyWith(
-                                    color: Colors.black,
+                                    color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                   ),
                             ),
@@ -152,7 +155,7 @@ class BotsPage extends StatelessWidget {
                               children: [
                                 Text(
                                   bot["id"] ?? "Sin descripción",
-                                  style: Theme.of(context).textTheme.bodyMedium
+                                  style: theme.textTheme.bodyMedium
                                       ?.copyWith(color: Colors.grey),
                                 ),
                                 const SizedBox(width: 8),
@@ -182,46 +185,44 @@ class BotsPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
                       Expanded(
                         child: ListTile(
-                          dense: true,
+                          dense: false,
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             'PnL (USD)',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface,
+                            ),
                           ),
                           subtitle: Text(
                             '\$1,250.50',
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: theme.colorScheme.tertiary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                       Expanded(
                         child: ListTile(
-                          dense: true,
+                          dense: false,
                           contentPadding: EdgeInsets.zero,
                           title: Text(
                             'Iteration',
                             textAlign: TextAlign.right,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(color: theme.colorScheme.onSurface),
                           ),
                           subtitle: Text(
                             '${bot["iteration"] ?? 0}',
                             textAlign: TextAlign.right,
-                            style: Theme.of(context).textTheme.titleMedium
+                            style: theme.textTheme.titleMedium
                                 ?.copyWith(
-                                  color: Colors.blue,
+                                  color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -244,7 +245,7 @@ class BotsPage extends StatelessWidget {
   }
 }
 
-Color _getSubtitleColor(String title, String subtitle) {
+Color _getSubtitleColor(String title, String subtitle, ThemeData theme) {
   if (title == "Status") {
     if (subtitle == "stopped" || subtitle == "error") {
       return Colors.red;
@@ -253,5 +254,5 @@ Color _getSubtitleColor(String title, String subtitle) {
       return Colors.green;
     }
   }
-  return Colors.black;
+  return theme.colorScheme.surface;
 }
