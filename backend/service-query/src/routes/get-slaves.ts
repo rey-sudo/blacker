@@ -55,7 +55,15 @@ async function scrapeImages(baseUrl: string, ruleLabels: string[]): Promise<stri
             maxTimeout: 1500
         });
 
-        const files: string[] = String(queryHTML.data).split(',').filter(Boolean);
+        const files: string[] = String(queryHTML.data)
+            .split(',')
+            .map(f => f.trim())
+            .filter(Boolean)
+            .filter(f => {
+                const ext = path.extname(f).toLowerCase();
+                return [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg"].includes(ext);
+            });
+            
         if (files.length === 0) return images;
 
         const orderedImages: string[] = ruleLabels
