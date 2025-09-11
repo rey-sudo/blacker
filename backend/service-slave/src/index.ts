@@ -264,7 +264,7 @@ export class SlaveBot {
 
     //////////////////////////////////////////////////////////////////////////////// CREATE ORDER
 
-    await withRetry(() => this.binance.testOrder({
+    const createBuyOrder: NewOrderResult = await withRetry(() => this.binance.submitNewOrder({
       symbol: this.state.symbol,
       side: 'BUY',
       type: 'MARKET',
@@ -276,7 +276,7 @@ export class SlaveBot {
     this.state.status = "executed"
     await this.save();
 
-    logger.info(`Buy at ${price}`)
+    logger.info(`Buy: ${price} - Status: ${createBuyOrder.status} - orderId: ${createBuyOrder.orderId}`)
 
     //////////////////////////////////////////////////////////////////////////////// STOP LOSS
 
