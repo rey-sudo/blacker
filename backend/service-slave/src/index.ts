@@ -231,6 +231,14 @@ export class SlaveBot {
   }
 
   public async executeOrder() {
+    const isExecuted = this.state.executed || this.state.finished
+
+    if (isExecuted) {
+      logger.info("Already executed")
+      await this.sleep(86_400_000)
+      return
+    }
+
     const { markPrice } = await this.binance.getMarkPrice({ symbol: this.state.symbol });
     const rawPrice = parseFloat(markPrice);
 
