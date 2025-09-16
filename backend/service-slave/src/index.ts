@@ -393,7 +393,7 @@ export class SlaveBot {
         }
 
         if (!this.state.rule_values[3]) {
-          const klines = await this.getKlines(this.state.symbol, '2h', 200);
+          const klines = await this.getKlines(this.state.symbol, '4h', 200);
 
           const heikinParams = { klines, mark: 3, filename: `${this.state.rule_labels[3]}.png`, show: this.config.show_plots }
 
