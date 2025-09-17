@@ -308,7 +308,7 @@ export class SlaveBot {
     const targets = [
       { multiplier: 1.02, fraction: 0.25 },
       { multiplier: 1.04, fraction: 0.50 },
-      { multiplier: 1.08, fraction: 0.25 }
+      { multiplier: 1.06, fraction: 0.25 }
     ];
 
     const rawQuantities = targets.map(tp => quantity * tp.fraction);
