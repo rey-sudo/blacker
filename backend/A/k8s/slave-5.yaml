@@ -30,11 +30,11 @@ spec:
             - name: SLAVE_NAME
               value: "slave-5"
             - name: SYMBOL
-              value: "TRXUSDT"
+              value: "DOGEUSDT"
             - name: LEVERAGE
               value: "5"
             - name: STOP_LOSS
-              value: "0.97"
+              value: "0.96"
             - name: MARGIN_TYPE
               value: "ISOLATED"
             - name: ORDER_AMOUNT

@@ -30,15 +30,15 @@ spec:
             - name: SLAVE_NAME
               value: "slave-0"
             - name: SYMBOL
-              value: "FORMUSDT"
+              value: "BTCUSDT"
             - name: LEVERAGE
-              value: "5"
+              value: "41"
             - name: STOP_LOSS
-              value: "0.97"
+              value: "0.95"
             - name: MARGIN_TYPE
               value: "ISOLATED"
             - name: ORDER_AMOUNT
-              value: "500"
+              value: "5000"
             - name: SHOW_PLOTS
               value: "false"
             - name: DESCRIPTION
