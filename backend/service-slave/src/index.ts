@@ -354,7 +354,7 @@ export class SlaveBot {
         await this.save();
 
         if (!this.state.rule_values[0]) {
-          const klines = await this.getKlines(this.state.symbol, '4h', 100);
+          const klines = await this.getKlines(this.state.symbol, '15m', 200);
 
           const rsiParams = { klines, mark: 5, filename: `${this.state.rule_labels[0]}.png`, show: this.config.show_plots }
 
@@ -367,7 +367,7 @@ export class SlaveBot {
         }
 
         if (!this.state.rule_values[1]) {
-          const klines = await this.getKlines(this.state.symbol, '4h', 200);
+          const klines = await this.getKlines(this.state.symbol, '15m', 200);
 
           const squeezeParams = { klines, mark: 3, filename: `${this.state.rule_labels[1]}.png`, show: this.config.show_plots }
 
@@ -380,7 +380,7 @@ export class SlaveBot {
         }
 
         if (!this.state.rule_values[2]) {
-          const klines = await this.getKlines(this.state.symbol, '4h', 100);
+          const klines = await this.getKlines(this.state.symbol, '15m', 200);
 
           const adxParams = { klines, mark: 4, filename: `${this.state.rule_labels[2]}.png`, show: this.config.show_plots }
 
@@ -393,14 +393,14 @@ export class SlaveBot {
         }
 
         if (!this.state.rule_values[3]) {
-          const klines = await this.getKlines(this.state.symbol, '2h', 200);
+          const klines = await this.getKlines(this.state.symbol, '5m', 200);
 
           const heikinParams = { klines, mark: 3, filename: `${this.state.rule_labels[3]}.png`, show: this.config.show_plots }
 
           this.state.rule_values[3] = await heikinAshiBars(heikinParams);
 
           if (!this.state.rule_values[3]) {
-            await this.sleep(300_000)
+            await this.sleep(60_000)
             continue;
           }
         }

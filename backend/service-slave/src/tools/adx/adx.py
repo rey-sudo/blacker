@@ -58,7 +58,7 @@ def average_directional_index(klines, adxlen=14, dilen=14, filename="adx.png", k
     # ADX Plot - Green when ascending, Red when descending
     for i in range(1, len(df)):
         color = 'green' if df['ADX'].iloc[i] > df['ADX'].iloc[i-1] else 'red'
-        plt.plot(df['Open time'].iloc[i-1:i+1], df['ADX'].iloc[i-1:i+1], color=color, linewidth=3)
+        plt.plot(df['Open time'].iloc[i-1:i+1], df['ADX'].iloc[i-1:i+1], color=color, linewidth=2)
         
         
         rule1= df['ADX'].iloc[i] < df['ADX'].iloc[i-1]

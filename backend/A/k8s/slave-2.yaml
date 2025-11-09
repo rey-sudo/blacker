@@ -30,7 +30,7 @@ spec:
             - name: SLAVE_NAME
               value: "slave-2"
             - name: SYMBOL
-              value: "POLUSDT"
+              value: "LTCUSDT"
             - name: LEVERAGE
               value: "5"
             - name: STOP_LOSS

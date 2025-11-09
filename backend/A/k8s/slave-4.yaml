@@ -30,7 +30,7 @@ spec:
             - name: SLAVE_NAME
               value: "slave-4"
             - name: SYMBOL
-              value: "XRPUSDT"
+              value: "DASHUSDT"
             - name: LEVERAGE
               value: "5"
             - name: STOP_LOSS

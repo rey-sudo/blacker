@@ -30,7 +30,7 @@ spec:
             - name: SLAVE_NAME
               value: "slave-8"
             - name: SYMBOL
-              value: "ETHUSDT"
+              value: "DOTUSDT"
             - name: LEVERAGE
               value: "5"
             - name: STOP_LOSS
