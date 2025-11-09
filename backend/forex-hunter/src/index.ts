@@ -205,27 +205,38 @@ export class HunterBot {
   }
 
   public async test() {
-    console.log("test")
-
     const client = twelvedata({ key: "39394ff16ece4c249d9952042a465936" });
 
-    const params = {
-      symbol: "EUR/USD",
-      interval: "15min",
-      outputsize: 200,
-    };
+    const forexPairs = [
+      "EUR/USD",
+      "USD/JPY",
+      "GBP/USD",
+      "USD/CHF",
+      "AUD/USD",
+      "USD/CAD",
+      "NZD/USD",
+      "EUR/GBP",
+      "EUR/JPY",
+      "GBP/JPY",
+      "AUD/JPY"
+    ];
 
-    client
-      .timeSeries(params)
-      .then((data) => {
-        const klines = timeseriesToKline(data.values);
-        console.log(klines);
+    for (const pair of forexPairs) {
+      const params = {
+        symbol: pair,
+        interval: "15min",
+        outputsize: 200,
+      };
 
-        const rsiParams = { klines, mark: 6, filename: 'rsi.png', show: this.config.show_plots }
-        const result = relativeStrengthIndex(rsiParams);
-      })
-      .catch((err) => console.error(err));
+      const data = await client.timeSeries(params)
+      const klines = timeseriesToKline(data.values);
 
+      const rsiParams = { klines, mark: 6, filename: 'rsi.png', show: this.config.show_plots }
+      const result = await relativeStrengthIndex(rsiParams);
+      console.log(result)
+
+      await this.sleep(60_000)
+    }
   }
 }
 
