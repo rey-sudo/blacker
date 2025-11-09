@@ -5,7 +5,7 @@ metadata:
   labels:
     role: slave-3
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       role: slave-3

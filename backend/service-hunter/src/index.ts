@@ -106,24 +106,18 @@ export class HunterBot {
         demoAPIKey: process.env['COINGECKO_API_KEY']
       });
 
-      const [page1, page2] = await Promise.all([
+      const [page1] = await Promise.all([
         geckoClient.coins.markets.get({
           vs_currency: 'usd',
           order: 'market_cap_desc',
-          per_page: 100,
+          per_page: 50,
           page: 1,
-        }),
-        geckoClient.coins.markets.get({
-          vs_currency: 'usd',
-          order: 'market_cap_desc',
-          per_page: 100,
-          page: 2,
-        }),
+        })
       ]);
 
       const uniqueGecko = Array.from(
         new Map(
-          [...page1, ...page2]
+          [...page1]
             .filter(({ symbol }) => typeof symbol === 'string')
             .map(e => [e.symbol!.toUpperCase(), e])
         ).values()
@@ -170,7 +164,7 @@ export class HunterBot {
           this.state.detectedSymbols = []
 
           console.log("🔄 Reseted");
-          await this.sleep(900_000)
+          await this.sleep(300_000)
           continue
         }
 
@@ -179,7 +173,7 @@ export class HunterBot {
 
         console.log(`Analizing ${symbol} iteration ${this.state.iteration}`);
 
-        const klines = await this.getKlines(symbol, '4h', 100);
+        const klines = await this.getKlines(symbol, '15m', 200);
         const rsiParams = { klines, mark: 6, filename: 'rsi.png', show: this.config.show_plots }
         const result = await relativeStrengthIndex(rsiParams);
 
