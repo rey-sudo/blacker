@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-hunter
+  labels:
+    role: service-hunter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: service-hunter
+  template:
+    metadata:
+      labels:
+        role: service-hunter
+    spec:
+      containers:
+        - name: classic-hunter
+          image: pairfy/classic-hunter
+          envFrom:    
+            - configMapRef:
+                name: redis-config             
+          env:
+            - name: NODE_ENV
+              value: "development"
+            - name: SYMBOL
+              value: "EUR/USD,USD/JPY,GBP/USD,USD/CHF,AUD/USD,USD/CAD,NZD/USD,EUR/GBP,EUR/JPY,GBP/JPY,AUD/JPY"              
+            - name: SHOW_PLOTS
+              value: "false"
+            - name: START_AT
+              value: "0"            
+            - name: TWELVEDATA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: twelvedata-key-secret
+                  key: key              
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          volumeMounts:
+            - name: hunter-storage
+              mountPath: /app/output
+      volumes:
+        - name: hunter-storage
+          persistentVolumeClaim:
+            claimName: pvc-hunter
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-hunter
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-hunter
+spec:
+  selector:
+    role: service-hunter
+  ports:
+    - name: http
+      protocol: TCP
+      port: 3001
+      targetPort: 3001

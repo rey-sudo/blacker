@@ -27,8 +27,8 @@ build:
           - src: 'src/**/*.{ts,js,json,vue}'
             dest: .
 
-    - image: pairfy/service-hunter
-      context: service-hunter
+    - image: pairfy/classic-hunter
+      context: classic-hunter
       docker:
         dockerfile: Dockerfile
       sync:

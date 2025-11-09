@@ -1,18 +1,15 @@
 import path from 'path';
 import dotenv from 'dotenv';
-import Coingecko from '@coingecko/coingecko-typescript';
-import { FuturesExchangeInfo, FuturesSymbolExchangeInfo, USDMClient } from 'binance';
 import { relativeStrengthIndex } from "./tools/rsi/index.js";
 import { ERROR_EVENTS } from "./utils/errors.js";
 import { sleep } from "./utils/sleep.js";
 import { fileURLToPath } from 'url';
 import { startHttpServer } from './server/index.js';
-import { withRetry } from './utils/index.js';
 import { redisClient } from './database/index.js';
 import { createAlert } from './common/alerts.js';
 import { HunterState } from './types/index.js';
-import twelvedata from "twelvedata";
 import { timeseriesToKline } from './utils/format.js';
+import twelvedata from "twelvedata";
 
 dotenv.config();
 
@@ -20,30 +17,21 @@ export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
 export const root = path.join(__dirname, '..');
 
-interface Kline {
-  datetime: string;
-  open: string;
-  high: string;
-  low: string;
-  close: string;
-  volume: string;
-}
 
 export class HunterBot {
   public state: HunterState;
   private config: any;
-  private binance: any;
+  private client: any;
   private redis: any
 
   constructor() {
     const requiredEnvVars = [
       "NODE_ENV",
+      "SYMBOLS",
       "SHOW_PLOTS",
-      // "BINANCE_KEY",
-      // "BINANCE_SECRET",
-      // "COINGECKO_API_KEY",
+      "TWELVEDATA_API_KEY",
       "START_AT",
-      // "REDIS_HOST"
+      "REDIS_HOST"
     ];
 
     for (const envName of requiredEnvVars) {
@@ -74,10 +62,7 @@ export class HunterBot {
       show_plots: SHOW_PLOTS
     }
 
-    this.binance = new USDMClient({
-      api_key: process.env.BINANCE_KEY as string,
-      api_secret: process.env.BINANCE_SECRET as string
-    });
+    this.client = twelvedata({ key: "39394ff16ece4c249d9952042a465936" });
 
     startHttpServer(this);
   }
@@ -97,45 +82,7 @@ export class HunterBot {
 
       this.redis = redisClient.client;
 
-      const exchangeInfo: FuturesExchangeInfo = await this.binance.getExchangeInfo();
-      const exchangeSymbols: FuturesSymbolExchangeInfo[] = exchangeInfo.symbols ?? [];
-
-      const binanceSymbols = new Set(
-        exchangeSymbols
-          .filter(
-            s =>
-              s?.contractType === 'PERPETUAL' &&
-              s?.status === 'TRADING' &&
-              s?.quoteAsset?.toUpperCase() === 'USDT'
-          )
-          .map(s => s.symbol.toUpperCase())
-      );
-
-      const geckoClient = new Coingecko({
-        environment: 'demo',
-        demoAPIKey: process.env['COINGECKO_API_KEY']
-      });
-
-      const [page1] = await Promise.all([
-        geckoClient.coins.markets.get({
-          vs_currency: 'usd',
-          order: 'market_cap_desc',
-          per_page: 50,
-          page: 1,
-        })
-      ]);
-
-      const uniqueGecko = Array.from(
-        new Map(
-          [...page1]
-            .filter(({ symbol }) => typeof symbol === 'string')
-            .map(e => [e.symbol!.toUpperCase(), e])
-        ).values()
-      );
-
-      const geckoSymbols = uniqueGecko.map(e => `${e.symbol!.toUpperCase()}USDT`);
-
-      this.state.validSymbols = geckoSymbols.filter(e => binanceSymbols.has(e));
+      this.state.validSymbols = process.env.SYMBOLS!.split(",")
 
       if (this.state.iteration >= this.state.validSymbols.length) {
         throw new Error('iteration > validSymbol length')
@@ -146,16 +93,6 @@ export class HunterBot {
       console.log(err)
       throw err
     }
-  }
-
-  private async getKlines(symbol: string, interval: any, limit: number) {
-    return withRetry(() =>
-      this.binance.getKlines({
-        symbol,
-        interval,
-        limit
-      })
-    )
   }
 
   public async sleep(ms: number) {
@@ -183,7 +120,15 @@ export class HunterBot {
 
         console.log(`Analizing ${symbol} iteration ${this.state.iteration}`);
 
-        const klines = await this.getKlines(symbol, '15m', 200);
+        const params = {
+          symbol: symbol,
+          interval: "15min",
+          outputsize: 200,
+        };
+
+        const data = await this.client.timeSeries(params);
+        const klines = timeseriesToKline(data.values);
+
         const rsiParams = { klines, mark: 6, filename: 'rsi.png', show: this.config.show_plots }
         const result = await relativeStrengthIndex(rsiParams);
 
@@ -203,46 +148,11 @@ export class HunterBot {
       }
     }
   }
-
-  public async test() {
-    const client = twelvedata({ key: "39394ff16ece4c249d9952042a465936" });
-
-    const forexPairs = [
-      "EUR/USD",
-      "USD/JPY",
-      "GBP/USD",
-      "USD/CHF",
-      "AUD/USD",
-      "USD/CAD",
-      "NZD/USD",
-      "EUR/GBP",
-      "EUR/JPY",
-      "GBP/JPY",
-      "AUD/JPY"
-    ];
-
-    for (const pair of forexPairs) {
-      const params = {
-        symbol: pair,
-        interval: "15min",
-        outputsize: 200,
-      };
-
-      const data = await client.timeSeries(params)
-      const klines = timeseriesToKline(data.values);
-
-      const rsiParams = { klines, mark: 6, filename: 'rsi.png', show: this.config.show_plots }
-      const result = await relativeStrengthIndex(rsiParams);
-      console.log(result)
-
-      await this.sleep(60_000)
-    }
-  }
 }
 
 async function main() {
   const bot = new HunterBot();
-  await bot.test();
+  await bot.run();
 }
 
 main();
