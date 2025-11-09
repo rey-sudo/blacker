@@ -11,12 +11,23 @@ import { withRetry } from './utils/index.js';
 import { redisClient } from './database/index.js';
 import { createAlert } from './common/alerts.js';
 import { HunterState } from './types/index.js';
+import twelvedata from "twelvedata";
+import { timeseriesToKline } from './utils/format.js';
 
 dotenv.config();
 
 export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
 export const root = path.join(__dirname, '..');
+
+interface Kline {
+  datetime: string;
+  open: string;
+  high: string;
+  low: string;
+  close: string;
+  volume: string;
+}
 
 export class HunterBot {
   public state: HunterState;
@@ -27,13 +38,12 @@ export class HunterBot {
   constructor() {
     const requiredEnvVars = [
       "NODE_ENV",
-      "SERVICE_NAME",
       "SHOW_PLOTS",
-      "BINANCE_KEY",
-      "BINANCE_SECRET",
-      "COINGECKO_API_KEY",
+      // "BINANCE_KEY",
+      // "BINANCE_SECRET",
+      // "COINGECKO_API_KEY",
       "START_AT",
-      "REDIS_HOST"
+      // "REDIS_HOST"
     ];
 
     for (const envName of requiredEnvVars) {
@@ -185,7 +195,7 @@ export class HunterBot {
 
         this.state.iteration += 1
         this.state.updated_at = Date.now()
-        
+
         await this.sleep(60_000)
       } catch (err) {
         this.state.status = 'error'
@@ -193,11 +203,35 @@ export class HunterBot {
       }
     }
   }
+
+  public async test() {
+    console.log("test")
+
+    const client = twelvedata({ key: "39394ff16ece4c249d9952042a465936" });
+
+    const params = {
+      symbol: "EUR/USD",
+      interval: "15min",
+      outputsize: 200,
+    };
+
+    client
+      .timeSeries(params)
+      .then((data) => {
+        const klines = timeseriesToKline(data.values);
+        console.log(klines);
+
+        const rsiParams = { klines, mark: 6, filename: 'rsi.png', show: this.config.show_plots }
+        const result = relativeStrengthIndex(rsiParams);
+      })
+      .catch((err) => console.error(err));
+
+  }
 }
 
 async function main() {
   const bot = new HunterBot();
-  await bot.run();
+  await bot.test();
 }
 
 main();
