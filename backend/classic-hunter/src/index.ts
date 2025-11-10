@@ -11,7 +11,9 @@ import { HunterState } from './types/index.js';
 import { timeseriesToKline } from './utils/format.js';
 import twelvedata from "twelvedata";
 
-dotenv.config();
+if (process.env.NODE_ENV !== 'development') {
+  dotenv.config();
+}
 
 export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
@@ -80,9 +82,13 @@ export class HunterBot {
         service: "service-hunter",
       });
 
-      this.redis = redisClient.client;
+      this.redis = redisClient.client
 
-      this.state.validSymbols = process.env.SYMBOLS!.split(",")
+      const symbols = process.env.SYMBOLS!.split(",")
+
+      this.state.validSymbols = symbols
+
+      console.log("✅Configured Symbols: ", symbols)
 
       if (this.state.iteration >= this.state.validSymbols.length) {
         throw new Error('iteration > validSymbol length')
@@ -111,7 +117,7 @@ export class HunterBot {
           this.state.detectedSymbols = []
 
           console.log("🔄 Reseted");
-          await this.sleep(300_000)
+          await this.sleep(900_000)
           continue
         }
 
@@ -127,6 +133,8 @@ export class HunterBot {
         };
 
         const data = await this.client.timeSeries(params);
+        console.log(data.code)
+        
         const klines = timeseriesToKline(data.values);
 
         const rsiParams = { klines, mark: 6, filename: 'rsi.png', show: this.config.show_plots }

@@ -56,4 +56,8 @@ def relative_strength_index(klines,mark=10,period=14, filename="rsi.png", show=F
        plt.show() 
     
     plt.close()
+
+    last_rsi = rsi.iloc[-1]
+    print(str(last_rsi), flush=True)
+
     
