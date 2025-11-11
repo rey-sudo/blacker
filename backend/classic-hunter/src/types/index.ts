@@ -6,3 +6,14 @@ export interface HunterState {
   detectedSymbols: string[]
   updated_at: number
 }
+
+export type Timeseries = {
+  time: string;  // ISO 8601
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+};
+
+export type BinanceKlineSimple = [number, string, string, string, string, string];

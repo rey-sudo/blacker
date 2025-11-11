@@ -405,7 +405,10 @@ export class SlaveBot {
           }
         }
 
-        await this.executeOrder()
+        //await this.executeOrder()
+
+        console.log("BUY")
+        await this.sleep(60_000_600)
 
       } catch (err: any) {
         this.state.status = 'error'

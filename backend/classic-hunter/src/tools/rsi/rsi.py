@@ -12,7 +12,7 @@ if NODE_ENV == 'local':
 
 def relative_strength_index(klines,mark=10,period=14, filename="rsi.png", show=False):
     """Calculates RSI from klines data and plots the RSI chart.
-       The last 10 intervals are black if RSI is below 31.
+       The last 10 intervals are black if RSI is below 33.
     """
     
 
@@ -40,13 +40,13 @@ def relative_strength_index(klines,mark=10,period=14, filename="rsi.png", show=F
     plt.figure(figsize=(12, 6))
     plt.plot(rsi, label="RSI", color="gray")
     plt.axhline(70, linestyle="solid", color="red", label="Overbought (70)")
-    plt.axhline(31, linestyle="solid", color="green", label="Oversold (31)")
+    plt.axhline(33, linestyle="solid", color="green", label="Oversold (33)")
     
-    # Highlight last 10 intervals where RSI is below 31
+    # Highlight last 10 intervals where RSI is below 33
     if len(rsi) > 10:
         last_indices = range(len(rsi) - mark, len(rsi))
         for i in last_indices:
-            if rsi.iloc[i] < 31:
+            if rsi.iloc[i] < 33:
                 plt.plot(i, rsi.iloc[i], marker="o", markersize=10, color="blue")  # Black dot
     
     plt.tight_layout()
@@ -56,8 +56,3 @@ def relative_strength_index(klines,mark=10,period=14, filename="rsi.png", show=F
        plt.show() 
     
     plt.close()
-
-    last_rsi = rsi.iloc[-1]
-    print(str(last_rsi), flush=True)
-
-    

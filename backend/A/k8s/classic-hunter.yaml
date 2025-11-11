@@ -24,7 +24,7 @@ spec:
             - name: NODE_ENV
               value: "development"
             - name: SYMBOLS
-              value: "XAU/USD,XAG/USD,XAU/EUR,XAG/EUR,EUR/USD,USD/JPY,GBP/USD,USD/CHF,AUD/USD,USD/CAD,NZD/USD,EUR/GBP,EUR/JPY,GBP/JPY,AUD/JPY,AAPL,AMZN,META,GOOG,MSFT,NVDA,TSLA,NFLX,BAC,V,WMT,PFE"              
+              value: "GC=F,EURUSD=X,GBPUSD=X,USDJPY=X,EURJPY=X,GBPJPY=X"
             - name: SHOW_PLOTS
               value: "false"
             - name: START_AT
