@@ -8,11 +8,11 @@
 // ═══════════════════════════════════════════
 
 const config = {
-  capitalTotal: 10000,           // Capital total en USD
-  precioActual: 105779,           // Precio actual de DASH
-  perdidaMaximaUSD: 50,          // Pérdida máxima aceptada en USD
+  capitalTotal: 10_000,           // Capital total en USD
+  precioActual: 103456,           // Precio actual de ASSET
+  perdidaMaximaUSD: 70,          // Pérdida máxima aceptada en USD
   esPosicionLarga: true,         // true = LONG, false = SHORT
-  porcentajeStopLoss: 0.5,       // % de distancia al stop loss
+  porcentajeStopLoss: 2,       // % de distancia al stop loss
   
   // IMPORTANTE: Tamaño del contrato según MT5
   // Para encontrarlo: Click derecho en el símbolo → Especificación
