@@ -5,7 +5,7 @@ metadata:
   labels:
     role: service-hunter
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       role: service-hunter
@@ -24,7 +24,7 @@ spec:
             - name: NODE_ENV
               value: "development"
             - name: SYMBOLS
-              value: "XAUUSD=X,EURUSD=X,GBPUSD=X,USDJPY=X,EURJPY=X,GBPJPY=X"
+              value: "GC=F,EURUSD=X,GBPUSD=X,USDJPY=X,EURJPY=X,GBPJPY=X"
             - name: SHOW_PLOTS
               value: "false"
             - name: START_AT
