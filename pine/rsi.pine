@@ -1,0 +1,38 @@
+//@version=5
+indicator("StochRSI con Apoyo en EMA RSI", overlay=false)
+
+// Parámetros
+rsiLength = input.int(14, "RSI Length")
+emaLength = input.int(9, "EMA RSI Length")
+stochLength = input.int(14, "Stoch RSI Length")
+smoothK = input.int(3, "Stoch RSI %K Smoothing")
+smoothD = input.int(3, "Stoch RSI %D Smoothing")
+
+// Cálculo RSI y EMA
+rsi = ta.rsi(close, rsiLength)
+emaRsi = ta.ema(rsi, emaLength)
+
+// Cálculo del Stochastic RSI
+rsiLow = ta.lowest(rsi, stochLength)
+rsiHigh = ta.highest(rsi, stochLength)
+stochRsiRaw = (rsi - rsiLow) / (rsiHigh - rsiLow)
+k = ta.sma(stochRsiRaw * 100, smoothK)
+d = ta.sma(k, smoothD)
+
+// Condición de "apoyo sobre la EMA RSI"
+apoyo = (rsi[1] < emaRsi[1]) and (rsi > emaRsi) and (emaRsi > emaRsi[1])
+
+// Condición de rebote: apoyo + StochRSI en zona baja
+rebote = apoyo and (k < 20) and (k > d)
+
+// Plot del StochRSI
+plot(k, title="%K", color=color.new(color.green, 0))
+plot(d, title="%D", color=color.new(color.red, 0))
+hline(80, "Zona Alta", color=color.new(color.gray, 60))
+hline(20, "Zona Baja", color=color.new(color.gray, 60))
+
+// Señales visuales
+plotshape(rebote, title="Señal de Rebote RSI sobre EMA", style=shape.triangleup, color=color.new(color.lime, 0), location=location.bottom, size=size.small)
+
+// Alerta opcional
+alertcondition(rebote, title="RSI Apoya y Reacciona", message="RSI hizo apoyo en su EMA con StochRSI en zona baja (posible giro alcista)")

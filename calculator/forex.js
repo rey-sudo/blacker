@@ -8,19 +8,19 @@
 // ═══════════════════════════════════════════
 
 const config = {
-  capitalTotal: 6700,           // Capital total en USD
-  parForex: 'XAUUSD',            // Par de divisas (o XAUUSD para oro)
-  precioActual: 4113,            // Precio actual del par
+  capitalTotal: 9861,           // Capital total en USD
+  parForex: 'EURUSD',            // Par de divisas (o XAUUSD para oro)
+  precioActual: 1.1568,            // Precio actual del par
   perdidaMaximaUSD: 50,          // Pérdida máxima aceptada en USD
   esPosicionLarga: true,         // true = LONG (Buy), false = SHORT (Sell)
-  porcentajeStopLoss: 1,       // % de distancia al stop loss
+  porcentajeStopLoss: 0.26,       // % de distancia al stop loss
   
   // IMPORTANTE: Tamaño del contrato según el instrumento
   // - Pares Forex (EURUSD, GBPUSD, etc): 100,000
   // - Oro XAUUSD: 100 (1 lote = 100 onzas)
   // - Plata XAGUSD: 5,000 (1 lote = 5,000 onzas)
   // Para verificar: MT5 → Click derecho → Especificación → "Contract size"
-  tamañoLoteEstandar: 100        // Para oro: 100 onzas
+  tamañoLoteEstandar: 100_000        
 };
 
 // ═══════════════════════════════════════════
