@@ -1,12 +1,12 @@
 //@version=6
-indicator("Range breaking indicator", overlay=false, max_labels_count=1)
+indicator("Range Breaking Indicator", overlay=false, max_labels_count=1)
 
 // ----------------------
 // Configuración
 // ----------------------
 len = input.int(50, "Número de velas a analizar", minval=1)
 use_volume = input.bool(false, "Usar volumen para ponderar área")
-balance_threshold = input.float(10.0, "Umbral de equilibrio (%)", minval=0.0, maxval=50.0)
+balance_threshold = input.float(1.0, "Umbral de equilibrio (%)", minval=0.0, maxval=50.0)
 
 // ----------------------
 // Cálculo de área por vela
