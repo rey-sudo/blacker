@@ -1,5 +1,5 @@
 //@version=6
-indicator("Bull/Bear Area Ratio (últimas N velas) - v6 corregido", overlay=false, max_labels_count=1)
+indicator("Range breaking indicator", overlay=false, max_labels_count=1)
 
 // ----------------------
 // Configuración
