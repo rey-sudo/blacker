@@ -1,0 +1,48 @@
+//@version=6
+indicator("Average Directional Index with Key Level and Reversal Marker ADX", overlay=false)
+
+//=== Inputs ===
+adxlen   = input.int(14, "ADX Length")
+dilen    = input.int(14, "DI Length")
+keyLevel = input.float(23, "Key Level")
+mark     = input.int(4, "Mark Length")
+
+//=== RMA ===
+rma(src, length) =>
+    ta.rma(src, length)
+
+//=== Directional movement ===
+dirmov(high, low, length) =>
+    up   = ta.change(high)
+    down = -ta.change(low)
+    truerange = ta.rma(ta.tr(true), length)
+    plus  = 100 * ta.rma(up > down and up > 0 ? up : 0, length) / truerange
+    minus = 100 * ta.rma(down > up and down > 0 ? down : 0, length) / truerange
+    [plus, minus]
+
+//=== ADX Calculation ===
+adx_func(high, low, dilen, adxlen) =>
+    [plus, minus] = dirmov(high, low, dilen)
+    sum_ = plus + minus
+    adx = 100 * ta.rma(math.abs(plus - minus) / (sum_ == 0 ? 1 : sum_), adxlen)
+    [adx, plus, minus]
+
+//=== Compute ===
+[sig, up, down] = adx_func(high, low, dilen, adxlen)
+
+//=== ADX color ===
+adx_color = sig > sig[1] ? color.new(color.lime, 0) : color.new(color.red, 0)
+plot(sig, color=adx_color, linewidth=2, title="ADX")
+
+//=== Key level line ===
+hline(keyLevel, "Key Level", color=color.rgb(255, 255, 255, 50), linestyle=hline.style_solid, linewidth=1)
+
+//=== Detect trend reversal ===
+rule1 = sig < sig[1]
+rule2 = sig[1] > sig[2]
+rule3 = sig[1] > keyLevel
+is_reversal = rule1 and rule2 and rule3
+
+//=== Optional helper circle for visibility ===
+plot(is_reversal ? sig : na, style=plot.style_circles, 
+     color=color.new(color.rgb(0, 150, 255), 0), linewidth=4, title="Reversal Level")
