@@ -1,0 +1,928 @@
+[2025-11-11 11:39:53] === Iniciando port-forward automático (local:8080 -> remote:80) ===
+[2025-11-11 11:39:53] Salida de log: /home/debian/Documents/GitHub/blacker/backend/portforward.log
+[2025-11-11 11:39:53] Presiona CTRL+C para detener.
+[2025-11-11 11:39:53] 🔌 Iniciando port-forward hacia ingress-nginx-controller-67c5cb88f-vwgcc (local 8080 -> 80)... (backoff actual: 2s)
+[2025-11-11 11:39:53] Forwarding from 127.0.0.1:8080 -> 80
+[2025-11-11 11:39:53] Forwarding from [::1]:8080 -> 80
+[2025-11-11 11:40:03] Handling connection for 8080
+[2025-11-11 11:40:46] E1111 11:40:46.471312  330316 portforward.go:404] "Unhandled Error" err="error copying from local connection to remote stream: writeto tcp6 [::1]:8080->[::1]:58310: read tcp6 [::1]:8080->[::1]:58310: read: connection reset by peer"
+[2025-11-11 11:40:57] Handling connection for 8080
+[2025-11-11 11:52:11] Handling connection for 8080
+[2025-11-11 11:52:15] Handling connection for 8080
+[2025-11-11 11:52:18] E1111 11:52:18.044280  330316 portforward.go:391] "Unhandled Error" err="error copying from remote stream to local connection: readfrom tcp6 [::1]:8080->[::1]:52810: write tcp6 [::1]:8080->[::1]:52810: write: connection reset by peer"
+[2025-11-11 11:52:40] Handling connection for 8080
+[2025-11-11 11:52:41] Handling connection for 8080
+[2025-11-11 11:53:10] E1111 11:53:10.827826  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:53:11] E1111 11:53:11.548400  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:53:12] Handling connection for 8080
+[2025-11-11 11:53:40] Handling connection for 8080
+[2025-11-11 11:53:41] Handling connection for 8080
+[2025-11-11 11:53:42] E1111 11:53:42.591201  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:53:57] E1111 11:53:57.889230  330316 portforward.go:391] "Unhandled Error" err="error copying from remote stream to local connection: readfrom tcp6 [::1]:8080->[::1]:52798: write tcp6 [::1]:8080->[::1]:52798: write: connection reset by peer"
+[2025-11-11 11:53:58] Handling connection for 8080
+[2025-11-11 11:54:03] Handling connection for 8080
+[2025-11-11 11:54:07] Handling connection for 8080
+[2025-11-11 11:54:13] Handling connection for 8080
+[2025-11-11 11:54:13] Handling connection for 8080
+[2025-11-11 11:54:19] Handling connection for 8080
+[2025-11-11 11:54:27] E1111 11:54:27.909502  330316 portforward.go:380] "Unhandled Error" err="error creating forwarding stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:54:27] E1111 11:54:27.909715  330316 portforward.go:380] "Unhandled Error" err="error creating forwarding stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:54:28] E1111 11:54:28.330674  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:54:31] Handling connection for 8080
+[2025-11-11 11:54:37] E1111 11:54:37.083283  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:54:41] Handling connection for 8080
+[2025-11-11 11:54:41] Handling connection for 8080
+[2025-11-11 11:54:43] E1111 11:54:43.096950  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:54:43] E1111 11:54:43.531640  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:54:49] E1111 11:54:49.146616  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:51] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:52] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:53] Handling connection for 8080
+[2025-11-11 11:54:54] Handling connection for 8080
+[2025-11-11 11:54:54] Handling connection for 8080
+[2025-11-11 11:54:54] Handling connection for 8080
+[2025-11-11 11:54:54] Handling connection for 8080
+[2025-11-11 11:54:54] Handling connection for 8080
+[2025-11-11 11:54:54] Handling connection for 8080
+[2025-11-11 11:54:54] Handling connection for 8080
+[2025-11-11 11:54:54] Handling connection for 8080
+[2025-11-11 11:55:01] E1111 11:55:01.403799  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:07] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:08] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:09] Handling connection for 8080
+[2025-11-11 11:55:11] E1111 11:55:11.019643  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:11] E1111 11:55:11.443810  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:11] Handling connection for 8080
+[2025-11-11 11:55:21] E1111 11:55:21.019200  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.044439  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.044489  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.045953  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.055150  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.058659  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.067846  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.068255  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.068287  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.068305  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.068321  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.074191  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.074317  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.074609  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.115986  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.179230  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.359754  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.366000  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.576469  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:21] E1111 11:55:21.768816  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.130279  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.146488  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.150141  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.150207  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.152664  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.152666  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.155445  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.167681  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.170897  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.170900  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.170918  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.170954  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.172107  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.172404  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.173443  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.174618  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.176251  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.177366  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.178757  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.178774  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.178811  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.180371  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.181110  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.182317  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.183468  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.187369  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.769756  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.955073  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.960414  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.960569  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.960581  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.966928  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.976171  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:22] E1111 11:55:22.976246  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.012180  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.049493  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.049542  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.049597  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.049634  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.053180  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.053294  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.054402  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.054477  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.054531  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.055700  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.056920  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.057001  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.059277  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.059399  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.059420  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.059437  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.062956  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.063016  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.063008  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.063041  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.064147  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.065341  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.066882  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.066889  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.066908  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.079601  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.079702  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.079757  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.079851  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.079884  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.082318  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.082347  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.084076  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.085446  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.085478  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.085685  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.085754  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.086050  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.088859  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.088913  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.088954  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.090283  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.091432  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.092212  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.094523  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.095629  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.095695  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.096894  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.096999  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.097032  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.127348  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:23] E1111 11:55:23.127441  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:24] E1111 11:55:24.322681  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:24] E1111 11:55:24.330090  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:24] E1111 11:55:24.334263  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:24] E1111 11:55:24.335378  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:24] E1111 11:55:24.335378  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:24] E1111 11:55:24.335403  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:24] E1111 11:55:24.335412  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:24] E1111 11:55:24.336580  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.745343  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.748664  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.796980  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.800171  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.800348  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.800197  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.801302  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.867708  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.868816  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.869077  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.869346  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.869362  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.871158  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.871200  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.872404  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:37] E1111 11:55:37.872449  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.059072  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.093402  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.096591  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.096833  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.097857  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.097860  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.099050  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.099470  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.099797  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.099535  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.100701  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.102426  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.102629  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.102676  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.104181  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.107317  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.107373  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.107409  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.107433  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.107460  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.114441  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.116799  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.130164  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.146714  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.288091  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.288264  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.294772  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.671432  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.671504  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.793192  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.793308  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.793472  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.793506  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.794620  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.794681  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.794681  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.794690  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.794705  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.795032  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.796063  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.796233  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.796264  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.797588  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.798817  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:38] E1111 11:55:38.798917  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.323807  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.326172  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.327545  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.331145  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.331158  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.333767  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.333901  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.335134  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.335229  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.343747  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.345984  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.352319  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.352500  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.368243  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.368243  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.368357  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.370656  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.370668  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.372025  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.372050  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.372095  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.372023  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.375866  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.376103  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.386703  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.386849  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.388116  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.388084  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.389320  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.389389  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.389405  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.393813  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.393933  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.395150  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.395247  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.395264  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.396547  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.399423  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.399524  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.399540  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.400072  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.400072  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.400220  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.400706  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.400892  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.402109  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.403234  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.403300  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.403301  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.404418  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.404460  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.404864  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.405705  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:39] E1111 11:55:39.405705  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:55:41] E1111 11:55:41.801367  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] E1111 11:56:22.585874  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:22] E1111 11:56:22.586032  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] E1111 11:56:22.587329  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] E1111 11:56:22.587495  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] E1111 11:56:22.587553  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] E1111 11:56:22.588434  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] E1111 11:56:22.594140  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] E1111 11:56:22.594978  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:22] E1111 11:56:22.595122  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:22] E1111 11:56:22.595478  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:22] Handling connection for 8080
+[2025-11-11 11:56:22] E1111 11:56:22.680853  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.139609  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.144194  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.147077  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.147241  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.147331  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.147488  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.147549  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.147655  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.147751  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.148223  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.149186  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.150128  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.150223  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.153508  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.153560  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.153654  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.153733  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.153754  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.153805  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.153848  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.154181  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.154532  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.154587  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.154630  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.165844  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.175250  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.175439  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.175506  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.175637  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.175665  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.175732  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.175760  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.175834  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.175913  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.176096  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.176183  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.178506  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.178640  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.180442  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.181036  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.181140  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.181220  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.181307  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.181386  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.181464  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.181605  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.181684  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.181749  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.181827  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.181901  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.181970  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.182073  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.182227  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.182362  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.182516  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.183003  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.183144  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.183277  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.183457  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.183659  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.183823  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.183901  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.183968  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.184030  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.184340  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.184439  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.185902  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.186154  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.186490  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.186789  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.188498  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.188653  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.188690  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.189233  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.190359  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.190484  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.192093  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.202092  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.205383  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.205444  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.205521  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.205571  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.205588  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.205602  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.205618  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.205662  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.217820  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.217878  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.221490  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.263196  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.266657  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.266743  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.266792  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.725428  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.727678  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.727961  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.728296  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.730998  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.731119  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.734208  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.734372  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.734465  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.737504  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.738174  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.738253  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.738322  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.738384  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.738766  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.738649  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.739694  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.740682  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.740783  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.752071  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.752154  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.752170  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.752215  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.752301  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.752324  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.752366  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.752381  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.752428  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.752484  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.752541  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.753454  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.753663  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.753759  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.755051  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.756296  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.763237  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.764263  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.769476  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.769654  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.769735  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.769810  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.770188  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.778370  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.779770  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.783988  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.802645  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.806512  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] E1111 11:56:23.806559  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.806591  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:23] Handling connection for 8080
+[2025-11-11 11:56:23] E1111 11:56:23.860390  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:24] Handling connection for 8080
+[2025-11-11 11:56:24] Handling connection for 8080
+[2025-11-11 11:56:24] E1111 11:56:24.433671  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:24] E1111 11:56:24.433776  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:24] Handling connection for 8080
+[2025-11-11 11:56:24] E1111 11:56:24.444029  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:24] Handling connection for 8080
+[2025-11-11 11:56:24] E1111 11:56:24.444172  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:24] Handling connection for 8080
+[2025-11-11 11:56:24] Handling connection for 8080
+[2025-11-11 11:56:24] E1111 11:56:24.465679  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:24] Handling connection for 8080
+[2025-11-11 11:56:24] E1111 11:56:24.465769  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:24] E1111 11:56:24.465810  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:25] Handling connection for 8080
+[2025-11-11 11:56:25] E1111 11:56:25.078879  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:25] Handling connection for 8080
+[2025-11-11 11:56:25] E1111 11:56:25.085273  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:25] Handling connection for 8080
+[2025-11-11 11:56:25] E1111 11:56:25.085478  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:25] Handling connection for 8080
+[2025-11-11 11:56:25] E1111 11:56:25.237545  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:25] Handling connection for 8080
+[2025-11-11 11:56:25] E1111 11:56:25.237703  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:25] Handling connection for 8080
+[2025-11-11 11:56:25] E1111 11:56:25.830892  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] E1111 11:56:26.132867  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] E1111 11:56:26.435327  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] E1111 11:56:26.435374  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] E1111 11:56:26.435484  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] E1111 11:56:26.435529  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] E1111 11:56:26.435569  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] E1111 11:56:26.445255  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] E1111 11:56:26.445545  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] E1111 11:56:26.449775  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] E1111 11:56:26.449938  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] E1111 11:56:26.450120  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] E1111 11:56:26.450239  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] E1111 11:56:26.450342  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] E1111 11:56:26.450444  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] E1111 11:56:26.450540  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] E1111 11:56:26.450600  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] E1111 11:56:26.450649  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] E1111 11:56:26.451156  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] E1111 11:56:26.451229  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:26] Handling connection for 8080
+[2025-11-11 11:56:26] E1111 11:56:26.468751  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:27] Handling connection for 8080
+[2025-11-11 11:56:27] E1111 11:56:27.551093  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:27] Handling connection for 8080
+[2025-11-11 11:56:27] E1111 11:56:27.564479  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:27] Handling connection for 8080
+[2025-11-11 11:56:27] E1111 11:56:27.573236  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:27] Handling connection for 8080
+[2025-11-11 11:56:27] E1111 11:56:27.579694  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:27] Handling connection for 8080
+[2025-11-11 11:56:27] Handling connection for 8080
+[2025-11-11 11:56:27] E1111 11:56:27.586258  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:27] E1111 11:56:27.586297  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:28] Handling connection for 8080
+[2025-11-11 11:56:28] E1111 11:56:28.063302  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:28] Handling connection for 8080
+[2025-11-11 11:56:28] E1111 11:56:28.067004  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:30] Handling connection for 8080
+[2025-11-11 11:56:30] Handling connection for 8080
+[2025-11-11 11:56:30] E1111 11:56:30.611731  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:30] E1111 11:56:30.611875  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 11:56:52] E1111 11:56:52.588741  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 11:56:52] E1111 11:56:52.588818  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: Timeout occurred"
+[2025-11-11 12:00:08] Handling connection for 8080
+[2025-11-11 12:00:08] E1111 12:00:08.144654  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 12:01:08] Handling connection for 8080
+[2025-11-11 12:01:08] E1111 12:01:08.974092  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 12:01:17] Handling connection for 8080
+[2025-11-11 12:01:17] E1111 12:01:17.445457  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 12:01:22] Handling connection for 8080
+[2025-11-11 12:01:22] E1111 12:01:22.820858  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 12:01:23] Handling connection for 8080
+[2025-11-11 12:01:23] E1111 12:01:23.960539  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 12:01:56] Handling connection for 8080
+[2025-11-11 12:01:56] E1111 12:01:56.122374  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 12:01:58] Handling connection for 8080
+[2025-11-11 12:01:58] E1111 12:01:58.323036  330316 portforward.go:357] "Unhandled Error" err="error creating error stream for port 8080 -> 80: write tcp 192.168.49.1:58054->192.168.49.2:8443: write: connection reset by peer"
+[2025-11-11 12:02:02] Recibida señal de terminación. Deteniendo...
+[2025-11-11 12:02:02] Matando proceso hijo PID 330317...
+[2025-11-11 12:02:02] Salida completa.
+[2025-11-11 12:02:03] === Iniciando port-forward automático (local:8080 -> remote:80) ===
+[2025-11-11 12:02:03] Salida de log: /home/debian/Documents/GitHub/blacker/backend/portforward.log
+[2025-11-11 12:02:03] Presiona CTRL+C para detener.
+[2025-11-11 12:02:03] 🔌 Iniciando port-forward hacia ingress-nginx-controller-67c5cb88f-vwgcc (local 8080 -> 80)... (backoff actual: 2s)
+[2025-11-11 12:02:03] Forwarding from 127.0.0.1:8080 -> 80
+[2025-11-11 12:02:03] Forwarding from [::1]:8080 -> 80
+[2025-11-11 12:02:23] Handling connection for 8080
+[2025-11-11 12:02:30] Handling connection for 8080
+[2025-11-11 12:03:54] Recibida señal de terminación. Deteniendo...
+[2025-11-11 12:03:54] Matando proceso hijo PID 336579...
+[2025-11-11 12:03:54] Salida completa.
