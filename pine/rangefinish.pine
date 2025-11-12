@@ -52,16 +52,6 @@ plot(bear_pct, title="Bearish %", color=color.new(color.red, 0), linewidth=2)
 hline(50, "Equilibrio 50%", color=color.gray, linestyle=hline.style_dotted)
 
 // ----------------------
-// Etiqueta informativa (solo en la última barra)
-// ----------------------
-var label info = na
-if barstate.islast and not na(bull_pct) and not na(bear_pct)
-    if not na(info)
-        label.delete(info)
-    // Llamada a label.new en una sola línea
-    info := label.new(bar_index, bull_pct, str.format("Bull: {0,number,#.##}% | Bear: {1,number,#.##}%", bull_pct, bear_pct), xloc=xloc.bar_index, yloc=yloc.price, style=label.style_label_left, color=color.new(color.black, 80), textcolor=color.white, size=size.normal)
-
-// ----------------------
 // Señal y alerta de equilibrio (posible fin de rango)
 // ----------------------
 is_balanced = not na(bull_pct) and math.abs(bull_pct - 50.0) <= balance_threshold
