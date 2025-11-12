@@ -408,6 +408,12 @@ export class SlaveBot {
         //await this.executeOrder()
 
         console.log("BUY")
+
+        this.state.executed = true
+        this.state.status = "executed"
+        this.state.finished = true
+        this.state.status = "finished"
+        await this.save();
         await this.sleep(60_000_600)
 
       } catch (err: any) {
