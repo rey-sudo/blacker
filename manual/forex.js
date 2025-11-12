@@ -13,7 +13,7 @@ const config = {
   precioActual: 4113,            // Precio actual del par
   perdidaMaximaUSD: 50,          // Pérdida máxima aceptada en USD
   esPosicionLarga: true,         // true = LONG (Buy), false = SHORT (Sell)
-  porcentajeStopLoss: 2,       // % de distancia al stop loss
+  porcentajeStopLoss: 1,       // % de distancia al stop loss
   
   // IMPORTANTE: Tamaño del contrato según el instrumento
   // - Pares Forex (EURUSD, GBPUSD, etc): 100,000
