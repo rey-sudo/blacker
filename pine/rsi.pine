@@ -1,0 +1,44 @@
+//@version=6
+indicator("RSI con SMA (14) + Filtro de Fuerza Alcista", shorttitle="RSI+SMA14 Filtro", 
+     overlay=false, timeframe="", timeframe_gaps=true)
+
+//────────────────────────────────────────────
+// 📘 Descripción
+// Este indicador muestra el RSI (14) junto con su SMA (14).
+// Filtra los falsos cruces y detecta solo cuando el RSI
+// confirma fuerza alcista al mantenerse en ascenso.
+//────────────────────────────────────────────
+
+// Parámetros de entrada
+rsiLength = input.int(14, "Periodo RSI", minval=1)
+smaLength = input.int(14, "Periodo SMA sobre RSI", minval=1)
+confirmBars = input.int(3, "Velas de Confirmación", minval=1, tooltip="Número de barras que deben mostrar un RSI en ascenso para confirmar fuerza alcista")
+
+// Cálculo del RSI y su SMA
+rsiValue = ta.rsi(close, rsiLength)
+smaValue = ta.sma(rsiValue, smaLength)
+
+//────────────────────────────────────────────
+// Lógica de señales
+//────────────────────────────────────────────
+cruceAlcista = ta.crossover(rsiValue, smaValue)
+confirmacionAlcista = cruceAlcista and ta.rising(rsiValue, confirmBars) and rsiValue > smaValue
+
+//────────────────────────────────────────────
+// Gráficos principales
+//────────────────────────────────────────────
+plot(rsiValue, color=color.new(color.blue, 0), title="RSI", linewidth=1)
+plot(smaValue, color=color.new(color.yellow, 0), title="SMA del RSI", linewidth=2)
+
+// Líneas guía
+hline(70, "Sobrecompra", color=color.new(color.red, 60))
+hline(30, "Sobreventa", color=color.new(color.green, 60))
+
+// Fondo visual opcional para zonas de fortaleza
+bgcolor(rsiValue > smaValue ? color.new(#00e677, 80) : na)
+
+//────────────────────────────────────────────
+// Alerta opcional
+//────────────────────────────────────────────
+alertcondition(confirmacionAlcista, title="RSI confirma fuerza alcista", 
+     message="El RSI cruzó sobre su SMA y muestra impulso alcista confirmado.")
