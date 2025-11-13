@@ -10,7 +10,7 @@
 const config = {
   capitalTotal: 10_000,           // Capital total en USD
   parForex: 'USDJPY',            // Par de divisas (o XAUUSD para oro)
-  precioActual: 154.36,            // Precio actual del par
+  precioActual: 154392,            // Precio actual del par
   perdidaMaximaUSD: 50,          // Pérdida máxima aceptada en USD
   esPosicionLarga: true,         // true = LONG (Buy), false = SHORT (Sell)
   porcentajeStopLoss: 0.5,       // % de distancia al stop loss
@@ -20,7 +20,7 @@ const config = {
   // - Oro XAUUSD: 100 (1 lote = 100 onzas)
   // - Plata XAGUSD: 5,000 (1 lote = 5,000 onzas)
   // Para verificar: MT5 → Click derecho → Especificación → "Contract size"
-  tamañoLoteEstandar: 100000      
+  tamañoLoteEstandar: 100_000      
 };
 
 // ═══════════════════════════════════════════
