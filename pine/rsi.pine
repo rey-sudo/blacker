@@ -1,5 +1,5 @@
 //@version=6
-indicator("RSI with SMA (14) + Bullish Strength Filter", shorttitle="RSI+SMA14 Filter", 
+indicator("RSI with SMA (14) + Bullish Marks", shorttitle="RSI+SMA14", 
      overlay=false, timeframe="", timeframe_gaps=true)
 
 //────────────────────────────────────────────
@@ -27,7 +27,7 @@ confirmacionAlcista = cruceAlcista and ta.rising(rsiValue, confirmBars) and rsiV
 //────────────────────────────────────────────
 // Main plots
 //────────────────────────────────────────────
-plot(rsiValue, color=color.new(color.blue, 0), title="RSI", linewidth=1)
+plot(rsiValue, color=color.new(#7E57C2, 0), title="RSI", linewidth=1)
 plot(smaValue, color=color.new(color.yellow, 0), title="RSI SMA", linewidth=2)
 
 // Guide lines
