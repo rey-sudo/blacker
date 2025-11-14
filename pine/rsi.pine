@@ -1,0 +1,44 @@
+//@version=6
+indicator("RSI with SMA (14) + Bullish Marks", shorttitle="RSI+SMA14", 
+     overlay=false, timeframe="", timeframe_gaps=true)
+
+//────────────────────────────────────────────
+// 📘 Description
+// This indicator shows the RSI (14) along with its SMA (14).
+// It filters false crossovers and detects only when the RSI
+// confirms bullish strength by maintaining an upward movement.
+//────────────────────────────────────────────
+
+// Input parameters
+rsiLength = input.int(14, "RSI Period", minval=1)
+smaLength = input.int(14, "SMA Period on RSI", minval=1)
+confirmBars = input.int(3, "Confirmation Candles", minval=1, tooltip="Number of bars that must show a rising RSI to confirm bullish strength")
+
+// RSI and SMA calculation
+rsiValue = ta.rsi(close, rsiLength)
+smaValue = ta.sma(rsiValue, smaLength)
+
+//────────────────────────────────────────────
+// Signal logic
+//────────────────────────────────────────────
+cruceAlcista = ta.crossover(rsiValue, smaValue)
+confirmacionAlcista = cruceAlcista and ta.rising(rsiValue, confirmBars) and rsiValue > smaValue
+
+//────────────────────────────────────────────
+// Main plots
+//────────────────────────────────────────────
+plot(rsiValue, color=color.new(#7E57C2, 0), title="RSI", linewidth=1)
+plot(smaValue, color=color.new(color.yellow, 0), title="RSI SMA", linewidth=2)
+
+// Guide lines
+hline(70, "Overbought", color=color.new(color.red, 60))
+hline(30, "Oversold", color=color.new(color.green, 60))
+
+// Optional visual background for strength zones
+bgcolor(rsiValue > smaValue ? color.new(#00e677, 80) : na)
+
+//────────────────────────────────────────────
+// Optional alert
+//────────────────────────────────────────────
+alertcondition(confirmacionAlcista, title="RSI confirms bullish strength", 
+     message="The RSI crossed above its SMA and shows confirmed bullish momentum.")

@@ -1,36 +1,36 @@
 //@version=6
-indicator("Range Breaking Indicator", overlay=false, max_labels_count=1)
+indicator("Range Breakout Indicator", overlay=false, max_labels_count=1)
 
 // ----------------------
-// Configuración
+// Configuration
 // ----------------------
-len = input.int(50, "Número de velas a analizar", minval=1)
-use_volume = input.bool(false, "Usar volumen para ponderar área")
-balance_threshold = input.float(2.0, "Umbral de equilibrio (%)", minval=0.0, maxval=50.0)
+len = input.int(50, "Number of candles to analyze", minval=1)
+use_volume = input.bool(false, "Use volume to weight area")
+balance_threshold = input.float(1.0, "Balance threshold (%)", minval=0.0, maxval=50.0)
 
 // ----------------------
-// Cálculo de área por vela
+// Candle area calculation
 // ----------------------
 area = use_volume ? math.abs(close - open) * volume : math.abs(close - open)
 bull_area = close > open ? area : 0.0
 bear_area = close < open ? area : 0.0
 
 // ----------------------
-// Ventana rodante: buffers + suma incremental
+// Rolling window: buffers + incremental sum
 // ----------------------
 var float[] bull_buf = array.new<float>()
 var float[] bear_buf = array.new<float>()
 var float bull_running = 0.0
 var float bear_running = 0.0
 
-// Actualizar buffer y suma para bullish
+// Update buffer and sum for bullish
 array.push(bull_buf, bull_area)
 bull_running += bull_area
 if array.size(bull_buf) > len
     old_bull = array.shift(bull_buf)
     bull_running -= old_bull
 
-// Actualizar buffer y suma para bearish
+// Update buffer and sum for bearish
 array.push(bear_buf, bear_area)
 bear_running += bear_area
 if array.size(bear_buf) > len
@@ -38,25 +38,25 @@ if array.size(bear_buf) > len
     bear_running -= old_bear
 
 // ----------------------
-// Cálculo de porcentajes
+// Percentage calculation
 // ----------------------
 total_area = bull_running + bear_running
 bull_pct = total_area > 0 ? (bull_running / total_area) * 100.0 : na
 bear_pct = total_area > 0 ? (bear_running / total_area) * 100.0 : na
 
 // ----------------------
-// Visualización
+// Visualization
 // ----------------------
 plot(bull_pct, title="Bullish %", color=color.new(color.lime, 0), linewidth=2)
 plot(bear_pct, title="Bearish %", color=color.new(color.red, 0), linewidth=2)
-hline(50, "Equilibrio 50%", color=color.gray, linestyle=hline.style_dotted)
+hline(50, "50% Balance", color=color.gray, linestyle=hline.style_dotted)
 
 // ----------------------
-// Señal y alerta de equilibrio (posible fin de rango)
+// Balance signal and alert (possible range end)
 // ----------------------
 is_balanced = not na(bull_pct) and math.abs(bull_pct - 50.0) <= balance_threshold
-plotshape(is_balanced, title="Posible fin de rango", location=location.bottom, color=color.yellow, style=shape.triangleup, size=size.tiny)
+plotshape(is_balanced, title="Possible range end", location=location.bottom, color=color.yellow, style=shape.triangleup, size=size.tiny)
 
-// ⚠️ Alerta (mensaje constante requerido por Pine)
-const string alert_msg = "El rango de las últimas velas está equilibrado (posible final de rango)."
-alertcondition(is_balanced, title="Alerta: equilibrio detectado", message=alert_msg)
+// ⚠️ Alert (constant message required by Pine)
+const string alert_msg = "The range of the last candles is balanced (possible range end)."
+alertcondition(is_balanced, title="Alert: balance detected", message=alert_msg)
