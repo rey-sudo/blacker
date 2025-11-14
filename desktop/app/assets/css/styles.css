@@ -1,0 +1,106 @@
+* {
+  font-family: "Fira Code", monospace;
+  font-optical-sizing: auto;
+  color: var(--text-0);
+  font-style: normal;
+}
+
+body {
+  font-variation-settings: "wdth" 100;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  padding: 0;
+  margin: 0;
+}
+
+:root {
+  --font-size-0: 0.694rem;
+  --font-size-1: 0.833rem;
+  --font-size-2: 1rem;
+  --font-size-3: 1.2rem;
+  --font-size-4: 1.44rem;
+  --font-size-5: 1.728rem;
+  --font-size-6: 2.074rem;
+  --font-size-7: 2.488rem;
+  --font-size-8: 2.986rem;
+}
+
+:root {
+  --body: 105rem;
+
+  --background-0: #000000;
+  --background-1: #f7f9fb;
+
+  --text-0: #ffffff;
+  --text-1: #6b7280;
+
+
+  --border-0: #e5eaf1;
+  --border-1: #cbd5e1;
+
+  --primary-0: rgb(0,82,255);
+  --primary-0-base: 251, 91, 40;
+
+  --radius-0: 4px;
+  --radius-1: 8px;
+  --radius-2: 12px;
+  --radius-3: 16px;
+  --radius-4: 24px;
+  --radius-5: 9999px;
+
+  --radius-0: 4px;
+  --radius-1: 8px;
+  --radius-2: 12px;
+  --radius-3: 16px;
+  --radius-4: 24px;
+  --radius-5: 999px;
+
+  --shadow-a: 0 6px 20px rgba(0, 0, 0, 0.08);
+  --shadow-b: 0 1px 2px 0 rgba(0, 0, 0, 0.12);
+  --shadow-c: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-d: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+  --shadow-e: 0 12px 24px rgba(0, 0, 0, 0.1);
+
+  --transition-0: 0.2s ease-in-out;
+  --placeholder-opacity: 0.9;
+
+  --gradient-a: linear-gradient(90deg, var(--primary-a), var(--primary-b));
+}
+
+:root {
+  --red-0: #e74c3c;
+  --yellow-0: #ffb84d;
+  --green-0: #2ecc71;
+  --orange-0: #fb5b28;
+  --purple-0: #6c63ff;
+  --gray-0: #2f3542;
+  --black-0: #1a1a1a;
+  --blue-0: #289efb;
+
+  --red-bg: rgba(239, 68, 68, 0.1); /* Soft background for error states */
+  --yellow-bg: rgba(250, 204, 21, 0.1); /* Soft background for warnings */
+  --green-bg: rgba(34, 197, 94, 0.1); /* Soft background for success messages */
+  --orange-bg: rgba(251, 146, 60, 0.1); /* Soft background for attention */
+  --purple-bg: rgba(
+    139,
+    92,
+    246,
+    0.1
+  ); /* Soft background for informational badges */
+}
+
+:root {
+  --input-radius: var(--radius-3);
+
+  --input-padding: 0.7rem 1rem;
+}
+
+:root {
+  --card-radius: var(--radius-3);
+  --card-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+:root {
+  --icon-radius: 8px;
+}
