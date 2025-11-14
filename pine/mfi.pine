@@ -12,7 +12,7 @@ plot(mf, "MFI", color=#7E57C2)
 
 // SMA of MFI
 mfi_sma = ta.sma(mf, smaLen)
-plot(mfi_sma, "SMA MFI", color=color.yellow, linewidth=2)
+plot(mfi_sma, "SMA MFI", color=color.yellow, linewidth=1)
 
 // Levels
 overbought = hline(80, title="Overbought", color=#787B86)
