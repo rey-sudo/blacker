@@ -6,7 +6,7 @@
 
 <style lang="css" scoped>
 .header {
-  height: 3rem;
+  height: 5vh;
   border-bottom: 1px solid var(--border-0);
 }
 </style>

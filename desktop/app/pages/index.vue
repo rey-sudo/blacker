@@ -1,13 +1,7 @@
 <template>
-    <div>
-page
-    </div>
+  <ChartGrid />
 </template>
 
-<script setup>
+<script setup></script>
 
-</script>
-
-<style lang="scss" scoped>
-
-</style>
+<style lang="css" scoped></style>
