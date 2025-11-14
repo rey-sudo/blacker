@@ -1,11 +1,11 @@
 //@version=6
-indicator("Range Breaking Indicator", overlay=false, max_labels_count=1)
+indicator("Range Breakout Indicator", overlay=false, max_labels_count=1)
 
 // ----------------------
 // Configuration
 // ----------------------
-len = input.int(100, "Number of candles to analyze", minval=1)
-use_volume = input.bool(true, "Use volume to weight area")
+len = input.int(50, "Number of candles to analyze", minval=1)
+use_volume = input.bool(false, "Use volume to weight area")
 balance_threshold = input.float(1.0, "Balance threshold (%)", minval=0.0, maxval=50.0)
 
 // ----------------------
