@@ -7,18 +7,15 @@
   </div>
 </template>
 
-<script setup>
-
-
-</script>
+<script setup></script>
 
 <style scoped>
 .layout {
   background: var(--background-0);
-  width: 100%;
-  height: 100vh;
-  padding: 1%;
   box-sizing: border-box;
+  height: 100vh;
+  width: 100%;
+  padding: 0;
 }
 
 .content {

@@ -35,11 +35,10 @@ body {
   --text-0: #ffffff;
   --text-1: #6b7280;
 
+  --border-0: rgba(255, 255, 255, 0.2);
+  --border-1: rgba(255, 255, 255, 0.4);
 
-  --border-0: #e5eaf1;
-  --border-1: #cbd5e1;
-
-  --primary-0: rgb(0,82,255);
+  --primary-0: rgb(0, 82, 255);
   --primary-0-base: 251, 91, 40;
 
   --radius-0: 4px;
