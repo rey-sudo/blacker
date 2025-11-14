@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MACD estilo área con Histogram pegado</title>
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+      #chart-container {
+        width: 100%;
+        height: 400px;
+      }
+      #macd-container {
+        width: 100%;
+        height: 200px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chart-container"></div>
+    <div id="macd-container"></div>
+
+    <script>
+      // ------------------------------------
+      // 1️⃣ Datos simulados OHLC
+      // ------------------------------------
+      const data = [];
+      let price = 100;
+
+      for (let i = 0; i < 200; i++) {
+        const open = price;
+        const high = open + Math.random() * 3;
+        const low = open - Math.random() * 3;
+        const close = low + Math.random() * (high - low);
+
+        data.push({
+          time: 1642427876 + i * 3600,
+          open,
+          high,
+          low,
+          close,
+        });
+
+        price = close;
+      }
+
+      // ------------------------------------
+      // 2️⃣ Crear gráfico de velas
+      // ------------------------------------
+      const candleChart = LightweightCharts.createChart(
+        document.getElementById("chart-container"),
+        {
+          layout: { background: { color: "white" }, textColor: "black" },
+          rightPriceScale: { visible: true },
+          timeScale: {
+            visible: true,
+            handleScroll: false,
+            handleScale: false,
+            fixRightEdge: true,
+            lockVisibleTimeRangeOnResize: true,
+          },
+          handleScroll: false,
+          handleScale: false,
+          kineticScroll: false,
+          crosshair: {
+            mode: LightweightCharts.CrosshairMode.Normal,
+          },
+        }
+      );
+
+      const candleSeries = candleChart.addCandlestickSeries({
+        upColor: "#26a69a", // color de relleno alcista
+        borderUpColor: "#26a69a", // borde alcista
+        wickUpColor: "#26a69a", // mecha alcista
+        downColor: "rgba(0,0,0,0)", // relleno bajista (hueca)
+        borderDownColor: "#ef5350", // borde bajista
+        wickDownColor: "#ef5350", // mecha bajista
+        borderVisible: true, // mostrar bordes
+      });
+
+      candleSeries.setData(data);
+      // Supongamos que tus datos están en un array llamado `data`
+
+      const marker = [
+        {
+          time: data[data.length - 1].time, // índice 42 = vela 43 (0-indexed)
+          position: "aboveBar", // 'aboveBar' o 'belowBar'
+          color: "green", // color del marcador
+          shape: "arrowUp", // forma: 'arrowUp', 'arrowDown', 'circle', 'square', etc.
+          text: "BUY", // texto que aparecerá
+        },
+      ];
+
+      // Agregar marcador a la serie de velas
+      candleSeries.setMarkers(marker);
+
+      // ------------------------------------
+      // 3️⃣ Crear gráfico MACD (panel inferior)
+      // ------------------------------------
+      const macdChart = LightweightCharts.createChart(
+        document.getElementById("macd-container"),
+        {
+          layout: { background: { color: "white" }, textColor: "black" },
+          rightPriceScale: { visible: true },
+          timeScale: { visible: true },
+        }
+      );
+
+      // ------------------------------------
+      // 4️⃣ Funciones EMA y MACD
+      // ------------------------------------
+      function ema(values, period) {
+        const k = 2 / (period + 1);
+        let emaPrev = values[0] || 0;
+        const result = [{ time: data[0].time, value: emaPrev }];
+
+        for (let i = 1; i < values.length; i++) {
+          emaPrev = values[i] * k + emaPrev * (1 - k);
+          result.push({ time: data[i].time, value: emaPrev });
+        }
+        return result;
+      }
+
+      function calcMACD(data) {
+        const closes = data.map((d) => d.close);
+
+        const ema12 = ema(closes, 12);
+        const ema26 = ema(closes, 26);
+
+        const macd = ema12.map((e12, i) => ({
+          time: data[i].time,
+          value: e12.value - ema26[i].value,
+        }));
+
+        const signalRaw = ema(
+          macd.map((m) => m.value),
+          9
+        );
+        const signal = signalRaw.map((s, i) => ({
+          time: data[i].time,
+          value: s.value,
+        }));
+
+        const histogram = macd.map((m, i) => ({
+          time: data[i].time,
+          value: m.value - signal[i].value,
+        }));
+
+        const histogramFiltered = histogram.filter((d) => !isNaN(d.value));
+
+        return { macd, signal, histogram: histogramFiltered };
+      }
+
+      const { macd, signal, histogram } = calcMACD(data);
+
+      // ------------------------------------
+      // 5️⃣ Crear series MACD
+      // ------------------------------------
+      const macdLine = macdChart.addLineSeries({ color: "blue", lineWidth: 2 });
+      const signalLine = macdChart.addLineSeries({
+        color: "red",
+        lineWidth: 2,
+      });
+
+      // Histogram pegado
+      const histogramSeries = macdChart.addHistogramSeries({
+        color: "#26a69a",
+        lineWidth: 1,
+        priceFormat: {
+          type: "volume",
+        },
+      });
+
+      // Asignar datos
+      macdLine.setData(macd.filter((d) => !isNaN(d.value)));
+      signalLine.setData(signal.filter((d) => !isNaN(d.value)));
+      histogramSeries.setData(histogram);
+
+      // ------------------------------------
+      // 6️⃣ Sincronizar timeScale
+      // ------------------------------------
+      const syncTimeScale = (sourceChart, targetChart) => {
+        sourceChart.timeScale().subscribeVisibleTimeRangeChange((range) => {
+          targetChart.timeScale().setVisibleRange(range);
+        });
+      };
+
+      syncTimeScale(candleChart, macdChart);
+      syncTimeScale(macdChart, candleChart);
+
+      candleChart.timeScale().fitContent();
+      macdChart.timeScale().fitContent();
+    </script>
+  </body>
+</html>
