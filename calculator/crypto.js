@@ -10,7 +10,7 @@
 const config = {
   capitalTotal: 9837,           // Capital total en USD
   precioActual: 98615,           // Precio actual de ASSET
-  perdidaMaximaUSD: 60,          // Pérdida máxima aceptada en USD
+  perdidaMaximaUSD: 70,          // Pérdida máxima aceptada en USD
   esPosicionLarga: true,         // true = LONG, false = SHORT
   porcentajeStopLoss: 0.5,       // % de distancia al stop loss
   
