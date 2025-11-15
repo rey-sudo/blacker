@@ -10,6 +10,7 @@
 <style lang="css" scoped>
 .indicator-selector {
   display: flex;
+  cursor: pointer;
   align-items: center;
   font-size: var(--font-size-1);
 }
