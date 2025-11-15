@@ -3,7 +3,16 @@
     <img src="../assets//icons/logo.svg" alt="" />
 
     <div class="header-body">
-      <Button label="Indicators" icon="pi pi-chart-bar" size="small" variant="text"/>
+
+      <Button
+        label="Indicators"
+        icon="pi pi-chart-line"
+        size="small"
+        variant="text"
+      />
+
+      <SymbolSelector />
+      <Button icon="pi pi-plus" size="small" variant="icon" />
     </div>
   </div>
 </template>
@@ -18,5 +27,11 @@
   align-items: center;
   box-sizing: border-box;
   border-bottom: 1px solid var(--border-0);
+}
+
+.header-body {
+  gap: 1rem;
+  display: flex;
+  align-items: center;
 }
 </style>
