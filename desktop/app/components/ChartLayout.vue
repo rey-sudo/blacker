@@ -7,13 +7,15 @@
     <PadComp />
 
     <div class="indicators">
-      <div class="indicator">
-        <SqueezeChart />
+      <div class="indicator" ref="indicatorDiv">
+        <IndicatorSqueeze :width="chartWidth / 2" :height="chartHeight / 2"/>
       </div>
       <div class="indicator"></div>
       <div class="indicator"></div>
       <div class="indicator"></div>
     </div>
+
+    <div class="footer"></div>
   </div>
 </template>
 
@@ -24,21 +26,21 @@ const chartDiv = ref(null);
 const chartWidth = ref(0);
 const chartHeight = ref(0);
 
-let observer;
+let chartObserver;
 
 onMounted(() => {
-  observer = new ResizeObserver(() => {
+  chartObserver = new ResizeObserver(() => {
     if (chartDiv.value) {
       chartWidth.value = chartDiv.value.clientWidth;
       chartHeight.value = chartDiv.value.clientHeight;
     }
   });
 
-  observer.observe(chartDiv.value);
+  chartObserver.observe(chartDiv.value);
 });
 
 onBeforeUnmount(() => {
-  if (observer) observer.disconnect();
+  if (chartObserver) chartObserver.disconnect();
 });
 </script>
 
@@ -50,7 +52,30 @@ onBeforeUnmount(() => {
   background: black;
   box-sizing: border-box;
   gap: 0.5rem;
-  height: 100%;
+  height: 100vh;
+  overflow-y: scroll;
+  /* Firefox */
+  scrollbar-width: auto;
+  scrollbar-color: #555 #1a1a1a;
+}
+
+/* Chrome, Edge, Safari */
+.app-grid::-webkit-scrollbar {
+  width: 12px;
+}
+
+.app-grid::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 12px;
+}
+
+.app-grid::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #888, #555);
+  border-radius: 12px;
+}
+
+.app-grid::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #aaa, #666);
 }
 
 .chart {
@@ -71,5 +96,9 @@ onBeforeUnmount(() => {
 
 .indicator {
   border: 1px solid var(--border-0);
+}
+
+.footer{
+  height: 300px;
 }
 </style>

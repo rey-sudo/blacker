@@ -22,10 +22,12 @@ const props = defineProps({
   width: {
     type: Number,
     required: true,
+    default: 1000,
   },
   height: {
     type: Number,
     required: true,
+    default: 500,
   },
 });
 

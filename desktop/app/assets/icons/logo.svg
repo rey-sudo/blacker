@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="170"
+   width="135"
    height="49"
-   viewBox="0 0 170 49"
+   viewBox="0 0 135 49"
    version="1.1"
    id="svg1"
    inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
@@ -24,7 +24,7 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="px"
      inkscape:zoom="2.67"
-     inkscape:cx="43.820225"
+     inkscape:cx="44.194757"
      inkscape:cy="90.262172"
      inkscape:window-width="1654"
      inkscape:window-height="782"
@@ -40,14 +40,14 @@
      id="layer1">
     <text
        xml:space="preserve"
-       style="font-weight:600;font-size:26.6667px;line-height:0;font-family:Montserrat;-inkscape-font-specification:'Montserrat Semi-Bold';text-align:start;letter-spacing:-1px;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ff0000;stroke:none;stroke-width:0.5"
-       x="-0.7919991"
-       y="34.986694"
+       style="font-weight:600;font-size:24px;line-height:0;font-family:Montserrat;-inkscape-font-specification:'Montserrat Semi-Bold';text-align:start;letter-spacing:-1px;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ff0000;stroke:none;stroke-width:0.5"
+       x="-0.528"
+       y="33.888"
        id="text1"><tspan
          sodipodi:role="line"
          id="tspan1"
-         x="-0.7919991"
-         y="34.986694"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:26.6667px;font-family:Montserrat;-inkscape-font-specification:'Montserrat Bold';fill:#ffffff">WhiteRock</tspan></text>
+         x="-0.528"
+         y="33.888"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:24px;font-family:Montserrat;-inkscape-font-specification:'Montserrat Bold';fill:#ffffff">WhiteRock</tspan></text>
   </g>
 </svg>

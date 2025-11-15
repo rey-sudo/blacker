@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <img src="../assets//icons/logo.svg" alt="" />
+    <img class="logo" src="../assets//icons/logo.svg" alt="" />
 
     <div class="header-body">
       <IndicatorSelector />
@@ -14,6 +14,7 @@
 
 <style lang="css" scoped>
 .header {
+  gap: 1rem;
   height: 3rem;
   padding: 0 1rem;
   display: flex;
