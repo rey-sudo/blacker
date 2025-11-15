@@ -14,6 +14,8 @@ import {
   CrosshairMode,
   CandlestickSeries,
   createSeriesMarkers,
+  LineSeries,
+  PriceScaleMode,
 } from "lightweight-charts";
 
 const props = defineProps({
@@ -47,23 +49,33 @@ onMounted(async () => {
         background: { color: "transparent" },
         textColor: colors.text.primary,
       },
-      rightPriceScale: { visible: true },
+      rightPriceScale: { visible: true, mode: PriceScaleMode.Normal },
       timeScale: {
         visible: true,
         handleScroll: false,
         handleScale: false,
-        fixRightEdge: true,
+        fixRightEdge: false,
         lockVisibleTimeRangeOnResize: true,
+        barSpacing: 20,
+        rightOffset: 50,
       },
       grid: {
         vertLines: { color: "transparent" },
         horzLines: { color: "transparent" },
       },
-      handleScroll: false,
-      handleScale: false,
-      kineticScroll: false,
+      handleScroll: true,
+      handleScale: true,
+      kineticScroll: true,
       crosshair: {
         mode: CrosshairMode.Normal,
+      },
+    });
+
+    candleChart.applyOptions({
+      rightPriceScale: {
+        borderVisible: false,
+        mode: PriceScaleMode.Normal,
+        marginRight: 0,
       },
     });
 
@@ -90,6 +102,36 @@ onMounted(async () => {
     ];
 
     createSeriesMarkers(candleSeries, markers);
+
+    function calculateMovingAverageSeriesData(candleData, maLength) {
+      const maData = [];
+
+      for (let i = 0; i < candleData.length; i++) {
+        if (i < maLength) {
+          // Provide whitespace data points until the MA can be calculated
+          maData.push({ time: candleData[i].time });
+        } else {
+          // Calculate the moving average, slow but simple way
+          let sum = 0;
+          for (let j = 0; j < maLength; j++) {
+            sum += candleData[i - j].close;
+          }
+          const maValue = sum / maLength;
+          maData.push({ time: candleData[i].time, value: maValue });
+        }
+      }
+
+      return maData;
+    }
+
+    const maData = calculateMovingAverageSeriesData(data, 55);
+
+    const maSeries = candleChart.addSeries(LineSeries, {
+      color: colors.red,
+      lineWidth: 2,
+    });
+
+    maSeries.setData(maData);
 
     candleChart.timeScale().fitContent();
   } catch (error) {
