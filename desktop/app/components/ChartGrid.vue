@@ -5,10 +5,12 @@
     </div>
 
     <div class="indicators">
-      <div class="indicator">Indicador 1</div>
-      <div class="indicator">Indicador 2</div>
-      <div class="indicator">Indicador 3</div>
-      <div class="indicator">Indicador 4</div>
+      <div class="indicator">
+        <SqueezeChart /> 
+      </div>
+      <div class="indicator"></div>
+      <div class="indicator"></div>
+      <div class="indicator"></div>
     </div>
   </div>
 </template>
@@ -56,7 +58,7 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   font-size: 1.5rem;
-  padding-left: 1rem;
+
   box-sizing: border-box;
 }
 
@@ -68,10 +70,6 @@ onBeforeUnmount(() => {
 }
 
 .indicator {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
   border: 1px solid var(--border-0);
 }
 </style>
