@@ -15,7 +15,6 @@ import {
   CandlestickSeries,
   createSeriesMarkers,
 } from "lightweight-charts";
-import { defineProps } from "vue";
 
 const props = defineProps({
   width: {
