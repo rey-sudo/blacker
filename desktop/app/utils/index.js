@@ -1,6 +1,6 @@
-export function generateSeries(price) {
+export function generateSeries(price, length) {
   const data = [];
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < length; i++) {
     const open = price;
     const high = open + Math.random() * 3;
     const low = open - Math.random() * 3;

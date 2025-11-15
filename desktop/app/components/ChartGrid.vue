@@ -6,7 +6,7 @@
 
     <div class="indicators">
       <div class="indicator">
-        <SqueezeChart /> 
+        <SqueezeChart />
       </div>
       <div class="indicator"></div>
       <div class="indicator"></div>
@@ -41,7 +41,6 @@ onBeforeUnmount(() => {
 
 <style>
 .app-grid {
-  height: 90vh;
   display: grid;
   grid-template-rows: 3fr 1fr;
   padding: 1rem;
@@ -58,7 +57,7 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   font-size: 1.5rem;
-
+  height: 60vh;
   box-sizing: border-box;
 }
 

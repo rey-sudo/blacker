@@ -42,7 +42,7 @@ onMounted(async () => {
       return;
     }
 
-    const data = generateSeries(100);
+    const data = generateSeries(100, 500);
 
     candleChart = createChart(chartContainer.value, {
       layout: {
@@ -91,39 +91,6 @@ onMounted(async () => {
 
     candleSeries.setData(data);
 
-    const markers = [
-      {
-        time: data[data.length - 1].time,
-        position: "aboveBar",
-        color: "green",
-        shape: "arrowUp",
-        text: "BUY",
-      },
-    ];
-
-    createSeriesMarkers(candleSeries, markers);
-
-    function calculateMovingAverageSeriesData(candleData, maLength) {
-      const maData = [];
-
-      for (let i = 0; i < candleData.length; i++) {
-        if (i < maLength) {
-          // Provide whitespace data points until the MA can be calculated
-          maData.push({ time: candleData[i].time });
-        } else {
-          // Calculate the moving average, slow but simple way
-          let sum = 0;
-          for (let j = 0; j < maLength; j++) {
-            sum += candleData[i - j].close;
-          }
-          const maValue = sum / maLength;
-          maData.push({ time: candleData[i].time, value: maValue });
-        }
-      }
-
-      return maData;
-    }
-
     const maData = calculateMovingAverageSeriesData(data, 55);
 
     const maSeries = candleChart.addSeries(LineSeries, {
@@ -132,6 +99,18 @@ onMounted(async () => {
     });
 
     maSeries.setData(maData);
+
+    const markers = [
+      {
+        time: data[data.length - 1 + 50].time,
+        position: "aboveBar",
+        color: "green",
+        shape: "arrowUp",
+        text: "BUY",
+      },
+    ];
+
+    createSeriesMarkers(candleSeries, markers);
 
     candleChart.timeScale().fitContent();
   } catch (error) {
