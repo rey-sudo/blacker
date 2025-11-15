@@ -1,16 +1,15 @@
 <template>
-    <div class="pad">
-
-    </div>
+  <div class="pad">
+    <Button label="Buy" severity="success" />
+    <Button label="Sell" severity="danger" />
+  </div>
 </template>
 
-<script setup>
-
-</script>
+<script setup></script>
 
 <style lang="css" scoped>
-.pad{
-    height: 6rem;
-    border: 1px solid var(--border-0);
+.pad {
+  height: 6rem;
+  border: 1px solid var(--border-0);
 }
 </style>
