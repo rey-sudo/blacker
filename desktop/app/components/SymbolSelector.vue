@@ -1,7 +1,7 @@
 <template>
   <div class="symbol-selector">
     <div>BTCUSDT 4h</div>
-    <i class="pi pi-times"/>
+    <i class="pi pi-times" />
   </div>
 </template>
 
@@ -12,9 +12,9 @@
   border-left: 1px solid var(--border-0);
   border-right: 1px solid var(--border-0);
   font-size: var(--font-size-1);
+  padding: 0.5rem 1rem;
   align-items: center;
   font-weight: 600;
-  padding: 0.5rem;
   cursor: pointer;
   display: flex;
 }
