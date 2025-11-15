@@ -24,7 +24,7 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="px"
      inkscape:zoom="2.67"
-     inkscape:cx="43.445693"
+     inkscape:cx="43.820225"
      inkscape:cy="90.262172"
      inkscape:window-width="1654"
      inkscape:window-height="782"
@@ -40,14 +40,14 @@
      id="layer1">
     <text
        xml:space="preserve"
-       style="font-weight:600;font-size:26.6667px;line-height:0;font-family:Montserrat;-inkscape-font-specification:'Montserrat Semi-Bold';text-align:start;letter-spacing:-1px;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:none;stroke-width:0.5"
+       style="font-weight:600;font-size:26.6667px;line-height:0;font-family:Montserrat;-inkscape-font-specification:'Montserrat Semi-Bold';text-align:start;letter-spacing:-1px;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ff0000;stroke:none;stroke-width:0.5"
        x="-0.7919991"
-       y="35.986694"
+       y="34.986694"
        id="text1"><tspan
          sodipodi:role="line"
          id="tspan1"
          x="-0.7919991"
-         y="35.986694"
+         y="34.986694"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:26.6667px;font-family:Montserrat;-inkscape-font-specification:'Montserrat Bold';fill:#ffffff">WhiteRock</tspan></text>
   </g>
 </svg>
