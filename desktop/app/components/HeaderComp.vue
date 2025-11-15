@@ -3,14 +3,7 @@
     <img src="../assets//icons/logo.svg" alt="" />
 
     <div class="header-body">
-
-      <Button
-        label="Indicators"
-        icon="pi pi-chart-line"
-        size="small"
-        variant="text"
-      />
-
+      <IndicatorSelector />
       <SymbolSelector />
       <Button icon="pi pi-plus" size="small" variant="icon" />
     </div>
