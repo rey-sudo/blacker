@@ -35,7 +35,6 @@ let candleChart = null;
 
 onMounted(async () => {
   try {
-
     await nextTick();
 
     if (!chartContainer.value) {
@@ -71,6 +70,15 @@ onMounted(async () => {
         mode: CrosshairMode.Normal,
       },
     });
+
+    watch(
+      () => [props.width, props.height],
+      ([w, h]) => {
+        if (candleChart) {
+          candleChart.applyOptions({ width: w, height: h });
+        }
+      }
+    );
 
     candleChart.applyOptions({
       rightPriceScale: {

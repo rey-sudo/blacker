@@ -1,5 +1,5 @@
 <template>
-  <ChartGrid />
+  <ChartLayout />
 </template>
 
 <script setup></script>

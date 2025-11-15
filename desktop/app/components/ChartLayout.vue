@@ -5,7 +5,7 @@
     </div>
 
     <PadComp />
-    
+
     <div class="indicators">
       <div class="indicator">
         <SqueezeChart />
@@ -24,20 +24,21 @@ const chartDiv = ref(null);
 const chartWidth = ref(0);
 const chartHeight = ref(0);
 
-function updateChartSize() {
-  if (chartDiv.value) {
-    chartWidth.value = chartDiv.value.clientWidth;
-    chartHeight.value = chartDiv.value.clientHeight;
-  }
-}
+let observer;
 
 onMounted(() => {
-  updateChartSize();
-  window.addEventListener("resize", updateChartSize);
+  observer = new ResizeObserver(() => {
+    if (chartDiv.value) {
+      chartWidth.value = chartDiv.value.clientWidth;
+      chartHeight.value = chartDiv.value.clientHeight;
+    }
+  });
+
+  observer.observe(chartDiv.value);
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateChartSize);
+  if (observer) observer.disconnect();
 });
 </script>
 
@@ -46,21 +47,19 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-rows: 3fr 1fr;
   padding: 1rem;
-  background-color: black;
+  background: black;
   box-sizing: border-box;
   gap: 0.5rem;
+  height: 100%;
 }
 
 .chart {
-  background-color: black;
   display: flex;
+  box-sizing: border-box;
   justify-content: center;
   align-items: center;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  font-size: 1.5rem;
-  height: 60vh;
-  box-sizing: border-box;
+  min-height: 60vh;
+  overflow: hidden;
 }
 
 .indicators {
