@@ -35,6 +35,7 @@ let candleChart = null;
 
 onMounted(async () => {
   try {
+
     await nextTick();
 
     if (!chartContainer.value) {
@@ -102,7 +103,7 @@ onMounted(async () => {
 
     const markers = [
       {
-        time: data[data.length - 1 + 50].time,
+        time: data[data.length - (1 + 50)].time || 0,
         position: "aboveBar",
         color: "green",
         shape: "arrowUp",
@@ -125,4 +126,9 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+#chart-container {
+  width: 100%;
+  height: 100%;
+}
+</style>
