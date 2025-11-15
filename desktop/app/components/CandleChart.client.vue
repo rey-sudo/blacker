@@ -57,7 +57,7 @@ onMounted(async () => {
         fixRightEdge: false,
         lockVisibleTimeRangeOnResize: true,
         barSpacing: 20,
-        rightOffset: 50,
+        rightOffset: 30,
       },
       grid: {
         vertLines: { color: "transparent" },
