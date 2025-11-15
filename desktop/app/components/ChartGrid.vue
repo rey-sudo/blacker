@@ -4,6 +4,8 @@
       <CandleChart :width="chartWidth" :height="chartHeight" />
     </div>
 
+    <PadComp />
+    
     <div class="indicators">
       <div class="indicator">
         <SqueezeChart />
