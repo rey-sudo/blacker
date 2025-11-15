@@ -1,7 +1,7 @@
 <template>
-  <div class="app-grid">
-    <div class="chart">
-      <CandleChart />
+  <div class="app-grid" ref="appGrid">
+    <div class="chart" ref="chartDiv">
+      <CandleChart :width="chartWidth" :height="chartHeight" />
     </div>
 
     <div class="indicators">
@@ -13,7 +13,29 @@
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+const chartDiv = ref(null)
+const chartWidth = ref(0)
+const chartHeight = ref(0)
+
+function updateChartSize() {
+  if (chartDiv.value) {
+    chartWidth.value = chartDiv.value.clientWidth
+    chartHeight.value = chartDiv.value.clientHeight
+  }
+}
+
+onMounted(() => {
+  updateChartSize()
+  window.addEventListener('resize', updateChartSize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateChartSize)
+})
+</script>
 
 <style>
 .app-grid {

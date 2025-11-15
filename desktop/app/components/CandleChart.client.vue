@@ -1,5 +1,10 @@
 <template>
-  <div ref="chartContainer" class="chart-container"></div>
+  <div
+    ref="chartContainer"
+    class="chart-container"
+    id="chart-container"
+    :style="{ width: width + 'px', height: height + 'px' }"
+  ></div>
 </template>
 
 <script setup>
@@ -10,6 +15,18 @@ import {
   CandlestickSeries,
   createSeriesMarkers,
 } from "lightweight-charts";
+import { defineProps } from "vue";
+
+const props = defineProps({
+  width: {
+    type: Number,
+    required: true,
+  },
+  height: {
+    type: Number,
+    required: true,
+  },
+});
 
 const chartContainer = ref(null);
 
@@ -37,8 +54,8 @@ onMounted(async () => {
         lockVisibleTimeRangeOnResize: true,
       },
       grid: {
-        vertLines: { color: "transparent" }, 
-        horzLines: { color: "transparent" }, 
+        vertLines: { color: "transparent" },
+        horzLines: { color: "transparent" },
       },
       handleScroll: false,
       handleScale: false,
@@ -86,11 +103,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.chart-container {
-  width: 100%;
-  width: 1500px;
-  height: 500px;
-}
 
 .macd-container {
   width: 100%;
