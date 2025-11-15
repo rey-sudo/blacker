@@ -40,13 +40,14 @@
      id="layer1">
     <text
        xml:space="preserve"
-       style="font-weight:600;font-size:32px;line-height:0;font-family:Montserrat;-inkscape-font-specification:'Montserrat Semi-Bold';text-align:start;letter-spacing:-1px;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:none;stroke-width:0.5"
-       x="-0.61400002"
-       y="36.953999"
+       style="font-weight:600;font-size:29.3333px;line-height:0;font-family:Montserrat;-inkscape-font-specification:'Montserrat Semi-Bold';text-align:start;letter-spacing:-1px;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ffffff;stroke:none;stroke-width:0.5"
+       x="-0.7919991"
+       y="36.645306"
        id="text1"><tspan
          sodipodi:role="line"
          id="tspan1"
-         x="-0.61400002"
-         y="36.953999">WhiteRock</tspan></text>
+         x="-0.7919991"
+         y="36.645306"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:29.3333px;font-family:Montserrat;-inkscape-font-specification:'Montserrat Bold';fill:#ffffff">WhiteRock</tspan></text>
   </g>
 </svg>
