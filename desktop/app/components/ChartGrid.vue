@@ -45,6 +45,7 @@ onBeforeUnmount(() => {
   padding: 1rem;
   background-color: black;
   box-sizing: border-box;
+  gap: 0.5rem;
 }
 
 .chart {

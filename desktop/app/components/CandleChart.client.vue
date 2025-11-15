@@ -44,7 +44,10 @@ onMounted(async () => {
     const data = generateSeries(100);
 
     candleChart = createChart(chartContainer.value, {
-      layout: { background: { color: "transparent" }, textColor: "black" },
+      layout: {
+        background: { color: "transparent" },
+        textColor: colors.text.primary,
+      },
       rightPriceScale: { visible: true },
       timeScale: {
         visible: true,
@@ -102,6 +105,4 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
