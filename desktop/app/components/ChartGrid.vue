@@ -22,12 +22,12 @@
   grid-template-rows: 3fr 1fr;
   gap: 1rem;
   padding: 1rem;
-  background-color: #1e1e1e;
+  background-color: black;
   box-sizing: border-box;
 }
 
 .chart {
-  background-color: #2c2c2c;
+  background-color: black;
   display: flex;
   justify-content: center;
   align-items: center;
