@@ -3,7 +3,6 @@
     <img class="logo" src="../assets//icons/logo.svg" alt="" />
 
     <div class="header-body">
-      <IndicatorSelector />
       <SymbolSelector />
       <Button icon="pi pi-plus" size="small" variant="icon" />
     </div>
