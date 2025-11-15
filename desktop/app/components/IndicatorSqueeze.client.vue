@@ -31,6 +31,8 @@ const props = defineProps({
   },
 });
 
+const chartStore = useChartStore();
+
 const container = ref(null);
 
 let indicatorChart = null;
@@ -58,12 +60,21 @@ onMounted(async () => {
         horzLines: { color: "transparent" },
       },
     });
-    
+
     watch(
       () => [props.width, props.height],
       ([w, h]) => {
         if (indicatorChart) {
           indicatorChart.applyOptions({ width: w, height: h });
+        }
+      }
+    );
+
+    watch(
+      () => chartStore.timerange,
+      (range) => {
+        if (range) {
+          indicatorChart.timeScale().setVisibleRange(range);
         }
       }
     );

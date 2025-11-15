@@ -31,6 +31,8 @@ const props = defineProps({
   },
 });
 
+const chartStore = useChartStore();
+
 const chartContainer = ref(null);
 
 let candleChart = null;
@@ -88,6 +90,10 @@ onMounted(async () => {
         mode: PriceScaleMode.Normal,
         marginRight: 0,
       },
+    });
+
+    candleChart.timeScale().subscribeVisibleTimeRangeChange((range) => {
+      chartStore.timerange = range;
     });
 
     const candleSeries = candleChart.addSeries(CandlestickSeries, {
