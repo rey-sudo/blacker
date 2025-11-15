@@ -1,6 +1,8 @@
 <template>
   <div class="app-grid">
-    <div class="chart">Chart Principal</div>
+    <div class="chart">
+      <CandleChart />
+    </div>
 
     <div class="indicators">
       <div class="indicator">Indicador 1</div>
