@@ -10,6 +10,7 @@
 <style lang="css" scoped>
 .pad {
   height: 6rem;
+  padding: 1rem;
   border: 1px solid var(--border-0);
 }
 </style>
