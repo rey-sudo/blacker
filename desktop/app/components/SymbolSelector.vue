@@ -1,6 +1,6 @@
 <template>
   <div class="symbol-selector">
-    <Button label="BTCUSDT" size="small" variant="text" />
+    <Button label="BTCUSDT 4h" size="small" variant="text" />
     <i class="pi pi-times"></i>
   </div>
 </template>
