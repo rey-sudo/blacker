@@ -1,25 +1,33 @@
 <template>
-  <div class="app-grid" ref="appGrid">
-    <PadComp />
+  <div class="tab">
     <div class="chart" ref="chartDiv">
-      <CandleChart :width="chartWidth" :height="chartHeight" />
+      <CandleChart :tabId="tabId" :width="chartWidth" :height="chartHeight" />
     </div>
 
     <div class="indicators">
       <div class="indicator" ref="indicatorDiv">
-        <IndicatorSqueeze :width="chartWidth / 2" :height="chartHeight / 2" />
+        <IndicatorSqueeze :tabId="tabId" :width="chartWidth / 2" :height="chartHeight / 2" />
       </div>
       <div class="indicator"></div>
       <div class="indicator"></div>
       <div class="indicator"></div>
     </div>
-
     <div class="footer"></div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue";
+
+const props = defineProps({
+  tabId: {
+    type: String,
+    required: true
+  }
+})
+
+const useTabStore = createTabStore(props.tabId)
+const tabStore = useTabStore()
 
 const chartDiv = ref(null);
 const chartWidth = ref(0);
@@ -43,8 +51,9 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style>
-.app-grid {
+<style lang="css" scoped>
+
+.tab {
   display: grid;
   grid-template-rows: 3fr 1fr;
   padding: 0.5rem;
@@ -59,21 +68,21 @@ onBeforeUnmount(() => {
 }
 
 /* Chrome, Edge, Safari */
-.app-grid::-webkit-scrollbar {
+.tab::-webkit-scrollbar {
   width: 12px;
 }
 
-.app-grid::-webkit-scrollbar-track {
+.tab::-webkit-scrollbar-track {
   background: #1a1a1a;
   border-radius: 12px;
 }
 
-.app-grid::-webkit-scrollbar-thumb {
+.tab::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #888, #555);
   border-radius: 12px;
 }
 
-.app-grid::-webkit-scrollbar-thumb:hover {
+.tab::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, #aaa, #666);
 }
 

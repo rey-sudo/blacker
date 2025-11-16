@@ -29,9 +29,14 @@ const props = defineProps({
     required: true,
     default: 500,
   },
+  tabId: {
+    type: String,
+    required: true,
+  },
 });
 
-const chartStore = useChartStore();
+const useTabStore = createTabStore(props.tabId)
+const tabStore = useTabStore()
 
 const chartContainer = ref(null);
 
@@ -93,7 +98,7 @@ onMounted(async () => {
     });
 
     candleChart.timeScale().subscribeVisibleTimeRangeChange((range) => {
-      chartStore.timerange = range;
+      tabStore.timerange = range;
     });
 
     const candleSeries = candleChart.addSeries(CandlestickSeries, {

@@ -29,9 +29,14 @@ const props = defineProps({
     required: false,
     default: 200,
   },
+    tabId: {
+    type: String,
+    required: true
+  }
 });
 
-const chartStore = useChartStore();
+const useTabStore = createTabStore(props.tabId)
+const tabStore = useTabStore()
 
 const container = ref(null);
 
@@ -71,7 +76,7 @@ onMounted(async () => {
     );
 
     watch(
-      () => chartStore.timerange,
+      () => tabStore.timerange,
       (range) => {
         if (range) {
           indicatorChart.timeScale().setVisibleRange(range);

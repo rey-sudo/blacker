@@ -1,5 +1,5 @@
 <template>
-  <ChartLayout />
+  <TabLayout />
 </template>
 
 <script setup></script>
