@@ -6,7 +6,8 @@
       <div v-for="n in tabsStore.count" :key="n">
         <SymbolSelector :tabId="String(n)" />
       </div>
-      <addTabButton />
+      
+      <addTab />
     </div>
   </div>
 </template>

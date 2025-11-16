@@ -4,10 +4,10 @@
     v-model:visible="visible"
     modal
     :draggable="false"
-    header="Edit Profile"
-    :style="{ width: '50rem' }"
+    header="Symbol Search"
+    :style="{ width: '60rem', height: '40rem' }"
   >
-    <SearchSymbol />
+    <SymbolSearch />
   </Dialog>
 </template>
 

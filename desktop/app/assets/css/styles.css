@@ -36,10 +36,8 @@ html, body {
 }
 
 :root {
-  --body: 105rem;
-
   --background-0: #000000;
-  --background-1: #f7f9fb;
+  --background-1: #0f1720;
 
   --text-0: #ffffff;
   --text-1: #6b7280;

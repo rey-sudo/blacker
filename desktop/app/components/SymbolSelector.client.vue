@@ -8,7 +8,7 @@
     modal
     :draggable="false"
     header="Edit Profile"
-    :style="{ width: '50rem' }"
+    :style="{ width: '60rem' }"
   >
   </Dialog>
 </template>
