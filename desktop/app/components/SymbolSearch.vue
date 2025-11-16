@@ -12,7 +12,7 @@
         placeholder="Search"
         class="tray-input"
         aria-label="Buscar símbolos"
-        
+        fluid
       />
 
       <div class="tabs">
@@ -183,16 +183,6 @@ onMounted(() => searchInput.value?.focus());
   gap: 12px;
   padding: 16px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.3);
-}
-
-.tray-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: white;
-  font-size: 14px;
-  background: black;
 }
 
 .tabs {

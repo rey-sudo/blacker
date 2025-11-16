@@ -44,11 +44,11 @@ const TradingPreset = definePreset(Aura, {
         },
         background: {
             light: '#f9f9f9',
-            dark: '#121212'
+            dark: '#0f1720'
         },
         surface: {
             light: '#ffffff',
-            dark: '#1e1e1e'
+            dark: '#0f1720'
         },
         text: {
             light: '#000000',

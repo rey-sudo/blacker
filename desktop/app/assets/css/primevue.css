@@ -3,3 +3,7 @@
   --p-dialog-border-color: var(--border-0);
   --p-dialog-border-radius: var(--card-radius);
 }
+
+.p-inputtext{
+  font-size: var(--font-size-1) !important;
+}
