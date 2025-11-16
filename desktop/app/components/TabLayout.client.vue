@@ -27,7 +27,6 @@ function removeTab(id) {
   tabs.value = tabs.value.filter((t) => t.id !== id);
 }
 
-addTab("1", TabContent);
 
 onMounted(() => {});
 </script>

@@ -4,16 +4,15 @@
 
     <div class="header-body">
       <div v-for="n in tabsStore.count" :key="n">
-        <SymbolSelector :tabId="String(n)"/>
+        <SymbolSelector :tabId="String(n)" />
       </div>
-      <Button icon="pi pi-plus" size="small" v-ripple />
+      <addTabButton />
     </div>
   </div>
 </template>
 
 <script setup>
 const tabsStore = useTabsStore();
-
 </script>
 
 <style lang="css" scoped>
