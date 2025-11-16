@@ -4,6 +4,7 @@
     <main class="content">
       <NuxtPage :key="$route.fullPath" />
     </main>
+    <FooterComp />
   </div>
 </template>
 

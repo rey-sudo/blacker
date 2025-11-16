@@ -13,19 +13,18 @@
 </template>
 
 <script setup>
-
 const tabsStore = useTabsStore();
 </script>
 
 <style lang="css" scoped>
 .header {
   gap: 1rem;
-  height: 4rem;
+  height: 3rem;
   padding: 0 1rem;
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  border-bottom: 1px solid var(--border-0);
+  background: var(--background-1);
 }
 
 .header-body {
