@@ -1,22 +1,25 @@
 <template>
   <div class="header">
-    <img class="logo" src="../assets//icons/logo.svg" alt="" />
+    <img class="logo" src="../assets/icons/logo.svg" alt="" />
 
     <div class="header-body">
-      <SymbolSelector />
-      <Button icon="pi pi-plus" size="small" variant="outlined" v-ripple/>
+      <div v-for="n in tabsStore.count" :key="n">
+        <SymbolSelector :tabId="String(n)"/>
+      </div>
+      <Button icon="pi pi-plus" size="small" v-ripple />
     </div>
   </div>
 </template>
 
 <script setup>
+const tabsStore = useTabsStore();
 
 </script>
 
 <style lang="css" scoped>
 .header {
   gap: 1rem;
-  height: 3rem;
+  height: 4rem;
   padding: 0 1rem;
   display: flex;
   align-items: center;

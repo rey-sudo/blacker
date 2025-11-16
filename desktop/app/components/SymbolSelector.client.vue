@@ -1,6 +1,6 @@
 <template>
   <div class="symbol-selector">
-    <div @click="visible = true">BTCUSDT 4h</div>
+    <div @click="visible = true">{{ tabName }}</div>
     <i class="pi pi-times" />
   </div>
   <Dialog
@@ -10,13 +10,25 @@
     header="Edit Profile"
     :style="{ width: '50rem' }"
   >
-    </Dialog>
+  </Dialog>
 </template>
 
 <script setup>
 import { ref } from "vue";
 
+const props = defineProps({
+  tabId: {
+    type: String,
+    required: true,
+  },
+});
+
 const visible = ref(false);
+
+const useTabStore = createTabStore(props.tabId);
+const tabsStore = useTabStore();
+
+const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.timeframe}`);
 </script>
 
 <style lang="css" scoped>

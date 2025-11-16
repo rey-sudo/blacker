@@ -1,12 +1,18 @@
 <template>
   <div class="tab">
+    <PadComp />
+
     <div class="chart" ref="chartDiv">
       <CandleChart :tabId="tabId" :width="chartWidth" :height="chartHeight" />
     </div>
 
     <div class="indicators">
       <div class="indicator" ref="indicatorDiv">
-        <IndicatorSqueeze :tabId="tabId" :width="chartWidth / 2" :height="chartHeight / 2" />
+        <IndicatorSqueeze
+          :tabId="tabId"
+          :width="chartWidth / 2"
+          :height="chartHeight / 2"
+        />
       </div>
       <div class="indicator"></div>
       <div class="indicator"></div>
@@ -22,12 +28,11 @@ import { ref, onMounted, onBeforeUnmount } from "vue";
 const props = defineProps({
   tabId: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const useTabStore = createTabStore(props.tabId)
-const tabStore = useTabStore()
+const useTabStore = createTabStore(props.tabId);
 
 const chartDiv = ref(null);
 const chartWidth = ref(0);
@@ -52,7 +57,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="css" scoped>
-
 .tab {
   display: grid;
   grid-template-rows: 3fr 1fr;

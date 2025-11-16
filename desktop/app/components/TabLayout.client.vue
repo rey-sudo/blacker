@@ -1,7 +1,5 @@
 <template>
   <div class="tab-layout" ref="appGrid">
-    <PadComp />
-
     <div v-for="tab in tabs" :key="tab.id">
       <component :is="tab.component" :tabId="tab.id" />
     </div>
@@ -9,29 +7,33 @@
 </template>
 
 <script setup>
-import TabComp from "@/components/TabComp.vue";
+import TabContent from "~/components/TabContent.vue";
 import { ref, onMounted, onBeforeUnmount, markRaw } from "vue";
+
+const tabsStore = useTabsStore();
 
 const tabs = ref([]);
 
 function addTab(id, componentName) {
   tabs.value.push({
     id,
-    component: markRaw(TabComp),
+    component: markRaw(TabContent),
   });
+
+  tabsStore.increase();
 }
 
 function removeTab(id) {
   tabs.value = tabs.value.filter((t) => t.id !== id);
 }
 
-addTab("0", TabComp);
+if (import.meta.client) {
+  addTab("1", TabContent);
+}
+
 onMounted(() => {});
 </script>
 
 <style scoped>
-.tab-layout {
-  display: flex;
-  flex-direction: column;
-}
+
 </style>
