@@ -9,8 +9,8 @@
 
 const config = {
   capitalTotal: 9837,           // Capital total en USD
-  precioActual: 98615,           // Precio actual de ASSET
-  perdidaMaximaUSD: 70,          // Pérdida máxima aceptada en USD
+  precioActual: 95,           // Precio actual de ASSET
+  perdidaMaximaUSD: 100,          // Pérdida máxima aceptada en USD
   esPosicionLarga: true,         // true = LONG, false = SHORT
   porcentajeStopLoss: 0.5,       // % de distancia al stop loss
   
@@ -25,7 +25,7 @@ const config = {
   // - Si dice "0.01 = 1 XRPUSD" → 1 lote = 100 XRP (usa 100)
   //
   // Fórmula: Si "0.01 = X", entonces tamañoContrato = X / 0.01
-  tamañoContratoEnUnidades: 1    // Para DASH: 0.01 lotes = 10 DASH, entonces 1 lote = 1000 DASH
+  tamañoContratoEnUnidades: 100   // Para DASH: 0.01 lotes = 10 DASH, entonces 1 lote = 1000 DASH
 };
 
 // ═══════════════════════════════════════════
