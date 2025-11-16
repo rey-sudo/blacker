@@ -4,17 +4,13 @@
 
     <div class="header-body">
       <SymbolSelector />
-      <Button
-        icon="pi pi-plus"
-        size="small"
-        variant="outlined"
-      />
+      <Button icon="pi pi-plus" size="small" variant="outlined" v-ripple/>
     </div>
   </div>
 </template>
 
 <script setup>
-onMounted(() => { 
+onMounted(() => {
   document.body.classList.toggle("p-dark");
 });
 </script>
