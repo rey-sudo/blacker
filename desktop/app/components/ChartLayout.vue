@@ -1,14 +1,13 @@
 <template>
   <div class="app-grid" ref="appGrid">
+    <PadComp />
     <div class="chart" ref="chartDiv">
       <CandleChart :width="chartWidth" :height="chartHeight" />
     </div>
 
-    <PadComp />
-
     <div class="indicators">
       <div class="indicator" ref="indicatorDiv">
-        <IndicatorSqueeze :width="chartWidth / 2" :height="chartHeight / 2"/>
+        <IndicatorSqueeze :width="chartWidth / 2" :height="chartHeight / 2" />
       </div>
       <div class="indicator"></div>
       <div class="indicator"></div>
@@ -83,8 +82,9 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   justify-content: center;
   align-items: center;
-  min-height: 60vh;
+  min-height: 70vh;
   overflow: hidden;
+  border: 1px solid var(--border-0);
 }
 
 .indicators {
@@ -98,7 +98,7 @@ onBeforeUnmount(() => {
   border: 1px solid var(--border-0);
 }
 
-.footer{
+.footer {
   height: 300px;
 }
 </style>
