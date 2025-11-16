@@ -7,14 +7,14 @@
     </div>
 
     <div class="indicators">
-      <div class="indicator" ref="indicatorDiv">
+      <div class="indicator" ref="indicatorDiv"></div>
+      <div class="indicator">
         <IndicatorSqueeze
           :tabId="tabId"
           :width="chartWidth / 2"
           :height="chartHeight / 2"
         />
       </div>
-      <div class="indicator"></div>
       <div class="indicator"></div>
       <div class="indicator"></div>
     </div>
