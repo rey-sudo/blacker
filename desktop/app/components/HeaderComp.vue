@@ -10,9 +10,7 @@
 </template>
 
 <script setup>
-onMounted(() => {
-  document.body.classList.toggle("p-dark");
-});
+
 </script>
 
 <style lang="css" scoped>

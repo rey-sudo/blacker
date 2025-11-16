@@ -1,11 +1,23 @@
 <template>
   <div class="symbol-selector">
-    <div>BTCUSDT 4h</div>
+    <div @click="visible = true">BTCUSDT 4h</div>
     <i class="pi pi-times" />
   </div>
+  <Dialog
+    v-model:visible="visible"
+    modal
+    :draggable="false"
+    header="Edit Profile"
+    :style="{ width: '50rem' }"
+  >
+    </Dialog>
 </template>
 
-<script setup></script>
+<script setup>
+import { ref } from "vue";
+
+const visible = ref(false);
+</script>
 
 <style lang="css" scoped>
 .symbol-selector {

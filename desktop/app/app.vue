@@ -7,6 +7,10 @@
 
 <script setup>
 
+onMounted(() => {
+  document.body.classList.toggle("p-dark");
+});
+
 const appConfig = useAppConfig()
 
 useHead({
