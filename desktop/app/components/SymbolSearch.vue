@@ -68,7 +68,7 @@
       </ul>
     </div>
 
-    <div class="tray-footer">Select one</div>
+
   </div>
 </template>
 
@@ -171,7 +171,6 @@ onMounted(() => searchInput.value?.focus());
 .tray-container {
   width: 100%;
   height: 500px;
-  background: #0f1720;
   border-radius: 12px;
   overflow: hidden;
   display: flex;
@@ -322,10 +321,4 @@ onMounted(() => searchInput.value?.focus());
   color: #aaa;
 }
 
-.tray-footer {
-  padding: 12px;
-  font-size: 12px;
-  color: #666;
-  text-align: center;
-}
 </style>
