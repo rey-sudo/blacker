@@ -4,7 +4,7 @@
 
     <div class="header-body">
       <SymbolSelector />
-      <Button icon="pi pi-plus" size="small" variant="icon" />
+      <Button icon="pi pi-plus" size="small" variant="outlined" style="border: 1px solid var(--border-0)"/>
     </div>
   </div>
 </template>
