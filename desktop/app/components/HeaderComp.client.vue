@@ -3,8 +3,8 @@
     <img class="logo" src="../assets/icons/logo.svg" alt="" />
 
     <div class="header-body">
-      <div v-for="n in tabsStore.count" :key="n">
-        <SymbolSelector :tabId="String(n)" />
+      <div v-for="tab in tabsStore.tabs" :key="tab">
+        <SymbolSelector :tabId="String(tab.id)" />
       </div>
 
       <addTab />
