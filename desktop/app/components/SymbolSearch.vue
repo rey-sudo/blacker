@@ -1,17 +1,18 @@
 <template>
   <div class="tray-container">
-    <!-- Header -->
+  
     <div class="tray-header">
-      <input
+
+      <InputText
+        type="text"
         v-model="query"
         @keydown.down.prevent="focusNext"
         @keydown.up.prevent="focusPrev"
         @keydown.enter.prevent="selectFocused"
-        type="search"
         placeholder="Search"
         class="tray-input"
         aria-label="Buscar símbolos"
-        ref="searchInput"
+        
       />
 
       <div class="tabs">
@@ -78,6 +79,8 @@ const props = defineProps({
   modelValue: String,
   items: Array,
 });
+
+const value = ref(null);
 
 const emit = defineEmits(["update:modelValue", "select", "close"]);
 
@@ -173,7 +176,6 @@ onMounted(() => searchInput.value?.focus());
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(0, 0, 0, 0.4);
 }
 
 .tray-header {
@@ -213,7 +215,6 @@ onMounted(() => searchInput.value?.focus());
   background: rgba(255, 255, 255, 0.06);
   color: white;
 }
-
 
 .tray-body {
   max-height: 56vh;

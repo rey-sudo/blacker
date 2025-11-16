@@ -1,21 +1,20 @@
-
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 
 const TradingPreset = definePreset(Aura, {
     semantic: {
         primary: {
-            50: '{indigo.50}',
-            100: '{indigo.100}',
-            200: '{indigo.200}',
-            300: '{indigo.300}',
-            400: '{indigo.400}',
-            500: '{indigo.500}',
-            600: '{indigo.600}',
-            700: '{indigo.700}',
-            800: '{indigo.800}',
-            900: '{indigo.900}',
-            950: '{indigo.950}'
+            50: '#f0f9ff',
+            100: '#e0f2fe',
+            200: '#bae6fd',
+            300: '#7dd3fc',
+            400: '#38bdf8', 
+            500: '#0ea5e9',
+            600: '#0284c7',
+            700: '#0369a1',
+            800: '#075985',
+            900: '#0c4a6e',
+            950: '#082f49'
         },
         success: {
             50: '#e6f9f0',
@@ -23,7 +22,7 @@ const TradingPreset = definePreset(Aura, {
             200: '#99e6c1',
             300: '#70dba9',
             400: '#4dd192',
-            500: '#29c67b', 
+            500: '#29c67b',
             600: '#23b76f',
             700: '#1da962',
             800: '#179c55',
@@ -36,7 +35,7 @@ const TradingPreset = definePreset(Aura, {
             200: '#ff9999',
             300: '#ff7373',
             400: '#ff4d4d',
-            500: '#ff2626', 
+            500: '#ff2626',
             600: '#e61f1f',
             700: '#cc1818',
             800: '#b31212',
@@ -45,7 +44,7 @@ const TradingPreset = definePreset(Aura, {
         },
         background: {
             light: '#f9f9f9',
-            dark: '#121212'  
+            dark: '#121212'
         },
         surface: {
             light: '#ffffff',
@@ -61,7 +60,7 @@ const TradingPreset = definePreset(Aura, {
 export default {
     preset: TradingPreset,
     options: {
-        darkModeSelector: '.p-dark', 
-        defaultMode: 'light'         
+        darkModeSelector: '.p-dark',
+        defaultMode: 'light'
     }
 };

@@ -1,15 +1,15 @@
 <template>
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout>
+  <Html class="p-dark">
+    <Body>
+      <NuxtLayout>
+        <NuxtPage />
+      </NuxtLayout>
+    </Body>
+  </Html>
 </template>
 
 
 <script setup>
-
-onMounted(() => {
-  document.body.classList.toggle("p-dark");
-});
 
 const appConfig = useAppConfig()
 

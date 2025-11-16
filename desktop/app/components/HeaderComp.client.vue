@@ -6,13 +6,14 @@
       <div v-for="n in tabsStore.count" :key="n">
         <SymbolSelector :tabId="String(n)" />
       </div>
-      
+
       <addTab />
     </div>
   </div>
 </template>
 
 <script setup>
+
 const tabsStore = useTabsStore();
 </script>
 
