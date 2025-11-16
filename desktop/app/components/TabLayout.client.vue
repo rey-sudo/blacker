@@ -27,13 +27,9 @@ function removeTab(id) {
   tabs.value = tabs.value.filter((t) => t.id !== id);
 }
 
-if (import.meta.client) {
-  addTab("1", TabContent);
-}
+addTab("1", TabContent);
 
 onMounted(() => {});
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
