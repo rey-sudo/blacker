@@ -47,7 +47,7 @@ onBeforeUnmount(() => {
 .app-grid {
   display: grid;
   grid-template-rows: 3fr 1fr;
-  padding: 1rem;
+  padding: 0.5rem;
   background: black;
   box-sizing: border-box;
   gap: 0.5rem;
