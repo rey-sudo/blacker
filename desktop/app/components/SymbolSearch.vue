@@ -244,7 +244,7 @@ onMounted(() => searchInput.value?.focus());
 }
 
 .list-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .list-item.focused {
@@ -288,7 +288,7 @@ onMounted(() => searchInput.value?.focus());
 .symbol {
   font-weight: bold;
   font-size: 14px;
-  color: #38bdf8;
+  color: var(--primary-0);
 }
 
 .desc {

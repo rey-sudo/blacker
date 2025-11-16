@@ -45,8 +45,8 @@ html, body {
   --border-0: rgba(255, 255, 255, 0.2);
   --border-1: rgba(255, 255, 255, 0.3);
 
-  --primary-0: rgb(0, 82, 255);
-  --primary-0-base: 251, 91, 40;
+  --primary-0: #38BDF8;
+  --primary-0-base: 56, 189, 248;
 
   --radius-0: 4px;
   --radius-1: 8px;
