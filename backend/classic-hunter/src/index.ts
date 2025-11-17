@@ -63,7 +63,7 @@ export class HunterBot {
       show_plots: SHOW_PLOTS
     }
 
-    this.client = twelvedata({ key: "39394ff16ece4c249d9952042a465936" });
+    this.client = twelvedata({ key: "<>" });
 
     startHttpServer(this);
   }
