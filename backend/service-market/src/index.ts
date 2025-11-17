@@ -2,8 +2,8 @@ import * as route from "./routes/index.js";
 import compression from "compression";
 import { database } from "./database/index.js";
 import { Request, Response } from "express";
-import { app } from "./app.js";
 import { ApiError, ERROR_EVENTS, errorHandler } from "./common/errors.js";
+import { app } from "./app.js";
 
 const main = async () => {
   try {
@@ -48,7 +48,7 @@ const main = async () => {
       route.loginUserHandler
     );
 
-    app.get("/api/user/ping", (req: Request, res: Response) => {
+    app.get("/api/market/ping", (req: Request, res: Response) => {
       res.status(200).json({ success: true, data: { message: "Test OK" } });
     });
 

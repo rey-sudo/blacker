@@ -1,6 +1,6 @@
 <template>
   <div class="pad">
-    <Button label="Buy" severity="success" />
+    <Button label="Buy"  />
     <Button label="Sell" severity="danger" />
   </div>
 </template>
