@@ -36,8 +36,8 @@ html, body {
 }
 
 :root {
-  --background-0: #000000;
-  --background-1: #0f1720;
+  --background-0: #0b0d14;
+  --background-1: #1c1f28;
 
   --text-0: #ffffff;
   --text-1: #6b7280;
@@ -45,7 +45,7 @@ html, body {
   --border-0: rgba(255, 255, 255, 0.2);
   --border-1: rgba(255, 255, 255, 0.3);
 
-  --primary-0: #38BDF8;
+  --primary-0: #00e0ff;
   --primary-0-base: 56, 189, 248;
 
   --radius-0: 4px;
