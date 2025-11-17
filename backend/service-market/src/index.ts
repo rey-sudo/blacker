@@ -1,9 +1,12 @@
 import * as route from "./routes/index.js";
 import compression from "compression";
+import dotenv from "dotenv";
 import { database } from "./database/index.js";
 import { Request, Response } from "express";
 import { ApiError, ERROR_EVENTS, errorHandler } from "./common/errors.js";
 import { app } from "./app.js";
+
+dotenv.config({ path: ".env.development" });
 
 const main = async () => {
   try {
@@ -64,7 +67,7 @@ const main = async () => {
 
     app.use(compression());
 
-    app.listen(8001, () => console.log(`express server listening in 8005`));
+    app.listen(8001, () => console.log(`express server listening in 8001`));
   } catch (err) {
     console.error(err);
     process.exit(1);

@@ -1,0 +1,15 @@
+[
+  {
+    "v": 10,
+    "name": "ENV",
+    "folders": [],
+    "requests": [],
+    "auth": {
+      "authType": "inherit",
+      "authActive": true
+    },
+    "headers": [],
+    "variables": [],
+    "_ref_id": "coll_mi3cnigd_ce295fd4-8262-43bb-b7c2-3d9f9c3559ea"
+  }
+]
