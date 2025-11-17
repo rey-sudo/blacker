@@ -4,6 +4,7 @@ __pycache__
 *.pyo
 /output
 .env
+.env.production
 *.deb
 .sha256
 kubectl
