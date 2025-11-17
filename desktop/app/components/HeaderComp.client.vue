@@ -25,6 +25,7 @@ const tabsStore = useTabsStore();
   align-items: center;
   box-sizing: border-box;
   background: var(--background-1);
+  border-bottom: 1px solid var(--border-0);
 }
 
 .header-body {
