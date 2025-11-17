@@ -22,19 +22,19 @@ const client = new Client({
 async function createDatabase() {
   try {
     await client.connect();
-    console.log('Conectado a PostgreSQL');
+    console.log('Connected to PostgreSQL');
 
     const result = await client.query(`CREATE DATABASE ${DATABASE_NAME}`);
-    console.log(`Base de datos "${DATABASE_NAME}" creada exitosamente`);
+    console.log(`Database "${DATABASE_NAME}" created successfully`);
   } catch (error: any) {
     if (error.code === '42P04') { 
-      console.log(`La base de datos "${DATABASE_NAME}" ya existe`);
+      console.log(`The database "${DATABASE_NAME}" already exists`);
     } else {
-      console.error('Error creando la base de datos:', error.message);
+      console.error('Error creating the database:', error.message);
     }
   } finally {
     await client.end();
-    console.log('Conexión cerrada');
+    console.log('Connection closed');
   }
 }
 
