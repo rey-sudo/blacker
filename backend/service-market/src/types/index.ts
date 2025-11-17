@@ -6,3 +6,5 @@ export interface Candle {
   close: number | null;
   volume: number | null;
 }
+
+export type Source = "yahoo" | "binance";

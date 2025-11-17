@@ -7,7 +7,7 @@ import { Candle } from "../../types/index.js";
  * @param {string} interval - Ej: "1m", "2m", "5m", "15m", "1d"
  * @param {string} range - Ej: "1d", "5d", "1mo", "3mo", "1y", "max"
  */
-export async function fetchCandlesY2FINANCE(
+export async function fetchCandlesYahoo(
   symbol: string,
   interval = "1m",
   range = "1d"
