@@ -51,7 +51,7 @@ onMounted(async () => {
       return;
     }
 
-    const data = generateSeries(100, 500);
+    const data = fakeCandles;
 
     candleChart = createChart(chartContainer.value, {
       layout: {

@@ -44,11 +44,19 @@ const main = async () => {
     });
 
     app.post(
-      "/api/user/login-user",
+      "/api/market/login-user",
 
       ...route.loginUserMiddlewares,
 
       route.loginUserHandler
+    );
+
+    app.get(
+      "/api/market/get-candles",
+
+      ...route.getCandlesMiddlewares,
+
+      route.getCandlesHandler
     );
 
     app.get("/api/market/ping", (req: Request, res: Response) => {
