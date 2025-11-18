@@ -39,12 +39,11 @@ const props = defineProps({
 const useTabStore = createTabStore(props.tabId);
 const tabStore = useTabStore();
 
-let nowInterval = null;
-
+let countdownInterval = null;
 const timestamp = ref(Date.now());
 
 const nextClose = computed(() =>
-  countdown(tabStore.nextClose, timestamp.value)
+  calculateCountdown(tabStore.nextClose, timestamp.value)
 );
 
 const chartContainer = ref(null);
@@ -167,6 +166,12 @@ const applyOptions = () => {
   }
 };
 
+const startCountdown = () => {
+  countdownInterval = setInterval(() => {
+    timestamp.value = Date.now();
+  }, 1_000);
+};
+
 onMounted(async () => {
   try {
     await nextTick();
@@ -177,10 +182,7 @@ onMounted(async () => {
     }
 
     setupChart();
-
-    nowInterval = setInterval(() => {
-      timestamp.value = Date.now();
-    }, 1_000);
+    startCountdown();
   } catch (error) {
     console.error("Error al inicializar los gráficos:", error);
   }
@@ -193,10 +195,10 @@ onBeforeUnmount(() => {
     candleChart.remove();
   }
 
-  clearInterval(nowInterval);
+  clearInterval(countdownInterval);
 });
 
-function countdown(nextClose, nowValue) {
+function calculateCountdown(nextClose, nowValue) {
   let diff = nextClose - nowValue;
 
   if (diff <= 0) return "00d 00h 00m 00s";
