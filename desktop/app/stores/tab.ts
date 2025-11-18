@@ -8,6 +8,7 @@ export const createTabStore = (tabId: string) =>
     const exchange = ref("binance");
 
     const candles = ref([]);
+    const candle = ref(null);
 
     const fetching = ref(false);
     const fetchError = ref(null);
@@ -19,7 +20,7 @@ export const createTabStore = (tabId: string) =>
 
     async function start() {
       await fetchCandles();
-      fetchInterval.value = setInterval(() => fetchCandles(), 60_000);
+      fetchInterval.value = setInterval(() => fetchCandle(), 10_000);
     }
 
     function stop() {
@@ -38,8 +39,6 @@ export const createTabStore = (tabId: string) =>
 
     async function fetchCandles() {
       try {
-        fetching.value = true;
-        console.log("111111111111");
         const res: any = await $fetch("/api/market/get-candles", {
           method: "GET",
           params: {
@@ -49,12 +48,38 @@ export const createTabStore = (tabId: string) =>
             exchange: exchange.value,
           },
         });
-        console.log("22222222222222");
+
         candles.value = res.data;
 
         return res.data;
       } catch (err: any) {
         console.error("Error en fetchCandles:", err);
+        fetchError.value = err?.message || "Error desconocido";
+      }
+    }
+
+    async function fetchCandle() {
+      try {
+        fetching.value = true;
+
+        console.log("111111111111");
+
+        const res: any = await $fetch("/api/market/get-candle", {
+          method: "GET",
+          params: {
+            symbol: symbol.value,
+            source: source.value,
+            interval: interval.value,
+            exchange: exchange.value,
+          },
+        });
+
+        console.log("22222222222222");
+        candle.value = res.data;
+
+        return res.data;
+      } catch (err: any) {
+        console.error("Error en fetchCandle:", err);
         fetchError.value = err?.message || "Error desconocido";
         fetching.value = false;
       }
@@ -72,6 +97,7 @@ export const createTabStore = (tabId: string) =>
       reset,
       start,
       stop,
+      candle,
     };
   });
 

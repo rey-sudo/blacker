@@ -59,6 +59,14 @@ const main = async () => {
       route.getCandlesHandler
     );
 
+    app.get(
+      "/api/market/get-candle",
+
+      ...route.getCandleMiddlewares,
+
+      route.getCandleHandler
+    );
+
     app.get("/api/market/ping", (req: Request, res: Response) => {
       res.status(200).json({ success: true, data: { message: "Test OK" } });
     });

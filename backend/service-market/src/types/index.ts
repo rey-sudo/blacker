@@ -1,10 +1,10 @@
 export interface Candle {
   time: number; 
-  open: number | null;
-  high: number | null;
-  low: number | null;
-  close: number | null;
-  volume: number | null;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
 }
 
 export type Source = "yahoo" | "binance";

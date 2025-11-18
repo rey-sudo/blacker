@@ -126,6 +126,15 @@ const setupChart = () => {
     { deep: true }
   );
 
+  watch(
+    () => tabStore.candle,
+    (candle) => {
+      console.log(candle)
+      candleSeries.update(candle);
+    },
+    { deep: true }
+  );
+
   //watchLastcandle
   //calculateMa(data);
   // addMarkers(data)

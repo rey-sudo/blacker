@@ -74,3 +74,63 @@ export async function fetchCandlesYahoo(
     throw err;
   }
 }
+
+export function createLiveCandle(
+  candles1m: Candle[],
+  timeframe: string
+): Candle | null {
+  const TIMEFRAME_MAP: Record<string, number> = {
+    "1m": 1,
+    "2m": 2,
+    "5m": 5,
+    "15m": 15,
+    "30m": 30,
+    "1h": 60,
+    "2h": 120,
+    "4h": 240,
+    "1d": 1440,
+  };
+
+  if (!Array.isArray(candles1m) || candles1m.length === 0) return null;
+
+  const tfMinutes = TIMEFRAME_MAP[timeframe];
+  if (!tfMinutes) throw new Error(`Temporalidad no soportada: ${timeframe}`);
+
+  const last = candles1m[candles1m.length - 1];
+  if (!last || typeof last.time !== "number") return null;
+
+  const blockSizeSec = tfMinutes * 60;
+  const blockStart = last.time - (last.time % blockSizeSec);
+  const blockEnd = blockStart + blockSizeSec;
+
+  // Filtrar velas dentro del bloque
+  const blockCandles = candles1m.filter(
+    (c) => c.time >= blockStart && c.time < blockEnd
+  );
+  if (blockCandles.length === 0) return null;
+
+  // Reconstrucción OHLCV
+  let open = blockCandles[0].open;
+  let close = blockCandles[blockCandles.length - 1].close;
+  let high = -Infinity;
+  let low = Infinity;
+  let volume = 0;
+
+  for (const c of blockCandles) {
+    if (c.high > high) high = c.high;
+    if (c.low < low) low = c.low;
+    volume += c.volume ?? 0;
+  }
+
+  // Convertir a objeto plano para evitar Proxy
+  const liveCandle: Candle = {
+    time: Number(blockStart),
+    open: Number(open),
+    high: Number(high),
+    low: Number(low),
+    close: Number(close),
+    volume: Number(volume),
+  };
+
+  return liveCandle;
+}
