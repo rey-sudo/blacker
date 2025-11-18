@@ -159,8 +159,6 @@ onMounted(async () => {
 
           const allCandles = [...tabStore.candles.slice(0, -1), candle];
 
-          console.log(allCandles);
-
           const rsiData = calculateRSI(allCandles, 14);
           rsiSeries.setData(rsiData);
 
