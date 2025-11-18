@@ -63,8 +63,8 @@ const setupChart = () => {
       handleScale: false,
       fixRightEdge: false,
       lockVisibleTimeRangeOnResize: true,
-      barSpacing: 20,
-      rightOffset: 30,
+      barSpacing: 50,
+      rightOffset: 50,
     },
     grid: {
       vertLines: { color: "transparent" },

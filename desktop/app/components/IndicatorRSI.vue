@@ -150,16 +150,19 @@ onMounted(async () => {
     const smaSeries = indicator.addSeries(LineSeries, {
       color: "yellow",
       lineWidth: 2,
+      priceLineVisible: false
     });
     
     const line70 = indicator.addSeries(LineSeries, {
       color: "red",
       lineWidth: 1,
+      priceLineVisible: false
     });
     
     const line30 = indicator.addSeries(LineSeries, {
       color: "green",
       lineWidth: 1,
+      priceLineVisible: false
     });
 
     watch(
