@@ -136,9 +136,21 @@ const setupChart = () => {
   watch(
     () => tabStore.candles,
     (candles) => {
-      candleSeries.setData(candles);
-      calculateMa(candles);
-      addMarkers(candles);
+      const data = [...candles];
+
+      const lastIndex = data.length - 1;
+      const penultima = lastIndex - 1;
+
+      data[penultima] = {
+        ...data[penultima],
+        color: "yellow",
+        borderColor: "yellow",
+        wickColor: "yellow",
+      };
+
+      candleSeries.setData(data);
+      calculateMa(data);
+      addMarkers(data);
     },
     { deep: true }
   );
