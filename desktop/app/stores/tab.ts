@@ -7,7 +7,7 @@ export const createTabStore = (tabId: string) =>
     const interval = ref("15m");
     const exchange = ref("binance");
 
-    const candles = ref([]);
+    const candles: any = ref([]);
     const candle = ref(null);
 
     const fetching = ref(false);

@@ -122,6 +122,7 @@ const setupChart = () => {
     () => tabStore.candles,
     (data) => {
       candleSeries.setData(data);
+       calculateMa(tabStore.candles);
     },
     { deep: true }
   );
@@ -130,13 +131,12 @@ const setupChart = () => {
     () => tabStore.candle,
     (candle) => {
       candleSeries.update(candle);
+      calculateMa([...tabStore.candles, candle]);
+      candleSeries.setMarkers([]);
+      addMarkers([...tabStore.candles, candle]);
     },
     { deep: true }
   );
-
-  //watchLastcandle
-  //calculateMa(data);
-  // addMarkers(data)
 
   candleChart.timeScale().fitContent();
 };
