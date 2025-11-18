@@ -133,10 +133,10 @@ const setupChart = () => {
     const marker = [
       {
         time: data[data.length - 1].time || 0,
-        position: "aboveBar",
-        color: "white",
+        position: "belowBar",
+        color: "lime",
         shape: "arrowUp",
-        text: "BUY",
+        text: "BUY LONG",
       },
     ];
 
