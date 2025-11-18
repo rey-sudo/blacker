@@ -61,9 +61,10 @@ const setupChart = () => {
       visible: true,
       handleScroll: false,
       handleScale: false,
+      fixLeftEdge: false,
       fixRightEdge: false,
       lockVisibleTimeRangeOnResize: true,
-      barSpacing: 50,
+      barSpacing: 20,
       rightOffset: 50,
     },
     grid: {
