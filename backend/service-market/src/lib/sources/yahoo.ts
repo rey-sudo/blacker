@@ -1,106 +1,74 @@
 import API from "../../axios/index.js";
 import { Candle } from "../../types/index.js";
 
-export interface YahooCandlesResult {
-  meta: any;
-  candles: Candle[];
-}
-
 /**
- * Obtiene velas de Yahoo Finance.
- * Filtra velas inválidas (null o no finitas).
- * Fabrica la última vela usando 1m solo si la última vela está completa.
+ * Yahoo Finance Data.
+ * @param {string} symbol - Ej: "AAPL", "BTC-USD", "EURUSD=X"
+ * @param {string} interval - Ej: "1m", "2m", "5m", "15m", "1d"
+ * @param {string} range - Ej: "1d", "5d", "1mo", "3mo", "1y", "max"
  */
 export async function fetchCandlesYahoo(
   symbol: string,
-  interval: string = "15m",
-  range: string = "7d"
-): Promise<YahooCandlesResult> {
+  interval = "1m",
+  range = "7d"
+) {
   try {
-    // Función interna para obtener y parsear velas
-    const fetchData = async (intv: string, rng: string): Promise<YahooCandlesResult> => {
-      const { data } = await API.get(`/v8/finance/chart/${symbol}`, {
-        baseURL: "https://query1.finance.yahoo.com",
-        params: { interval: intv, range: rng },
-      });
+    const url = `/v8/finance/chart/${symbol}`;
 
-      const result = data?.chart?.result?.[0];
-      const error = data?.chart?.error;
+    const { data } = await API.get(url, {
+      baseURL: "https://query1.finance.yahoo.com",
+      params: { interval, range },
+    });
 
-      if (error) throw new Error(`Yahoo Finance API error: ${error.description}`);
-      if (!result) throw new Error(`Invalid response format from Yahoo Finance`);
+    const result = data?.chart?.result?.[0];
+    const error = data?.chart?.error;
 
-      const timestamps: number[] = result.timestamp || [];
-      const indicators = result.indicators?.quote?.[0] || {};
-
-      const len = Math.min(
-        timestamps.length,
-        indicators.open?.length ?? 0,
-        indicators.high?.length ?? 0,
-        indicators.low?.length ?? 0,
-        indicators.close?.length ?? 0
-      );
-
-      const candles: Candle[] = [];
-      for (let i = 0; i < len; i++) {
-        const open = indicators.open[i] ?? null;
-        const high = indicators.high[i] ?? null;
-        const low = indicators.low[i] ?? null;
-        const close = indicators.close[i] ?? null;
-        const volume = indicators.volume?.[i] ?? 0;
-
-        // Filtrar velas incompletas o no finitas
-        if (
-          open == null || high == null || low == null || close == null ||
-          !isFinite(open) || !isFinite(high) || !isFinite(low) || !isFinite(close)
-        ) {
-          continue;
-        }
-
-        candles.push({ time: timestamps[i], open, high, low, close, volume });
-      }
-
-      return { meta: result.meta, candles };
-    };
-
-    // 1. Obtener velas del intervalo solicitado
-    const { meta, candles } = await fetchData(interval, range);
-
-    // 2. Fabricar última vela solo si interval en minutos y última vela completa
-    if (interval.endsWith("m") && candles.length > 0) {
-      const lastCandle = candles[candles.length - 1];
-
-      if (
-        lastCandle.open !== null &&
-        lastCandle.high !== null &&
-        lastCandle.low !== null &&
-        lastCandle.close !== null
-      ) {
-        const intervalMinutes = parseInt(interval.replace("m", ""));
-        const lastIntervalStart = lastCandle.time - intervalMinutes * 60;
-
-        // Obtener velas de 1m
-        const { candles: oneMinCandlesAll } = await fetchData("1m", "1d");
-        const oneMinCandles = oneMinCandlesAll.filter(
-          (c) => c.time >= lastIntervalStart
-        );
-
-        if (oneMinCandles.length > 0) {
-          const fabricatedCandle: Candle = {
-            time: lastCandle.time,
-            open: oneMinCandles[0].open,
-            high: Math.max(...oneMinCandles.map((c) => c.high!)),
-            low: Math.min(...oneMinCandles.map((c) => c.low!)),
-            close: oneMinCandles[oneMinCandles.length - 1].close,
-            volume: oneMinCandles.reduce((sum, c) => sum + (c.volume ?? 0), 0),
-          };
-
-          candles[candles.length - 1] = fabricatedCandle;
-        }
-      }
+    if (error) {
+      throw new Error(`Yahoo Finance API error: ${error.description}`);
     }
 
-    return { meta, candles };
+    if (!result) {
+      throw new Error(`Invalid response format from Yahoo Finance`);
+    }
+
+    const timestamps = result.timestamp || [];
+    const indicators = result.indicators?.quote?.[0] || {};
+
+    const candles = timestamps
+      .map((t: number, i: number) => {
+        const open = indicators.open?.[i];
+        const high = indicators.high?.[i];
+        const low = indicators.low?.[i];
+        const close = indicators.close?.[i];
+
+        if (
+          open == null ||
+          high == null ||
+          low == null ||
+          close == null ||
+          !isFinite(open) ||
+          !isFinite(high) ||
+          !isFinite(low) ||
+          !isFinite(close)
+        ) {
+          return null;
+        }
+
+        return {
+          time: t,
+          open,
+          high,
+          low,
+          close,
+          volume: indicators.volume?.[i] ?? 0,
+        } as Candle;
+      })
+      .filter((c: any): c is Candle => c !== null);
+
+    return {
+      meta: result.meta,
+      candles,
+    };
   } catch (err: any) {
     console.error("❌ fetchYahooChart error:", err.message);
     throw err;

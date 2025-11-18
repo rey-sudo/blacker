@@ -28,7 +28,7 @@ const visible = ref(false);
 const useTabStore = createTabStore(props.tabId);
 const tabsStore = useTabStore();
 
-const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.timeframe}`);
+const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
 </script>
 
 <style lang="css" scoped>

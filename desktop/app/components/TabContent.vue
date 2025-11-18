@@ -33,6 +33,7 @@ const props = defineProps({
 });
 
 const useTabStore = createTabStore(props.tabId);
+const tabStore = useTabStore();
 
 const chartDiv = ref(null);
 const chartWidth = ref(0);
@@ -40,20 +41,8 @@ const chartHeight = ref(0);
 
 let chartObserver;
 
-const data = ref(null);
-const loading = ref(true);
-const error = ref(null);
-
-const symbol = "BTC-USD";
-const source = "yahoo";
-const interval = "15m";
-
-const store = useMarketStore();
-
 onMounted(async () => {
-
-  const candles = await store.fetchCandles("BTC-USD", "yahoo", "15m", "none")
-  console.log(candles);
+  await tabStore.start();
 
   chartObserver = new ResizeObserver(() => {
     if (chartDiv.value) {

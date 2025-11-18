@@ -35,8 +35,8 @@ const props = defineProps({
   },
 });
 
-const useTabStore = createTabStore(props.tabId)
-const tabStore = useTabStore()
+const useTabStore = createTabStore(props.tabId);
+const tabStore = useTabStore();
 
 const chartContainer = ref(null);
 
@@ -50,8 +50,6 @@ onMounted(async () => {
       console.error("Los contenedores no están disponibles");
       return;
     }
-
-    const data = fakeCandles;
 
     candleChart = createChart(chartContainer.value, {
       layout: {
@@ -111,28 +109,37 @@ onMounted(async () => {
       borderVisible: true,
     });
 
-    candleSeries.setData(data);
-
-    const maData = calculateMovingAverageSeriesData(data, 55);
-
-    const maSeries = candleChart.addSeries(LineSeries, {
-      color: colors.red,
-      lineWidth: 2,
-    });
-
-    maSeries.setData(maData);
-
-    const markers = [
-      {
-        time: data[data.length - (1 + 50)].time || 0,
-        position: "aboveBar",
-        color: "green",
-        shape: "arrowUp",
-        text: "BUY",
+    watch(
+      () => tabStore.candles,
+      (data) => {
+        console.log(data);
+        candleSeries.setData(data);
       },
-    ];
+      { deep: true }
+    );
 
-    createSeriesMarkers(candleSeries, markers);
+    /** 
+        const maData = calculateMovingAverageSeriesData(data, 55);
+
+        const maSeries = candleChart.addSeries(LineSeries, {
+          color: colors.red,
+          lineWidth: 2,
+        });
+
+        maSeries.setData(maData);
+
+        const markers = [
+          {
+            time: data[data.length - (1 + 50)].time || 0,
+            position: "aboveBar",
+            color: "green",
+            shape: "arrowUp",
+            text: "BUY",
+          },
+        ];
+
+        createSeriesMarkers(candleSeries, markers);
+        */
 
     candleChart.timeScale().fitContent();
   } catch (error) {
