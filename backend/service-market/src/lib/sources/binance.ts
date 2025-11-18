@@ -43,7 +43,7 @@ export async function fetchCandlesBinance(
         if (![o, h, l, c].every((n) => isFinite(n))) return null;
 
         return {
-          time,
+          time: Math.floor(time / 1000),
           open: o,
           high: h,
           low: l,
@@ -75,7 +75,7 @@ export async function getLiveCandleBinance(
   interval: string
 ) {
   try {
-    // 1️⃣ Obtener la última vela cerrada
+
     const { data: klines } = await API.get("/api/v3/klines", {
       baseURL: "https://api.binance.com",
       params: { symbol, interval, limit: 1 },
@@ -94,7 +94,6 @@ export async function getLiveCandleBinance(
     close = parseFloat(close);
     volume = parseFloat(volume);
 
-    // 2️⃣ Obtener el precio en tiempo real
     const { data: ticker } = await API.get("/api/v3/ticker/price", {
       baseURL: "https://api.binance.com",
       params: { symbol },
@@ -102,14 +101,13 @@ export async function getLiveCandleBinance(
 
     const lastPrice = parseFloat(ticker.price);
 
-    // 3️⃣ Actualizar la vela en formación
     const currentCandle: Candle = {
-      time: openTime,
+      time: Math.floor(openTime / 1000),
       open,
       high: Math.max(high, lastPrice),
       low: Math.min(low, lastPrice),
       close: lastPrice,
-      volume, // opcionalmente podrías sumarle volumen de trades recientes usando /api/v3/trades
+      volume,
     };
 
     return currentCandle;

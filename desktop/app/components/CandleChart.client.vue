@@ -40,7 +40,7 @@ const useTabStore = createTabStore(props.tabId);
 const tabStore = useTabStore();
 
 let countdownInterval = null;
-const timestamp = ref(Date.now());
+const timestamp = ref(getNow());
 
 const nextClose = computed(() =>
   calculateCountdown(tabStore.nextClose, timestamp.value)
@@ -101,13 +101,13 @@ const setupChart = () => {
     borderVisible: true,
   });
 
+  const maSeries = candleChart.addSeries(LineSeries, {
+    color: colors.red,
+    lineWidth: 2,
+  });
+
   const calculateMa = (data) => {
     const maData = calculateEMAseries(data, 55);
-
-    const maSeries = candleChart.addSeries(LineSeries, {
-      color: colors.red,
-      lineWidth: 2,
-    });
 
     maSeries.setData(maData);
   };
@@ -168,7 +168,7 @@ const applyOptions = () => {
 
 const startCountdown = () => {
   countdownInterval = setInterval(() => {
-    timestamp.value = Date.now();
+    timestamp.value = getNow();
   }, 1_000);
 };
 
@@ -203,10 +203,10 @@ function calculateCountdown(nextClose, nowValue) {
 
   if (diff <= 0) return "00d 00h 00m 00s";
 
-  const seconds = Math.floor(diff / 1000) % 60;
-  const minutes = Math.floor(diff / (1000 * 60)) % 60;
-  const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const seconds = diff % 60;
+  const minutes = Math.floor(diff / 60) % 60;
+  const hours = Math.floor(diff / 3600) % 24;
+  const days = Math.floor(diff / 86400);
 
   const pad = (n) => n.toString().padStart(2, "0");
 

@@ -13,7 +13,7 @@ export const createTabStore = (tabId: string) =>
     const fetching = ref(false);
     const fetchError = ref(null);
 
-    const nextClose = ref(Date.now());
+    const nextClose = ref(getNow());
 
     const historyInterval = ref<NodeJS.Timeout | null>(null);
     const lastInterval = ref<NodeJS.Timeout | null>(null);
@@ -50,9 +50,10 @@ export const createTabStore = (tabId: string) =>
       await fetchAll();
 
       historyInterval.value = setInterval(async () => {
-        console.log(nextClose.value < Date.now());
-        
-        if (nextClose.value < Date.now()) {
+        const isClosed = nextClose.value < getNow();
+        console.log(isClosed)
+        ;
+        if (isClosed) {
           await fetchAll();
         }
       }, 1_000);
