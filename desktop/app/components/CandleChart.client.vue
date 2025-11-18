@@ -129,7 +129,6 @@ const setupChart = () => {
   watch(
     () => tabStore.candle,
     (candle) => {
-      console.log(candle)
       candleSeries.update(candle);
     },
     { deep: true }

@@ -29,7 +29,7 @@ export const getCandlesHandler = async (req: Request, res: Response) => {
 
     if (symbol === String(symbol)) {
       const data = await fetchCandlesYahoo(String(symbol), String(interval));
-      response = data.candles;
+      response = data.candles.slice(0, -1);
     }
 
     res.status(200).send({ success: true, data: response });

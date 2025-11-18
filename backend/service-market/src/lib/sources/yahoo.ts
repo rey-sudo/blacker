@@ -101,29 +101,29 @@ export function createLiveCandle(
 
   const blockSizeSec = tfMinutes * 60;
   const blockStart = last.time - (last.time % blockSizeSec);
-  const blockEnd = blockStart + blockSizeSec;
 
-  // Filtrar velas dentro del bloque
+  // Filtrar velas dentro del bloque actual
   const blockCandles = candles1m.filter(
-    (c) => c.time >= blockStart && c.time < blockEnd
+    (c) => c.time >= blockStart && c.time < blockStart + blockSizeSec
   );
+
   if (blockCandles.length === 0) return null;
 
-  // Reconstrucción OHLCV
+  // Inicializar OHLCV con valores seguros
   let open = blockCandles[0].open;
   let close = blockCandles[blockCandles.length - 1].close;
-  let high = -Infinity;
-  let low = Infinity;
+  let high = Number.NEGATIVE_INFINITY;
+  let low = Number.POSITIVE_INFINITY;
   let volume = 0;
 
   for (const c of blockCandles) {
-    if (c.high > high) high = c.high;
-    if (c.low < low) low = c.low;
-    volume += c.volume ?? 0;
+    if (typeof c.high === "number" && c.high > high) high = c.high;
+    if (typeof c.low === "number" && c.low < low) low = c.low;
+    volume += typeof c.volume === "number" ? c.volume : 0;
   }
 
-  // Convertir a objeto plano para evitar Proxy
-  const liveCandle: Candle = {
+  // Construir objeto plano para evitar Proxy y asegurar tipos Number
+  return {
     time: Number(blockStart),
     open: Number(open),
     high: Number(high),
@@ -131,6 +131,4 @@ export function createLiveCandle(
     close: Number(close),
     volume: Number(volume),
   };
-
-  return liveCandle;
 }

@@ -20,7 +20,7 @@ export const createTabStore = (tabId: string) =>
 
     async function start() {
       await fetchCandles();
-      fetchInterval.value = setInterval(() => fetchCandle(), 10_000);
+      fetchInterval.value = setInterval(() => fetchCandle(), 60_000);
     }
 
     function stop() {
