@@ -50,6 +50,20 @@ const chartContainer = ref(null);
 
 let candleChart = null;
 
+const acc = ref(0);
+
+const centerChart = () => {
+  if (!candleChart) return;
+
+  setTimeout(() => {
+    candleChart.timeScale().applyOptions({
+      rightOffset: 30,
+      fixLeftEdge: false,
+      fixRightEdge: false,
+    });
+  }, 10);
+};
+
 const setupChart = () => {
   candleChart = createChart(chartContainer.value, {
     layout: {
@@ -64,7 +78,7 @@ const setupChart = () => {
       fixLeftEdge: false,
       fixRightEdge: false,
       lockVisibleTimeRangeOnResize: true,
-      barSpacing: 20,
+      barSpacing: 10,
       rightOffset: 50,
     },
     grid: {
@@ -160,11 +174,15 @@ const setupChart = () => {
     () => tabStore.candle,
     (candle) => {
       candleSeries.update(candle);
+
+      if (acc.value < 1) {
+        centerChart();
+      }
+      
+      acc.value++;
     },
     { deep: true }
   );
-
-  candleChart.timeScale().fitContent();
 };
 
 const applyOptions = () => {

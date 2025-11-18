@@ -57,7 +57,16 @@ onMounted(async () => {
         textColor: colors.text.primary,
       },
       rightPriceScale: { visible: true },
-      timeScale: { visible: true },
+      timeScale: {
+        visible: true,
+        handleScroll: false,
+        handleScale: false,
+        fixLeftEdge: false,
+        fixRightEdge: false,
+        lockVisibleTimeRangeOnResize: true,
+        barSpacing: 10,
+        rightOffset: 30,
+      },
       grid: {
         vertLines: { color: "transparent" },
         horzLines: { color: "transparent" },
@@ -150,19 +159,19 @@ onMounted(async () => {
     const smaSeries = indicator.addSeries(LineSeries, {
       color: "yellow",
       lineWidth: 2,
-      priceLineVisible: false
+      priceLineVisible: false,
     });
-    
+
     const line70 = indicator.addSeries(LineSeries, {
       color: "red",
       lineWidth: 1,
-      priceLineVisible: false
+      priceLineVisible: false,
     });
-    
+
     const line30 = indicator.addSeries(LineSeries, {
       color: "green",
       lineWidth: 1,
-      priceLineVisible: false
+      priceLineVisible: false,
     });
 
     watch(
