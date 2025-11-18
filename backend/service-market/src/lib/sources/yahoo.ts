@@ -1,4 +1,4 @@
-import API from "../../axios/index.js";
+import API from "../../api/index.js";
 import { Candle } from "../../types/index.js";
 
 /**
@@ -75,7 +75,7 @@ export async function fetchCandlesYahoo(
   }
 }
 
-export function createLiveCandle(
+export function createLiveCandleYahoo(
   candles1m: Candle[],
   timeframe: string
 ): Candle | null {

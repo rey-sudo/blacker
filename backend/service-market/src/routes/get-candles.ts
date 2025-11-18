@@ -27,11 +27,9 @@ export const getCandlesHandler = async (req: Request, res: Response) => {
       throw new ApiError(400, "Unknown source");
     }
 
-    if (symbol === String(symbol)) {
-      const data = await fetchCandlesYahoo(String(symbol), String(interval));
-      data.candles.pop();
-      response = data.candles;
-    }
+    const data = await getSource.history(String(symbol), String(interval));
+
+    response = data.candles;
 
     res.status(200).send({ success: true, data: response });
   } catch (err: any) {

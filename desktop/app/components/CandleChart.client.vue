@@ -94,7 +94,7 @@ const setupChart = () => {
   });
 
   const calculateMa = (data) => {
-    const maData = calculateMovingAverageSeriesData(data, 55);
+    const maData = calculateEMAseries(data, 55);
 
     const maSeries = candleChart.addSeries(LineSeries, {
       color: colors.red,
