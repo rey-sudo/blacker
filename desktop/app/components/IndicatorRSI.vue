@@ -125,8 +125,30 @@ onMounted(async () => {
         .filter((v) => v !== null);
     }
 
+    function calculateSMA(data, period = 14) {
+      const values = data.map((v) => v.value);
+      const sma = [];
+
+      for (let i = period - 1; i < values.length; i++) {
+        const slice = values.slice(i - period + 1, i + 1);
+        const avg = slice.reduce((a, b) => a + b, 0) / period;
+
+        sma.push({
+          time: data[i].time,
+          value: Number(avg.toFixed(2)),
+        });
+      }
+
+      return sma;
+    }
+
     const rsiSeries = indicator.addSeries(LineSeries, {
       color: "purple",
+      lineWidth: 2,
+    });
+
+    const smaSeries = indicator.addSeries(LineSeries, {
+      color: "yellow",
       lineWidth: 2,
     });
 
@@ -136,9 +158,13 @@ onMounted(async () => {
         if (candles) {
           const rsiData = calculateRSI(candles, 14);
           rsiSeries.setData(rsiData);
+
+          const sma14 = calculateSMA(rsiData, 14);
+          smaSeries.setData(sma14);
         }
       }
     );
+
     indicator.timeScale().fitContent();
   } catch (error) {
     console.error("Error al inicializar los gráficos:", error);
