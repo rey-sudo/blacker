@@ -107,7 +107,7 @@ const setupChart = () => {
   const addMarkers = (data) => {
     const markers = [
       {
-        time: data[data.length - 1 ].time || 0,
+        time: data[data.length - 1].time || 0,
         position: "aboveBar",
         color: "white",
         shape: "arrowUp",
@@ -122,11 +122,13 @@ const setupChart = () => {
     () => tabStore.candles,
     (data) => {
       candleSeries.setData(data);
-      calculateMa(data);
-      addMarkers(data)
     },
     { deep: true }
   );
+
+  //watchLastcandle
+  //calculateMa(data);
+  // addMarkers(data)
 
   candleChart.timeScale().fitContent();
 };
