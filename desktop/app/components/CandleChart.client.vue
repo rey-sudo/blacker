@@ -113,8 +113,10 @@ const setupChart = () => {
     maSeries.setData(maData);
   };
 
+  let markersApi = null;
+
   const addMarkers = (data) => {
-    const markers = [
+    const marker = [
       {
         time: data[data.length - 1].time || 0,
         position: "aboveBar",
@@ -124,7 +126,12 @@ const setupChart = () => {
       },
     ];
 
-    createSeriesMarkers(candleSeries, markers);
+    if (!markersApi) {
+      markersApi = createSeriesMarkers(candleSeries, marker);
+      return;
+    }
+
+    markersApi.setMarkers(marker);
   };
 
   watch(
@@ -132,7 +139,6 @@ const setupChart = () => {
     (candles) => {
       candleSeries.setData(candles);
       calculateMa(candles);
-      createSeriesMarkers(candleSeries, []);
       addMarkers(candles);
     },
     { deep: true }
