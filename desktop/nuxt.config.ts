@@ -1,7 +1,12 @@
 export default defineNuxtConfig({
+  ssr: true,
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  css: ["~/assets/css/styles.css", "~/assets/css/primevue.css", "primeicons/primeicons.css"],
+  css: [
+    "~/assets/css/styles.css",
+    "~/assets/css/primevue.css",
+    "primeicons/primeicons.css",
+  ],
   modules: [
     ["@primevue/nuxt-module", {}],
     ["@pinia/nuxt", { autoImports: ["defineStore"] }],

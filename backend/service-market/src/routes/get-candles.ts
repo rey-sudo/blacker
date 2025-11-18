@@ -13,12 +13,13 @@ export const getCandlesHandler = async (req: Request, res: Response) => {
   try {
     const { symbol, source, exchange, interval } = req.query;
 
-    if (!symbol || !source || !interval || !exchange) {
-      return res.status(400).send({
-        success: false,
-        message: "Faltan parámetros: symbol, interval",
-      });
-    }
+    const missing = ["symbol", "source", "interval", "exchange"].filter(
+      (p) => !req.query[p]
+    );
+    if (missing.length)
+      return res
+        .status(400)
+        .send({ success: false, message: `Faltan: ${missing.join(",")}` });
 
     const getSource = sourceList[String(source).toLowerCase() as Source];
 
@@ -30,8 +31,6 @@ export const getCandlesHandler = async (req: Request, res: Response) => {
       const data = await fetchCandlesYahoo(String(symbol), String(interval));
       response = data.candles;
     }
-
-    console.log("Velas recibidas:", response.length);
 
     res.status(200).send({ success: true, data: response });
   } catch (err: any) {

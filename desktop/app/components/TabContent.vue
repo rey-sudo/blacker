@@ -40,7 +40,21 @@ const chartHeight = ref(0);
 
 let chartObserver;
 
-onMounted(() => {
+const data = ref(null);
+const loading = ref(true);
+const error = ref(null);
+
+const symbol = "BTC-USD";
+const source = "yahoo";
+const interval = "15m";
+
+const store = useMarketStore();
+
+onMounted(async () => {
+
+  const candles = await store.fetchCandles("BTC-USD", "yahoo", "15m", "none")
+  console.log(candles);
+
   chartObserver = new ResizeObserver(() => {
     if (chartDiv.value) {
       chartWidth.value = chartDiv.value.clientWidth;
