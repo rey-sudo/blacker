@@ -151,12 +151,21 @@ onMounted(async () => {
       color: "yellow",
       lineWidth: 2,
     });
+    
+    const line70 = indicator.addSeries(LineSeries, {
+      color: "red",
+      lineWidth: 1,
+    });
+    
+    const line30 = indicator.addSeries(LineSeries, {
+      color: "green",
+      lineWidth: 1,
+    });
 
     watch(
       () => tabStore.candle,
       (candle) => {
         if (tabStore.candles) {
-
           const allCandles = [...tabStore.candles.slice(0, -1), candle];
 
           const rsiData = calculateRSI(allCandles, 14);
@@ -164,6 +173,21 @@ onMounted(async () => {
 
           const sma14 = calculateSMA(rsiData, 14);
           smaSeries.setData(sma14);
+
+          if (rsiData.length > 0) {
+            const first = rsiData[0].time;
+            const last = rsiData[rsiData.length - 1].time;
+
+            line70.setData([
+              { time: first, value: 70 },
+              { time: last, value: 70 },
+            ]);
+
+            line30.setData([
+              { time: first, value: 30 },
+              { time: last, value: 30 },
+            ]);
+          }
         }
       }
     );
