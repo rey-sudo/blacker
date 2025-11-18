@@ -153,10 +153,15 @@ onMounted(async () => {
     });
 
     watch(
-      () => tabStore.candles,
-      (candles) => {
-        if (candles) {
-          const rsiData = calculateRSI(candles, 14);
+      () => tabStore.candle,
+      (candle) => {
+        if (tabStore.candles) {
+
+          const allCandles = [...tabStore.candles.slice(0, -1), candle];
+
+          console.log(allCandles);
+
+          const rsiData = calculateRSI(allCandles, 14);
           rsiSeries.setData(rsiData);
 
           const sma14 = calculateSMA(rsiData, 14);
