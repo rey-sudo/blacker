@@ -1,4 +1,5 @@
 <template>
+  <div class="countdown">{{ nextClose }}</div>
   <div
     ref="chartContainer"
     class="chart-container"
@@ -37,6 +38,14 @@ const props = defineProps({
 
 const useTabStore = createTabStore(props.tabId);
 const tabStore = useTabStore();
+
+let nowInterval = null;
+
+const timestamp = ref(Date.now());
+
+const nextClose = computed(() =>
+  countdown(tabStore.nextClose, timestamp.value)
+);
 
 const chartContainer = ref(null);
 
@@ -119,16 +128,9 @@ const setupChart = () => {
   };
 
   watch(
-    () => tabStore.history,
-    (candles) => {
-      candleSeries.setData(candles);
-    },
-    { deep: true }
-  );
-
-  watch(
     () => tabStore.candles,
     (candles) => {
+      candleSeries.setData(candles);
       calculateMa(candles);
       createSeriesMarkers(candleSeries, []);
       addMarkers(candles);
@@ -169,6 +171,10 @@ onMounted(async () => {
     }
 
     setupChart();
+
+    nowInterval = setInterval(() => {
+      timestamp.value = Date.now();
+    }, 1_000);
   } catch (error) {
     console.error("Error al inicializar los gráficos:", error);
   }
@@ -180,12 +186,38 @@ onBeforeUnmount(() => {
   if (candleChart) {
     candleChart.remove();
   }
+
+  clearInterval(nowInterval);
 });
+
+function countdown(nextClose, nowValue) {
+  let diff = nextClose - nowValue;
+
+  if (diff <= 0) return "00d 00h 00m 00s";
+
+  const seconds = Math.floor(diff / 1000) % 60;
+  const minutes = Math.floor(diff / (1000 * 60)) % 60;
+  const hours = Math.floor(diff / (1000 * 60 * 60)) % 24;
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  const pad = (n) => n.toString().padStart(2, "0");
+
+  return `${pad(days)}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`;
+}
 </script>
 
 <style scoped>
 #chart-container {
   width: 100%;
   height: 100%;
+}
+
+.countdown {
+  position: fixed;
+  height: 50px;
+  width: 150px;
+  background: red;
+  left: 0;
+  top: 0;
 }
 </style>

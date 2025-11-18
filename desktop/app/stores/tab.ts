@@ -9,33 +9,61 @@ export const createTabStore = (tabId: string) =>
 
     const candles: any = ref([]);
     const candle = ref(null);
-    const history: any = ref([]);
-    const acc = ref(0);
 
     const fetching = ref(false);
     const fetchError = ref(null);
-    const fetchInterval = ref<NodeJS.Timeout | null>(null);
+
+    const nextClose = ref(Date.now());
+
+    const historyInterval = ref<NodeJS.Timeout | null>(null);
+    const lastInterval = ref<NodeJS.Timeout | null>(null);
 
     const timerange = ref(null);
     const chartSettings = reactive({});
     const indicators = ref([]);
 
+    function calcularCierreSiguienteVela(velas: any) {
+      if (velas.length < 2) {
+        throw new Error(
+          "Se necesitan al menos 2 velas para calcular el cierre de la siguiente."
+        );
+      }
+
+      const ultima = velas[velas.length - 1];
+      const penultima = velas[velas.length - 2];
+
+      // Duración de la vela en milisegundos
+      const duracion = ultima.time - penultima.time;
+
+      // Timestamp del cierre de la siguiente vela
+      const cierreSiguiente = ultima.time + duracion;
+
+      return cierreSiguiente;
+    }
+
     const fetchAll = async () => {
       await fetchCandles();
       await fetchCandle();
-      acc.value++;
     };
 
     async function start() {
       await fetchAll();
 
-      fetchInterval.value = setInterval(() => fetchAll(), 60_000);
+      historyInterval.value = setInterval(async () => {
+        console.log(nextClose.value < Date.now());
+        
+        if (nextClose.value < Date.now()) {
+          await fetchAll();
+        }
+      }, 1_000);
+
+      lastInterval.value = setInterval(() => fetchCandle(), 60_000);
     }
 
     function stop() {
-      if (fetchInterval.value) {
-        clearInterval(fetchInterval.value);
-        fetchInterval.value = null;
+      if (lastInterval.value) {
+        clearInterval(lastInterval.value);
+        lastInterval.value = null;
       }
     }
 
@@ -60,9 +88,7 @@ export const createTabStore = (tabId: string) =>
 
         candles.value = res.data;
 
-        if (acc.value < 1) {
-          history.value = res.data;
-        }
+        nextClose.value = calcularCierreSiguienteVela(candles.value.slice(-2));
 
         return res.data;
       } catch (err: any) {
@@ -88,6 +114,7 @@ export const createTabStore = (tabId: string) =>
         });
 
         console.log("22222222222222");
+
         candle.value = res.data;
         return res.data;
       } catch (err: any) {
@@ -109,8 +136,8 @@ export const createTabStore = (tabId: string) =>
       reset,
       start,
       stop,
-      history,
       candle,
+      nextClose,
     };
   });
 
