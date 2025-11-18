@@ -9,6 +9,8 @@ export const createTabStore = (tabId: string) =>
 
     const candles: any = ref([]);
     const candle = ref(null);
+    const history: any = ref([]);
+    const acc = ref(0);
 
     const fetching = ref(false);
     const fetchError = ref(null);
@@ -18,9 +20,16 @@ export const createTabStore = (tabId: string) =>
     const chartSettings = reactive({});
     const indicators = ref([]);
 
-    async function start() {
+    const fetchAll = async () => {
       await fetchCandles();
-      fetchInterval.value = setInterval(() => fetchCandle(), 60_000);
+      await fetchCandle();
+      acc.value++;
+    };
+
+    async function start() {
+      await fetchAll();
+
+      fetchInterval.value = setInterval(() => fetchAll(), 60_000);
     }
 
     function stop() {
@@ -50,6 +59,10 @@ export const createTabStore = (tabId: string) =>
         });
 
         candles.value = res.data;
+
+        if (acc.value < 1) {
+          history.value = res.data;
+        }
 
         return res.data;
       } catch (err: any) {
@@ -96,6 +109,7 @@ export const createTabStore = (tabId: string) =>
       reset,
       start,
       stop,
+      history,
       candle,
     };
   });

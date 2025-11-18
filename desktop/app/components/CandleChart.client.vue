@@ -119,11 +119,17 @@ const setupChart = () => {
   };
 
   watch(
-    () => tabStore.candles,
+    () => tabStore.history,
     (candles) => {
       candleSeries.setData(candles);
-      calculateMa(candles);
+    },
+    { deep: true }
+  );
 
+  watch(
+    () => tabStore.candles,
+    (candles) => {
+      calculateMa(candles);
       createSeriesMarkers(candleSeries, []);
       addMarkers(candles);
     },
