@@ -76,7 +76,6 @@ export const createTabStore = (tabId: string) =>
 
         console.log("22222222222222");
         candle.value = res.data;
-
         return res.data;
       } catch (err: any) {
         console.error("Error en fetchCandle:", err);
