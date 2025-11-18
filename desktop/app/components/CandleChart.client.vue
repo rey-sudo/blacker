@@ -42,6 +42,107 @@ const chartContainer = ref(null);
 
 let candleChart = null;
 
+const setupChart = () => {
+  candleChart = createChart(chartContainer.value, {
+    layout: {
+      background: { color: "transparent" },
+      textColor: colors.text.primary,
+    },
+    rightPriceScale: { visible: true, mode: PriceScaleMode.Normal },
+    timeScale: {
+      visible: true,
+      handleScroll: false,
+      handleScale: false,
+      fixRightEdge: false,
+      lockVisibleTimeRangeOnResize: true,
+      barSpacing: 20,
+      rightOffset: 30,
+    },
+    grid: {
+      vertLines: { color: "transparent" },
+      horzLines: { color: "transparent" },
+    },
+    handleScroll: true,
+    handleScale: true,
+    kineticScroll: true,
+    crosshair: {
+      mode: CrosshairMode.Normal,
+    },
+  });
+
+  watch(
+    () => [props.width, props.height],
+    ([w, h]) => {
+      if (candleChart) {
+        candleChart.applyOptions({ width: w, height: h });
+      }
+    }
+  );
+
+  candleChart.timeScale().subscribeVisibleTimeRangeChange((range) => {
+    tabStore.timerange = range;
+  });
+
+  const candleSeries = candleChart.addSeries(CandlestickSeries, {
+    upColor: colors.white,
+    borderUpColor: colors.green,
+    wickUpColor: colors.green,
+    downColor: "rgba(0,0,0,0)",
+    borderDownColor: colors.green,
+    wickDownColor: colors.green,
+    borderVisible: true,
+  });
+
+  const calculateMa = (data) => {
+    const maData = calculateMovingAverageSeriesData(data, 55);
+
+    const maSeries = candleChart.addSeries(LineSeries, {
+      color: colors.red,
+      lineWidth: 2,
+    });
+
+    maSeries.setData(maData);
+  };
+
+  const addMarkers = (data) => {
+    const markers = [
+      {
+        time: data[data.length - 1 ].time || 0,
+        position: "aboveBar",
+        color: "white",
+        shape: "arrowUp",
+        text: "BUY",
+      },
+    ];
+
+    createSeriesMarkers(candleSeries, markers);
+  };
+
+  watch(
+    () => tabStore.candles,
+    (data) => {
+      candleSeries.setData(data);
+      calculateMa(data);
+      addMarkers(data)
+    },
+    { deep: true }
+  );
+
+  candleChart.timeScale().fitContent();
+};
+
+const applyOptions = () => {
+  if (candleChart) {
+    candleChart.applyOptions({
+      rightPriceScale: {
+        borderVisible: false,
+        mode: PriceScaleMode.Normal,
+        marginRight: 0,
+      },
+    });
+  }
+};
+
 onMounted(async () => {
   try {
     await nextTick();
@@ -51,103 +152,15 @@ onMounted(async () => {
       return;
     }
 
-    candleChart = createChart(chartContainer.value, {
-      layout: {
-        background: { color: "transparent" },
-        textColor: colors.text.primary,
-      },
-      rightPriceScale: { visible: true, mode: PriceScaleMode.Normal },
-      timeScale: {
-        visible: true,
-        handleScroll: false,
-        handleScale: false,
-        fixRightEdge: false,
-        lockVisibleTimeRangeOnResize: true,
-        barSpacing: 20,
-        rightOffset: 30,
-      },
-      grid: {
-        vertLines: { color: "transparent" },
-        horzLines: { color: "transparent" },
-      },
-      handleScroll: true,
-      handleScale: true,
-      kineticScroll: true,
-      crosshair: {
-        mode: CrosshairMode.Normal,
-      },
-    });
-
-    watch(
-      () => [props.width, props.height],
-      ([w, h]) => {
-        if (candleChart) {
-          candleChart.applyOptions({ width: w, height: h });
-        }
-      }
-    );
-
-    candleChart.applyOptions({
-      rightPriceScale: {
-        borderVisible: false,
-        mode: PriceScaleMode.Normal,
-        marginRight: 0,
-      },
-    });
-
-    candleChart.timeScale().subscribeVisibleTimeRangeChange((range) => {
-      tabStore.timerange = range;
-    });
-
-    const candleSeries = candleChart.addSeries(CandlestickSeries, {
-      upColor: colors.white,
-      borderUpColor: colors.green,
-      wickUpColor: colors.green,
-      downColor: "rgba(0,0,0,0)",
-      borderDownColor: colors.green,
-      wickDownColor: colors.green,
-      borderVisible: true,
-    });
-
-    watch(
-      () => tabStore.candles,
-      (data) => {
-        console.log(data);
-        candleSeries.setData(data);
-      },
-      { deep: true }
-    );
-
-    /** 
-        const maData = calculateMovingAverageSeriesData(data, 55);
-
-        const maSeries = candleChart.addSeries(LineSeries, {
-          color: colors.red,
-          lineWidth: 2,
-        });
-
-        maSeries.setData(maData);
-
-        const markers = [
-          {
-            time: data[data.length - (1 + 50)].time || 0,
-            position: "aboveBar",
-            color: "green",
-            shape: "arrowUp",
-            text: "BUY",
-          },
-        ];
-
-        createSeriesMarkers(candleSeries, markers);
-        */
-
-    candleChart.timeScale().fitContent();
+    setupChart();
   } catch (error) {
     console.error("Error al inicializar los gráficos:", error);
   }
 });
 
 onBeforeUnmount(() => {
+  tabStore.stop();
+
   if (candleChart) {
     candleChart.remove();
   }
