@@ -123,20 +123,12 @@ onMounted(async () => {
 
           const sqzData = computeSQZMOM(allCandles);
 
-          // ===== COLORES ORIGINALES LAZYBEAR =====
-          // Verde claro     = barras positivas aumentando
-          // Verde oscuro    = barras positivas disminuyendo
-          // Rojo claro      = barras negativas disminuyendo (menos negativas)
-          // Rojo oscuro     = barras negativas aumentando (más negativas)
-
           const lbGreenLight = colors.red;
           const lbGreenDark = colors.red;
 
           const lbRedLight = colors.green;
           const lbRedDark = colors.red;
 
-          // Línea squeeze (gris)
-          // En TV NO cambia de color
           const squeezeLineColor = colors.black;
 
           hist.setData(
@@ -181,9 +173,7 @@ onBeforeUnmount(() => {
   }
 });
 
-// ----------------------------
-// FUNCIONES DE UTILIDAD (VERSIÓN EXACTA TRADINGVIEW)
-// ----------------------------
+
 function sma(values, length) {
   if (values.length < length) return null;
   let sum = 0;
@@ -216,7 +206,6 @@ function lowest(arr, length) {
     : null;
 }
 
-// ⚠ IMPLEMENTACIÓN EXACTA DEL LINREG DE TRADINGVIEW
 function linreg(values, length, offset = 0) {
   if (values.length < length) return null;
 
@@ -255,9 +244,6 @@ function trueRange(candle, prev) {
   );
 }
 
-// ---------------------------------------
-//  🚀 INDICADOR SQZMOM ORIGINAL LAZYBEAR
-// ---------------------------------------
 function computeSQZMOM(candles) {
   const close = candles.map((c) => c.close);
   const high = candles.map((c) => c.high);
