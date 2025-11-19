@@ -44,5 +44,5 @@ rule3 = sig[1] > keyLevel
 is_reversal = rule1 and rule2 and rule3
 
 //=== Optional helper circle for visibility ===
-plot(is_reversal ? sig : na, style=plot.style_circles, 
+plot(is_reversal ? sig[1] : na, style=plot.style_circles, 
      color=color.new(color.rgb(0, 150, 255), 0), linewidth=4, title="Reversal Level")
