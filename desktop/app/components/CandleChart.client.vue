@@ -57,7 +57,7 @@ const centerChart = () => {
 
   setTimeout(() => {
     candleChart.timeScale().applyOptions({
-      rightOffset: 30,
+      rightOffset: 20,
       fixLeftEdge: false,
       fixRightEdge: false,
     });
@@ -79,7 +79,7 @@ const setupChart = () => {
       fixRightEdge: false,
       lockVisibleTimeRangeOnResize: true,
       barSpacing: 10,
-      rightOffset: 50,
+      rightOffset: 20,
     },
     grid: {
       vertLines: { color: "transparent" },
