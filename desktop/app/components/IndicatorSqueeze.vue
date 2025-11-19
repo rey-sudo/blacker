@@ -47,6 +47,11 @@ const container = ref(null);
 
 let indicator = null;
 
+const BB_LENGTH = 20;
+const KC_LENGTH = 20;
+const KC_MULT = 1.5;
+const USE_TR = true;
+
 onMounted(async () => {
   try {
     await nextTick();
@@ -70,7 +75,9 @@ onMounted(async () => {
         fixRightEdge: false,
         lockVisibleTimeRangeOnResize: true,
         barSpacing: 10,
-        rightOffset: 30,
+        rightOffset: 20,
+        timeVisible: true,
+        secondsVisible: false,
       },
       grid: {
         vertLines: { color: "transparent" },
@@ -88,95 +95,24 @@ onMounted(async () => {
     );
 
     watch(
-      () => tabStore.timerange,
+      () => tabStore.logicalRange,
       (range) => {
         if (range) {
-          indicator.timeScale().setVisibleRange(range);
+          indicator.timeScale().setVisibleLogicalRange({
+            from: range.from,
+            to: range.to,
+          });
         }
       }
     );
 
-    function calculateRSI(candles, period = 14) {
-      const closes = candles.map((c) => c.close);
-      const rsi = [];
+    const hist = indicator.addSeries(HistogramSeries, {
+      priceFormat: { type: "price", precision: 4 },
+    });
 
-      let gains = 0;
-      let losses = 0;
-
-      // Primera ventana
-      for (let i = 1; i <= period; i++) {
-        const diff = closes[i] - closes[i - 1];
-        if (diff >= 0) gains += diff;
-        else losses -= diff;
-      }
-
-      let avgGain = gains / period;
-      let avgLoss = losses / period;
-
-      // El primer RSI
-      rsi[period] = 100 - 100 / (1 + avgGain / avgLoss);
-
-      // Siguientes valores
-      for (let i = period + 1; i < closes.length; i++) {
-        const diff = closes[i] - closes[i - 1];
-
-        const gain = Math.max(diff, 0);
-        const loss = Math.max(-diff, 0);
-
-        avgGain = (avgGain * (period - 1) + gain) / period;
-        avgLoss = (avgLoss * (period - 1) + loss) / period;
-
-        const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-        rsi[i] = 100 - 100 / (1 + rs);
-      }
-
-      // Convertimos a formato Lightweight Charts (SingleValueData)
-      return rsi
-        .map((value, i) => {
-          if (value === undefined) return null;
-          return { time: candles[i].time, value: Number(value.toFixed(2)) };
-        })
-        .filter((v) => v !== null);
-    }
-
-    function calculateSMA(data, period = 14) {
-      const values = data.map((v) => v.value);
-      const sma = [];
-
-      for (let i = period - 1; i < values.length; i++) {
-        const slice = values.slice(i - period + 1, i + 1);
-        const avg = slice.reduce((a, b) => a + b, 0) / period;
-
-        sma.push({
-          time: data[i].time,
-          value: Number(avg.toFixed(2)),
-        });
-      }
-
-      return sma;
-    }
-
-    const rsiSeries = indicator.addSeries(LineSeries, {
-      color: "purple",
+    const line = indicator.addSeries(LineSeries, {
+      color: "gray",
       lineWidth: 2,
-    });
-
-    const smaSeries = indicator.addSeries(LineSeries, {
-      color: "yellow",
-      lineWidth: 2,
-      priceLineVisible: false,
-    });
-
-    const line70 = indicator.addSeries(LineSeries, {
-      color: "red",
-      lineWidth: 1,
-      priceLineVisible: false,
-    });
-
-    const line30 = indicator.addSeries(LineSeries, {
-      color: "green",
-      lineWidth: 1,
-      priceLineVisible: false,
     });
 
     watch(
@@ -185,26 +121,28 @@ onMounted(async () => {
         if (tabStore.candles) {
           const allCandles = [...tabStore.candles.slice(0, -1), candle];
 
-          const rsiData = calculateRSI(allCandles, 14);
-          rsiSeries.setData(rsiData);
+          const sqzData = computeSQZMOM(allCandles);
 
-          const sma14 = calculateSMA(rsiData, 14);
-          smaSeries.setData(sma14);
+          hist.setData(
+            sqzData.map((d) => ({
+              time: d.time,
+              value: d.value,
+              color: d.value > 0 ? "lime" : "red",
+            }))
+          );
 
-          if (rsiData.length > 0) {
-            const first = rsiData[0].time;
-            const last = rsiData[rsiData.length - 1].time;
-
-            line70.setData([
-              { time: first, value: 70 },
-              { time: last, value: 70 },
-            ]);
-
-            line30.setData([
-              { time: first, value: 30 },
-              { time: last, value: 30 },
-            ]);
-          }
+          line.setData(
+            sqzData.map((d) => ({
+              time: d.time,
+              value: 0,
+              color:
+                d.squeeze === "on"
+                  ? "black"
+                  : d.squeeze === "off"
+                  ? "gray"
+                  : "blue",
+            }))
+          );
         }
       }
     );
@@ -220,9 +158,153 @@ onBeforeUnmount(() => {
     indicator.remove();
   }
 });
+
+// ----------------------------
+// FUNCIONES DE UTILIDAD (VERSIÓN EXACTA TRADINGVIEW)
+// ----------------------------
+function sma(values, length) {
+  if (values.length < length) return null;
+  let sum = 0;
+  for (let i = values.length - length; i < values.length; i++) {
+    sum += values[i];
+  }
+  return sum / length;
+}
+
+function stdev(values, length) {
+  if (values.length < length) return null;
+  const mean = sma(values, length);
+  let total = 0;
+  for (let i = values.length - length; i < values.length; i++) {
+    const d = values[i] - mean;
+    total += d * d;
+  }
+  return Math.sqrt(total / length);
+}
+
+function highest(arr, length) {
+  return arr.length >= length
+    ? Math.max(...arr.slice(arr.length - length))
+    : null;
+}
+
+function lowest(arr, length) {
+  return arr.length >= length
+    ? Math.min(...arr.slice(arr.length - length))
+    : null;
+}
+
+// ⚠ IMPLEMENTACIÓN EXACTA DEL LINREG DE TRADINGVIEW
+function linreg(values, length, offset = 0) {
+  if (values.length < length) return null;
+
+  let xSum = 0;
+  let ySum = 0;
+  let xySum = 0;
+  let xxSum = 0;
+
+  const start = values.length - length;
+  const end = values.length - 1;
+
+  for (let i = 0; i < length; i++) {
+    const x = i;
+    const y = values[start + i];
+    xSum += x;
+    ySum += y;
+    xySum += x * y;
+    xxSum += x * x;
+  }
+
+  const slope =
+    (length * xySum - xSum * ySum) /
+    (length * xxSum - xSum * xSum);
+
+  const intercept = (ySum - slope * xSum) / length;
+
+  // TradingView forecast: x = length-1 + offset
+  const x = length - 1 + offset;
+  return slope * x + intercept;
+}
+
+function trueRange(candle, prev) {
+  if (!prev) return candle.high - candle.low;
+  return Math.max(
+    candle.high - candle.low,
+    Math.abs(candle.high - prev.close),
+    Math.abs(candle.low - prev.close)
+  );
+}
+
+// ---------------------------------------
+//  🚀 INDICADOR SQZMOM ORIGINAL LAZYBEAR
+// ---------------------------------------
+function computeSQZMOM(candles) {
+  const close = candles.map((c) => c.close);
+  const high = candles.map((c) => c.high);
+  const low = candles.map((c) => c.low);
+
+  const tr = candles.map((c, i) =>
+    trueRange(c, i > 0 ? candles[i - 1] : null)
+  );
+
+  const output = [];
+  let oscHistory = [];
+
+  for (let i = 0; i < candles.length; i++) {
+    const sliceClose = close.slice(0, i + 1);
+
+    // ---- Bollinger Bands ----
+    const basis = sma(sliceClose, BB_LENGTH);
+    const dev = stdev(sliceClose, BB_LENGTH);
+
+    // ⚠ LazyBear BUG: usa multKC en lugar de multBB
+    const upperBB = basis !== null ? basis + dev * KC_MULT : null;
+    const lowerBB = basis !== null ? basis - dev * KC_MULT : null;
+
+    // ---- Keltner Channels ----
+    const maKC = sma(sliceClose, KC_LENGTH);
+    const rangeMa = sma(tr.slice(0, i + 1), KC_LENGTH);
+
+    const upperKC = maKC !== null ? maKC + rangeMa * KC_MULT : null;
+    const lowerKC = maKC !== null ? maKC - rangeMa * KC_MULT : null;
+
+    if (basis === null || maKC === null) {
+      output.push({
+        time: candles[i].time,
+        value: 0,
+        squeeze: "none",
+      });
+      continue;
+    }
+
+    // ---- Squeeze conditions ----
+    const sqzOn = lowerBB > lowerKC && upperBB < upperKC;
+    const sqzOff = lowerBB < lowerKC && upperBB > upperKC;
+    const sqzNone = !sqzOn && !sqzOff;
+
+    // ---- Oscillator ----
+    const hi = highest(high.slice(0, i + 1), KC_LENGTH);
+    const lo = lowest(low.slice(0, i + 1), KC_LENGTH);
+    const midSMA = sma(sliceClose, KC_LENGTH);
+
+    const mid = ( (hi + lo) / 2 + midSMA ) / 2;
+    const osc = close[i] - mid;
+
+    oscHistory.push(osc);
+
+    const momentumValue = linreg(oscHistory, KC_LENGTH, 0) ?? 0;
+
+    output.push({
+      time: candles[i].time,
+      value: momentumValue,
+      squeeze: sqzOn ? "on" : sqzOff ? "off" : "none",
+    });
+  }
+
+  return output;
+}
+
+
 </script>
 
-<style scoped>
-
-
-</style>
+<style scoped></style>
