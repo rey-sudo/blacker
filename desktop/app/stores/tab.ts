@@ -18,9 +18,9 @@ export const createTabStore = (tabId: string) =>
     const historyInterval = ref<NodeJS.Timeout | null>(null);
     const lastInterval = ref<NodeJS.Timeout | null>(null);
 
-    const timerange = ref(null);
     const logicalRange = ref(null);
-
+    const crosshair = ref(null);
+    const defaultRightPriceWidth = ref(80)
     const chartSettings = reactive({});
     const indicators = ref([]);
 
@@ -53,8 +53,7 @@ export const createTabStore = (tabId: string) =>
 
       historyInterval.value = setInterval(async () => {
         const isClosed = nextClose.value < getNow();
-        console.log(isClosed)
-        ;
+        console.log(isClosed);
         if (isClosed) {
           await fetchAll();
         }
@@ -132,7 +131,6 @@ export const createTabStore = (tabId: string) =>
       interval,
       chartSettings,
       indicators,
-      timerange,
       candles,
       fetchError,
       fetching,
@@ -140,8 +138,10 @@ export const createTabStore = (tabId: string) =>
       start,
       stop,
       candle,
+      crosshair,
       nextClose,
-      logicalRange
+      logicalRange,
+      defaultRightPriceWidth
     };
   });
 

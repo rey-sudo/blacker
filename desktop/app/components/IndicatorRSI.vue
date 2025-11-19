@@ -61,7 +61,11 @@ onMounted(async () => {
         background: { color: "transparent" },
         textColor: colors.text.primary,
       },
-      rightPriceScale: { visible: true },
+      rightPriceScale: {
+        visible: true,
+        minimumWidth: tabStore.defaultRightPriceWidth,
+        mode: PriceScaleMode.Normal,
+      },
       timeScale: {
         visible: true,
         handleScroll: false,
@@ -105,6 +109,18 @@ onMounted(async () => {
       color: "purple",
       lineWidth: 2,
     });
+
+    watch(
+      () => tabStore.crosshair,
+      (value) => {
+        if (!value || !value.time) {
+          indicator.clearCrosshairPosition();
+          return;
+        }
+
+        indicator.setCrosshairPosition(null, value.time, rsiSeries);
+      }
+    );
 
     const smaSeries = indicator.addSeries(LineSeries, {
       color: "yellow",
@@ -167,7 +183,7 @@ onBeforeUnmount(() => {
 });
 
 function calculateRSI(candles, period = 14) {
-  const closes = candles.map(c => c.close);
+  const closes = candles.map((c) => c.close);
   const rsi = new Array(closes.length).fill(null);
 
   let gains = 0;
@@ -196,7 +212,7 @@ function calculateRSI(candles, period = 14) {
     rsi[i] = 100 - 100 / (1 + rs);
   }
 
-  const first = rsi.find(v => v !== null);
+  const first = rsi.find((v) => v !== null);
   for (let i = 0; i < rsi.length; i++) {
     if (rsi[i] === null) rsi[i] = first;
   }

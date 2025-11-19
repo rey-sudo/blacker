@@ -70,7 +70,11 @@ const setupChart = () => {
       background: { color: "transparent" },
       textColor: colors.text.primary,
     },
-    rightPriceScale: { visible: true, mode: PriceScaleMode.Normal },
+    rightPriceScale: {
+      visible: true,
+      mode: PriceScaleMode.Normal,
+      minimumWidth: tabStore.defaultRightPriceWidth,
+    },
     timeScale: {
       visible: true,
       handleScroll: false,
@@ -104,9 +108,22 @@ const setupChart = () => {
     }
   );
 
-  candleChart.timeScale().subscribeVisibleTimeRangeChange((range) => {
-    tabStore.timerange = range;
-    tabStore.logicalRange = candleChart.timeScale().getVisibleLogicalRange();
+  let rangeFrame = null;
+
+  candleChart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+    if (rangeFrame) cancelAnimationFrame(rangeFrame);
+    rangeFrame = requestAnimationFrame(() => {
+      tabStore.logicalRange = range;
+    });
+  });
+
+  let crosshairFrame = null;
+
+  candleChart.subscribeCrosshairMove((value) => {
+    if (crosshairFrame) cancelAnimationFrame(crosshairFrame);
+    crosshairFrame = requestAnimationFrame(() => {
+      tabStore.crosshair = value;
+    });
   });
 
   const candleSeries = candleChart.addSeries(CandlestickSeries, {

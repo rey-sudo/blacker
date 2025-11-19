@@ -66,7 +66,7 @@ onMounted(async () => {
         background: { color: "transparent" },
         textColor: colors.text.primary,
       },
-      rightPriceScale: { visible: true },
+      rightPriceScale: { visible: true, minimumWidth: tabStore.defaultRightPriceWidth, },
       timeScale: {
         visible: true,
         handleScroll: false,
@@ -105,10 +105,22 @@ onMounted(async () => {
         }
       }
     );
-
-    const hist = indicator.addSeries(HistogramSeries, {
+    
+    const histogramSeries = indicator.addSeries(HistogramSeries, {
       priceFormat: { type: "price", precision: 4 },
     });
+
+    watch(
+      () => tabStore.crosshair,
+      (value) => {
+        if (!value || !value.time) {
+          indicator.clearCrosshairPosition();
+          return;
+        }
+
+        indicator.setCrosshairPosition(null, value.time, histogramSeries);
+      }
+    );
 
     const line = indicator.addSeries(LineSeries, {
       color: "gray",
@@ -131,7 +143,7 @@ onMounted(async () => {
 
           const squeezeLineColor = colors.black;
 
-          hist.setData(
+          histogramSeries.setData(
             sqzData.map((d, i) => {
               let prev = sqzData[i - 1] ? sqzData[i - 1].value : 0;
               let color;
@@ -172,7 +184,6 @@ onBeforeUnmount(() => {
     indicator.remove();
   }
 });
-
 
 function sma(values, length) {
   if (values.length < length) return null;
