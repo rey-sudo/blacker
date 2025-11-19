@@ -123,24 +123,46 @@ onMounted(async () => {
 
           const sqzData = computeSQZMOM(allCandles);
 
+          // ===== COLORES ORIGINALES LAZYBEAR =====
+          // Verde claro     = barras positivas aumentando
+          // Verde oscuro    = barras positivas disminuyendo
+          // Rojo claro      = barras negativas disminuyendo (menos negativas)
+          // Rojo oscuro     = barras negativas aumentando (más negativas)
+
+          const lbGreenLight = colors.red;
+          const lbGreenDark = colors.red;
+
+          const lbRedLight = colors.green;
+          const lbRedDark = colors.red;
+
+          // Línea squeeze (gris)
+          // En TV NO cambia de color
+          const squeezeLineColor = "#777";
+
           hist.setData(
-            sqzData.map((d) => ({
-              time: d.time,
-              value: d.value,
-              color: d.value > 0 ? "lime" : "red",
-            }))
+            sqzData.map((d, i) => {
+              let prev = sqzData[i - 1] ? sqzData[i - 1].value : 0;
+              let color;
+
+              if (d.value >= 0) {
+                color = d.value > prev ? lbGreenLight : lbGreenDark;
+              } else {
+                color = d.value < prev ? lbRedDark : lbRedLight;
+              }
+
+              return {
+                time: d.time,
+                value: d.value,
+                color,
+              };
+            })
           );
 
           line.setData(
             sqzData.map((d) => ({
               time: d.time,
               value: 0,
-              color:
-                d.squeeze === "on"
-                  ? "black"
-                  : d.squeeze === "off"
-                  ? "gray"
-                  : "blue",
+              color: squeezeLineColor,
             }))
           );
         }
@@ -215,9 +237,7 @@ function linreg(values, length, offset = 0) {
     xxSum += x * x;
   }
 
-  const slope =
-    (length * xySum - xSum * ySum) /
-    (length * xxSum - xSum * xSum);
+  const slope = (length * xySum - xSum * ySum) / (length * xxSum - xSum * xSum);
 
   const intercept = (ySum - slope * xSum) / length;
 
@@ -243,9 +263,7 @@ function computeSQZMOM(candles) {
   const high = candles.map((c) => c.high);
   const low = candles.map((c) => c.low);
 
-  const tr = candles.map((c, i) =>
-    trueRange(c, i > 0 ? candles[i - 1] : null)
-  );
+  const tr = candles.map((c, i) => trueRange(c, i > 0 ? candles[i - 1] : null));
 
   const output = [];
   let oscHistory = [];
@@ -280,6 +298,7 @@ function computeSQZMOM(candles) {
     // ---- Squeeze conditions ----
     const sqzOn = lowerBB > lowerKC && upperBB < upperKC;
     const sqzOff = lowerBB < lowerKC && upperBB > upperKC;
+
     const sqzNone = !sqzOn && !sqzOff;
 
     // ---- Oscillator ----
@@ -287,7 +306,7 @@ function computeSQZMOM(candles) {
     const lo = lowest(low.slice(0, i + 1), KC_LENGTH);
     const midSMA = sma(sliceClose, KC_LENGTH);
 
-    const mid = ( (hi + lo) / 2 + midSMA ) / 2;
+    const mid = ((hi + lo) / 2 + midSMA) / 2;
     const osc = close[i] - mid;
 
     oscHistory.push(osc);
@@ -303,8 +322,6 @@ function computeSQZMOM(candles) {
 
   return output;
 }
-
-
 </script>
 
 <style scoped></style>
