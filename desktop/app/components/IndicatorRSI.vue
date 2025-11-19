@@ -72,7 +72,7 @@ onMounted(async () => {
         barSpacing: 10,
         rightOffset: 20,
         timeVisible: true,
-        secondsVisible: false, 
+        secondsVisible: false,
       },
       grid: {
         vertLines: { color: "transparent" },
