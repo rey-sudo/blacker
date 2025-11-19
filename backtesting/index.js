@@ -2,10 +2,10 @@ const axios = require('axios');
 const fs = require('fs');
 
 class BinanceKlinesDownloader {
-  constructor() {
+  constructor(symbol = 'BTCUSDT', interval = '15m') {
     this.baseURL = 'https://api.binance.com/api/v3/klines';
-    this.symbol = 'BTCUSDT';
-    this.interval = '15m';
+    this.symbol = symbol;
+    this.interval = interval;
     this.limit = 1000;
     this.delayMs = 250;
     this.maxRetries = 3;
@@ -72,7 +72,10 @@ class BinanceKlinesDownloader {
     let requestCount = 0;
     let totalCandles = 0;
 
-    const estimatedCandles = 365 * 96;
+    // Calcular velas esperadas según el intervalo
+    const intervalMinutes = parseInt(this.interval);
+    const candlesPerDay = (24 * 60) / intervalMinutes;
+    const estimatedCandles = Math.floor(365 * candlesPerDay);
     console.log(`📊 Velas esperadas: ~${estimatedCandles.toLocaleString()}\n`);
 
     while (currentStartTime < endTime) {
@@ -130,7 +133,9 @@ class BinanceKlinesDownloader {
     console.log('\n🔍 Verificando integridad de datos...\n');
 
     let gaps = [];
-    const intervalMs = 15 * 60 * 1000;
+    // Calcular intervalo en milisegundos según el timeframe
+    const intervalMinutes = parseInt(this.interval);
+    const intervalMs = intervalMinutes * 60 * 1000;
 
     for (let i = 0; i < klines.length; i++) {
       const currentOpenTime = klines[i][0];
@@ -141,7 +146,7 @@ class BinanceKlinesDownloader {
 
         if (currentOpenTime > expectedNextOpenTime) {
           const gapMinutes = (currentOpenTime - expectedNextOpenTime) / (1000 * 60);
-          const missingCandles = Math.floor(gapMinutes / 15);
+          const missingCandles = Math.floor(gapMinutes / intervalMinutes);
           
           gaps.push({
             index: i,
@@ -172,7 +177,10 @@ class BinanceKlinesDownloader {
     return { gaps };
   }
 
-  async saveToCSV(klines, filename = 'btcusdt_15m_1year.csv') {
+  async saveToCSV(klines, filename = null) {
+    if (!filename) {
+      filename = `${this.symbol.toLowerCase()}_${this.interval}_1year.csv`;
+    }
     console.log(`\n💾 Guardando datos en ${filename}...`);
 
     const header = 'timestamp,date,open,high,low,close,volume,close_time,quote_volume,trades,taker_buy_base,taker_buy_quote\n';
@@ -213,5 +221,12 @@ class BinanceKlinesDownloader {
   }
 }
 
-const downloader = new BinanceKlinesDownloader();
+// Ejecutar el downloader
+// Puedes cambiar el símbolo y el intervalo aquí:
+// Ejemplos:
+// - new BinanceKlinesDownloader('BTCUSDT', '5m')
+// - new BinanceKlinesDownloader('ETHUSDT', '1h')
+// - new BinanceKlinesDownloader('BNBUSDT', '15m')
+
+const downloader = new BinanceKlinesDownloader('BTCUSDT', '15m');
 downloader.run();
