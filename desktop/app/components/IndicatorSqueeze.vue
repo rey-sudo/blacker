@@ -137,7 +137,7 @@ onMounted(async () => {
 
           // Línea squeeze (gris)
           // En TV NO cambia de color
-          const squeezeLineColor = "#777";
+          const squeezeLineColor = colors.black;
 
           hist.setData(
             sqzData.map((d, i) => {
