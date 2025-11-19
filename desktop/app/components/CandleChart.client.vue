@@ -104,6 +104,7 @@ const setupChart = () => {
 
   candleChart.timeScale().subscribeVisibleTimeRangeChange((range) => {
     tabStore.timerange = range;
+    tabStore.logicalRange = candleChart.timeScale().getVisibleLogicalRange();
   });
 
   const candleSeries = candleChart.addSeries(CandlestickSeries, {
@@ -178,7 +179,7 @@ const setupChart = () => {
       if (acc.value < 1) {
         centerChart();
       }
-      
+
       acc.value++;
     },
     { deep: true }

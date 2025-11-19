@@ -19,6 +19,8 @@ export const createTabStore = (tabId: string) =>
     const lastInterval = ref<NodeJS.Timeout | null>(null);
 
     const timerange = ref(null);
+    const logicalRange = ref(null);
+
     const chartSettings = reactive({});
     const indicators = ref([]);
 
@@ -139,6 +141,7 @@ export const createTabStore = (tabId: string) =>
       stop,
       candle,
       nextClose,
+      logicalRange
     };
   });
 

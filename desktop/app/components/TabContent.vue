@@ -10,14 +10,14 @@
       <div class="indicator">
         <IndicatorRSI
           :tabId="tabId"
-          :width="chartWidth / 2 - 16"
+          :width="chartWidth"
           :height="chartHeight / 2"
         />
       </div>
       <div class="indicator">
         <IndicatorSqueeze
           :tabId="tabId"
-          :width="chartWidth / 2 - 16"
+          :width="chartWidth"
           :height="chartHeight / 2"
         />
       </div>
@@ -113,8 +113,8 @@ onBeforeUnmount(() => {
 .indicators {
   display: grid;
   max-width: calc(100vw - 1rem);
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: repeat(1, 1fr);
   gap: 0.5rem;
 }
 

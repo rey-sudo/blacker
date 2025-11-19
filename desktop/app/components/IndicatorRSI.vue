@@ -70,7 +70,7 @@ onMounted(async () => {
         fixRightEdge: false,
         lockVisibleTimeRangeOnResize: true,
         barSpacing: 10,
-        rightOffset: 30,
+        rightOffset: 20,
       },
       grid: {
         vertLines: { color: "transparent" },
@@ -88,73 +88,16 @@ onMounted(async () => {
     );
 
     watch(
-      () => tabStore.timerange,
+      () => tabStore.logicalRange,
       (range) => {
         if (range) {
-          indicator.timeScale().setVisibleRange(range);
+          indicator.timeScale().setVisibleLogicalRange({
+            from: range.from,
+            to: range.to,
+          });
         }
       }
     );
-
-    function calculateRSI(candles, period = 14) {
-      const closes = candles.map((c) => c.close);
-      const rsi = [];
-
-      let gains = 0;
-      let losses = 0;
-
-      // Primera ventana
-      for (let i = 1; i <= period; i++) {
-        const diff = closes[i] - closes[i - 1];
-        if (diff >= 0) gains += diff;
-        else losses -= diff;
-      }
-
-      let avgGain = gains / period;
-      let avgLoss = losses / period;
-
-      // El primer RSI
-      rsi[period] = 100 - 100 / (1 + avgGain / avgLoss);
-
-      // Siguientes valores
-      for (let i = period + 1; i < closes.length; i++) {
-        const diff = closes[i] - closes[i - 1];
-
-        const gain = Math.max(diff, 0);
-        const loss = Math.max(-diff, 0);
-
-        avgGain = (avgGain * (period - 1) + gain) / period;
-        avgLoss = (avgLoss * (period - 1) + loss) / period;
-
-        const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-        rsi[i] = 100 - 100 / (1 + rs);
-      }
-
-      // Convertimos a formato Lightweight Charts (SingleValueData)
-      return rsi
-        .map((value, i) => {
-          if (value === undefined) return null;
-          return { time: candles[i].time, value: Number(value.toFixed(2)) };
-        })
-        .filter((v) => v !== null);
-    }
-
-    function calculateSMA(data, period = 14) {
-      const values = data.map((v) => v.value);
-      const sma = [];
-
-      for (let i = period - 1; i < values.length; i++) {
-        const slice = values.slice(i - period + 1, i + 1);
-        const avg = slice.reduce((a, b) => a + b, 0) / period;
-
-        sma.push({
-          time: data[i].time,
-          value: Number(avg.toFixed(2)),
-        });
-      }
-
-      return sma;
-    }
 
     const rsiSeries = indicator.addSeries(LineSeries, {
       color: "purple",
@@ -220,8 +163,66 @@ onBeforeUnmount(() => {
     indicator.remove();
   }
 });
+
+function calculateRSI(candles, period = 14) {
+  const closes = candles.map((c) => c.close);
+  const rsi = [];
+
+  let gains = 0;
+  let losses = 0;
+
+  // Primera ventana
+  for (let i = 1; i <= period; i++) {
+    const diff = closes[i] - closes[i - 1];
+    if (diff >= 0) gains += diff;
+    else losses -= diff;
+  }
+
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+
+  // El primer RSI
+  rsi[period] = 100 - 100 / (1 + avgGain / avgLoss);
+
+  // Siguientes valores
+  for (let i = period + 1; i < closes.length; i++) {
+    const diff = closes[i] - closes[i - 1];
+
+    const gain = Math.max(diff, 0);
+    const loss = Math.max(-diff, 0);
+
+    avgGain = (avgGain * (period - 1) + gain) / period;
+    avgLoss = (avgLoss * (period - 1) + loss) / period;
+
+    const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+    rsi[i] = 100 - 100 / (1 + rs);
+  }
+
+  // Convertimos a formato Lightweight Charts (SingleValueData)
+  return rsi
+    .map((value, i) => {
+      if (value === undefined) return null;
+      return { time: candles[i].time, value: Number(value.toFixed(2)) };
+    })
+    .filter((v) => v !== null);
+}
+
+function calculateSMA(data, period = 14) {
+  const values = data.map((v) => v.value);
+  const sma = [];
+
+  for (let i = period - 1; i < values.length; i++) {
+    const slice = values.slice(i - period + 1, i + 1);
+    const avg = slice.reduce((a, b) => a + b, 0) / period;
+
+    sma.push({
+      time: data[i].time,
+      value: Number(avg.toFixed(2)),
+    });
+  }
+
+  return sma;
+}
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
