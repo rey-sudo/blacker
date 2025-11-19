@@ -167,13 +167,12 @@ onBeforeUnmount(() => {
 });
 
 function calculateRSI(candles, period = 14) {
-  const closes = candles.map((c) => c.close);
-  const rsi = [];
+  const closes = candles.map(c => c.close);
+  const rsi = new Array(closes.length).fill(null);
 
   let gains = 0;
   let losses = 0;
 
-  // Primera ventana
   for (let i = 1; i <= period; i++) {
     const diff = closes[i] - closes[i - 1];
     if (diff >= 0) gains += diff;
@@ -183,13 +182,10 @@ function calculateRSI(candles, period = 14) {
   let avgGain = gains / period;
   let avgLoss = losses / period;
 
-  // El primer RSI
   rsi[period] = 100 - 100 / (1 + avgGain / avgLoss);
 
-  // Siguientes valores
   for (let i = period + 1; i < closes.length; i++) {
     const diff = closes[i] - closes[i - 1];
-
     const gain = Math.max(diff, 0);
     const loss = Math.max(-diff, 0);
 
@@ -200,13 +196,15 @@ function calculateRSI(candles, period = 14) {
     rsi[i] = 100 - 100 / (1 + rs);
   }
 
-  // Convertimos a formato Lightweight Charts (SingleValueData)
-  return rsi
-    .map((value, i) => {
-      if (value === undefined) return null;
-      return { time: candles[i].time, value: Number(value.toFixed(2)) };
-    })
-    .filter((v) => v !== null);
+  const first = rsi.find(v => v !== null);
+  for (let i = 0; i < rsi.length; i++) {
+    if (rsi[i] === null) rsi[i] = first;
+  }
+
+  return rsi.map((v, i) => ({
+    time: candles[i].time,
+    value: Number(v.toFixed(2)),
+  }));
 }
 
 function calculateSMA(data, period = 14) {
