@@ -1,8 +1,26 @@
 const fs = require('fs');
 
 class CSVValidator {
-  constructor(filename) {
+  constructor(filename, interval = '15m') {
     this.filename = filename;
+    this.interval = interval;
+    // Extraer minutos del intervalo (5m, 15m, 1h, etc.)
+    this.intervalMinutes = this.parseInterval(interval);
+    this.intervalMs = this.intervalMinutes * 60 * 1000;
+  }
+
+  parseInterval(interval) {
+    // Extraer el número del string (5m -> 5, 1h -> 60, 1d -> 1440)
+    if (interval.endsWith('m')) {
+      return parseInt(interval);
+    } else if (interval.endsWith('h')) {
+      return parseInt(interval) * 60;
+    } else if (interval.endsWith('d')) {
+      return parseInt(interval) * 60 * 24;
+    } else if (interval.endsWith('w')) {
+      return parseInt(interval) * 60 * 24 * 7;
+    }
+    return 15; // Default
   }
 
   validateOHLC(open, high, low, close) {
@@ -33,7 +51,6 @@ class CSVValidator {
 
   validateTimestamps(timestamps) {
     const errors = [];
-    const intervalMs = 15 * 60 * 1000;
 
     for (let i = 1; i < timestamps.length; i++) {
       const current = parseInt(timestamps[i]);
@@ -41,8 +58,8 @@ class CSVValidator {
       
       const diff = current - previous;
 
-      // Debe ser exactamente 15 minutos
-      if (diff !== intervalMs) {
+      // Debe ser exactamente el intervalo configurado
+      if (diff !== this.intervalMs) {
         errors.push({
           line: i + 2, // +2 por header y porque i empieza en 1
           expected: intervalMs,
@@ -68,6 +85,7 @@ class CSVValidator {
 
   async validate() {
     console.log('🔍 INICIANDO VALIDACIÓN PROFUNDA DEL CSV...\n');
+    console.log(`⏱️  Intervalo esperado: ${this.interval} (${this.intervalMinutes} minutos)\n`);
 
     const content = fs.readFileSync(this.filename, 'utf8');
     const lines = content.split('\n');
@@ -116,7 +134,7 @@ class CSVValidator {
         console.log(`❌ Línea ${i + 2}: Volumen negativo (Vol=${vol}, QVol=${qVol})`);
       }
 
-      // Detectar anomalías de precio (cambios >20% en 15min son muy raros)
+      // Detectar anomalías de precio (cambios >20% son muy raros)
       if (i > 0) {
         const prevClose = parseFloat(dataLines[i - 1].split(',')[5]);
         const currOpen = parseFloat(open);
@@ -198,7 +216,13 @@ class CSVValidator {
 }
 
 // Ejecutar validación
-const validator = new CSVValidator('btcusdt_15m_1year.csv');
+// IMPORTANTE: Cambia el intervalo según tu CSV
+// Ejemplos:
+// - new CSVValidator('btcusdt_5m_1year.csv', '5m')
+// - new CSVValidator('btcusdt_15m_1year.csv', '15m')
+// - new CSVValidator('ethusdt_1h_1year.csv', '1h')
+
+const validator = new CSVValidator('btcusdt_15m_1year.csv', '15m');
 validator.validate().catch(err => {
   console.error('Error en validación:', err.message);
   process.exit(1);

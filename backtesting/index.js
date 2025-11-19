@@ -228,5 +228,5 @@ class BinanceKlinesDownloader {
 // - new BinanceKlinesDownloader('ETHUSDT', '1h')
 // - new BinanceKlinesDownloader('BNBUSDT', '15m')
 
-const downloader = new BinanceKlinesDownloader('BTCUSDT', '15m');
+const downloader = new BinanceKlinesDownloader('BTCUSDT', '5m');
 downloader.run();
