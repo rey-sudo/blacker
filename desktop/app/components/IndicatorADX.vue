@@ -1,7 +1,7 @@
 <template>
   <div
     ref="container"
-    id="rsi-container"
+    id="adx-container"
     :style="{
       width: width + 'px',
       height: height + 'px',
@@ -12,15 +12,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
 import {
   createChart,
   CrosshairMode,
-  CandlestickSeries,
-  createSeriesMarkers,
   LineSeries,
   PriceScaleMode,
-  HistogramSeries,
+  createSeriesMarkers,
 } from "lightweight-charts";
 
 const props = defineProps({
@@ -38,6 +36,21 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  adxLength: {
+    type: Number,
+    required: false,
+    default: 14,
+  },
+  diLength: {
+    type: Number,
+    required: false,
+    default: 14,
+  },
+  keyLevel: {
+    type: Number,
+    required: false,
+    default: 23,
+  },
 });
 
 const useTabStore = createTabStore(props.tabId);
@@ -46,13 +59,17 @@ const tabStore = useTabStore();
 const container = ref(null);
 
 let indicator = null;
+let adxSeries = null;
+let plusDISeries = null;
+let minusDISeries = null;
+let keyLevelSeries = null;
 
 onMounted(async () => {
   try {
     await nextTick();
 
     if (!container.value) {
-      console.error("Los contenedores no están disponibles");
+      console.error("El contenedor no está disponible");
       return;
     }
 
@@ -105,9 +122,12 @@ onMounted(async () => {
       }
     );
 
-    const rsiSeries = indicator.addSeries(LineSeries, {
-      color: "purple",
+    // ADX Line Series
+    adxSeries = indicator.addSeries(LineSeries, {
+      color: "#00ff00",
       lineWidth: 2,
+      priceLineVisible: false,
+      lastValueVisible: true,
     });
 
     watch(
@@ -118,26 +138,34 @@ onMounted(async () => {
           return;
         }
 
-        indicator.setCrosshairPosition(null, value.time, rsiSeries);
+        indicator.setCrosshairPosition(null, value.time, adxSeries);
       }
     );
 
-    const smaSeries = indicator.addSeries(LineSeries, {
-      color: "yellow",
-      lineWidth: 2,
-      priceLineVisible: false,
-    });
-
-    const line70 = indicator.addSeries(LineSeries, {
-      color: "red",
+    // +DI Line Series
+    plusDISeries = indicator.addSeries(LineSeries, {
+      visible: false,
+      color: "#26a69a",
       lineWidth: 1,
       priceLineVisible: false,
+      lastValueVisible: false,
     });
 
-    const line30 = indicator.addSeries(LineSeries, {
-      color: "green",
+    // -DI Line Series
+    minusDISeries = indicator.addSeries(LineSeries, {
+      visible: false,
+      color: "#ef5350",
       lineWidth: 1,
       priceLineVisible: false,
+      lastValueVisible: false,
+    });
+
+    // Key Level Line
+    keyLevelSeries = indicator.addSeries(LineSeries, {
+      color: "rgba(255, 255, 255, 0.5)",
+      lineWidth: 1,
+      priceLineVisible: false,
+      lastValueVisible: false,
     });
 
     watch(
@@ -146,25 +174,56 @@ onMounted(async () => {
         if (tabStore.candles) {
           const allCandles = [...tabStore.candles.slice(0, -1), candle];
 
-          const rsiData = calculateRSI(allCandles, 14);
-          rsiSeries.setData(rsiData);
+          // Calculate ADX
+          const result = calculateADX(
+            allCandles,
+            props.diLength,
+            props.adxLength
+          );
 
-          const sma14 = calculateSMA(rsiData, 14);
-          smaSeries.setData(sma14);
+          if (!result) return;
 
-          if (rsiData.length > 0) {
-            const first = rsiData[0].time;
-            const last = rsiData[rsiData.length - 1].time;
+          const { adxData, plusDIData, minusDIData, reversalPoints } = result;
 
-            line70.setData([
-              { time: first, value: 70 },
-              { time: last, value: 70 },
+          // Set ADX data
+          adxSeries.setData(adxData);
+
+          // Set +DI data
+          plusDISeries.setData(plusDIData);
+
+          // Set -DI data
+          minusDISeries.setData(minusDIData);
+
+          // Create markers for reversal points
+          const markers = reversalPoints.map((point) => ({
+            time: point.time,
+            position: "aboveBar",
+            color: "#0096ff",
+            shape: "circle",
+            text: "R",
+          }));
+
+          createSeriesMarkers(adxSeries, markers);
+
+          // Set key level line
+          if (adxData.length > 0) {
+            const first = adxData[0].time;
+            const last = adxData[adxData.length - 1].time;
+
+            keyLevelSeries.setData([
+              { time: first, value: props.keyLevel },
+              { time: last, value: props.keyLevel },
             ]);
+          }
 
-            line30.setData([
-              { time: first, value: 30 },
-              { time: last, value: 30 },
-            ]);
+          // Apply color changes based on ADX direction
+          if (adxData.length >= 2) {
+            const lastIdx = adxData.length - 1;
+            const color =
+              adxData[lastIdx].value > adxData[lastIdx - 1].value
+                ? "#00ff00"
+                : "#ff0000";
+            adxSeries.applyOptions({ color });
           }
         }
       }
@@ -172,7 +231,7 @@ onMounted(async () => {
 
     indicator.timeScale().fitContent();
   } catch (error) {
-    console.error("Error al inicializar los gráficos:", error);
+    console.error("Error al inicializar el gráfico ADX:", error);
   }
 });
 
@@ -182,62 +241,151 @@ onBeforeUnmount(() => {
   }
 });
 
-function calculateRSI(candles, period = 14) {
-  const closes = candles.map((c) => c.close);
-  const rsi = new Array(closes.length).fill(null);
+// RMA (Running Moving Average) - Equivalent to ta.rma in Pine Script
+function rma(data, length) {
+  if (!data || data.length === 0) return [];
 
-  let gains = 0;
-  let losses = 0;
+  const result = new Array(data.length);
+  let alpha = 1.0 / length;
 
-  for (let i = 1; i <= period; i++) {
-    const diff = closes[i] - closes[i - 1];
-    if (diff >= 0) gains += diff;
-    else losses -= diff;
+  // First value
+  result[0] = data[0];
+
+  // Subsequent values using exponential moving average formula
+  for (let i = 1; i < data.length; i++) {
+    result[i] = alpha * data[i] + (1 - alpha) * result[i - 1];
   }
 
-  let avgGain = gains / period;
-  let avgLoss = losses / period;
-
-  rsi[period] = 100 - 100 / (1 + avgGain / avgLoss);
-
-  for (let i = period + 1; i < closes.length; i++) {
-    const diff = closes[i] - closes[i - 1];
-    const gain = Math.max(diff, 0);
-    const loss = Math.max(-diff, 0);
-
-    avgGain = (avgGain * (period - 1) + gain) / period;
-    avgLoss = (avgLoss * (period - 1) + loss) / period;
-
-    const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-    rsi[i] = 100 - 100 / (1 + rs);
-  }
-
-  const first = rsi.find((v) => v !== null);
-  for (let i = 0; i < rsi.length; i++) {
-    if (rsi[i] === null) rsi[i] = first;
-  }
-
-  return rsi.map((v, i) => ({
-    time: candles[i].time,
-    value: Number(v.toFixed(2)),
-  }));
+  return result;
 }
 
-function calculateSMA(data, period = 14) {
-  const values = data.map((v) => v.value);
-  const sma = [];
+// True Range calculation - Equivalent to ta.tr(true)
+function calculateTR(candles) {
+  if (!candles || candles.length === 0) return [];
 
-  for (let i = period - 1; i < values.length; i++) {
-    const slice = values.slice(i - period + 1, i + 1);
-    const avg = slice.reduce((a, b) => a + b, 0) / period;
+  const tr = new Array(candles.length);
 
-    sma.push({
-      time: data[i].time,
-      value: Number(avg.toFixed(2)),
-    });
+  // First bar: high - low
+  tr[0] = candles[0].high - candles[0].low;
+
+  // Subsequent bars: max of (high-low, |high-close[1]|, |low-close[1]|)
+  for (let i = 1; i < candles.length; i++) {
+    const hl = candles[i].high - candles[i].low;
+    const hc = Math.abs(candles[i].high - candles[i - 1].close);
+    const lc = Math.abs(candles[i].low - candles[i - 1].close);
+    tr[i] = Math.max(hl, hc, lc);
   }
 
-  return sma;
+  return tr;
+}
+
+// Directional Movement - Matches Pine Script logic exactly
+function dirmov(candles, length) {
+  if (!candles || candles.length < 2) return null;
+
+  const upMove = new Array(candles.length);
+  const downMove = new Array(candles.length);
+
+  // First bar has no change
+  upMove[0] = 0;
+  downMove[0] = 0;
+
+  // Calculate up and down movements (ta.change equivalent)
+  for (let i = 1; i < candles.length; i++) {
+    const up = candles[i].high - candles[i - 1].high;
+    const down = candles[i - 1].low - candles[i].low;
+
+    // Apply Pine Script logic: up > down and up > 0 ? up : 0
+    upMove[i] = up > down && up > 0 ? up : 0;
+    downMove[i] = down > up && down > 0 ? down : 0;
+  }
+
+  // Calculate True Range and smooth it
+  const tr = calculateTR(candles);
+  const smoothedTR = rma(tr, length);
+
+  // Smooth the directional movements
+  const smoothedUp = rma(upMove, length);
+  const smoothedDown = rma(downMove, length);
+
+  // Calculate +DI and -DI
+  const plus = new Array(candles.length);
+  const minus = new Array(candles.length);
+
+  for (let i = 0; i < candles.length; i++) {
+    plus[i] = smoothedTR[i] !== 0 ? (100 * smoothedUp[i]) / smoothedTR[i] : 0;
+    minus[i] =
+      smoothedTR[i] !== 0 ? (100 * smoothedDown[i]) / smoothedTR[i] : 0;
+  }
+
+  return { plus, minus };
+}
+
+// ADX Calculation - Matches Pine Script adx_func exactly
+function calculateADX(candles, diLength, adxLength) {
+  if (!candles || candles.length < Math.max(diLength, adxLength) + 2) {
+    return null;
+  }
+
+  // Calculate directional movement
+  const dm = dirmov(candles, diLength);
+  if (!dm) return null;
+
+  const { plus, minus } = dm;
+
+  // Calculate DX
+  const dx = new Array(candles.length);
+
+  for (let i = 0; i < candles.length; i++) {
+    const sum = plus[i] + minus[i];
+    if (sum === 0) {
+      dx[i] = 0;
+    } else {
+      dx[i] = (100 * Math.abs(plus[i] - minus[i])) / sum;
+    }
+  }
+
+  // Smooth DX to get ADX
+  const adx = rma(dx, adxLength);
+
+  // Prepare data for chart
+  const adxData = [];
+  const plusDIData = [];
+  const minusDIData = [];
+  const reversalPoints = [];
+
+  for (let i = 0; i < candles.length; i++) {
+    adxData.push({
+      time: candles[i].time,
+      value: Number(adx[i].toFixed(2)),
+    });
+
+    plusDIData.push({
+      time: candles[i].time,
+      value: Number(plus[i].toFixed(2)),
+    });
+
+    minusDIData.push({
+      time: candles[i].time,
+      value: Number(minus[i].toFixed(2)),
+    });
+
+    // Detect reversal: sig < sig[1] and sig[1] > sig[2] and sig[1] > keyLevel
+    if (i >= 2) {
+      const rule1 = adx[i] < adx[i - 1];
+      const rule2 = adx[i - 1] > adx[i - 2];
+      const rule3 = adx[i - 1] > props.keyLevel;
+
+      if (rule1 && rule2 && rule3) {
+        reversalPoints.push({
+          time: candles[i - 1].time,
+          value: Number(adx[i - 1].toFixed(2)),
+        });
+      }
+    }
+  }
+
+  return { adxData, plusDIData, minusDIData, reversalPoints };
 }
 </script>
 
