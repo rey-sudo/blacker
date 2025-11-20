@@ -122,7 +122,6 @@ onMounted(async () => {
       }
     );
 
-    // ADX Line Series
     adxSeries = indicator.addSeries(LineSeries, {
       color: "#00ff00",
       lineWidth: 2,
@@ -216,7 +215,6 @@ onMounted(async () => {
             ]);
           }
 
-          // Apply color changes based on ADX direction
           if (adxData.length >= 2) {
             const lastIdx = adxData.length - 1;
             const color =
@@ -241,17 +239,14 @@ onBeforeUnmount(() => {
   }
 });
 
-// RMA (Running Moving Average) - Equivalent to ta.rma in Pine Script
 function rma(data, length) {
   if (!data || data.length === 0) return [];
 
   const result = new Array(data.length);
   let alpha = 1.0 / length;
 
-  // First value
   result[0] = data[0];
 
-  // Subsequent values using exponential moving average formula
   for (let i = 1; i < data.length; i++) {
     result[i] = alpha * data[i] + (1 - alpha) * result[i - 1];
   }
@@ -259,16 +254,14 @@ function rma(data, length) {
   return result;
 }
 
-// True Range calculation - Equivalent to ta.tr(true)
 function calculateTR(candles) {
   if (!candles || candles.length === 0) return [];
 
   const tr = new Array(candles.length);
 
-  // First bar: high - low
   tr[0] = candles[0].high - candles[0].low;
 
-  // Subsequent bars: max of (high-low, |high-close[1]|, |low-close[1]|)
+
   for (let i = 1; i < candles.length; i++) {
     const hl = candles[i].high - candles[i].low;
     const hc = Math.abs(candles[i].high - candles[i - 1].close);
@@ -279,61 +272,59 @@ function calculateTR(candles) {
   return tr;
 }
 
-// Directional Movement - Matches Pine Script logic exactly
 function dirmov(candles, length) {
   if (!candles || candles.length < 2) return null;
 
   const upMove = new Array(candles.length);
   const downMove = new Array(candles.length);
 
-  // First bar has no change
   upMove[0] = 0;
   downMove[0] = 0;
 
-  // Calculate up and down movements (ta.change equivalent)
   for (let i = 1; i < candles.length; i++) {
     const up = candles[i].high - candles[i - 1].high;
     const down = candles[i - 1].low - candles[i].low;
 
-    // Apply Pine Script logic: up > down and up > 0 ? up : 0
+
     upMove[i] = up > down && up > 0 ? up : 0;
     downMove[i] = down > up && down > 0 ? down : 0;
   }
 
-  // Calculate True Range and smooth it
   const tr = calculateTR(candles);
-  const smoothedTR = rma(tr, length);
 
-  // Smooth the directional movements
+  const truerange = rma(tr, length);
+
   const smoothedUp = rma(upMove, length);
   const smoothedDown = rma(downMove, length);
 
-  // Calculate +DI and -DI
+
   const plus = new Array(candles.length);
   const minus = new Array(candles.length);
 
   for (let i = 0; i < candles.length; i++) {
-    plus[i] = smoothedTR[i] !== 0 ? (100 * smoothedUp[i]) / smoothedTR[i] : 0;
-    minus[i] =
-      smoothedTR[i] !== 0 ? (100 * smoothedDown[i]) / smoothedTR[i] : 0;
+    if (truerange[i] === 0) {
+      plus[i] = 0;
+      minus[i] = 0;
+    } else {
+      plus[i] = (100 * smoothedUp[i]) / truerange[i];
+      minus[i] = (100 * smoothedDown[i]) / truerange[i];
+    }
   }
 
   return { plus, minus };
 }
 
-// ADX Calculation - Matches Pine Script adx_func exactly
 function calculateADX(candles, diLength, adxLength) {
   if (!candles || candles.length < Math.max(diLength, adxLength) + 2) {
     return null;
   }
 
-  // Calculate directional movement
   const dm = dirmov(candles, diLength);
   if (!dm) return null;
 
   const { plus, minus } = dm;
 
-  // Calculate DX
+  // Calculate DX (ratio between 0 and 1)
   const dx = new Array(candles.length);
 
   for (let i = 0; i < candles.length; i++) {
@@ -341,14 +332,16 @@ function calculateADX(candles, diLength, adxLength) {
     if (sum === 0) {
       dx[i] = 0;
     } else {
-      dx[i] = (100 * Math.abs(plus[i] - minus[i])) / sum;
+      // Calculate ratio WITHOUT multiplying by 100
+      dx[i] = Math.abs(plus[i] - minus[i]) / sum;
     }
   }
 
-  // Smooth DX to get ADX
-  const adx = rma(dx, adxLength);
 
-  // Prepare data for chart
+  const smoothedDX = rma(dx, adxLength);
+  const adx = smoothedDX.map(val => val * 100);
+
+
   const adxData = [];
   const plusDIData = [];
   const minusDIData = [];
@@ -370,7 +363,6 @@ function calculateADX(candles, diLength, adxLength) {
       value: Number(minus[i].toFixed(2)),
     });
 
-    // Detect reversal: sig < sig[1] and sig[1] > sig[2] and sig[1] > keyLevel
     if (i >= 2) {
       const rule1 = adx[i] < adx[i - 1];
       const rule2 = adx[i - 1] > adx[i - 2];
