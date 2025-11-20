@@ -1,0 +1,20 @@
+create table if not exists slaves(
+  id VARCHAR(100) NOT NULL,
+  iteration INT UNSIGNED NOT NULL,
+  description VARCHAR(200) NOT NULL,
+  broker VARCHAR(100) NOT NULL,
+  status VARCHAR(100) NOT NULL,
+  symbol VARCHAR(50) NOT NULL,
+  symbol_info JSON NOT NULL,
+  executed BOOLEAN NOT NULL,
+  finished BOOLEAN NOT NULL,
+  leverage INT UNSIGNED NOT NULL,
+  stop_loss DECIMAL(3,2) UNSIGNED NOT NULL,
+  order_amount INT UNSIGNED NOT NULL,
+  margin_type VARCHAR(50) NOT NULL,
+  created_at BIGINT UNSIGNED NOT NULL,
+  updated_at BIGINT UNSIGNED NOT NULL,
+  rule_labels JSON NOT NULL,  
+  rule_values JSON NOT NULL, 
+  primary key(id)
+) ENGINE=InnoDB;
