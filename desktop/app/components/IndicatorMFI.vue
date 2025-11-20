@@ -118,9 +118,10 @@ onMounted(async () => {
     );
 
     haCandleSeries = indicator.addSeries(CandlestickSeries, {
-      upColor: "#26a69a",
-      downColor: "#ef5350",
+      upColor: colors.green,
+      downColor: colors.red,
       borderVisible: false,
+      borderColor: "transparent",
       wickUpColor: "transparent",
       wickDownColor: "transparent",
     });
