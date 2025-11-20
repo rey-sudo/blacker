@@ -221,8 +221,8 @@ onMounted(async () => {
             const lastIdx = adxData.length - 1;
             const color =
               adxData[lastIdx].value > adxData[lastIdx - 1].value
-                ? "#00ff00"
-                : "#ff0000";
+                ? colors.yellow
+                : colors.yellow;
             adxSeries.applyOptions({ color });
           }
         }
