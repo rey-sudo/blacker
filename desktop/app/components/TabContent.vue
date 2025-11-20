@@ -21,7 +21,13 @@
           :height="chartHeight / 2"
         />
       </div>
-      <div class="indicator"></div>
+      <div class="indicator">
+        <IndicatorADX
+          :tabId="tabId"
+          :width="chartWidth"
+          :height="chartHeight / 2"
+        />
+      </div>
       <div class="indicator"></div>
     </div>
     <div class="footer"></div>
