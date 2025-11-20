@@ -28,7 +28,13 @@
           :height="chartHeight / 2"
         />
       </div>
-      <div class="indicator"></div>
+      <div class="indicator">
+        <IndicatorMFI
+          :tabId="tabId"
+          :width="chartWidth"
+          :height="chartHeight / 2"
+        />
+      </div>
     </div>
     <div class="footer"></div>
   </div>

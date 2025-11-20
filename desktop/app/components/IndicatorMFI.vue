@@ -1,7 +1,7 @@
 <template>
   <div
     ref="container"
-    id="rsi-container"
+    id="mfi-ha-container"
     :style="{
       width: width + 'px',
       height: height + 'px',
@@ -12,15 +12,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
 import {
   createChart,
-  CrosshairMode,
   CandlestickSeries,
-  createSeriesMarkers,
   LineSeries,
   PriceScaleMode,
-  HistogramSeries,
 } from "lightweight-charts";
 
 const props = defineProps({
@@ -38,6 +35,16 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  mfiLength: {
+    type: Number,
+    required: false,
+    default: 14,
+  },
+  smaLength: {
+    type: Number,
+    required: false,
+    default: 14,
+  },
 });
 
 const useTabStore = createTabStore(props.tabId);
@@ -46,13 +53,18 @@ const tabStore = useTabStore();
 const container = ref(null);
 
 let indicator = null;
+let haCandleSeries = null;
+let smaSeries = null;
+let level80Series = null;
+let level50Series = null;
+let level20Series = null;
 
 onMounted(async () => {
   try {
     await nextTick();
 
     if (!container.value) {
-      console.error("Los contenedores no están disponibles");
+      console.error("El contenedor no está disponible");
       return;
     }
 
@@ -105,9 +117,13 @@ onMounted(async () => {
       }
     );
 
-    const rsiSeries = indicator.addSeries(LineSeries, {
-      color: "purple",
-      lineWidth: 2,
+    // Heikin-Ashi Candlestick Series
+    haCandleSeries = indicator.addSeries(CandlestickSeries, {
+      upColor: "#26a69a",
+      downColor: "#ef5350",
+      borderVisible: false,
+      wickUpColor: "#26a69a",
+      wickDownColor: "#ef5350",
     });
 
     watch(
@@ -118,26 +134,40 @@ onMounted(async () => {
           return;
         }
 
-        indicator.setCrosshairPosition(null, value.time, rsiSeries);
+        indicator.setCrosshairPosition(null, value.time, haCandleSeries);
       }
     );
 
-    const smaSeries = indicator.addSeries(LineSeries, {
-      color: "yellow",
-      lineWidth: 2,
-      priceLineVisible: false,
-    });
-
-    const line70 = indicator.addSeries(LineSeries, {
-      color: "red",
+    // SMA Line Series
+    smaSeries = indicator.addSeries(LineSeries, {
+      color: colors.yellow,
       lineWidth: 1,
       priceLineVisible: false,
+      lastValueVisible: true,
     });
 
-    const line30 = indicator.addSeries(LineSeries, {
-      color: "green",
+    // Level 80 (Overbought)
+    level80Series = indicator.addSeries(LineSeries, {
+      color: "#787B86",
       lineWidth: 1,
       priceLineVisible: false,
+      lastValueVisible: false,
+    });
+
+    // Level 50 (Middle)
+    level50Series = indicator.addSeries(LineSeries, {
+      color: "rgba(120, 123, 134, 0.5)",
+      lineWidth: 1,
+      priceLineVisible: false,
+      lastValueVisible: false,
+    });
+
+    // Level 20 (Oversold)
+    level20Series = indicator.addSeries(LineSeries, {
+      color: "#787B86",
+      lineWidth: 1,
+      priceLineVisible: false,
+      lastValueVisible: false,
     });
 
     watch(
@@ -146,24 +176,41 @@ onMounted(async () => {
         if (tabStore.candles) {
           const allCandles = [...tabStore.candles.slice(0, -1), candle];
 
-          const rsiData = calculateRSI(allCandles, 14);
-          rsiSeries.setData(rsiData);
+          // Calculate MFI and Heikin-Ashi
+          const result = calculateMFIHeikinAshi(
+            allCandles,
+            props.mfiLength,
+            props.smaLength
+          );
 
-          const sma14 = calculateSMA(rsiData, 14);
-          smaSeries.setData(sma14);
+          if (!result) return;
 
-          if (rsiData.length > 0) {
-            const first = rsiData[0].time;
-            const last = rsiData[rsiData.length - 1].time;
+          const { haCandles, smaData } = result;
 
-            line70.setData([
-              { time: first, value: 70 },
-              { time: last, value: 70 },
+          // Set Heikin-Ashi candles
+          haCandleSeries.setData(haCandles);
+
+          // Set SMA
+          smaSeries.setData(smaData);
+
+          // Set level lines
+          if (haCandles.length > 0) {
+            const first = haCandles[0].time;
+            const last = haCandles[haCandles.length - 1].time;
+
+            level80Series.setData([
+              { time: first, value: 80 },
+              { time: last, value: 80 },
             ]);
 
-            line30.setData([
-              { time: first, value: 30 },
-              { time: last, value: 30 },
+            level50Series.setData([
+              { time: first, value: 50 },
+              { time: last, value: 50 },
+            ]);
+
+            level20Series.setData([
+              { time: first, value: 20 },
+              { time: last, value: 20 },
             ]);
           }
         }
@@ -172,7 +219,7 @@ onMounted(async () => {
 
     indicator.timeScale().fitContent();
   } catch (error) {
-    console.error("Error al inicializar los gráficos:", error);
+    console.error("Error al inicializar el gráfico MFI HA:", error);
   }
 });
 
@@ -182,62 +229,123 @@ onBeforeUnmount(() => {
   }
 });
 
-function calculateRSI(candles, period = 14) {
-  const closes = candles.map((c) => c.close);
-  const rsi = new Array(closes.length).fill(null);
+// Calculate Money Flow Index (MFI)
+function calculateMFI(candles, length) {
+  if (!candles || candles.length < length + 1) return [];
 
-  let gains = 0;
-  let losses = 0;
-
-  for (let i = 1; i <= period; i++) {
-    const diff = closes[i] - closes[i - 1];
-    if (diff >= 0) gains += diff;
-    else losses -= diff;
+  const mfi = new Array(candles.length).fill(0);
+  
+  // Calculate typical price (HLC3)
+  const typicalPrice = candles.map(c => (c.high + c.low + c.close) / 3);
+  
+  for (let i = length; i < candles.length; i++) {
+    let positiveFlow = 0;
+    let negativeFlow = 0;
+    
+    for (let j = i - length + 1; j <= i; j++) {
+      const moneyFlow = typicalPrice[j] * (candles[j].high - candles[j].low + Math.abs(candles[j].high - candles[j].close) + Math.abs(candles[j].low - candles[j].close)) / 3;
+      
+      if (typicalPrice[j] > typicalPrice[j - 1]) {
+        positiveFlow += moneyFlow;
+      } else if (typicalPrice[j] < typicalPrice[j - 1]) {
+        negativeFlow += moneyFlow;
+      }
+    }
+    
+    if (negativeFlow === 0) {
+      mfi[i] = 100;
+    } else {
+      const moneyFlowRatio = positiveFlow / negativeFlow;
+      mfi[i] = 100 - (100 / (1 + moneyFlowRatio));
+    }
   }
-
-  let avgGain = gains / period;
-  let avgLoss = losses / period;
-
-  rsi[period] = 100 - 100 / (1 + avgGain / avgLoss);
-
-  for (let i = period + 1; i < closes.length; i++) {
-    const diff = closes[i] - closes[i - 1];
-    const gain = Math.max(diff, 0);
-    const loss = Math.max(-diff, 0);
-
-    avgGain = (avgGain * (period - 1) + gain) / period;
-    avgLoss = (avgLoss * (period - 1) + loss) / period;
-
-    const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
-    rsi[i] = 100 - 100 / (1 + rs);
+  
+  // Fill initial values with first calculated value
+  const firstValid = mfi.find(v => v !== 0);
+  for (let i = 0; i < length; i++) {
+    mfi[i] = firstValid || 50;
   }
-
-  const first = rsi.find((v) => v !== null);
-  for (let i = 0; i < rsi.length; i++) {
-    if (rsi[i] === null) rsi[i] = first;
-  }
-
-  return rsi.map((v, i) => ({
-    time: candles[i].time,
-    value: Number(v.toFixed(2)),
-  }));
+  
+  return mfi;
 }
 
-function calculateSMA(data, period = 14) {
-  const values = data.map((v) => v.value);
-  const sma = [];
+// Calculate SMA
+function calculateSMA(data, length) {
+  if (!data || data.length < length) return [];
+  
+  const sma = new Array(data.length);
+  
+  for (let i = 0; i < data.length; i++) {
+    if (i < length - 1) {
+      sma[i] = data[i];
+    } else {
+      let sum = 0;
+      for (let j = 0; j < length; j++) {
+        sum += data[i - j];
+      }
+      sma[i] = sum / length;
+    }
+  }
+  
+  return sma;
+}
 
-  for (let i = period - 1; i < values.length; i++) {
-    const slice = values.slice(i - period + 1, i + 1);
-    const avg = slice.reduce((a, b) => a + b, 0) / period;
-
-    sma.push({
-      time: data[i].time,
-      value: Number(avg.toFixed(2)),
-    });
+// Calculate Heikin-Ashi candles from MFI values
+function calculateMFIHeikinAshi(candles, mfiLength, smaLength) {
+  if (!candles || candles.length < Math.max(mfiLength, smaLength) + 1) {
+    return null;
   }
 
-  return sma;
+  // Calculate MFI
+  const mfi = calculateMFI(candles, mfiLength);
+  
+  // Calculate SMA of MFI
+  const mfiSMA = calculateSMA(mfi, smaLength);
+
+  // Calculate Heikin-Ashi from MFI values
+  const haCandles = [];
+  let ha_open = null;
+  
+  for (let i = 0; i < candles.length; i++) {
+    const mf = mfi[i];
+    
+    // ha_close calculation
+    let ha_close = mf;
+    
+    // ha_open calculation
+    if (ha_open === null) {
+      ha_open = mf;
+    }
+    
+    ha_close = (mf + ha_open) / 2;
+    
+    // ha_high and ha_low
+    const ha_high = Math.max(Math.max(ha_close, ha_open), mf);
+    const ha_low = Math.min(Math.min(ha_close, ha_open), mf);
+    
+    haCandles.push({
+      time: candles[i].time,
+      open: Number(ha_open.toFixed(2)),
+      high: Number(ha_high.toFixed(2)),
+      low: Number(ha_low.toFixed(2)),
+      close: Number(ha_close.toFixed(2)),
+    });
+    
+    // Update ha_open for next iteration
+    if (i === 0) {
+      ha_open = mf;
+    } else {
+      ha_open = (ha_open + haCandles[i - 1].close) / 2;
+    }
+  }
+
+  // Prepare SMA data
+  const smaData = mfiSMA.map((value, i) => ({
+    time: candles[i].time,
+    value: Number(value.toFixed(2)),
+  }));
+
+  return { haCandles, smaData };
 }
 </script>
 
