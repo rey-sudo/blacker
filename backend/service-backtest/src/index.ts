@@ -228,56 +228,32 @@ export class Backtester {
         continue;
       }
 
-      const rsiData = calculateRSI(candles);
-
-      const lastRsi = rsiData.at(-1)?.value;
-
-      if (lastRsi && lastRsi < 33) {
-        console.log(lastRsi);
-
-        await sleep(120_000);
-      }
-    }
-
-    while (true) {
       try {
         //await this.save();
 
         if (!this.state.rule_values[0]) {
-          /*
-          const klines = await this.getKlines(this.state.symbol, '15m', 200);
+          const rsiData = calculateRSI(candles);
 
-          const rsiParams = { klines, mark: 5, filename: `${this.state.rule_labels[0]}.png`, show: this.config.show_plots }
+          const lastRsi = rsiData.at(-1)?.value;
 
-          this.state.rule_values[0] = await relativeStrengthIndex(rsiParams);
+          if (lastRsi && lastRsi < 33) {
+            this.state.rule_values[0] = lastRsi < 33;
+          }
 
           if (!this.state.rule_values[0]) {
-            await this.sleep(300_000)
             continue;
           }
-            */
         }
 
         if (!this.state.rule_values[1]) {
-          /**
-          const klines = await this.getKlines(this.state.symbol, "15m", 200);
-
-          const squeezeParams = {
-            klines,
-            mark: 3,
-            filename: `${this.state.rule_labels[1]}.png`,
-            show: this.config.show_plots,
-          };
-
-          this.state.rule_values[1] = await squeezeMomentumIndicator(
-            squeezeParams
-          );
+          this.state.rule_values[1] = false;
 
           if (!this.state.rule_values[1]) {
+            console.log(this.state.rule_values);
+
             await this.sleep(300_000);
             continue;
           }
-        */
         }
 
         if (!this.state.rule_values[2]) {
