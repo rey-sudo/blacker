@@ -228,9 +228,15 @@ export class Backtester {
         continue;
       }
 
-      console.log(calculateRSI(candles));
+      const rsiData = calculateRSI(candles);
 
-      await sleep(60_000);
+      const lastRsi = rsiData.at(-1)?.value;
+
+      if (lastRsi && lastRsi < 33) {
+        console.log(lastRsi);
+
+        await sleep(120_000);
+      }
     }
 
     while (true) {
