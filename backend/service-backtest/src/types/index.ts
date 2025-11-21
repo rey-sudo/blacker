@@ -19,6 +19,8 @@ export interface BotState {
   leverage: number;
   stop_loss: number;
   dataset: Candle[];
+  window: number;
+  current_window: Candle[];
   created_at: number;
   updated_at: number;
   rule_labels: string[];
@@ -26,7 +28,7 @@ export interface BotState {
 }
 
 export interface Candle {
-  timestamp: number;
+  time: number;
   open: number;
   high: number;
   low: number;

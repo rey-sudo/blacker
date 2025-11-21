@@ -74,6 +74,8 @@ export class Backtester {
       leverage: LEVERAGE,
       stop_loss: STOP_LOSS,
       dataset: [],
+      window: 500,
+      current_window: [],
       created_at: Date.now(),
       updated_at: Date.now(),
       rule_labels: ["rsi", "squeeze", "adx", "heikin"],
@@ -116,7 +118,7 @@ export class Backtester {
         .pipe(csv())
         .on("data", (row) => {
           const parsed: Candle = {
-            timestamp: Math.floor(Number(row.timestamp) / 1000),
+            time: Math.floor(Number(row.timestamp) / 1000),
             open: Number(row.open),
             high: Number(row.high),
             low: Number(row.low),
@@ -219,12 +221,15 @@ export class Backtester {
     for (let i = startAt; i < this.state.dataset.length; i++) {
       const candles = this.getLast(this.state.dataset, i, window);
 
+      this.state.current_window = candles;
+
       if (candles.length < window) {
         continue;
       }
 
       console.log(i);
 
+      await sleep(60_000);
     }
 
     while (true) {
