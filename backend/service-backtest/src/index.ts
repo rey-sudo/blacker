@@ -264,14 +264,20 @@ export class Backtester {
         }
 
         if (!this.state.rule_values[2]) {
+          const keyLevel = 23;
+
           const { reversalPoints } = calculateADX(candles);
 
-          if (reversalPoints.length) {
-            const lastReversal = reversalPoints.at(-1)?.time;
+          const lastReversal = reversalPoints.at(-1);
 
+          if (lastReversal) {
             const lastCandle = this.state.dataset[i - 1];
 
-            this.state.rule_values[2] = lastReversal === lastCandle.time;
+            const rule1 = lastReversal.time === lastCandle.time;
+
+            const rule2 = lastReversal.value > keyLevel;
+
+            this.state.rule_values[2] = rule1 && rule2;
           }
 
           if (!this.state.rule_values[2]) {
