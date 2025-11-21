@@ -14,6 +14,7 @@ import { sleep } from "./utils/sleep.js";
 import { logger } from "./utils/logger.js";
 import { calculateRSI } from "./lib/rsi/rsi.js";
 import { calculateSqueeze } from "./lib/squeeze/squeeze.js";
+import { calculateADX } from "./lib/adx/adx.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -221,6 +222,8 @@ export class Backtester {
     const startAt = window;
 
     for (let i = startAt; i < this.state.dataset.length; i++) {
+      const currentCandle = this.state.dataset[i];
+
       const candles = this.getLast(this.state.dataset, i, window);
 
       this.state.current_window = candles;
@@ -261,32 +264,29 @@ export class Backtester {
         }
 
         if (!this.state.rule_values[2]) {
-          this.state.rule_values[2] = false;
-          console.log("ADX?");
+          const { reversalPoints } = calculateADX(candles);
+
+          if (reversalPoints.length) {
+            const lastReversal = reversalPoints.at(-1)?.time;
+
+            const lastCandle = this.state.dataset[i - 1];
+
+            this.state.rule_values[2] = lastReversal === lastCandle.time;
+          }
+
           if (!this.state.rule_values[2]) {
-            await this.sleep(300_000);
             continue;
           }
         }
 
         if (!this.state.rule_values[3]) {
-          /* 
-          const klines = await this.getKlines(this.state.symbol, "5m", 200);
-
-          const heikinParams = {
-            klines,
-            mark: 3,
-            filename: `${this.state.rule_labels[3]}.png`,
-            show: this.config.show_plots,
-          };
-
-          this.state.rule_values[3] = await heikinAshiBars(heikinParams);
+          console.log("HEIKEN?");
+          this.state.rule_values[3] = false;
 
           if (!this.state.rule_values[3]) {
             await this.sleep(60_000);
             continue;
           }
-            */
         }
 
         this.state.executed = true;

@@ -1,0 +1,171 @@
+import { Candle } from "../../types/index.js";
+
+const adxLength = 14;
+const diLength = 14;
+const keyLevel = 23;
+
+export interface TimeValue {
+  time: number;
+  value: number;
+}
+export interface IndicatorOutput {
+  adxData: TimeValue[];
+  plusDIData: TimeValue[];
+  minusDIData: TimeValue[];
+  reversalPoints: TimeValue[];
+}
+
+export function calculateADX(allCandles: Candle[]): IndicatorOutput {
+  const result = calculate(allCandles, diLength, adxLength);
+
+  const defaultResponse = {
+    adxData: [],
+    plusDIData: [],
+    minusDIData: [],
+    reversalPoints: [],
+  };
+
+  if (!result) return defaultResponse;
+
+  return result;
+}
+
+function rma(data: any, length: number) {
+  if (!data || data.length === 0) return [];
+
+  const result = new Array(data.length);
+  let alpha = 1.0 / length;
+
+  result[0] = data[0];
+
+  for (let i = 1; i < data.length; i++) {
+    result[i] = alpha * data[i] + (1 - alpha) * result[i - 1];
+  }
+
+  return result;
+}
+
+function calculateTR(candles: Candle[]) {
+  if (!candles || candles.length === 0) return [];
+
+  const tr = new Array(candles.length);
+
+  tr[0] = candles[0].high - candles[0].low;
+
+  for (let i = 1; i < candles.length; i++) {
+    const hl = candles[i].high - candles[i].low;
+    const hc = Math.abs(candles[i].high - candles[i - 1].close);
+    const lc = Math.abs(candles[i].low - candles[i - 1].close);
+    tr[i] = Math.max(hl, hc, lc);
+  }
+
+  return tr;
+}
+
+function dirmov(candles: Candle[], length: number) {
+  if (!candles || candles.length < 2) return null;
+
+  const upMove = new Array(candles.length);
+  const downMove = new Array(candles.length);
+
+  upMove[0] = 0;
+  downMove[0] = 0;
+
+  for (let i = 1; i < candles.length; i++) {
+    const up = candles[i].high - candles[i - 1].high;
+    const down = candles[i - 1].low - candles[i].low;
+
+    upMove[i] = up > down && up > 0 ? up : 0;
+    downMove[i] = down > up && down > 0 ? down : 0;
+  }
+
+  const tr = calculateTR(candles);
+
+  const truerange = rma(tr, length);
+
+  const smoothedUp = rma(upMove, length);
+  const smoothedDown = rma(downMove, length);
+
+  const plus = new Array(candles.length);
+  const minus = new Array(candles.length);
+
+  for (let i = 0; i < candles.length; i++) {
+    if (truerange[i] === 0) {
+      plus[i] = 0;
+      minus[i] = 0;
+    } else {
+      plus[i] = (100 * smoothedUp[i]) / truerange[i];
+      minus[i] = (100 * smoothedDown[i]) / truerange[i];
+    }
+  }
+
+  return { plus, minus };
+}
+
+export function calculate(
+  candles: Candle[],
+  diLength: number,
+  adxLength: number
+) {
+  if (!candles || candles.length < Math.max(diLength, adxLength) + 2) {
+    return null;
+  }
+
+  const dm = dirmov(candles, diLength);
+  if (!dm) return null;
+
+  const { plus, minus } = dm;
+
+  // Calculate DX (ratio between 0 and 1)
+  const dx = new Array(candles.length);
+
+  for (let i = 0; i < candles.length; i++) {
+    const sum = plus[i] + minus[i];
+    if (sum === 0) {
+      dx[i] = 0;
+    } else {
+      // Calculate ratio WITHOUT multiplying by 100
+      dx[i] = Math.abs(plus[i] - minus[i]) / sum;
+    }
+  }
+
+  const smoothedDX = rma(dx, adxLength);
+  const adx = smoothedDX.map((val) => val * 100);
+
+  const adxData = [];
+  const plusDIData = [];
+  const minusDIData = [];
+  const reversalPoints = [];
+
+  for (let i = 0; i < candles.length; i++) {
+    adxData.push({
+      time: candles[i].time,
+      value: Number(adx[i].toFixed(2)),
+    });
+
+    plusDIData.push({
+      time: candles[i].time,
+      value: Number(plus[i].toFixed(2)),
+    });
+
+    minusDIData.push({
+      time: candles[i].time,
+      value: Number(minus[i].toFixed(2)),
+    });
+
+    if (i >= 2) {
+      const rule1 = adx[i] < adx[i - 1];
+      const rule2 = adx[i - 1] > adx[i - 2];
+      const rule3 = adx[i - 1] > keyLevel;
+
+      if (rule1 && rule2 && rule3) {
+        reversalPoints.push({
+          time: candles[i - 1].time,
+          value: Number(adx[i - 1].toFixed(2)),
+        });
+      }
+    }
+  }
+
+  return { adxData, plusDIData, minusDIData, reversalPoints };
+}
