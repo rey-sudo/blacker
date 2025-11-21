@@ -26,7 +26,7 @@ export function startHttpServer(bot: Backtester) {
   });
 
   app.get(`/api/market/get-candle`, (req, res) => {
-    res.json({ success: true, data: bot.state.current_window.at(-1) });
+    res.json({ success: true, data: bot.state.current_window.slice(-1)[0] ?? [] });
   });
 
   app.get(`/api/backtest/get-logs`, getLogsHandler);
