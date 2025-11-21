@@ -6,7 +6,7 @@ type Status =
   | "finished"
   | "error";
 
-export interface BotState {
+export interface State {
   id: string;
   iteration: number;
   status: Status;
@@ -21,6 +21,7 @@ export interface BotState {
   dataset: Candle[];
   window: number;
   current_window: Candle[];
+  orders: Order[];
   created_at: number;
   updated_at: number;
   rule_labels: string[];
@@ -39,4 +40,20 @@ export interface Candle {
 export interface TimeValue {
   time: number;
   value: number;
+}
+
+export type OrderType = "market" | "limit";
+
+export type OrderState = "executed" | "finished";
+
+export interface Order {
+  type: OrderType;
+  state: OrderState;
+  price: number;
+  quantity: number;
+  take_profit: number;
+  stop_loss: number;
+  pnl?: number;
+  close_reason?: "take_profit" | "stop_loss";
+  close_price?: number;
 }
