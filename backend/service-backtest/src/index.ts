@@ -99,7 +99,7 @@ export class Backtester {
     try {
       logger.info("🚀 Starting slave...");
 
-      await this.setupData();
+      await this.loadData();
       // await this.setupDatabase();
     } catch (err: any) {
       logger.error(err);
@@ -108,30 +108,34 @@ export class Backtester {
     }
   }
 
-  private async setupData() {
+  private async loadData(): Promise<void> {
     const csvPath = path.join(root, "input", "btcusdt_15m_1y.csv");
 
-    fs.createReadStream(csvPath)
-      .pipe(csv())
-      .on("data", (row) => {
-        const parsed: Candle = {
-          timestamp: Math.floor(Number(row.timestamp) / 1000),
-          open: Number(row.open),
-          high: Number(row.high),
-          low: Number(row.low),
-          close: Number(row.close),
-          volume: Number(row.volume),
-        };
+    return new Promise((resolve, reject) => {
+      fs.createReadStream(csvPath)
+        .pipe(csv())
+        .on("data", (row) => {
+          const parsed: Candle = {
+            timestamp: Math.floor(Number(row.timestamp) / 1000),
+            open: Number(row.open),
+            high: Number(row.high),
+            low: Number(row.low),
+            close: Number(row.close),
+            volume: Number(row.volume),
+          };
 
-        this.state.dataset.push(parsed);
-      })
-      .on("end", () => {
-        console.log("CSV leído correctamente:");
-        console.log(this.state.dataset.length);
-      })
-      .on("error", (err) => {
-        console.error("Error al leer el CSV:", err);
-      });
+          this.state.dataset.push(parsed);
+        })
+        .on("end", () => {
+          console.log("CSV leído correctamente:");
+          console.log(this.state.dataset.length);
+          resolve();
+        })
+        .on("error", (err) => {
+          console.error("Error al leer el CSV:", err);
+          reject(err);
+        });
+    });
   }
 
   private async setupDatabase() {
@@ -199,10 +203,22 @@ export class Backtester {
     return await sleep(timeMs);
   }
 
-  public async getAllCandles() {}
+  private getLast(dataset: Candle[], index: number, n: number): Candle[] {
+    const from = index - n;
+    if (from < 0) return [];
+    return dataset.slice(from, index);
+  }
 
   public async run() {
     await this.setup();
+
+    const startAt = 500;
+
+    for (let i = startAt; i < this.state.dataset.length; i++) {
+      const last300 = this.getLast(this.state.dataset, i, 300);
+
+      console.log(last300);
+    }
 
     while (true) {
       try {
