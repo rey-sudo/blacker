@@ -73,6 +73,7 @@ export class Backtester {
       description: process.env.DESCRIPTION!,
       leverage: LEVERAGE,
       stop_loss: STOP_LOSS,
+      dataset: [],
       created_at: Date.now(),
       updated_at: Date.now(),
       rule_labels: ["rsi", "squeeze", "adx", "heikin"],
@@ -108,33 +109,25 @@ export class Backtester {
   }
 
   private async setupData() {
-    const results: Candle[] = [];
-
     const csvPath = path.join(root, "input", "btcusdt_15m_1y.csv");
 
-    fs.createReadStream( csvPath)
+    fs.createReadStream(csvPath)
       .pipe(csv())
       .on("data", (row) => {
         const parsed: Candle = {
-          timestamp: Number(row.timestamp),
-          date: row.date,
+          timestamp: Math.floor(Number(row.timestamp) / 1000),
           open: Number(row.open),
           high: Number(row.high),
           low: Number(row.low),
           close: Number(row.close),
           volume: Number(row.volume),
-          close_time: Number(row.close_time),
-          quote_volume: Number(row.quote_volume),
-          trades: Number(row.trades),
-          taker_buy_base: Number(row.taker_buy_base),
-          taker_buy_quote: Number(row.taker_buy_quote),
         };
 
-        results.push(parsed);
+        this.state.dataset.push(parsed);
       })
       .on("end", () => {
         console.log("CSV leído correctamente:");
-        console.log(results.length);
+        console.log(this.state.dataset.length);
       })
       .on("error", (err) => {
         console.error("Error al leer el CSV:", err);
