@@ -12,6 +12,7 @@ import { BotState, Candle } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { sleep } from "./utils/sleep.js";
 import { logger } from "./utils/logger.js";
+import { calculateRSI } from "./lib/rsi/rsi.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -227,7 +228,7 @@ export class Backtester {
         continue;
       }
 
-      console.log(i);
+      console.log(calculateRSI(candles));
 
       await sleep(60_000);
     }
