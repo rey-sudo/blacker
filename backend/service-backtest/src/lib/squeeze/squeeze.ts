@@ -5,8 +5,7 @@ const KC_LENGTH = 20;
 const KC_MULT = 1.5;
 const USE_TR = true;
 
-
-function sma(values, length) {
+function sma(values: any, length: any) {
   if (values.length < length) return null;
   let sum = 0;
   for (let i = values.length - length; i < values.length; i++) {
@@ -15,9 +14,9 @@ function sma(values, length) {
   return sum / length;
 }
 
-function stdev(values, length) {
+function stdev(values: any, length: any) {
   if (values.length < length) return null;
-  const mean = sma(values, length);
+  const mean: any = sma(values, length);
   let total = 0;
   for (let i = values.length - length; i < values.length; i++) {
     const d = values[i] - mean;
@@ -26,19 +25,19 @@ function stdev(values, length) {
   return Math.sqrt(total / length);
 }
 
-function highest(arr, length) {
+function highest(arr: any, length: any) {
   return arr.length >= length
     ? Math.max(...arr.slice(arr.length - length))
     : null;
 }
 
-function lowest(arr, length) {
+function lowest(arr: any, length: any) {
   return arr.length >= length
     ? Math.min(...arr.slice(arr.length - length))
     : null;
 }
 
-function linreg(values, length, offset = 0) {
+function linreg(values: any, length: any, offset = 0) {
   if (values.length < length) return null;
 
   let xSum = 0;
@@ -67,7 +66,7 @@ function linreg(values, length, offset = 0) {
   return slope * x + intercept;
 }
 
-function trueRange(candle, prev) {
+function trueRange(candle: Candle, prev: Candle | null) {
   if (!prev) return candle.high - candle.low;
   return Math.max(
     candle.high - candle.low,
@@ -76,7 +75,7 @@ function trueRange(candle, prev) {
   );
 }
 
-function computeSQZMOM(candles) {
+function computeSQZMOM(candles: Candle[]) {
   const close = candles.map((c) => c.close);
   const high = candles.map((c) => c.high);
   const low = candles.map((c) => c.low);
@@ -91,18 +90,18 @@ function computeSQZMOM(candles) {
 
     // ---- Bollinger Bands ----
     const basis = sma(sliceClose, BB_LENGTH);
-    const dev = stdev(sliceClose, BB_LENGTH);
+    const dev: any = stdev(sliceClose, BB_LENGTH);
 
     // ⚠ LazyBear BUG: usa multKC en lugar de multBB
-    const upperBB = basis !== null ? basis + dev * KC_MULT : null;
-    const lowerBB = basis !== null ? basis - dev * KC_MULT : null;
+    const upperBB: any = basis !== null ? basis + dev * KC_MULT : null;
+    const lowerBB: any = basis !== null ? basis - dev * KC_MULT : null;
 
     // ---- Keltner Channels ----
     const maKC = sma(sliceClose, KC_LENGTH);
-    const rangeMa = sma(tr.slice(0, i + 1), KC_LENGTH);
+    const rangeMa: any = sma(tr.slice(0, i + 1), KC_LENGTH);
 
-    const upperKC = maKC !== null ? maKC + rangeMa * KC_MULT : null;
-    const lowerKC = maKC !== null ? maKC - rangeMa * KC_MULT : null;
+    const upperKC: any = maKC !== null ? maKC + rangeMa * KC_MULT : null;
+    const lowerKC: any = maKC !== null ? maKC - rangeMa * KC_MULT : null;
 
     if (basis === null || maKC === null) {
       output.push({
@@ -120,9 +119,9 @@ function computeSQZMOM(candles) {
     const sqzNone = !sqzOn && !sqzOff;
 
     // ---- Oscillator ----
-    const hi = highest(high.slice(0, i + 1), KC_LENGTH);
-    const lo = lowest(low.slice(0, i + 1), KC_LENGTH);
-    const midSMA = sma(sliceClose, KC_LENGTH);
+    const hi: any = highest(high.slice(0, i + 1), KC_LENGTH);
+    const lo: any = lowest(low.slice(0, i + 1), KC_LENGTH);
+    const midSMA: any = sma(sliceClose, KC_LENGTH);
 
     const mid = ((hi + lo) / 2 + midSMA) / 2;
     const osc = close[i] - mid;
@@ -141,7 +140,7 @@ function computeSQZMOM(candles) {
   return output;
 }
 
-function calculate(allCandles: Candle[]) {
+export function calculateSqueeze(allCandles: Candle[]) {
   const sqzData = computeSQZMOM(allCandles);
 
   const lbGreenLight = "red";
@@ -149,8 +148,6 @@ function calculate(allCandles: Candle[]) {
 
   const lbRedLight = "green";
   const lbRedDark = "red";
-
-  const squeezeLineColor = "black";
 
   const result = sqzData.map((d, i) => {
     let prev = sqzData[i - 1] ? sqzData[i - 1].value : 0;
@@ -168,4 +165,6 @@ function calculate(allCandles: Candle[]) {
       color,
     };
   });
+
+  return result;
 }

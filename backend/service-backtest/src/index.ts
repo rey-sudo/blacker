@@ -237,7 +237,7 @@ export class Backtester {
 
           const lastRsi = rsiData.at(-1)?.value;
 
-          if (lastRsi && lastRsi < 33) {
+          if (lastRsi) {
             this.state.rule_values[0] = lastRsi < 33;
           }
 
@@ -247,33 +247,26 @@ export class Backtester {
         }
 
         if (!this.state.rule_values[1]) {
-          const squeezeData = calculateSqueeze(candles)
-          this.state.rule_values[1] = false;
+          const squeezeData = calculateSqueeze(candles);
+
+          const lastSqueeze = squeezeData.at(-1)?.color;
+
+          if (lastSqueeze) {
+            this.state.rule_values[1] = lastSqueeze === "green";
+          }
 
           if (!this.state.rule_values[1]) {
-            await this.sleep(300_000);
             continue;
           }
         }
 
         if (!this.state.rule_values[2]) {
-          /* 
-          const klines = await this.getKlines(this.state.symbol, "15m", 200);
-
-          const adxParams = {
-            klines,
-            mark: 4,
-            filename: `${this.state.rule_labels[2]}.png`,
-            show: this.config.show_plots,
-          };
-
-          this.state.rule_values[2] = await averageDirectionalIndex(adxParams);
-
+          this.state.rule_values[2] = false;
+          console.log("ADX?");
           if (!this.state.rule_values[2]) {
             await this.sleep(300_000);
             continue;
           }
-            */
         }
 
         if (!this.state.rule_values[3]) {
