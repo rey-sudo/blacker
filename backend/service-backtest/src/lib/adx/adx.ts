@@ -1,13 +1,9 @@
-import { Candle } from "../../types/index.js";
+import { Candle, TimeValue } from "../../types/index.js";
 
 const adxLength = 14;
 const diLength = 14;
 const keyLevel = 23;
 
-export interface TimeValue {
-  time: number;
-  value: number;
-}
 export interface IndicatorOutput {
   adxData: TimeValue[];
   plusDIData: TimeValue[];

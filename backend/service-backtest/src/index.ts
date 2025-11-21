@@ -15,6 +15,7 @@ import { logger } from "./utils/logger.js";
 import { calculateRSI } from "./lib/rsi/rsi.js";
 import { calculateSqueeze } from "./lib/squeeze/squeeze.js";
 import { calculateADX } from "./lib/adx/adx.js";
+import { calculateMFI } from "./lib/mfi/mfi.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -286,21 +287,27 @@ export class Backtester {
         }
 
         if (!this.state.rule_values[3]) {
-          console.log("HEIKEN?");
-          this.state.rule_values[3] = false;
+          const { haCandles, smaData } = calculateMFI(candles);
+
+          const lastHeikin = haCandles.at(-1);
+          const lastSma = smaData.at(-1);
+
+          if (lastHeikin && lastSma) {
+            const rule1 = lastHeikin.close < 50;
+            const rule2 = lastHeikin.close > lastSma.value;
+
+            this.state.rule_values[3] = rule1 && rule2;
+          }
 
           if (!this.state.rule_values[3]) {
-            await this.sleep(60_000);
             continue;
           }
         }
 
-        this.state.executed = true;
-        this.state.status = "executed";
-        this.state.finished = true;
-        this.state.status = "finished";
+        console.log("executed", currentCandle.close);
+
         //await this.save();
-        await this.sleep(60_000_000);
+        await this.sleep(3_000);
       } catch (err: any) {
         this.state.status = "error";
         logger.error(err);
