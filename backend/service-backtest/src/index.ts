@@ -12,7 +12,6 @@ import { BotState, Candle } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { sleep } from "./utils/sleep.js";
 import { logger } from "./utils/logger.js";
-import { relativeStrengthIndex } from "./tools/rsi/index.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -226,18 +225,6 @@ export class Backtester {
 
       console.log(i);
 
-      const rsiParams = {
-        klines: window,
-        mark: 5,
-        filename: `${this.state.rule_labels[0]}.png`,
-        show: this.config.show_plots,
-      };
-
-      const result = (this.state.rule_values[0] = await relativeStrengthIndex(
-        rsiParams
-      ));
-
-      console.log(result);
     }
 
     while (true) {
