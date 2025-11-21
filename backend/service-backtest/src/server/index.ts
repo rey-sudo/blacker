@@ -3,11 +3,11 @@ import morgan from "morgan";
 import helmet from "helmet";
 import express from 'express';
 import serveIndex from 'serve-index';
-import { root, SlaveBot } from "../index.js";
+import { Backtester, root } from "../index.js";
 import { logger } from "../utils/logger.js";
 import { getLogsHandler } from "../routes/get-logs.js";
 
-export function startHttpServer(bot: SlaveBot) {
+export function startHttpServer(bot: Backtester) {
 
     const app = express();
 
