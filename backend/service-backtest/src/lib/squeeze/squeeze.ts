@@ -66,7 +66,7 @@ function linreg(values: any, length: any, offset = 0) {
   return slope * x + intercept;
 }
 
-function trueRange(candle: Candle, prev: Candle | null) {
+function trueRange(candle: Candle, prev: any) {
   if (!prev) return candle.high - candle.low;
   return Math.max(
     candle.high - candle.low,
