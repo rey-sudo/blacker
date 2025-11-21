@@ -13,6 +13,7 @@ import { startHttpServer } from "./server/index.js";
 import { sleep } from "./utils/sleep.js";
 import { logger } from "./utils/logger.js";
 import { calculateRSI } from "./lib/rsi/rsi.js";
+import { calculateSqueeze } from "./lib/squeeze/squeeze.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -246,11 +247,10 @@ export class Backtester {
         }
 
         if (!this.state.rule_values[1]) {
+          const squeezeData = calculateSqueeze(candles)
           this.state.rule_values[1] = false;
 
           if (!this.state.rule_values[1]) {
-            console.log(this.state.rule_values);
-
             await this.sleep(300_000);
             continue;
           }
