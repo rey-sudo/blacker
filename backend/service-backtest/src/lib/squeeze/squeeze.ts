@@ -1,3 +1,11 @@
+import { Candle } from "../../types/index.js";
+
+const BB_LENGTH = 20;
+const KC_LENGTH = 20;
+const KC_MULT = 1.5;
+const USE_TR = true;
+
+
 function sma(values, length) {
   if (values.length < length) return null;
   let sum = 0;
@@ -133,16 +141,16 @@ function computeSQZMOM(candles) {
   return output;
 }
 
-function calculate(allCandles) {
+function calculate(allCandles: Candle[]) {
   const sqzData = computeSQZMOM(allCandles);
 
-  const lbGreenLight = colors.red;
-  const lbGreenDark = colors.red;
+  const lbGreenLight = "red";
+  const lbGreenDark = "red";
 
-  const lbRedLight = colors.green;
-  const lbRedDark = colors.red;
+  const lbRedLight = "green";
+  const lbRedDark = "red";
 
-  const squeezeLineColor = colors.black;
+  const squeezeLineColor = "black";
 
   const result = sqzData.map((d, i) => {
     let prev = sqzData[i - 1] ? sqzData[i - 1].value : 0;
