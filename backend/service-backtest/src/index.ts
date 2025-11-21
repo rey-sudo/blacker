@@ -12,6 +12,7 @@ import { BotState, Candle } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { sleep } from "./utils/sleep.js";
 import { logger } from "./utils/logger.js";
+import { relativeStrengthIndex } from "./tools/rsi/index.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -203,21 +204,40 @@ export class Backtester {
     return await sleep(timeMs);
   }
 
-  private getLast(dataset: Candle[], index: number, n: number): Candle[] {
-    const from = index - n;
-    if (from < 0) return [];
-    return dataset.slice(from, index);
+  private getLast(dataset: Candle[], index: number, window: number): Candle[] {
+    if (index < window) return [];
+
+    return dataset.slice(index - window + 1, index + 1);
   }
 
   public async run() {
     await this.setup();
 
-    const startAt = 500;
+    const window = 300;
+
+    const startAt = window;
 
     for (let i = startAt; i < this.state.dataset.length; i++) {
-      const last300 = this.getLast(this.state.dataset, i, 300);
+      const candles = this.getLast(this.state.dataset, i, window);
 
-      console.log(last300);
+      if (candles.length < window) {
+        continue;
+      }
+
+      console.log(i);
+
+      const rsiParams = {
+        klines: window,
+        mark: 5,
+        filename: `${this.state.rule_labels[0]}.png`,
+        show: this.config.show_plots,
+      };
+
+      const result = (this.state.rule_values[0] = await relativeStrengthIndex(
+        rsiParams
+      ));
+
+      console.log(result);
     }
 
     while (true) {
