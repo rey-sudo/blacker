@@ -338,17 +338,15 @@ export class Backtester {
         }
 
         if (!this.state.rule_values[1]) {
-          const squeezeData = calculateSqueeze(candles);
+          const lastSqueeze = calculateSqueeze(candles).at(-1)?.color;
 
-          const lastSqueeze = squeezeData.at(-1)?.color;
+          if (!lastSqueeze) continue;
 
-          if (lastSqueeze) {
-            this.state.rule_values[1] = lastSqueeze === "green";
-          }
+          const rule1 = lastSqueeze === "green";
 
-          if (!this.state.rule_values[1]) {
-            continue;
-          }
+          this.state.rule_values[1] = rule1;
+
+          if (!rule1) continue;
         }
 
         if (!this.state.rule_values[2]) {
