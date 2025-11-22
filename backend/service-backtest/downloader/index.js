@@ -11,6 +11,22 @@ class BinanceKlinesDownloader {
     this.maxRetries = 3;
   }
 
+  // ✅ NUEVA FUNCIÓN: Convierte intervalo a milisegundos
+  parseIntervalToMs(interval) {
+    const amount = parseInt(interval);
+    const unit = interval.replace(/[0-9]/g, '');
+    
+    const multipliers = {
+      'm': 60 * 1000,                    // minutos
+      'h': 60 * 60 * 1000,               // horas
+      'd': 24 * 60 * 60 * 1000,          // días
+      'w': 7 * 24 * 60 * 60 * 1000,      // semanas
+      'M': 30 * 24 * 60 * 60 * 1000      // meses (aproximado)
+    };
+    
+    return amount * (multipliers[unit] || 0);
+  }
+
   sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
@@ -72,10 +88,10 @@ class BinanceKlinesDownloader {
     let requestCount = 0;
     let totalCandles = 0;
 
-    // Calcular velas esperadas según el intervalo
-    const intervalMinutes = parseInt(this.interval);
-    const candlesPerDay = (24 * 60) / intervalMinutes;
-    const estimatedCandles = Math.floor(365 * candlesPerDay);
+    // ✅ CORREGIDO: Calcular velas esperadas con cualquier intervalo
+    const intervalMs = this.parseIntervalToMs(this.interval);
+    const yearMs = 365 * 24 * 60 * 60 * 1000;
+    const estimatedCandles = Math.floor(yearMs / intervalMs);
     console.log(`📊 Velas esperadas: ~${estimatedCandles.toLocaleString()}\n`);
 
     while (currentStartTime < endTime) {
@@ -133,9 +149,8 @@ class BinanceKlinesDownloader {
     console.log('\n🔍 Verificando integridad de datos...\n');
 
     let gaps = [];
-    // Calcular intervalo en milisegundos según el timeframe
-    const intervalMinutes = parseInt(this.interval);
-    const intervalMs = intervalMinutes * 60 * 1000;
+    // ✅ CORREGIDO: Calcular intervalo en milisegundos para cualquier timeframe
+    const intervalMs = this.parseIntervalToMs(this.interval);
 
     for (let i = 0; i < klines.length; i++) {
       const currentOpenTime = klines[i][0];
@@ -145,14 +160,14 @@ class BinanceKlinesDownloader {
         const expectedNextOpenTime = prevOpenTime + intervalMs;
 
         if (currentOpenTime > expectedNextOpenTime) {
-          const gapMinutes = (currentOpenTime - expectedNextOpenTime) / (1000 * 60);
-          const missingCandles = Math.floor(gapMinutes / intervalMinutes);
+          const gapMs = currentOpenTime - expectedNextOpenTime;
+          const missingCandles = Math.floor(gapMs / intervalMs);
           
           gaps.push({
             index: i,
             from: new Date(prevOpenTime + intervalMs).toISOString(),
             to: new Date(currentOpenTime).toISOString(),
-            gapMinutes: gapMinutes,
+            gapMs: gapMs,
             missingCandles: missingCandles
           });
         }
@@ -222,11 +237,12 @@ class BinanceKlinesDownloader {
 }
 
 // Ejecutar el downloader
-// Puedes cambiar el símbolo y el intervalo aquí:
-// Ejemplos:
+// Ahora funciona correctamente con CUALQUIER temporalidad:
+// - new BinanceKlinesDownloader('BTCUSDT', '1m')
 // - new BinanceKlinesDownloader('BTCUSDT', '5m')
-// - new BinanceKlinesDownloader('ETHUSDT', '1h')
-// - new BinanceKlinesDownloader('BNBUSDT', '15m')
+// - new BinanceKlinesDownloader('BTCUSDT', '1h')  ✅ AHORA CORRECTO
+// - new BinanceKlinesDownloader('ETHUSDT', '4h')  ✅ AHORA CORRECTO
+// - new BinanceKlinesDownloader('BNBUSDT', '1d')  ✅ AHORA CORRECTO
 
 const downloader = new BinanceKlinesDownloader('BTCUSDT', '1h');
 downloader.run();
