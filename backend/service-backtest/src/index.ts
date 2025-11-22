@@ -206,7 +206,7 @@ export class Backtester {
       const drawdown = maxEquity - equity;
 
       equityCurve.push({
-        time: (order.closed_at ?? Date.now()) * 1000, 
+        time: (order.closed_at ?? Date.now()) * 1000,
         equity,
         drawdown,
       });
@@ -326,17 +326,15 @@ export class Backtester {
         this.processOrders(currentCandle);
 
         if (!this.state.rule_values[0]) {
-          const rsiData = calculateRSI(candles);
+          const lastRsi = calculateRSI(candles).at(-1)?.value;
 
-          const lastRsi = rsiData.at(-1)?.value;
+          if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) continue;
 
-          if (lastRsi) {
-            this.state.rule_values[0] = lastRsi < 35;
-          }
+          const rule1 = lastRsi < 35;
 
-          if (!this.state.rule_values[0]) {
-            continue;
-          }
+          this.state.rule_values[0] = rule1;
+
+          if (!rule1) continue;
         }
 
         if (!this.state.rule_values[1]) {
