@@ -186,7 +186,9 @@ export class Backtester {
     const finishedOrders = this.orders.filter((o) => o.state === "finished");
 
     let equity = this.state.account_balance;
-    const equityCurve: { time: number; equity: number }[] = [];
+    let maxEquity = equity;
+    const equityCurve: { time: number; equity: number; drawdown: number }[] =
+      [];
 
     let wins = 0;
     let losses = 0;
@@ -200,14 +202,20 @@ export class Backtester {
       if (pnl > 0) wins++;
       if (pnl < 0) losses++;
 
+      if (equity > maxEquity) maxEquity = equity;
+      const drawdown = maxEquity - equity;
+
       equityCurve.push({
-        time: (order.closed_at ?? Date.now()) * 1000,
+        time: (order.closed_at ?? Date.now()) * 1000, 
         equity,
+        drawdown,
       });
     }
 
     const averagePnl =
       finishedOrders.length > 0 ? totalPnl / finishedOrders.length : 0;
+    const winrate =
+      finishedOrders.length > 0 ? (wins / finishedOrders.length) * 100 : 0;
 
     console.log("===== RESUMEN BACKTEST =====");
     console.log("Total PnL:", totalPnl.toFixed(2), "USD");
@@ -215,8 +223,6 @@ export class Backtester {
     console.log("Wins:", wins);
     console.log("Losses:", losses);
     console.log("Average PnL per trade:", averagePnl.toFixed(2), "USD");
-    const winrate =
-      finishedOrders.length > 0 ? (wins / finishedOrders.length) * 100 : 0;
     console.log("Winrate:", winrate.toFixed(2) + "%");
     console.log("=============================");
 
@@ -272,7 +278,7 @@ export class Backtester {
   }
 
   private createOrder(currentCandle: Candle) {
-    const riskPct = 0.5;
+    const riskPct = this.state.position_risk;
     const riskUsd = (this.state.account_balance * riskPct) / 100;
 
     const tp_pct = this.state.take_profit;
