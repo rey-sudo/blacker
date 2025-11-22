@@ -1,14 +1,10 @@
 import path from "path";
 import dotenv from "dotenv";
-import database from "./database/client.js";
 import * as fs from "fs";
 import csv from "csv-parser";
-import { findSlaveById } from "./utils/findSlaveById.js";
 import { ERROR_EVENTS } from "./utils/errors.js";
-import { createSlave } from "./utils/createSlave.js";
-import { updateSlave } from "./utils/updateSlave.js";
 import { fileURLToPath } from "url";
-import { State, Candle, Order, EquityPoint } from "./types/index.js";
+import { State, Candle, Order } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { sleep } from "./utils/sleep.js";
 import { logger } from "./utils/logger.js";
@@ -39,11 +35,6 @@ export class Backtester {
       "LEVERAGE",
       "SHOW_PLOTS",
       "DESCRIPTION",
-      // "DATABASE_HOST",
-      // "DATABASE_PORT",
-      //"DATABASE_USER",
-      //"DATABASE_PASSWORD",
-      //"DATABASE_NAME",
     ];
 
     for (const envName of requiredEnvVars) {
@@ -94,15 +85,6 @@ export class Backtester {
       show_plots: SHOW_PLOTS,
     };
 
-    /** 
-    database.connect({
-      host: process.env.DATABASE_HOST,
-      port: parseInt(process.env.DATABASE_PORT!),
-      user: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
-    });
-*/
     startHttpServer(this);
   }
 
@@ -146,66 +128,6 @@ export class Backtester {
           reject(err);
         });
     });
-  }
-
-  private async setupDatabase() {
-    let connection = null;
-
-    try {
-      logger.info("🛠️ Connecting to database...");
-
-      connection = await database.client.getConnection();
-
-      await connection.beginTransaction();
-
-      const findSlave = await findSlaveById(connection, this.state.id);
-
-      if (findSlave) {
-        logger.info("🔄 Resuming " + findSlave.id);
-        this.state = findSlave;
-      } else {
-        logger.info("⚠️ Slave not found, creating...");
-        await createSlave(connection, this.state);
-      }
-
-      await connection.commit();
-
-      this.state.status = "running";
-    } catch (err: any) {
-      await connection?.rollback();
-      throw err;
-    } finally {
-      connection?.release();
-    }
-  }
-
-  private async save() {
-    let connection = null;
-
-    try {
-      connection = await database.client.getConnection();
-
-      const findSlave = await findSlaveById(connection, this.state.id);
-
-      if (!findSlave) throw new Error("❌ Error slave not found");
-
-      await connection.beginTransaction();
-
-      await updateSlave(connection, this.state.id, this.state);
-
-      await connection.commit();
-
-      this.state.updated_at = Date.now();
-
-      this.state.iteration++;
-
-      logger.info("✅ State saved");
-    } catch (err: any) {
-      await connection?.rollback();
-      throw err;
-    } finally {
-      connection?.release();
-    }
   }
 
   private async sleep(timeMs: number) {
@@ -257,18 +179,39 @@ export class Backtester {
   }
 
   private async generateChart(accountSize: number = 10000) {
-    const finishedOrders = this.orders.filter((o) => o.state === "finished");
+  const finishedOrders = this.orders.filter((o) => o.state === "finished");
 
-    let equity = accountSize;
-    const equityCurve: { time: number; equity: number }[] = [];
+  let equity = accountSize;
+  const equityCurve: { time: number; equity: number }[] = [];
 
-    for (const order of finishedOrders) {
-      equity += order.pnl ?? 0;
-      equityCurve.push({
-        time: (order.closed_at ?? Date.now()) * 1000,
-        equity,
-      });
-    }
+  let wins = 0;
+  let losses = 0;
+  let totalPnl = 0;
+
+  for (const order of finishedOrders) {
+    const pnl = order.pnl ?? 0;
+    equity += pnl;
+    totalPnl += pnl;
+
+    if (pnl > 0) wins++;
+    if (pnl < 0) losses++;
+
+    equityCurve.push({
+      time: (order.closed_at ?? Date.now()) * 1000,
+      equity,
+    });
+  }
+
+  const averagePnl = finishedOrders.length > 0 ? totalPnl / finishedOrders.length : 0;
+
+
+  console.log("===== RESUMEN BACKTEST =====");
+  console.log("Total PnL:", totalPnl.toFixed(2), "USD");
+  console.log("Trades:", finishedOrders.length);
+  console.log("Wins:", wins);
+  console.log("Losses:", losses);
+  console.log("Average PnL per trade:", averagePnl.toFixed(2), "USD");
+  console.log("=============================");
 
     const width = 1000;
     const height = 500;
