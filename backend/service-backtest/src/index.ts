@@ -321,7 +321,7 @@ export class Backtester {
       }
 
       try {
-        // await this.sleep(500);
+        //await this.sleep(500);
 
         this.processOrders(currentCandle);
 
@@ -330,7 +330,7 @@ export class Backtester {
 
           if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) continue;
 
-          const rule1 = lastRsi < 35;
+          const rule1 = lastRsi < 30;
 
           this.state.rule_values[0] = rule1;
 
