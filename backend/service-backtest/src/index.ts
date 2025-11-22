@@ -211,6 +211,9 @@ export class Backtester {
     console.log("Wins:", wins);
     console.log("Losses:", losses);
     console.log("Average PnL per trade:", averagePnl.toFixed(2), "USD");
+    const winrate =
+      finishedOrders.length > 0 ? (wins / finishedOrders.length) * 100 : 0;
+    console.log("Winrate:", winrate.toFixed(2) + "%");
     console.log("=============================");
 
     const width = 1200;
@@ -246,7 +249,10 @@ export class Backtester {
         responsive: false,
         plugins: {
           legend: { display: true },
-          title: { display: true, text: "ESTRATEGIA TRADING LATINO MEJORADA 3 AÑOS" },
+          title: {
+            display: true,
+            text: "ESTRATEGIA TRADING LATINO MEJORADA 4 AÑOS",
+          },
         },
         scales: {
           x: { display: true },
@@ -265,8 +271,8 @@ export class Backtester {
     const riskPct = 0.5;
     const riskUsd = (this.state.account_balance * riskPct) / 100;
 
-    const tp_pct = 7;
-    const sl_pct = 5;
+    const tp_pct = 6.9;
+    const sl_pct = 4.1;
     const tp_decimal = tp_pct / 100;
     const sl_decimal = sl_pct / 100;
 
@@ -305,7 +311,7 @@ export class Backtester {
       }
 
       try {
-       // await this.sleep(500);
+        // await this.sleep(500);
 
         this.processOrders(currentCandle);
 
