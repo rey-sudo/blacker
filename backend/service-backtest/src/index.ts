@@ -246,8 +246,6 @@ export class Backtester {
         order.close_price = closeInfo.price;
         order.closed_at = currentCandle.time;
 
-        console.log("finished", currentCandle.low);
-
         if (isLong) {
           order.pnl = (closeInfo.price - order.price) * order.quantity;
         } else {
@@ -294,8 +292,6 @@ export class Backtester {
         //await this.sleep(1_000);
 
         this.processOrders(currentCandle);
-
-        console.log(i);
 
         if (!this.state.rule_values[0]) {
           const rsiData = calculateRSI(candles);
