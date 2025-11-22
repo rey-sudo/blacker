@@ -8,7 +8,7 @@ import { ERROR_EVENTS } from "./utils/errors.js";
 import { createSlave } from "./utils/createSlave.js";
 import { updateSlave } from "./utils/updateSlave.js";
 import { fileURLToPath } from "url";
-import { State, Candle, Order } from "./types/index.js";
+import { State, Candle, Order, EquityPoint } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { sleep } from "./utils/sleep.js";
 import { logger } from "./utils/logger.js";
@@ -16,6 +16,7 @@ import { calculateRSI } from "./lib/rsi/rsi.js";
 import { calculateSqueeze } from "./lib/squeeze/squeeze.js";
 import { calculateADX } from "./lib/adx/adx.js";
 import { calculateMFI } from "./lib/mfi/mfi.js";
+import { ChartJSNodeCanvas } from "chartjs-node-canvas";
 
 dotenv.config({ path: ".env.development" });
 
@@ -255,19 +256,66 @@ export class Backtester {
     }
   }
 
-  private calculateFinalPnl() {
+  private async generateChart(accountSize: number = 10000) {
     const finishedOrders = this.orders.filter((o) => o.state === "finished");
 
-    const totalPnl = finishedOrders.reduce((acc, o) => acc + (o.pnl ?? 0), 0);
+    let equity = accountSize;
+    const equityCurve: { time: number; equity: number }[] = [];
 
-    return {
-      totalPnl,
-      trades: finishedOrders.length,
-      wins: finishedOrders.filter((o) => o.pnl! > 0).length,
-      losses: finishedOrders.filter((o) => o.pnl! < 0).length,
-      averagePnl:
-        finishedOrders.length > 0 ? totalPnl / finishedOrders.length : 0,
+    for (const order of finishedOrders) {
+      equity += order.pnl ?? 0;
+      equityCurve.push({
+        time: (order.closed_at ?? Date.now()) * 1000,
+        equity,
+      });
+    }
+
+    const width = 1000;
+    const height = 500;
+    const chartJSNodeCanvas = new ChartJSNodeCanvas({
+      width,
+      height,
+      backgroundColour: "white",
+    });
+
+    const config: any = {
+      type: "line",
+      data: {
+        labels: equityCurve.map((p) => new Date(p.time).toLocaleString()),
+        datasets: [
+          {
+            label: "Equity",
+            data: equityCurve.map((p) => p.equity),
+            borderColor: "green",
+            fill: false,
+            tension: 0.1,
+          },
+          {
+            label: "Key Level 0",
+            data: equityCurve.map(() => accountSize),
+            borderColor: "gray",
+            borderDash: [5, 5],
+            fill: false,
+          },
+        ],
+      },
+      options: {
+        responsive: false,
+        plugins: {
+          legend: { display: true },
+          title: { display: true, text: "JUAN CABALLERO DROPDOWN" },
+        },
+        scales: {
+          x: { display: true },
+          y: { display: true },
+        },
+      },
     };
+
+    const buffer = await chartJSNodeCanvas.renderToBuffer(config);
+    await fs.promises.writeFile("output/dropdown.png", buffer);
+
+    return equityCurve;
   }
 
   public async run() {
@@ -350,7 +398,7 @@ export class Backtester {
           const lastSma = smaData.at(-1);
 
           if (lastHeikin && lastSma) {
-            const rule1 = lastHeikin.close < 50;
+            const rule1 = lastHeikin.close < 40;
             const rule2 = lastHeikin.close > lastSma.value;
 
             this.state.rule_values[3] = rule1 && rule2;
@@ -361,13 +409,12 @@ export class Backtester {
           }
         }
 
-        const accountSize = 10_000; 
-        const riskPct = 0.5; 
+        const accountSize = 10_000;
+        const riskPct = 0.5;
         const riskUsd = (accountSize * riskPct) / 100;
 
-
         const tp_pct = 5;
-        const sl_pct = 4; 
+        const sl_pct = 4;
         const tp_decimal = tp_pct / 100;
         const sl_decimal = sl_pct / 100;
 
@@ -387,16 +434,13 @@ export class Backtester {
         this.orders.push(order);
         this.state.rule_values = [false, false, false, false];
 
-        //RESET
-        //await this.save();
       } catch (err: any) {
         this.state.status = "error";
         logger.error(err);
       }
     }
 
-    const final = this.calculateFinalPnl();
-    console.log(final);
+    await this.generateChart();
   }
 }
 

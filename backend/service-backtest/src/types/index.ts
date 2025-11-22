@@ -60,3 +60,9 @@ export interface Order {
   close_price?: number;
   closed_at?: number;
 }
+
+export interface EquityPoint {
+  time: number;
+  equity: number;
+  drawdown: number;
+}
