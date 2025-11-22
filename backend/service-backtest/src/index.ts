@@ -8,7 +8,7 @@ import { ERROR_EVENTS } from "./utils/errors.js";
 import { createSlave } from "./utils/createSlave.js";
 import { updateSlave } from "./utils/updateSlave.js";
 import { fileURLToPath } from "url";
-import { BotState, Candle } from "./types/index.js";
+import { State, Candle, Order } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { sleep } from "./utils/sleep.js";
 import { logger } from "./utils/logger.js";
@@ -24,8 +24,9 @@ export const __dirname = path.dirname(__filename);
 export const root = path.join(__dirname, "..");
 
 export class Backtester {
-  public state: BotState;
-  private config: any;
+  public state: State;
+  public orders: Order[];
+  public config: any;
 
   constructor() {
     const requiredEnvVars = [
@@ -86,9 +87,12 @@ export class Backtester {
       rule_values: [false, false, false, false],
     };
 
+    this.orders = [];
+
     this.config = {
       show_plots: SHOW_PLOTS,
     };
+
     /** 
     database.connect({
       host: process.env.DATABASE_HOST,
@@ -106,7 +110,6 @@ export class Backtester {
       logger.info("🚀 Starting slave...");
 
       await this.loadData();
-      // await this.setupDatabase();
     } catch (err: any) {
       logger.error(err);
       this.state.status = "error";
@@ -215,6 +218,58 @@ export class Backtester {
     return dataset.slice(index - window + 1, index + 1);
   }
 
+  private processOrders(currentCandle: Candle) {
+    for (const order of this.orders) {
+      if (order.state !== "executed") continue;
+
+      let closeInfo: {
+        reason: "stop_loss" | "take_profit";
+        price: number;
+      } | null = null;
+
+      const isLong = order.side === "long";
+      const isShort = order.side === "short";
+
+      if (isLong && currentCandle.low <= order.stop_loss) {
+        closeInfo = { reason: "stop_loss", price: order.stop_loss };
+      } else if (isShort && currentCandle.high >= order.stop_loss) {
+        closeInfo = { reason: "stop_loss", price: order.stop_loss };
+      } else if (isLong && currentCandle.high >= order.take_profit) {
+        closeInfo = { reason: "take_profit", price: order.take_profit };
+      } else if (isShort && currentCandle.low <= order.take_profit) {
+        closeInfo = { reason: "take_profit", price: order.take_profit };
+      }
+
+      if (closeInfo) {
+        order.state = "finished";
+        order.close_reason = closeInfo.reason;
+        order.close_price = closeInfo.price;
+        order.closed_at = currentCandle.time;
+
+        if (isLong) {
+          order.pnl = (closeInfo.price - order.price) * order.quantity;
+        } else {
+          order.pnl = (order.price - closeInfo.price) * order.quantity;
+        }
+      }
+    }
+  }
+
+  private calculateFinalPnl() {
+    const finishedOrders = this.orders.filter((o) => o.state === "finished");
+
+    const totalPnl = finishedOrders.reduce((acc, o) => acc + (o.pnl ?? 0), 0);
+
+    return {
+      totalPnl,
+      trades: finishedOrders.length,
+      wins: finishedOrders.filter((o) => o.pnl! > 0).length,
+      losses: finishedOrders.filter((o) => o.pnl! < 0).length,
+      averagePnl:
+        finishedOrders.length > 0 ? totalPnl / finishedOrders.length : 0,
+    };
+  }
+
   public async run() {
     await this.setup();
 
@@ -234,7 +289,8 @@ export class Backtester {
       }
 
       try {
-        //await this.save();
+        //await this.sleep(1_000);
+        console.log(i);
 
         if (!this.state.rule_values[0]) {
           const rsiData = calculateRSI(candles);
@@ -304,15 +360,32 @@ export class Backtester {
           }
         }
 
-        console.log("executed", currentCandle.close);
+        const order: Order = {
+          type: "market",
+          side: "long",
+          state: "executed",
+          price: currentCandle.close,
+          quantity: 0.9,
+          take_profit: currentCandle.close * 1.01,
+          stop_loss: currentCandle.close * 0.99,
+        };
 
+        this.orders.push(order);
+
+        this.processOrders(currentCandle);
+
+        this.state.rule_values = [false, false, false, false];
+
+        //RESET
         //await this.save();
-        await this.sleep(3_000);
       } catch (err: any) {
         this.state.status = "error";
         logger.error(err);
       }
     }
+
+    const final = this.calculateFinalPnl();
+    console.log(final);
   }
 }
 

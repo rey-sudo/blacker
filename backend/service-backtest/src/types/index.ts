@@ -21,7 +21,6 @@ export interface State {
   dataset: Candle[];
   window: number;
   current_window: Candle[];
-  orders: Order[];
   created_at: number;
   updated_at: number;
   rule_labels: string[];
@@ -46,8 +45,11 @@ export type OrderType = "market" | "limit";
 
 export type OrderState = "executed" | "finished";
 
+export type OrderSide = "long" | "short";
+
 export interface Order {
   type: OrderType;
+  side: OrderSide;
   state: OrderState;
   price: number;
   quantity: number;
@@ -56,4 +58,5 @@ export interface Order {
   pnl?: number;
   close_reason?: "take_profit" | "stop_loss";
   close_price?: number;
+  closed_at?: number;
 }
