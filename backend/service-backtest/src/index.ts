@@ -365,7 +365,7 @@ export class Backtester {
           }
         }
 
-        const tp_pct = 4;
+        const tp_pct = 5;
         const sl_pct = 4;
 
         const tp_decimal = tp_pct / 100;
