@@ -291,7 +291,9 @@ export class Backtester {
       }
 
       try {
-        await this.sleep(1_000);
+        //await this.sleep(1_000);
+
+        this.processOrders(currentCandle);
 
         console.log(i);
 
@@ -363,8 +365,8 @@ export class Backtester {
           }
         }
 
-        const tp_pct = 0.5; 
-        const sl_pct = 0.5;
+        const tp_pct = 1;
+        const sl_pct = 2;
 
         const tp_decimal = tp_pct / 100;
         const sl_decimal = sl_pct / 100;
@@ -380,9 +382,6 @@ export class Backtester {
         };
 
         this.orders.push(order);
-
-        this.processOrders(currentCandle);
-
         this.state.rule_values = [false, false, false, false];
 
         //RESET
