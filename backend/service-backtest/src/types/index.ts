@@ -17,6 +17,7 @@ export interface State {
   position_risk: number;
   description: string;
   leverage: number;
+  take_profit: number;
   stop_loss: number;
   dataset: Candle[];
   window: number;

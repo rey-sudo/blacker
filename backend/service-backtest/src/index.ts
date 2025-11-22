@@ -31,6 +31,7 @@ export class Backtester {
       "SLAVE_NAME",
       "SYMBOL",
       "POSITION_RISK",
+      "TAKE_PROFIT",
       "STOP_LOSS",
       "LEVERAGE",
       "SHOW_PLOTS",
@@ -54,6 +55,7 @@ export class Backtester {
     const SYMBOL = process.env.SYMBOL!;
     const ACCOUNT_BALANCE = parseInt(process.env.ACCOUNT_BALANCE!, 10);
     const POSITION_RISK = parseFloat(process.env.POSITION_RISK!);
+    const TAKE_PROFIT = parseFloat(process.env.TAKE_PROFIT!);
     const STOP_LOSS = parseFloat(process.env.STOP_LOSS!);
     const LEVERAGE = parseInt(process.env.LEVERAGE!, 10);
     const SHOW_PLOTS = process.env.SHOW_PLOTS === "true";
@@ -69,6 +71,7 @@ export class Backtester {
       position_risk: POSITION_RISK,
       description: process.env.DESCRIPTION!,
       leverage: LEVERAGE,
+      take_profit: TAKE_PROFIT,
       stop_loss: STOP_LOSS,
       dataset: [],
       window: 500,
@@ -83,6 +86,7 @@ export class Backtester {
 
     this.config = {
       show_plots: SHOW_PLOTS,
+      filename: process.env.FILENAME!,
     };
 
     startHttpServer(this);
@@ -101,7 +105,7 @@ export class Backtester {
   }
 
   private async loadData(): Promise<void> {
-    const csvPath = path.join(root, "downloader", "btcusdt_4h_4y.csv");
+    const csvPath = path.join(root, "downloader", this.config.filename);
 
     return new Promise((resolve, reject) => {
       fs.createReadStream(csvPath)
@@ -251,7 +255,7 @@ export class Backtester {
           legend: { display: true },
           title: {
             display: true,
-            text: "ESTRATEGIA TRADING LATINO MEJORADA 4 AÑOS",
+            text: this.config.filename,
           },
         },
         scales: {
@@ -271,8 +275,8 @@ export class Backtester {
     const riskPct = 0.5;
     const riskUsd = (this.state.account_balance * riskPct) / 100;
 
-    const tp_pct = 6.9;
-    const sl_pct = 4.1;
+    const tp_pct = this.state.take_profit;
+    const sl_pct = this.state.stop_loss;
     const tp_decimal = tp_pct / 100;
     const sl_decimal = sl_pct / 100;
 
@@ -373,7 +377,7 @@ export class Backtester {
 
           if (lastHeikin && lastSma) {
             const rule1 = lastHeikin.close < 40;
-            const rule2 = lastHeikin.close > lastSma.value;
+            const rule2 = lastHeikin.high > lastSma.value;
 
             this.state.rule_values[3] = rule1 && rule2;
           }
