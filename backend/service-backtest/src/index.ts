@@ -303,7 +303,7 @@ export class Backtester {
           const lastRsi = rsiData.at(-1)?.value;
 
           if (lastRsi) {
-            this.state.rule_values[0] = lastRsi < 33;
+            this.state.rule_values[0] = lastRsi < 30;
           }
 
           if (!this.state.rule_values[0]) {
@@ -365,18 +365,25 @@ export class Backtester {
           }
         }
 
-        const tp_pct = 5;
-        const sl_pct = 4;
+        const accountSize = 10_000; 
+        const riskPct = 0.5; 
+        const riskUsd = (accountSize * riskPct) / 100;
 
+
+        const tp_pct = 5;
+        const sl_pct = 4; 
         const tp_decimal = tp_pct / 100;
         const sl_decimal = sl_pct / 100;
+
+        const stopDistance = currentCandle.close * sl_decimal;
+        const quantity = riskUsd / stopDistance;
 
         const order: Order = {
           type: "market",
           side: "long",
           state: "executed",
           price: currentCandle.close,
-          quantity: 0.9,
+          quantity,
           take_profit: currentCandle.close * (1 + tp_decimal),
           stop_loss: currentCandle.close * (1 - sl_decimal),
         };
