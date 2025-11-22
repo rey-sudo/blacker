@@ -360,14 +360,16 @@ export class Backtester {
           }
         }
 
+        const pct = 0.005; 
+
         const order: Order = {
           type: "market",
           side: "long",
           state: "executed",
           price: currentCandle.close,
           quantity: 0.9,
-          take_profit: currentCandle.close * 1.01,
-          stop_loss: currentCandle.close * 0.99,
+          take_profit: currentCandle.close * (1 + pct),
+          stop_loss: currentCandle.close * (1 - pct),
         };
 
         this.orders.push(order);
