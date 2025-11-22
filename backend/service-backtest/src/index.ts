@@ -213,8 +213,8 @@ export class Backtester {
     console.log("Average PnL per trade:", averagePnl.toFixed(2), "USD");
     console.log("=============================");
 
-    const width = 1000;
-    const height = 500;
+    const width = 1200;
+    const height = 600;
     const chartJSNodeCanvas = new ChartJSNodeCanvas({
       width,
       height,
@@ -267,7 +267,7 @@ export class Backtester {
     const riskUsd = (accountSize * riskPct) / 100;
 
     const tp_pct = 7;
-    const sl_pct = 5;
+    const sl_pct = 4;
     const tp_decimal = tp_pct / 100;
     const sl_decimal = sl_pct / 100;
 
