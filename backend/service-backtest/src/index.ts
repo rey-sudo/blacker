@@ -101,7 +101,7 @@ export class Backtester {
   }
 
   private async loadData(): Promise<void> {
-    const csvPath = path.join(root, "downloader", "btcusdt_1h_2y.csv");
+    const csvPath = path.join(root, "downloader", "btcusdt_4h_4y.csv");
 
     return new Promise((resolve, reject) => {
       fs.createReadStream(csvPath)
@@ -246,7 +246,7 @@ export class Backtester {
         responsive: false,
         plugins: {
           legend: { display: true },
-          title: { display: true, text: "JUAN CABALLERO DROPDOWN" },
+          title: { display: true, text: "ESTRATEGIA TRADING LATINO MEJORADA 3 AÑOS" },
         },
         scales: {
           x: { display: true },
@@ -267,7 +267,7 @@ export class Backtester {
     const riskUsd = (accountSize * riskPct) / 100;
 
     const tp_pct = 7;
-    const sl_pct = 4;
+    const sl_pct = 5;
     const tp_decimal = tp_pct / 100;
     const sl_decimal = sl_pct / 100;
 
@@ -306,7 +306,7 @@ export class Backtester {
       }
 
       try {
-        //await this.sleep(1_000);
+       // await this.sleep(500);
 
         this.processOrders(currentCandle);
 
