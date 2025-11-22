@@ -179,39 +179,39 @@ export class Backtester {
   }
 
   private async generateChart(accountSize: number = 10000) {
-  const finishedOrders = this.orders.filter((o) => o.state === "finished");
+    const finishedOrders = this.orders.filter((o) => o.state === "finished");
 
-  let equity = accountSize;
-  const equityCurve: { time: number; equity: number }[] = [];
+    let equity = accountSize;
+    const equityCurve: { time: number; equity: number }[] = [];
 
-  let wins = 0;
-  let losses = 0;
-  let totalPnl = 0;
+    let wins = 0;
+    let losses = 0;
+    let totalPnl = 0;
 
-  for (const order of finishedOrders) {
-    const pnl = order.pnl ?? 0;
-    equity += pnl;
-    totalPnl += pnl;
+    for (const order of finishedOrders) {
+      const pnl = order.pnl ?? 0;
+      equity += pnl;
+      totalPnl += pnl;
 
-    if (pnl > 0) wins++;
-    if (pnl < 0) losses++;
+      if (pnl > 0) wins++;
+      if (pnl < 0) losses++;
 
-    equityCurve.push({
-      time: (order.closed_at ?? Date.now()) * 1000,
-      equity,
-    });
-  }
+      equityCurve.push({
+        time: (order.closed_at ?? Date.now()) * 1000,
+        equity,
+      });
+    }
 
-  const averagePnl = finishedOrders.length > 0 ? totalPnl / finishedOrders.length : 0;
+    const averagePnl =
+      finishedOrders.length > 0 ? totalPnl / finishedOrders.length : 0;
 
-
-  console.log("===== RESUMEN BACKTEST =====");
-  console.log("Total PnL:", totalPnl.toFixed(2), "USD");
-  console.log("Trades:", finishedOrders.length);
-  console.log("Wins:", wins);
-  console.log("Losses:", losses);
-  console.log("Average PnL per trade:", averagePnl.toFixed(2), "USD");
-  console.log("=============================");
+    console.log("===== RESUMEN BACKTEST =====");
+    console.log("Total PnL:", totalPnl.toFixed(2), "USD");
+    console.log("Trades:", finishedOrders.length);
+    console.log("Wins:", wins);
+    console.log("Losses:", losses);
+    console.log("Average PnL per trade:", averagePnl.toFixed(2), "USD");
+    console.log("=============================");
 
     const width = 1000;
     const height = 500;
@@ -259,6 +259,32 @@ export class Backtester {
     await fs.promises.writeFile("output/dropdown.png", buffer);
 
     return equityCurve;
+  }
+
+  private createOrder(currentCandle: Candle) {
+    const accountSize = 10_000;
+    const riskPct = 0.5;
+    const riskUsd = (accountSize * riskPct) / 100;
+
+    const tp_pct = 5;
+    const sl_pct = 4;
+    const tp_decimal = tp_pct / 100;
+    const sl_decimal = sl_pct / 100;
+
+    const stopDistance = currentCandle.close * sl_decimal;
+    const quantity = riskUsd / stopDistance;
+
+    const order: Order = {
+      type: "market",
+      side: "long",
+      state: "executed",
+      price: currentCandle.close,
+      quantity,
+      take_profit: currentCandle.close * (1 + tp_decimal),
+      stop_loss: currentCandle.close * (1 - sl_decimal),
+    };
+
+    this.orders.push(order);
   }
 
   public async run() {
@@ -352,31 +378,8 @@ export class Backtester {
           }
         }
 
-        const accountSize = 10_000;
-        const riskPct = 0.5;
-        const riskUsd = (accountSize * riskPct) / 100;
-
-        const tp_pct = 5;
-        const sl_pct = 4;
-        const tp_decimal = tp_pct / 100;
-        const sl_decimal = sl_pct / 100;
-
-        const stopDistance = currentCandle.close * sl_decimal;
-        const quantity = riskUsd / stopDistance;
-
-        const order: Order = {
-          type: "market",
-          side: "long",
-          state: "executed",
-          price: currentCandle.close,
-          quantity,
-          take_profit: currentCandle.close * (1 + tp_decimal),
-          stop_loss: currentCandle.close * (1 - sl_decimal),
-        };
-
-        this.orders.push(order);
+        this.createOrder(currentCandle);
         this.state.rule_values = [false, false, false, false];
-
       } catch (err: any) {
         this.state.status = "error";
         logger.error(err);
