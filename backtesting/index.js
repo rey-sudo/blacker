@@ -179,7 +179,7 @@ class BinanceKlinesDownloader {
 
   async saveToCSV(klines, filename = null) {
     if (!filename) {
-      filename = `${this.symbol.toLowerCase()}_${this.interval}_1year.csv`;
+      filename = `${this.symbol.toLowerCase()}_${this.interval}_1y.csv`;
     }
     console.log(`\n💾 Guardando datos en ${filename}...`);
 
@@ -228,5 +228,5 @@ class BinanceKlinesDownloader {
 // - new BinanceKlinesDownloader('ETHUSDT', '1h')
 // - new BinanceKlinesDownloader('BNBUSDT', '15m')
 
-const downloader = new BinanceKlinesDownloader('BTCUSDT', '15m');
+const downloader = new BinanceKlinesDownloader('BTCUSDT', '1h');
 downloader.run();
