@@ -178,10 +178,10 @@ export class Backtester {
     }
   }
 
-  private async generateChart(accountSize: number = 10000) {
+  private async generateChart() {
     const finishedOrders = this.orders.filter((o) => o.state === "finished");
 
-    let equity = accountSize;
+    let equity = this.state.account_balance;
     const equityCurve: { time: number; equity: number }[] = [];
 
     let wins = 0;
@@ -235,7 +235,7 @@ export class Backtester {
           },
           {
             label: "Key Level 0",
-            data: equityCurve.map(() => accountSize),
+            data: equityCurve.map(() => this.state.account_balance),
             borderColor: "gray",
             borderDash: [5, 5],
             fill: false,
@@ -262,9 +262,8 @@ export class Backtester {
   }
 
   private createOrder(currentCandle: Candle) {
-    const accountSize = 10_000;
     const riskPct = 0.5;
-    const riskUsd = (accountSize * riskPct) / 100;
+    const riskUsd = (this.state.account_balance * riskPct) / 100;
 
     const tp_pct = 7;
     const sl_pct = 5;
