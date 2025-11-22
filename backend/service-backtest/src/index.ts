@@ -331,7 +331,7 @@ export class Backtester {
           const lastRsi = rsiData.at(-1)?.value;
 
           if (lastRsi) {
-            this.state.rule_values[0] = lastRsi < 30;
+            this.state.rule_values[0] = lastRsi < 35;
           }
 
           if (!this.state.rule_values[0]) {
