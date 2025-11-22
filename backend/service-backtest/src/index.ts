@@ -246,6 +246,8 @@ export class Backtester {
         order.close_price = closeInfo.price;
         order.closed_at = currentCandle.time;
 
+        console.log("finished", currentCandle.low);
+
         if (isLong) {
           order.pnl = (closeInfo.price - order.price) * order.quantity;
         } else {
@@ -289,7 +291,8 @@ export class Backtester {
       }
 
       try {
-        //await this.sleep(1_000);
+        await this.sleep(1_000);
+
         console.log(i);
 
         if (!this.state.rule_values[0]) {
@@ -360,7 +363,11 @@ export class Backtester {
           }
         }
 
-        const pct = 0.005; 
+        const tp_pct = 0.5; 
+        const sl_pct = 0.5;
+
+        const tp_decimal = tp_pct / 100;
+        const sl_decimal = sl_pct / 100;
 
         const order: Order = {
           type: "market",
@@ -368,8 +375,8 @@ export class Backtester {
           state: "executed",
           price: currentCandle.close,
           quantity: 0.9,
-          take_profit: currentCandle.close * (1 + pct),
-          stop_loss: currentCandle.close * (1 - pct),
+          take_profit: currentCandle.close * (1 + tp_decimal),
+          stop_loss: currentCandle.close * (1 - sl_decimal),
         };
 
         this.orders.push(order);
