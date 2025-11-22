@@ -391,8 +391,8 @@ export class Backtester {
 }
 
 async function main() {
-  const bot = new Backtester();
-  await bot.run();
+  const backtester = new Backtester();
+  await backtester.run();
 }
 
 main();
