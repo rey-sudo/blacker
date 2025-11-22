@@ -2,29 +2,58 @@ const axios = require('axios');
 const fs = require('fs');
 
 class BinanceKlinesDownloader {
-  constructor(symbol = 'BTCUSDT', interval = '15m') {
-    this.baseURL = 'https://api.binance.com/api/v3/klines';
-    this.symbol = symbol;
+  constructor(symbol = 'BTCUSDT', interval = '15m', years = 1) {
+    this.baseURL = 'https://api.binance.com/api/v3';
+    this.symbol = symbol.toUpperCase();
     this.interval = interval;
-    this.limit = 1000;
-    this.delayMs = 250;
-    this.maxRetries = 3;
+    this.years = years;
+    this.limit = 1000; // Máximo permitido por Binance
+    this.delayMs = 250; // 250ms = ~240 req/min (muy por debajo del límite de 6000/min)
+    this.maxRetries = 5;
+    this.timeout = 30000; // 30 segundos
+    
+    this.validateParameters();
   }
 
-  // ✅ NUEVA FUNCIÓN: Convierte intervalo a milisegundos
+  validateParameters() {
+    const validIntervals = ['1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '8h', '12h', '1d', '3d', '1w', '1M'];
+    
+    if (!validIntervals.includes(this.interval)) {
+      throw new Error(
+        `❌ Intervalo inválido: "${this.interval}"\n` +
+        `   Intervalos válidos: ${validIntervals.join(', ')}`
+      );
+    }
+    
+    if (!Number.isInteger(this.years) || this.years <= 0 || this.years > 15) {
+      throw new Error(
+        `❌ Años inválido: "${this.years}"\n` +
+        `   Debe ser un número entero entre 1 y 15`
+      );
+    }
+
+    if (!/^[A-Z]{2,10}USDT?$/.test(this.symbol)) {
+      console.warn(`⚠️  Símbolo "${this.symbol}" puede no ser válido. Verifica en Binance.`);
+    }
+  }
+
   parseIntervalToMs(interval) {
     const amount = parseInt(interval);
     const unit = interval.replace(/[0-9]/g, '');
     
     const multipliers = {
-      'm': 60 * 1000,                    // minutos
-      'h': 60 * 60 * 1000,               // horas
-      'd': 24 * 60 * 60 * 1000,          // días
-      'w': 7 * 24 * 60 * 60 * 1000,      // semanas
-      'M': 30 * 24 * 60 * 60 * 1000      // meses (aproximado)
+      'm': 60 * 1000,
+      'h': 60 * 60 * 1000,
+      'd': 24 * 60 * 60 * 1000,
+      'w': 7 * 24 * 60 * 60 * 1000,
+      'M': 30.44 * 24 * 60 * 60 * 1000 // Promedio de días en un mes
     };
     
-    return amount * (multipliers[unit] || 0);
+    if (!multipliers[unit]) {
+      throw new Error(`❌ Unidad de intervalo no reconocida: "${unit}"`);
+    }
+    
+    return amount * multipliers[unit];
   }
 
   sleep(ms) {
@@ -33,39 +62,72 @@ class BinanceKlinesDownloader {
 
   async fetchKlines(startTime, endTime, retryCount = 0) {
     try {
-      const params = {
-        symbol: this.symbol,
-        interval: this.interval,
-        startTime: startTime,
-        endTime: endTime,
-        limit: this.limit
-      };
-
-      const response = await axios.get(this.baseURL, { 
-        params,
-        timeout: 10000
+      const response = await axios.get(`${this.baseURL}/klines`, {
+        params: {
+          symbol: this.symbol,
+          interval: this.interval,
+          startTime: startTime,
+          endTime: endTime,
+          limit: this.limit
+        },
+        timeout: this.timeout,
+        validateStatus: (status) => status < 500 // No lanzar error automático en 4xx
       });
+
+      // Manejar rate limit (429)
+      if (response.status === 429) {
+        if (retryCount >= this.maxRetries) {
+          throw new Error(`Rate limit excedido después de ${this.maxRetries} intentos`);
+        }
+        
+        const retryAfter = response.headers['retry-after'] 
+          ? parseInt(response.headers['retry-after']) * 1000 
+          : Math.pow(2, retryCount) * 1000;
+        
+        console.log(`   ⚠️  Rate limit (429). Esperando ${(retryAfter/1000).toFixed(1)}s... (intento ${retryCount + 1}/${this.maxRetries})`);
+        await this.sleep(retryAfter);
+        return this.fetchKlines(startTime, endTime, retryCount + 1);
+      }
+
+      // Verificar respuesta exitosa
+      if (response.status !== 200) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
       return response.data;
+
     } catch (error) {
+      // Detectar IP ban (418)
+      if (error.response && error.response.status === 418) {
+        const retryAfter = error.response.headers['retry-after'] || 'desconocido';
+        throw new Error(
+          `🚫 IP BANEADA (418) por violar rate limits.\n` +
+          `   Debes esperar: ${retryAfter} segundos\n` +
+          `   Contacta a Binance si crees que es un error.`
+        );
+      }
+
+      // Retry para otros errores
       if (retryCount < this.maxRetries) {
         const waitTime = Math.pow(2, retryCount) * 1000;
-        console.log(`   ⚠️  Error: ${error.message}. Reintentando en ${waitTime/1000}s... (intento ${retryCount + 1}/${this.maxRetries})`);
+        const errorMsg = error.response?.data?.msg || error.message;
+        console.log(`   ⚠️  Error: ${errorMsg}. Reintentando en ${waitTime/1000}s... (${retryCount + 1}/${this.maxRetries})`);
         await this.sleep(waitTime);
         return this.fetchKlines(startTime, endTime, retryCount + 1);
       }
-      console.error(`   ❌ Error después de ${this.maxRetries} intentos: ${error.message}`);
-      throw error;
+
+      throw new Error(`Fallo después de ${this.maxRetries} reintentos: ${error.message}`);
     }
   }
 
   removeDuplicates(klines) {
-    const seen = new Map();
+    const seen = new Set();
     const unique = [];
 
     for (const kline of klines) {
       const openTime = kline[0];
       if (!seen.has(openTime)) {
-        seen.set(openTime, true);
+        seen.add(openTime);
         unique.push(kline);
       }
     }
@@ -73,176 +135,228 @@ class BinanceKlinesDownloader {
     return unique;
   }
 
-  async downloadYearData() {
-    console.log('🚀 Iniciando descarga de datos de BTCUSDT 15m (1 año)...\n');
-
+  async downloadData() {
     const endTime = Date.now();
-    const startTime = endTime - (365 * 24 * 60 * 60 * 1000);
+    const startTime = endTime - (this.years * 365 * 24 * 60 * 60 * 1000);
 
-    console.log(`📅 Período: ${new Date(startTime).toISOString()} hasta ${new Date(endTime).toISOString()}`);
-    console.log(`⏱️  Intervalo: ${this.interval}`);
-    console.log(`🎯 Par: ${this.symbol}\n`);
+    this.printDownloadHeader(startTime, endTime);
 
     let allKlines = [];
     let currentStartTime = startTime;
+    let lastStartTime = null;
     let requestCount = 0;
-    let totalCandles = 0;
+    let stuckCount = 0;
+    const maxStuckIterations = 3; // Salir si no avanza 3 veces
 
-    // ✅ CORREGIDO: Calcular velas esperadas con cualquier intervalo
     const intervalMs = this.parseIntervalToMs(this.interval);
-    const yearMs = 365 * 24 * 60 * 60 * 1000;
-    const estimatedCandles = Math.floor(yearMs / intervalMs);
+    const estimatedCandles = Math.floor((this.years * 365 * 24 * 60 * 60 * 1000) / intervalMs);
     console.log(`📊 Velas esperadas: ~${estimatedCandles.toLocaleString()}\n`);
 
     while (currentStartTime < endTime) {
-      try {
-        requestCount++;
-        const progress = ((currentStartTime - startTime) / (endTime - startTime) * 100).toFixed(1);
-        console.log(`📡 Request ${requestCount} (${progress}%): Desde ${new Date(currentStartTime).toISOString()}`);
+      // Detectar si el timestamp no avanza (loop infinito)
+      if (currentStartTime === lastStartTime) {
+        stuckCount++;
+        if (stuckCount >= maxStuckIterations) {
+          console.log('⚠️  No hay más datos históricos disponibles. Finalizando.\n');
+          break;
+        }
+      } else {
+        stuckCount = 0;
+      }
+      lastStartTime = currentStartTime;
 
+      requestCount++;
+      const progress = ((currentStartTime - startTime) / (endTime - startTime) * 100).toFixed(1);
+      
+      process.stdout.write(
+        `📡 Request ${requestCount.toString().padStart(4)} ` +
+        `[${progress.padStart(5)}%] ` +
+        `${new Date(currentStartTime).toISOString().slice(0, 19)}Z`
+      );
+
+      try {
         const klines = await this.fetchKlines(currentStartTime, endTime);
 
         if (klines.length === 0) {
-          console.log('✅ No hay más datos disponibles');
+          console.log(' → Sin datos');
           break;
         }
 
         allKlines.push(...klines);
-        totalCandles += klines.length;
+        console.log(` → ${klines.length} velas (total: ${allKlines.length.toLocaleString()})`);
 
-        console.log(`   ✓ Recibidas: ${klines.length} velas | Total acumulado: ${totalCandles.toLocaleString()}`);
-
+        // Actualizar startTime para siguiente iteración
         const lastKline = klines[klines.length - 1];
-        currentStartTime = lastKline[6] + 1;
+        currentStartTime = lastKline[6] + 1; // close_time + 1ms
 
+        // Si recibimos menos del límite, ya no hay más datos
         if (klines.length < this.limit) {
-          console.log('✅ Última página de datos alcanzada');
+          console.log('✅ Última página alcanzada\n');
           break;
         }
 
         await this.sleep(this.delayMs);
 
       } catch (error) {
-        console.error(`❌ Error fatal en request ${requestCount}: ${error.message}`);
+        console.log(` → ❌ Error`);
         throw error;
       }
     }
 
-    console.log(`\n✅ Descarga completada!`);
-    console.log(`📊 Total de velas descargadas: ${allKlines.length.toLocaleString()}`);
-    console.log(`📡 Total de requests realizados: ${requestCount}`);
+    if (allKlines.length === 0) {
+      throw new Error(
+        `No se encontraron datos para ${this.symbol} en intervalo ${this.interval}.\n` +
+        `   Verifica que el símbolo sea correcto.`
+      );
+    }
 
-    console.log('\n🔧 Procesando datos...');
-    const uniqueKlines = this.removeDuplicates(allKlines);
+    console.log(`\n✅ Descarga completada: ${allKlines.length.toLocaleString()} velas en ${requestCount} requests\n`);
+
+    return this.processData(allKlines);
+  }
+
+  processData(klines) {
+    console.log('🔧 Procesando datos...');
+
+    const uniqueKlines = this.removeDuplicates(klines);
     
-    if (uniqueKlines.length < allKlines.length) {
-      console.log(`⚠️  Duplicados removidos: ${allKlines.length - uniqueKlines.length}`);
+    if (uniqueKlines.length < klines.length) {
+      console.log(`   → Duplicados removidos: ${klines.length - uniqueKlines.length}`);
     }
 
     uniqueKlines.sort((a, b) => a[0] - b[0]);
-    console.log('✅ Datos ordenados cronológicamente');
+    console.log('   → Datos ordenados cronológicamente');
+    console.log('✅ Procesamiento completo\n');
 
     return uniqueKlines;
   }
 
   verifyDataIntegrity(klines) {
-    console.log('\n🔍 Verificando integridad de datos...\n');
+    console.log('🔍 Verificando integridad...\n');
 
-    let gaps = [];
-    // ✅ CORREGIDO: Calcular intervalo en milisegundos para cualquier timeframe
     const intervalMs = this.parseIntervalToMs(this.interval);
+    const gaps = [];
 
-    for (let i = 0; i < klines.length; i++) {
+    for (let i = 1; i < klines.length; i++) {
       const currentOpenTime = klines[i][0];
+      const prevCloseTime = klines[i - 1][6];
+      const expectedNextOpenTime = prevCloseTime + 1;
 
-      if (i > 0) {
-        const prevOpenTime = klines[i - 1][0];
-        const expectedNextOpenTime = prevOpenTime + intervalMs;
-
-        if (currentOpenTime > expectedNextOpenTime) {
-          const gapMs = currentOpenTime - expectedNextOpenTime;
-          const missingCandles = Math.floor(gapMs / intervalMs);
-          
-          gaps.push({
-            index: i,
-            from: new Date(prevOpenTime + intervalMs).toISOString(),
-            to: new Date(currentOpenTime).toISOString(),
-            gapMs: gapMs,
-            missingCandles: missingCandles
-          });
-        }
+      // Verificar si hay gap (más de 1ms de diferencia es sospechoso)
+      const actualGap = currentOpenTime - expectedNextOpenTime;
+      
+      if (actualGap >= intervalMs) {
+        const missingCandles = Math.floor(actualGap / intervalMs);
+        
+        gaps.push({
+          index: i,
+          from: new Date(expectedNextOpenTime).toISOString(),
+          to: new Date(currentOpenTime).toISOString(),
+          missingCandles: missingCandles
+        });
       }
     }
 
     console.log(`📊 Total de velas: ${klines.length.toLocaleString()}`);
-    console.log(`🕳️  Gaps encontrados: ${gaps.length}`);
+    console.log(`📅 Rango: ${new Date(klines[0][0]).toISOString()} → ${new Date(klines[klines.length-1][0]).toISOString()}`);
+    console.log(`🕳️  Gaps detectados: ${gaps.length}`);
 
     if (gaps.length > 0) {
-      console.log('\n⚠️  Gaps detectados:');
-      gaps.forEach((gap, idx) => {
-        console.log(`   ${idx + 1}. Desde ${gap.from} hasta ${gap.to} (${gap.missingCandles} velas faltantes)`);
+      console.log('\n⚠️  Gaps encontrados:');
+      const maxToShow = 10;
+      gaps.slice(0, maxToShow).forEach((gap, idx) => {
+        console.log(`   ${(idx + 1).toString().padStart(2)}. ${gap.from} → ${gap.to} (${gap.missingCandles} velas faltantes)`);
       });
-      console.log('\n💡 Nota: Los gaps pueden ser normales en períodos de mantenimiento de Binance');
+      
+      if (gaps.length > maxToShow) {
+        console.log(`   ... y ${gaps.length - maxToShow} gaps adicionales`);
+      }
+      
+      console.log('\n💡 Los gaps son normales durante mantenimiento de Binance o baja liquidez');
+    } else {
+      console.log('✅ Sin gaps: Datos continuos');
     }
 
-    if (gaps.length === 0) {
-      console.log('✅ Datos íntegros: Sin gaps detectados');
-    }
-
-    return { gaps };
+    console.log();
+    return { gaps, totalCandles: klines.length };
   }
 
   async saveToCSV(klines, filename = null) {
     if (!filename) {
-      filename = `${this.symbol.toLowerCase()}_${this.interval}_1y.csv`;
+      filename = `${this.symbol.toLowerCase()}_${this.interval}_${this.years}y.csv`;
     }
-    console.log(`\n💾 Guardando datos en ${filename}...`);
+
+    console.log(`💾 Guardando: ${filename}`);
 
     const header = 'timestamp,date,open,high,low,close,volume,close_time,quote_volume,trades,taker_buy_base,taker_buy_quote\n';
-
+    
     const csvLines = klines.map(k => {
       const date = new Date(k[0]).toISOString();
       return `${k[0]},${date},${k[1]},${k[2]},${k[3]},${k[4]},${k[5]},${k[6]},${k[7]},${k[8]},${k[9]},${k[10]}`;
     });
 
-    const csvContent = header + csvLines.join('\n');
+    fs.writeFileSync(filename, header + csvLines.join('\n'), 'utf8');
 
-    fs.writeFileSync(filename, csvContent, 'utf8');
+    const stats = fs.statSync(filename);
+    const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
+    
+    console.log(`✅ Archivo guardado (${sizeMB} MB)`);
+    console.log(`📍 ${filename}\n`);
+  }
 
-    const fileSizeMB = (fs.statSync(filename).size / (1024 * 1024)).toFixed(2);
-    console.log(`✅ Archivo guardado exitosamente`);
-    console.log(`📦 Tamaño: ${fileSizeMB} MB`);
-    console.log(`📍 Ubicación: ${filename}`);
-    console.log(`📅 Primera vela: ${new Date(klines[0][0]).toISOString()}`);
-    console.log(`📅 Última vela: ${new Date(klines[klines.length - 1][0]).toISOString()}`);
+  printDownloadHeader(startTime, endTime) {
+    console.log('\n' + '='.repeat(70));
+    console.log('🚀 BINANCE KLINES DOWNLOADER');
+    console.log('='.repeat(70));
+    console.log(`🎯 Símbolo:   ${this.symbol}`);
+    console.log(`⏱️  Intervalo: ${this.interval}`);
+    console.log(`📅 Período:   ${this.years} año${this.years > 1 ? 's' : ''}`);
+    console.log(`📆 Desde:     ${new Date(startTime).toISOString()}`);
+    console.log(`📆 Hasta:     ${new Date(endTime).toISOString()}`);
+    
+    const oldestData = new Date('2017-08-17');
+    if (new Date(startTime) < oldestData) {
+      console.log(`\n⚠️  NOTA: Binance solo tiene datos desde ~${oldestData.toISOString().split('T')[0]}`);
+      console.log(`   Se descargarán todos los datos disponibles.`);
+    }
+    
+    console.log('='.repeat(70) + '\n');
   }
 
   async run() {
+    const startTime = Date.now();
+    
     try {
-      const startTime = Date.now();
-
-      const klines = await this.downloadYearData();
+      const klines = await this.downloadData();
       this.verifyDataIntegrity(klines);
       await this.saveToCSV(klines);
 
-      const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
-      console.log(`\n⏱️  Tiempo total: ${totalTime} segundos`);
-      console.log('🎉 Proceso completado!\n');
+      const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+      console.log('='.repeat(70));
+      console.log(`🎉 COMPLETADO en ${duration}s`);
+      console.log('='.repeat(70) + '\n');
 
     } catch (error) {
-      console.error(`\n❌ Error fatal: ${error.message}`);
+      console.error('\n' + '='.repeat(70));
+      console.error('❌ ERROR FATAL');
+      console.error('='.repeat(70));
+      console.error(error.message);
+      console.error('='.repeat(70) + '\n');
       process.exit(1);
     }
   }
 }
 
-// Ejecutar el downloader
-// Ahora funciona correctamente con CUALQUIER temporalidad:
-// - new BinanceKlinesDownloader('BTCUSDT', '1m')
-// - new BinanceKlinesDownloader('BTCUSDT', '5m')
-// - new BinanceKlinesDownloader('BTCUSDT', '1h')  ✅ AHORA CORRECTO
-// - new BinanceKlinesDownloader('ETHUSDT', '4h')  ✅ AHORA CORRECTO
-// - new BinanceKlinesDownloader('BNBUSDT', '1d')  ✅ AHORA CORRECTO
+// ========================================
+// CONFIGURACIÓN Y EJECUCIÓN
+// ========================================
 
-const downloader = new BinanceKlinesDownloader('BTCUSDT', '1h');
+// Ejemplos de uso:
+// new BinanceKlinesDownloader('BTCUSDT', '1m', 1)    // 1 año, 1 minuto
+// new BinanceKlinesDownloader('ETHUSDT', '5m', 2)    // 2 años, 5 minutos  
+// new BinanceKlinesDownloader('BTCUSDT', '1h', 3)    // 3 años, 1 hora
+// new BinanceKlinesDownloader('BNBUSDT', '4h', 5)    // 5 años, 4 horas
+// new BinanceKlinesDownloader('SOLUSDT', '1d', 2)    // 2 años, diario
+
+const downloader = new BinanceKlinesDownloader('BTCUSDT', '1h', 2);
 downloader.run();

@@ -101,7 +101,7 @@ export class Backtester {
   }
 
   private async loadData(): Promise<void> {
-    const csvPath = path.join(root, "input", "btcusdt_1h_1y.csv");
+    const csvPath = path.join(root, "downloader", "btcusdt_1h_2y.csv");
 
     return new Promise((resolve, reject) => {
       fs.createReadStream(csvPath)
