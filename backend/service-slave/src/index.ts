@@ -11,7 +11,7 @@ import { logger } from "./utils/logger.js";
 import { BotState } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { withRetry } from "./utils/index.js";
-import { fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
+import { fetchCandle, fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -175,6 +175,10 @@ export class SlaveBot {
   private async getCandles(params: GetCandlesParams) {
     return withRetry(() => fetchCandles(process.env.MARKET_HOST!, params));
   }
+  
+  private async getCandle(params: GetCandlesParams) {
+    return withRetry(() => fetchCandle(process.env.MARKET_HOST!, params));
+  }
 
   private async sleep(timeMs: number) {
     logger.info("🕒 Sleeping");
@@ -200,6 +204,8 @@ export class SlaveBot {
   public async run() {
     await this.setup();
 
+    const window = 500;
+
     while (true) {
       try {
         await this.save();
@@ -212,8 +218,9 @@ export class SlaveBot {
         };
 
         const candles = await this.getCandles(params);
+        const candle = await this.getCandle(params);
 
-        console.log(candles.length);
+        console.log(candle);
 
         //await this.createOrder()
 
