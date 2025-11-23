@@ -43,7 +43,7 @@ export function startHttpServer(bot: SlaveBot) {
         res.status(404).send('Not Found');
     });
 
-    app.listen(3000, () => {
-        logger.info('📡 Server listening port 3000');
+    app.listen(8002, () => {
+        logger.info('📡 Server listening port 8002');
     });
 }
