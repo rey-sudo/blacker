@@ -1,10 +1,6 @@
 import path from "path";
 import dotenv from "dotenv";
 import database from "./database/client.js";
-import { relativeStrengthIndex } from "./tools/rsi/index.js";
-import { squeezeMomentumIndicator } from "./tools/squeeze/index.js";
-import { averageDirectionalIndex } from "./tools/adx/index.js";
-import { heikinAshiBars } from "./tools/heikin/index.js";
 import { findSlaveById } from "./utils/findSlaveById.js";
 import { ERROR_EVENTS } from "./utils/errors.js";
 import { createSlave } from "./utils/createSlave.js";
@@ -12,7 +8,7 @@ import { updateSlave } from "./utils/updateSlave.js";
 import { sleep } from "./utils/sleep.js";
 import { fileURLToPath } from "url";
 import { logger } from "./utils/logger.js";
-import { BotState, Market } from "./types/index.js";
+import { BotState } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { withRetry } from "./utils/index.js";
 
@@ -72,7 +68,7 @@ export class SlaveBot {
       id: SLAVE_NAME,
       status: "started",
       iteration: 0,
-      market: MARKET as Market,
+      market: MARKET,
       symbol: SYMBOL,
       account_balance: ACCOUNT_BALANCE,
       account_risk: ACCOUNT_RISK,
@@ -106,7 +102,6 @@ export class SlaveBot {
     try {
       logger.info("🚀 Starting slave...");
 
-      await this.setupSymbol();
       await this.setupDatabase();
     } catch (err: any) {
       logger.error(err);
@@ -114,11 +109,7 @@ export class SlaveBot {
       throw err;
     }
   }
-
-  private async setupSymbol() {
-    logger.info("🛠️ Configuring symbol...");
-  }
-
+  
   private async setupDatabase() {
     let connection = null;
 
@@ -180,13 +171,7 @@ export class SlaveBot {
   }
 
   private async getKlines(symbol: string, interval: any, limit: number) {
-    return withRetry(() =>
-      this.binance.getKlines({
-        symbol,
-        interval,
-        limit,
-      })
-    );
+    //return withRetry(() =>true);
   }
 
   private async sleep(timeMs: number) {
@@ -194,7 +179,7 @@ export class SlaveBot {
     return await sleep(timeMs);
   }
 
-  public async executeOrder() {
+  public async createOrder() {
     const isExecuted = this.state.executed || this.state.finished;
 
     if (isExecuted) {
@@ -203,130 +188,6 @@ export class SlaveBot {
       return;
     }
 
-    const { markPrice } = await this.binance.getMarkPrice({
-      symbol: this.state.symbol,
-    });
-    const rawPrice = parseFloat(markPrice);
-
-    const symbolInfo = this.state.symbol_info;
-    if (!symbolInfo) {
-      throw new Error("❌ Error symbol info not found");
-    }
-
-    const { filters, pricePrecision, quantityPrecision } = symbolInfo;
-
-    const priceFilter = filters.find((f) => f.filterType === "PRICE_FILTER");
-    const lotSizeFilter = filters.find((f) => f.filterType === "LOT_SIZE");
-    const minNotionalFilter = filters.find(
-      (f) => f.filterType === "MIN_NOTIONAL"
-    );
-
-    const tickSize = parseFloat(priceFilter?.tickSize as string);
-    const stepSize = parseFloat(lotSizeFilter?.stepSize as string);
-    const minNotional = parseFloat(minNotionalFilter?.notional as string);
-
-    const quantityRaw = this.state.order_amount / rawPrice;
-
-    const adjust = (value: number, precision: number, decimal: number) =>
-      parseFloat((Math.floor(value / precision) * precision).toFixed(decimal));
-
-    const price = adjust(rawPrice, tickSize, pricePrecision);
-    const quantity = adjust(quantityRaw, stepSize, quantityPrecision);
-
-    const notional = price * quantity;
-    if (notional < minNotional) {
-      throw new Error(
-        `❌ Total value (${notional.toFixed(
-          2
-        )} USDT) must be at least ${minNotional} USDT.`
-      );
-    }
-
-    //////////////////////////////////////////////////////////////////////////////// CREATE ORDER
-
-    const createBuyOrder: NewOrderResult = await withRetry(() =>
-      this.binance.submitNewOrder({
-        symbol: this.state.symbol,
-        side: "BUY",
-        type: "MARKET",
-        quantity,
-        newOrderRespType: "RESULT",
-      })
-    );
-
-    this.state.executed = true;
-    this.state.status = "executed";
-    await this.save();
-
-    logger.info(
-      `Buy: ${price} - Status: ${createBuyOrder.status} - orderId: ${createBuyOrder.orderId}`
-    );
-
-    //////////////////////////////////////////////////////////////////////////////// STOP LOSS
-
-    const stopLossPrice = adjust(
-      price * this.state.stop_loss,
-      tickSize,
-      pricePrecision
-    );
-
-    const createStopOrder = await withRetry(() =>
-      this.binance.submitNewOrder({
-        symbol: this.state.symbol,
-        side: "SELL",
-        type: "STOP_MARKET",
-        stopPrice: stopLossPrice,
-        closePosition: "true",
-        timeInForce: "GTC",
-        workingType: "MARK_PRICE",
-        newOrderRespType: "RESULT",
-      })
-    );
-
-    logger.info(
-      `🛑 STOP LOSS in ${stopLossPrice} - Status: ${createStopOrder.status} - OrderId: ${createStopOrder.orderId}`
-    );
-
-    //////////////////////////////////////////////////////////////////////////////// TARGETS
-
-    const targets = [
-      { multiplier: 1.02, fraction: 0.25 },
-      { multiplier: 1.04, fraction: 0.5 },
-      { multiplier: 1.06, fraction: 0.25 },
-    ];
-
-    const rawQuantities = targets.map((tp) => quantity * tp.fraction);
-
-    const rawTotal = rawQuantities.reduce((a, b) => a + b, 0);
-    const correctionFactor = quantity / rawTotal;
-
-    for (let i = 0; i < targets.length; i++) {
-      await sleep(1_000);
-      const target = targets[i];
-      const correctedQty = rawQuantities[i] * correctionFactor;
-      const qty = adjust(correctedQty, stepSize, quantityPrecision);
-      const stopPrice = adjust(
-        price * target.multiplier,
-        tickSize,
-        pricePrecision
-      );
-
-      await withRetry(() =>
-        this.binance.submitNewOrder({
-          symbol: this.state.symbol,
-          side: "SELL",
-          type: "TAKE_PROFIT_MARKET",
-          stopPrice,
-          quantity: qty,
-          timeInForce: "GTC",
-          workingType: "MARK_PRICE",
-          reduceOnly: "true",
-          newOrderRespType: "RESULT",
-        })
-      );
-
-      logger.info(`🎯 Take profit set at ${stopPrice} USDT for ${qty}`);
-    }
 
     this.state.finished = true;
     this.state.status = "finished";
@@ -342,81 +203,9 @@ export class SlaveBot {
       try {
         await this.save();
 
-        if (!this.state.rule_values[0]) {
-          const klines = await this.getKlines(this.state.symbol, "15m", 200);
 
-          const rsiParams = {
-            klines,
-            mark: 5,
-            filename: `${this.state.rule_labels[0]}.png`,
-            show: this.config.show_plots,
-          };
 
-          this.state.rule_values[0] = await relativeStrengthIndex(rsiParams);
-
-          if (!this.state.rule_values[0]) {
-            await this.sleep(300_000);
-            continue;
-          }
-        }
-
-        if (!this.state.rule_values[1]) {
-          const klines = await this.getKlines(this.state.symbol, "15m", 200);
-
-          const squeezeParams = {
-            klines,
-            mark: 3,
-            filename: `${this.state.rule_labels[1]}.png`,
-            show: this.config.show_plots,
-          };
-
-          this.state.rule_values[1] = await squeezeMomentumIndicator(
-            squeezeParams
-          );
-
-          if (!this.state.rule_values[1]) {
-            await this.sleep(300_000);
-            continue;
-          }
-        }
-
-        if (!this.state.rule_values[2]) {
-          const klines = await this.getKlines(this.state.symbol, "15m", 200);
-
-          const adxParams = {
-            klines,
-            mark: 4,
-            filename: `${this.state.rule_labels[2]}.png`,
-            show: this.config.show_plots,
-          };
-
-          this.state.rule_values[2] = await averageDirectionalIndex(adxParams);
-
-          if (!this.state.rule_values[2]) {
-            await this.sleep(300_000);
-            continue;
-          }
-        }
-
-        if (!this.state.rule_values[3]) {
-          const klines = await this.getKlines(this.state.symbol, "5m", 200);
-
-          const heikinParams = {
-            klines,
-            mark: 3,
-            filename: `${this.state.rule_labels[3]}.png`,
-            show: this.config.show_plots,
-          };
-
-          this.state.rule_values[3] = await heikinAshiBars(heikinParams);
-
-          if (!this.state.rule_values[3]) {
-            await this.sleep(60_000);
-            continue;
-          }
-        }
-
-        //await this.executeOrder()
+        //await this.createOrder()
 
         console.log("BUY");
 
@@ -441,4 +230,3 @@ async function main() {
 
 main();
 
-//v1

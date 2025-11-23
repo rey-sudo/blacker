@@ -32,7 +32,7 @@
     "@types/async-retry": "^1.4.9",
     "@types/express": "^5.0.3",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.10.1",
     "@types/request-ip": "^0.0.41",
     "@types/serve-index": "^1.9.4",
     "@types/tail": "^2.2.3",

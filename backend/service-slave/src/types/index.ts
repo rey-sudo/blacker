@@ -1,5 +1,3 @@
-import { FuturesSymbolExchangeInfo } from "binance";
-
 type Status =
   | "started"
   | "running"

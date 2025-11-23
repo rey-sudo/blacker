@@ -1,5 +1,8 @@
 import mysql from 'mysql2/promise';
+import dotenv from "dotenv";
 import { loadSql } from "./src/utils/loadSql.js"
+
+dotenv.config({ path: ".env.development" });
 
 const {
   DATABASE_HOST,
