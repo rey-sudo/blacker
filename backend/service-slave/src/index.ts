@@ -11,6 +11,7 @@ import { logger } from "./utils/logger.js";
 import { BotState } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { withRetry } from "./utils/index.js";
+import { fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -35,6 +36,7 @@ export class SlaveBot {
       "CONTRACT_SIZE",
       "SHOW_PLOTS",
       "DESCRIPTION",
+      "MARKET_HOST",
       "DATABASE_HOST",
       "DATABASE_PORT",
       "DATABASE_USER",
@@ -109,7 +111,7 @@ export class SlaveBot {
       throw err;
     }
   }
-  
+
   private async setupDatabase() {
     let connection = null;
 
@@ -170,8 +172,8 @@ export class SlaveBot {
     }
   }
 
-  private async getKlines(symbol: string, interval: any, limit: number) {
-    //return withRetry(() =>true);
+  private async getCandles(params: GetCandlesParams) {
+    return withRetry(() => fetchCandles(process.env.MARKET_HOST!, params));
   }
 
   private async sleep(timeMs: number) {
@@ -188,7 +190,6 @@ export class SlaveBot {
       return;
     }
 
-
     this.state.finished = true;
     this.state.status = "finished";
     await this.save();
@@ -203,7 +204,16 @@ export class SlaveBot {
       try {
         await this.save();
 
+        const params = {
+          symbol: "BTCUSDT",
+          source: "binance",
+          interval: "4h",
+          exchange: "binance",
+        };
 
+        const candles = await this.getCandles(params);
+
+        console.log(candles.length);
 
         //await this.createOrder()
 
@@ -229,4 +239,3 @@ async function main() {
 }
 
 main();
-
