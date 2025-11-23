@@ -185,7 +185,7 @@ const setupChart = () => {
 
       candleSeries.setData(data);
       calculateMa(data);
-      addMarkers(data);
+     // addMarkers(data);
     },
     { deep: true }
   );
