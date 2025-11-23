@@ -379,7 +379,7 @@ export class Backtester {
 
           if (lastHeikin && lastSma) {
             const rule1 = lastHeikin.close < 40;
-            const rule2 = lastHeikin.high > lastSma.value;
+            const rule2 = lastHeikin.close > lastSma.value;
 
             this.state.rule_values[3] = rule1 && rule2;
           }
