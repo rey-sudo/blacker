@@ -305,7 +305,7 @@ export class Backtester {
   public async run() {
     await this.setup();
 
-    const window = 300;
+    const window = 500;
 
     const startAt = window;
 
