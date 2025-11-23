@@ -17,7 +17,7 @@ import { BotState } from './types/index.js';
 import { startHttpServer } from './server/index.js';
 import { withRetry } from './utils/index.js';
 
-dotenv.config();
+dotenv.config({ path: ".env.development" });
 
 export const __filename = fileURLToPath(import.meta.url);
 export const __dirname = path.dirname(__filename);
