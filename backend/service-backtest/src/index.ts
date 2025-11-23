@@ -330,7 +330,7 @@ export class Backtester {
 
           if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) continue;
 
-          const rule1 = lastRsi < 30;
+          const rule1 = lastRsi < 35;
 
           this.state.rule_values[0] = rule1;
 
