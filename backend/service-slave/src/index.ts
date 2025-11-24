@@ -226,7 +226,7 @@ export class SlaveBot {
         await this.save();
 
         const candles = await this.getCandles(params);
-        const lastCandle = candles.at(-1);
+        const lastCandle = await this.getCandle(params);
 
         console.log(lastCandle);
 
@@ -295,7 +295,7 @@ export class SlaveBot {
           }
 
           if (!this.state.rule_values[3]) {
-            await this.sleep(300_000);
+            await this.sleep(60_000);
             continue;
           }
         }
