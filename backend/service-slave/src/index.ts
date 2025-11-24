@@ -20,6 +20,8 @@ import { calculateRSI } from "./common/lib/rsi/rsi.js";
 import { calculateSqueeze } from "./common/lib/squeeze/squeeze.js";
 import { calculateADX } from "./common/lib/adx/adx.js";
 import { calculateMFI } from "./common/lib/mfi/mfi.js";
+import { calcLotSizeCrypto } from "./lib/order/lotSize.js";
+import { Candle } from "./common/types/types.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -193,21 +195,33 @@ export class SlaveBot {
     return await sleep(timeMs);
   }
 
-  private async getRule(index: number) {
+  private getRule(index: number) {
     return this.state.rule_values[index];
   }
 
-  private async setRule(index: number, value: boolean) {
+  private setRule(index: number, value: boolean) {
     return (this.state.rule_values[index] = value);
   }
 
-  public async createOrder() {
+  public async execute(lastCandle: Candle) {
     const isExecuted = this.state.executed || this.state.finished;
 
     if (isExecuted) {
       logger.info("Already executed");
       await this.sleep(86_400_000);
       return;
+    }
+
+    if (this.state.market === "crypto") {
+      const btc = calcLotSizeCrypto({
+        balance: this.state.account_balance,
+        riskPercent: this.state.account_risk,
+        stopPercent: this.state.stop_loss,
+        entryPrice: lastCandle.close,
+        contractSize: this.state.contract_size,
+      });
+
+      console.log("BTC:", btc);
     }
 
     this.state.finished = true;
@@ -305,6 +319,8 @@ export class SlaveBot {
             continue;
           }
         }
+
+        this.execute(lastCandle);
 
         this.state.executed = true;
         this.state.status = "executed";
