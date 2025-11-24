@@ -193,6 +193,14 @@ export class SlaveBot {
     return await sleep(timeMs);
   }
 
+  private async getRule(index: number) {
+    return this.state.rule_values[index];
+  }
+
+  private async setRule(index: number, value: boolean) {
+    return (this.state.rule_values[index] = value);
+  }
+
   public async createOrder() {
     const isExecuted = this.state.executed || this.state.finished;
 
@@ -228,37 +236,37 @@ export class SlaveBot {
         const candles = await this.getCandles(params);
         const lastCandle = await this.getCandle(params);
 
-        if (!this.state.rule_values[0]) {
+        if (!this.getRule(0)) {
           const lastRsi = calculateRSI(candles).at(-1)?.value;
 
           if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) continue;
 
           const rule1 = lastRsi < 35;
 
-          this.state.rule_values[0] = rule1;
+          this.setRule(0, rule1);
 
-          if (!rule1) {
+          if (!this.getRule(0)) {
             await this.sleep(300_000);
             continue;
           }
         }
 
-        if (!this.state.rule_values[1]) {
+        if (!this.getRule(1)) {
           const lastSqueeze = calculateSqueeze(candles).at(-1)?.color;
 
           if (!lastSqueeze) continue;
 
           const rule1 = lastSqueeze === "green";
 
-          this.state.rule_values[1] = rule1;
+          this.setRule(1, rule1);
 
-          if (!rule1) {
+          if (!this.getRule(1)) {
             await this.sleep(300_000);
             continue;
           }
         }
 
-        if (!this.state.rule_values[2]) {
+        if (!this.getRule(2)) {
           const keyLevel = 23;
 
           const { reversalPoints } = calculateADX(candles);
@@ -270,16 +278,16 @@ export class SlaveBot {
 
             const rule2 = lastReversal.value > keyLevel;
 
-            this.state.rule_values[2] = rule1 && rule2;
+            this.setRule(2, rule1 && rule2);
           }
 
-          if (!this.state.rule_values[2]) {
+          if (!this.getRule(2)) {
             await this.sleep(300_000);
             continue;
           }
         }
 
-        if (!this.state.rule_values[3]) {
+        if (!this.getRule(3)) {
           const { haCandles, smaData } = calculateMFI(candles);
 
           const lastHeikin = haCandles.at(-1);
@@ -289,10 +297,10 @@ export class SlaveBot {
             const rule1 = lastHeikin.close < 45;
             const rule2 = lastHeikin.close > lastSma.value;
 
-            this.state.rule_values[3] = rule1 && rule2;
+            this.setRule(3, rule1 && rule2);
           }
 
-          if (!this.state.rule_values[3]) {
+          if (!this.getRule(3)) {
             await this.sleep(60_000);
             continue;
           }
