@@ -24,6 +24,7 @@ import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
 import { Candle } from "./common/types/types.js";
 import { calcStopLossPrice } from "./lib/order/stopLoss.js";
 import { generateId } from "./common/utils/createId.js";
+import { createOrder } from "./utils/createOrder.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -253,21 +254,36 @@ export class SlaveBot {
       riskUSD = forex.riskUSD;
     }
 
-    await createOrder({
-      id: generateId(),
-      slave: this.state.id,
-      symbol: this.state.symbol,
-      side: this.state.side,
-      price: lastCandle.close,
-      size: lotSize,
-      stop_loss: stopLoss,
-      take_profit: 1000,
-      account_risk: this.state.account_risk,
-      risk_usd: riskUSD,
-      notified: false,
-      created_at: Date.now(),
-      updated_at: Date.now(),
-    });
+    let connection: any = null;
+
+    try {
+      connection = await database.client.getConnection();
+
+      await withRetry(() =>
+        createOrder(connection, {
+          id: generateId(),
+          slave: this.state.id,
+          symbol: this.state.symbol,
+          side: this.state.side,
+          price: lastCandle.close,
+          size: lotSize,
+          stop_loss: stopLoss,
+          take_profit: 1000,
+          account_risk: this.state.account_risk,
+          risk_usd: riskUSD,
+          notified: false,
+          created_at: Date.now(),
+          updated_at: Date.now(),
+        })
+      );
+
+      await connection.commit();
+    } catch (err: any) {
+      await connection?.rollback();
+      throw err;
+    } finally {
+      connection?.release();
+    }
 
     this.state.finished = true;
     this.state.status = "finished";

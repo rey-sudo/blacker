@@ -4,10 +4,12 @@ CREATE TABLE IF NOT EXISTS slaves (
   iteration INT UNSIGNED NOT NULL,
   market VARCHAR(100) NOT NULL,
   symbol VARCHAR(50) NOT NULL,
+  side VARCHAR(20) NOT NULL,
 
-  account_balance DECIMAL(20,10) NOT NULL,
+  account_balance DECIMAL(20,10) UNSIGNED NOT NULL,
   account_risk DECIMAL(5,4) UNSIGNED NOT NULL,
   stop_loss DECIMAL(5,4) UNSIGNED NOT NULL,
+  take_profit DECIMAL(5,4) UNSIGNED NOT NULL,
   contract_size INT UNSIGNED NOT NULL,
 
   description VARCHAR(255) NOT NULL,
