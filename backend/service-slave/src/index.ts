@@ -11,7 +11,15 @@ import { logger } from "./utils/logger.js";
 import { BotState } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { withRetry } from "./utils/index.js";
-import { fetchCandle, fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
+import {
+  fetchCandle,
+  fetchCandles,
+  GetCandlesParams,
+} from "./lib/market/getCandles.js";
+import { calculateRSI } from "./common/lib/rsi/rsi.js";
+import { calculateSqueeze } from "./common/lib/squeeze/squeeze.js";
+import { calculateADX } from "./common/lib/adx/adx.js";
+import { calculateMFI } from "./common/lib/mfi/mfi.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -175,7 +183,7 @@ export class SlaveBot {
   private async getCandles(params: GetCandlesParams) {
     return withRetry(() => fetchCandles(process.env.MARKET_HOST!, params));
   }
-  
+
   private async getCandle(params: GetCandlesParams) {
     return withRetry(() => fetchCandle(process.env.MARKET_HOST!, params));
   }
@@ -206,28 +214,95 @@ export class SlaveBot {
 
     const window = 500;
 
+    const params = {
+      symbol: "BTCUSDT",
+      source: "binance",
+      interval: "4h",
+      exchange: "binance",
+    };
+
     while (true) {
       try {
         await this.save();
 
-        const params = {
-          symbol: "BTCUSDT",
-          source: "binance",
-          interval: "4h",
-          exchange: "binance",
-        };
-
         const candles = await this.getCandles(params);
-        const candle = await this.getCandle(params);
+        const lastCandle = candles.at(-1);
 
-        console.log(candle);
+        console.log(lastCandle);
 
-        //await this.createOrder()
+        if (!this.state.rule_values[0]) {
+          const lastRsi = calculateRSI(candles).at(-1)?.value;
 
-        console.log("BUY");
+          if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) continue;
+
+          const rule1 = lastRsi < 35;
+
+          this.state.rule_values[0] = rule1;
+
+          if (!rule1) {
+            await this.sleep(300_000);
+            continue;
+          }
+        }
+
+        if (!this.state.rule_values[1]) {
+          const lastSqueeze = calculateSqueeze(candles).at(-1)?.color;
+
+          if (!lastSqueeze) continue;
+
+          const rule1 = lastSqueeze === "green";
+
+          this.state.rule_values[1] = rule1;
+
+          if (!rule1) {
+            await this.sleep(300_000);
+            continue;
+          }
+        }
+
+        if (!this.state.rule_values[2]) {
+          const keyLevel = 23;
+
+          const { reversalPoints } = calculateADX(candles);
+
+          const lastReversal = reversalPoints.at(-1);
+
+          if (lastReversal) {
+            const rule1 = lastReversal.time === lastCandle.time;
+
+            const rule2 = lastReversal.value > keyLevel;
+
+            this.state.rule_values[2] = rule1 && rule2;
+          }
+
+          if (!this.state.rule_values[2]) {
+            await this.sleep(300_000);
+            continue;
+          }
+        }
+
+        if (!this.state.rule_values[3]) {
+          const { haCandles, smaData } = calculateMFI(candles);
+
+          const lastHeikin = haCandles.at(-1);
+          const lastSma = smaData.at(-1);
+
+          if (lastHeikin && lastSma) {
+            const rule1 = lastHeikin.close < 45;
+            const rule2 = lastHeikin.close > lastSma.value;
+
+            this.state.rule_values[3] = rule1 && rule2;
+          }
+
+          if (!this.state.rule_values[3]) {
+            await this.sleep(300_000);
+            continue;
+          }
+        }
 
         this.state.executed = true;
         this.state.status = "executed";
+
         this.state.finished = true;
         this.state.status = "finished";
         await this.save();
