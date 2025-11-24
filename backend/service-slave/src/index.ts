@@ -20,8 +20,9 @@ import { calculateRSI } from "./common/lib/rsi/rsi.js";
 import { calculateSqueeze } from "./common/lib/squeeze/squeeze.js";
 import { calculateADX } from "./common/lib/adx/adx.js";
 import { calculateMFI } from "./common/lib/mfi/mfi.js";
-import { calcLotSizeCrypto } from "./lib/order/lotSize.js";
+import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
 import { Candle } from "./common/types/types.js";
+import { calcStopLossPrice } from "./lib/order/stopLoss.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -208,8 +209,8 @@ export class SlaveBot {
 
     if (isExecuted) {
       logger.info("Already executed");
-      await this.sleep(86_400_000);
-      return;
+      // await this.sleep(86_400_000);
+      //return;
     }
 
     if (this.state.market === "crypto") {
@@ -222,6 +223,22 @@ export class SlaveBot {
       });
 
       console.log("BTC:", btc);
+    } else if (this.state.market === "forex") {
+      const lastPriceF = 1.1516;
+
+      const paraml = {
+        balance: this.state.account_balance,
+        riskPercent: this.state.account_risk,
+        stopPercent: this.state.stop_loss,
+        entryPrice: lastPriceF,
+        pipSize: 0.0001,
+        contractSize: 100_000,
+      };
+
+      const forex = calcLotSizeForex(paraml);
+
+      console.log("params:", paraml);
+      console.log("forex:", forex);
     }
 
     this.state.finished = true;
