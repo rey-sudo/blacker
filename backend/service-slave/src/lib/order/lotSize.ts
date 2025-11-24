@@ -29,8 +29,8 @@ export function calcLotSizeForex(params: ForexParams) {
     contractSize,
   } = params;
 
-  const riskP = riskPercent / 100;
-  const stopP = stopPercent / 100;
+  const riskP = toDecimalPercent(riskPercent);
+  const stopP = toDecimalPercent(stopPercent);
 
   const riskUSD = balance * riskP;
 
@@ -72,9 +72,11 @@ export function calcLotSizeCrypto(params: CryptoParams) {
 
   const lotSize = riskUSD / lossPerLot;
 
+  const stopLossPrice = entryPrice * (1 - stopP);
   return {
     riskUSD,
     lossPerLot,
     lotSize,
+    stopLossPrice
   };
 }

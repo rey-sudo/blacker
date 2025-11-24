@@ -214,15 +214,18 @@ export class SlaveBot {
     }
 
     if (this.state.market === "crypto") {
-      const btc = calcLotSizeCrypto({
+      const paramsc = {
         balance: this.state.account_balance,
         riskPercent: this.state.account_risk,
         stopPercent: this.state.stop_loss,
         entryPrice: lastCandle.close,
         contractSize: this.state.contract_size,
-      });
+      };
 
-      console.log("BTC:", btc);
+      const btc = calcLotSizeCrypto(paramsc);
+
+      console.log("params:", paramsc);
+      console.log("btc:", btc);
     } else if (this.state.market === "forex") {
       const lastPriceF = 1.1516;
 
