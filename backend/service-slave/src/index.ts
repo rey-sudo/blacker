@@ -8,7 +8,7 @@ import { updateSlave } from "./utils/updateSlave.js";
 import { sleep } from "./utils/sleep.js";
 import { fileURLToPath } from "url";
 import { logger } from "./utils/logger.js";
-import { BotState } from "./types/index.js";
+import { BotState, Market, Side } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { withRetry } from "./utils/index.js";
 import {
@@ -23,6 +23,7 @@ import { calculateMFI } from "./common/lib/mfi/mfi.js";
 import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
 import { Candle } from "./common/types/types.js";
 import { calcStopLossPrice } from "./lib/order/stopLoss.js";
+import { generateId } from "./common/utils/createId.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -41,9 +42,11 @@ export class SlaveBot {
       "SLAVE_NAME",
       "MARKET",
       "SYMBOL",
+      "SIDE",
       "ACCOUNT_BALANCE",
       "ACCOUNT_RISK",
       "STOP_LOSS",
+      "TAKE_PROFIT",
       "CONTRACT_SIZE",
       "SHOW_PLOTS",
       "DESCRIPTION",
@@ -71,9 +74,11 @@ export class SlaveBot {
     const SLAVE_NAME = process.env.SLAVE_NAME!;
     const MARKET = process.env.MARKET!;
     const SYMBOL = process.env.SYMBOL!;
+    const SIDE = process.env.SIDE!;
     const ACCOUNT_BALANCE = parseInt(process.env.ACCOUNT_BALANCE!, 10);
     const ACCOUNT_RISK = parseFloat(process.env.ACCOUNT_RISK!);
     const STOP_LOSS = parseFloat(process.env.STOP_LOSS!);
+    const TAKE_PROFIT = parseFloat(process.env.TAKE_PROFIT!);
     const CONTRACT_SIZE = parseInt(process.env.CONTRACT_SIZE!, 10);
     const SHOW_PLOTS = process.env.SHOW_PLOTS === "true";
 
@@ -81,11 +86,13 @@ export class SlaveBot {
       id: SLAVE_NAME,
       status: "started",
       iteration: 0,
-      market: MARKET,
+      market: MARKET as Market,
       symbol: SYMBOL,
+      side: SIDE as Side,
       account_balance: ACCOUNT_BALANCE,
       account_risk: ACCOUNT_RISK,
       stop_loss: STOP_LOSS,
+      take_profit: TAKE_PROFIT,
       contract_size: CONTRACT_SIZE,
       description: process.env.DESCRIPTION!,
       executed: false,
@@ -247,14 +254,16 @@ export class SlaveBot {
     }
 
     await createOrder({
+      id: generateId(),
       slave: this.state.id,
       symbol: this.state.symbol,
+      side: this.state.side,
       price: lastCandle.close,
       size: lotSize,
       stop_loss: stopLoss,
       take_profit: 1000,
       account_risk: this.state.account_risk,
-      rist_usd: riskUSD,
+      risk_usd: riskUSD,
       notified: false,
       created_at: Date.now(),
       updated_at: Date.now(),

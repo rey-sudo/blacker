@@ -6,15 +6,21 @@ export type Status =
   | "finished"
   | "error";
 
+export type Side = "LONG" | "SHORT"; 
+
+export type Market = "forex" | "crypto"; 
+
 export interface BotState {
   id: string;
   status: Status;
   iteration: number;
-  market: string;
+  market: Market;
   symbol: string;
+  side: Side;
   account_balance: number;
   account_risk: number;
   stop_loss: number;
+  take_profit: number;
   contract_size: number;
   description: string;
   executed: boolean;
@@ -24,4 +30,3 @@ export interface BotState {
   rule_labels: string[];
   rule_values: boolean[];
 }
-
