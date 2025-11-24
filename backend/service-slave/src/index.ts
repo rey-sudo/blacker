@@ -213,36 +213,52 @@ export class SlaveBot {
       //return;
     }
 
+    let lotSize = null;
+    let stopLoss = null;
+    let riskUSD = null;
+
     if (this.state.market === "crypto") {
-      const paramsc = {
+      const btc = calcLotSizeCrypto({
         balance: this.state.account_balance,
         riskPercent: this.state.account_risk,
         stopPercent: this.state.stop_loss,
         entryPrice: lastCandle.close,
         contractSize: this.state.contract_size,
-      };
+      });
 
-      const btc = calcLotSizeCrypto(paramsc);
-
-      console.log("params:", paramsc);
-      console.log("btc:", btc);
+      lotSize = btc.lotSize;
+      stopLoss = btc.stopLossPrice;
+      riskUSD = btc.riskUSD;
     } else if (this.state.market === "forex") {
       const lastPriceF = 1.1516;
 
-      const paraml = {
+      const forex = calcLotSizeForex({
         balance: this.state.account_balance,
         riskPercent: this.state.account_risk,
         stopPercent: this.state.stop_loss,
         entryPrice: lastPriceF,
         pipSize: 0.0001,
         contractSize: 100_000,
-      };
+      });
 
-      const forex = calcLotSizeForex(paraml);
-
-      console.log("params:", paraml);
-      console.log("forex:", forex);
+      lotSize = forex.lotSize;
+      stopLoss = forex.stopLossPrice;
+      riskUSD = forex.riskUSD;
     }
+
+    await createOrder({
+      slave: this.state.id,
+      symbol: this.state.symbol,
+      price: lastCandle.close,
+      size: lotSize,
+      stop_loss: stopLoss,
+      take_profit: 1000,
+      account_risk: this.state.account_risk,
+      rist_usd: riskUSD,
+      notified: false,
+      created_at: Date.now(),
+      updated_at: Date.now(),
+    });
 
     this.state.finished = true;
     this.state.status = "finished";
