@@ -228,8 +228,6 @@ export class SlaveBot {
         const candles = await this.getCandles(params);
         const lastCandle = await this.getCandle(params);
 
-        console.log(lastCandle);
-
         if (!this.state.rule_values[0]) {
           const lastRsi = calculateRSI(candles).at(-1)?.value;
 
