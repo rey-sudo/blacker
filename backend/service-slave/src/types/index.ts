@@ -10,12 +10,15 @@ export type Side = "LONG" | "SHORT";
 
 export type Market = "forex" | "crypto"; 
 
+export type Interval = "4h"; 
+
 export interface BotState {
   id: string;
   status: Status;
   iteration: number;
   market: Market;
   symbol: string;
+  interval: Interval;
   side: Side;
   account_balance: number;
   account_risk: number;

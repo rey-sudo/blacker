@@ -3,9 +3,8 @@ import { Candle } from "@whiterockdev/common";
 
 export interface GetCandlesParams {
   symbol: string;
-  source: string;
   interval: string;
-  exchange: string;
+  window: number;
 }
 
 export interface getCandlesResponse {

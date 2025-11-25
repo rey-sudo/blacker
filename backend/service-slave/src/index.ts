@@ -17,7 +17,7 @@ import {
 } from "@whiterockdev/common";
 import { createSlave } from "./utils/createSlave.js";
 import { fileURLToPath } from "url";
-import { BotState, Market, Side } from "./types/index.js";
+import { BotState, Interval, Market, Side } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
 import { createOrder } from "./utils/createOrder.js";
@@ -76,6 +76,7 @@ export class SlaveBot {
     const SLAVE_NAME = process.env.SLAVE_NAME!;
     const MARKET = process.env.MARKET!;
     const SYMBOL = process.env.SYMBOL!;
+    const INTERVAL = process.env.INTERVAL!;
     const SIDE = process.env.SIDE!;
     const ACCOUNT_BALANCE = parseInt(process.env.ACCOUNT_BALANCE!, 10);
     const ACCOUNT_RISK = parseFloat(process.env.ACCOUNT_RISK!);
@@ -90,6 +91,7 @@ export class SlaveBot {
       iteration: 0,
       market: MARKET as Market,
       symbol: SYMBOL,
+      interval: INTERVAL as Interval,
       side: SIDE as Side,
       account_balance: ACCOUNT_BALANCE,
       account_risk: ACCOUNT_RISK,
@@ -124,7 +126,7 @@ export class SlaveBot {
     try {
       logger.info("🚀 Starting slave...");
 
-      await this.setupDatabase();
+      await this.database();
     } catch (err: any) {
       logger.error(err);
       this.state.status = "error";
@@ -132,21 +134,20 @@ export class SlaveBot {
     }
   }
 
-  private async setupDatabase() {
+  private async database() {
     let connection = null;
 
     try {
       logger.info("🛠️ Connecting to database...");
 
       connection = await database.client.getConnection();
-
       await connection.beginTransaction();
 
-      const findSlave = await findSlaveById(connection, this.state.id);
+      const slave = await findSlaveById(connection, this.state.id);
 
-      if (findSlave) {
-        logger.info("🔄 Resuming " + findSlave.id);
-        this.state = findSlave;
+      if (slave) {
+        logger.info("🔄 Resuming " + slave.id);
+        this.state = slave;
       } else {
         logger.info("⚠️ Slave not found, creating...");
         await createSlave(connection, this.state);
@@ -296,13 +297,10 @@ export class SlaveBot {
   public async run() {
     await this.setup();
 
-    const window = 500;
-
     const params = {
-      symbol: "BTCUSDT",
-      source: "binance",
-      interval: "4h",
-      exchange: "binance",
+      symbol: this.state.symbol,
+      interval: this.state.interval,
+      window: 500
     };
 
     while (true) {
