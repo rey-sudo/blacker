@@ -1,5 +1,5 @@
 import API from "../../api/index.js";
-import { Candle } from "../../common/types/types.js";
+import { Candle } from "@whiterockdev/common";
 
 export interface GetCandlesParams {
   symbol: string;

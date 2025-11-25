@@ -1,4 +1,4 @@
-import { DatabaseWrap } from "../common/sql/mysql.js";
+import { DatabaseWrap } from "@whiterockdev/common";
 
 const database = new DatabaseWrap();
 
