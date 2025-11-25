@@ -10,7 +10,7 @@ export async function fetchCandlesBinance(
     const params: Record<string, any> = { symbol, interval, limit };
 
     const { data } = await API.get("/api/v3/klines", {
-      baseURL: "https://api.binance.com",
+      baseURL: "https://api1.binance.com",
       params,
     });
 
@@ -54,7 +54,7 @@ export async function fetchCandlesBinance(
 export async function getLiveCandleBinance(symbol: string, interval: string) {
   try {
     const { data: klines } = await API.get("/api/v3/klines", {
-      baseURL: "https://api.binance.com",
+      baseURL: "https://api1.binance.com",
       params: { symbol, interval, limit: 1 },
     });
 
@@ -72,7 +72,7 @@ export async function getLiveCandleBinance(symbol: string, interval: string) {
     volume = parseFloat(volume);
 
     const { data: ticker } = await API.get("/api/v3/ticker/price", {
-      baseURL: "https://api.binance.com",
+      baseURL: "https://api1.binance.com",
       params: { symbol },
     });
 
