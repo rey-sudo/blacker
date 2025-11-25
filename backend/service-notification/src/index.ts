@@ -80,11 +80,13 @@ async function watchOrders(database: any, bot: any, channel: string) {
 
         const message = buildOrderMessage(order);
 
-        const sened = await bot.telegram.sendMessage(channel, message, {
+        const send = await bot.telegram.sendMessage(channel, message, {
           parse_mode: "HTML",
         });
 
-        console.log(sened.message_id);
+        if (!send.message_id) {
+          throw new Error("Error sending message");
+        }
 
         await updateOrder(conn2, order.id, { notified: true });
 
