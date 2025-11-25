@@ -4,7 +4,7 @@ import { ApiError, ERROR_EVENTS, errorHandler } from "./common/errors.js";
 import { Telegraf } from "telegraf";
 import { buildOrderMessage, Order } from "./utils/format.js";
 
-dotenv.config({ path: ".env.development" });
+dotenv.config({ path: ".env.production" });
 
 const main = async () => {
   try {
@@ -16,6 +16,7 @@ const main = async () => {
       "DATABASE_PASSWORD",
       "DATABASE_NAME",
       "REDIS_CACHE_HOST",
+      "TELEGRAM_API_KEY",
     ];
 
     for (const varName of requiredEnvVars) {
@@ -41,13 +42,11 @@ const main = async () => {
       database: process.env.DATABASE_NAME,
     });
 
-    const bot = new Telegraf();
+    const bot = new Telegraf(process.env.TELEGRAM_API_KEY!);
 
     const channel = "@whiterock_latam";
 
-    let orderInterval = null;
-
-    orderInterval = setInterval(() => watchOrders(bot, channel), 60_000);
+    let orderInterval = setInterval(() => watchOrders(bot, channel), 60_000);
 
     bot.launch();
     console.log("Running...");
