@@ -298,8 +298,13 @@ export class SlaveBot {
       );
 
       await connection.commit();
+
       this.state.executed = true;
       this.state.status = "executed";
+      await this.save();
+
+      logger.info("✅ OrderExecuted")
+
     } catch (err: any) {
       await connection?.rollback();
       throw err;
@@ -310,7 +315,6 @@ export class SlaveBot {
     this.state.finished = true;
     this.state.status = "finished";
     await this.save();
-
     await this.sleep(86_400_000);
   }
 

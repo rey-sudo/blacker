@@ -71,7 +71,7 @@ async function listenOrders(database: any, bot: any, channel: string) {
     const orders = await findNewOrders(connection);
     connection?.release();
 
-    logger.info(`CurrentOrders: ${orders.length}`);
+    logger.info(`📋 CurrentOrders: ${orders.length}`);
 
     for (const order of orders) {
       let conn2: any = null;
