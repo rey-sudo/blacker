@@ -26,6 +26,9 @@ import { BotState, Interval, Market, Side } from "./types/index.js";
 import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
 import { createOrder } from "./utils/createOrder.js";
 import { startHttpServer } from "./server/index.js";
+import { calculateEMA } from "./common/lib/ema/ema.js";
+import { applyDiscount } from "./utils/applyDiscount.js";
+import { calculateTakeProfit } from "./utils/takeProfit.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -37,6 +40,7 @@ export class SlaveBot {
   public state: BotState;
   private config: any;
   private binance: any;
+  public dataset: Candle[];
 
   constructor() {
     const requiredEnvVars = [
@@ -110,6 +114,8 @@ export class SlaveBot {
     this.config = {
       show_plots: SHOW_PLOTS,
     };
+
+    this.dataset = [];
 
     database.connect({
       host: process.env.DATABASE_HOST,
@@ -213,7 +219,7 @@ export class SlaveBot {
     return (this.state.rule_values[index] = value);
   }
 
-  public async execute(lastCandle: Candle) {
+  public async execute(candles: Candle[], lastCandle: Candle) {
     const isExecuted = this.state.executed || this.state.finished;
 
     if (isExecuted) {
@@ -222,9 +228,22 @@ export class SlaveBot {
       return;
     }
 
+    let takeProfit = null;
     let lotSize = null;
     let stopLoss = null;
     let riskUSD = null;
+
+    const EMA55 = calculateEMA(candles, 55).at(-1)?.value;
+
+    if (EMA55 && EMA55 > lastCandle.close) {
+      takeProfit = applyDiscount(EMA55, 0.6);
+    } else {
+      takeProfit = calculateTakeProfit(
+        lastCandle.close,
+        this.state.take_profit,
+        this.state.side
+      );
+    }
 
     if (this.state.market === "crypto") {
       const btc = calcLotSizeCrypto({
@@ -269,7 +288,7 @@ export class SlaveBot {
           price: lastCandle.close,
           size: lotSize,
           stop_loss: stopLoss,
-          take_profit: 1000, ///
+          take_profit: takeProfit,
           account_risk: this.state.account_risk,
           risk_usd: riskUSD,
           notified: false,
@@ -311,6 +330,8 @@ export class SlaveBot {
 
         const candles = await this.getCandles(params);
         const lastCandle = await this.getCandle(params);
+        
+        this.dataset = [...candles, lastCandle];
 
         if (!this.getRule(0)) {
           const lastRsi = calculateRSI(candles).at(-1)?.value;
@@ -384,7 +405,7 @@ export class SlaveBot {
           }
         }
 
-        await this.execute(lastCandle);
+        await this.execute(candles, lastCandle);
       } catch (err: any) {
         this.state.status = "error";
         logger.error(err);

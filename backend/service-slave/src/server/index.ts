@@ -29,6 +29,10 @@ export function startHttpServer(bot: SlaveBot) {
     res.json(bot.state);
   });
 
+  app.get(`/api/slave/${botId}/get-candles`, (req, res) => {
+    res.json(bot.dataset);
+  });
+
   app.get(`/api/slave/${botId}/get-logs`, getLogsHandler);
 
   const outputPath = path.join(root, "output");
