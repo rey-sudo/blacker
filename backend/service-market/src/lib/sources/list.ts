@@ -1,13 +1,14 @@
-import { Source } from "../../types/index.js";
+
+import { Market } from "../../types/index.js";
 import { fetchCandlesBinance, getLiveCandleBinance } from "./binance.js";
 import { createLiveCandleYahoo, fetchCandlesYahoo } from "./yahoo.js";
 
-export const sourceList: Record<Source, any> = {
-  yahoo: {
+export const marketList: Record<Market, any> = {
+  forex: {
     history: fetchCandlesYahoo,
     last: createLiveCandleYahoo
   },
-  binance: {
+  crypto: {
     history: fetchCandlesBinance,
     last: getLiveCandleBinance
   }

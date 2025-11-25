@@ -7,4 +7,4 @@ export interface Candle {
   volume: number;
 }
 
-export type Source = "yahoo" | "binance";
+export type Market = "forex" | "crypto";

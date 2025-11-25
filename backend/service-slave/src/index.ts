@@ -299,8 +299,9 @@ export class SlaveBot {
 
     const params = {
       symbol: this.state.symbol,
+      market: this.state.market,
       interval: this.state.interval_,
-      window: 500
+      window: 500,
     };
 
     while (true) {

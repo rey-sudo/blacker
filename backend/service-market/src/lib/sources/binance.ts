@@ -1,25 +1,13 @@
 import API from "../../api";
 import { Candle } from "../../types";
 
-/**
- * Binance Kline/Candlestick Data.
- * @param {string} symbol - Ej: "BTCUSDT", "ETHUSDT"
- * @param {string} interval - Ej: "1m", "5m", "1h", "1d"
- * @param {number} [startTime] - Timestamp inicial en ms (opcional)
- * @param {number} [endTime] - Timestamp final en ms (opcional)
- * @param {number} [limit=500] - Número máximo de velas (máx 1000)
- */
 export async function fetchCandlesBinance(
   symbol: string,
   interval: string,
-  startTime?: number,
-  endTime?: number,
   limit = 500
 ) {
   try {
     const params: Record<string, any> = { symbol, interval, limit };
-    if (startTime) params.startTime = startTime;
-    if (endTime) params.endTime = endTime;
 
     const { data } = await API.get("/api/v3/klines", {
       baseURL: "https://api.binance.com",
@@ -63,19 +51,8 @@ export async function fetchCandlesBinance(
   }
 }
 
-
-
-/**
- * Obtiene la última vela en formación para un símbolo en Binance
- * @param symbol - Ej: "BTCUSDT"
- * @param interval - Ej: "1m", "5m", "15m"
- */
-export async function getLiveCandleBinance(
-  symbol: string,
-  interval: string
-) {
+export async function getLiveCandleBinance(symbol: string, interval: string) {
   try {
-
     const { data: klines } = await API.get("/api/v3/klines", {
       baseURL: "https://api.binance.com",
       params: { symbol, interval, limit: 1 },
