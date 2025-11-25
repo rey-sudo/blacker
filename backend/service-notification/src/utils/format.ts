@@ -15,6 +15,10 @@ export interface Order {
 }
 
 export function buildOrderMessage(order: Order): string {
+  const orderSize = Number(order.size).toFixed(2);
+  const accountRisk = Number(order.account_risk).toFixed(2);
+  const riskUSD = Number(order.risk_usd).toFixed(2);
+
   return `
 <b>🚨 New Order</b>
 
@@ -25,11 +29,11 @@ export function buildOrderMessage(order: Order): string {
 <b>📈 Side:</b> ${order.side === "LONG" ? "LONG ⬆️🟢" : "SHORT ⬇️🔴"}
 
 <b>💵 Entry Price:</b> ${order.price}
-<b>📦 Position Size:</b> ${order.size}
 <b>🛡 Stop Loss:</b> ${order.stop_loss}
 <b>🎯 Take Profit:</b> ${order.take_profit}
+<b>📦 Position Size:</b> ${orderSize}
 
-<b>⚖️ Account Risk:</b> ${order.account_risk}% (${order.risk_usd} USD)
+<b>⚖️ Account Risk:</b> ${accountRisk}% (${riskUSD} USD)
 
 `;
 }

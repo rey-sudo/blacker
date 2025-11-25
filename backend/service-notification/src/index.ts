@@ -1,8 +1,11 @@
 import dotenv from "dotenv";
 import { database } from "./database/index.js";
-import { ApiError, ERROR_EVENTS, errorHandler } from "./common/errors.js";
-import { Telegraf } from "telegraf";
+import { ERROR_EVENTS, logger } from "@whiterockdev/common";
 import { buildOrderMessage, Order } from "./utils/format.js";
+import { Telegraf } from "telegraf";
+import { findAllSlaves } from "./common/findAllSlaves.js";
+import { updateOrder } from "./common/updateOrder.js";
+import { findNewOrders } from "./common/findNewOrders.js";
 
 dotenv.config({ path: ".env.production" });
 
@@ -46,7 +49,10 @@ const main = async () => {
 
     const channel = "@whiterock_latam";
 
-    let orderInterval = setInterval(() => watchOrders(bot, channel), 60_000);
+    let orderInterval = setInterval(
+      () => watchOrders(database, bot, channel),
+      10_000
+    );
 
     bot.launch();
     console.log("Running...");
@@ -58,26 +64,39 @@ const main = async () => {
 
 main();
 
-async function watchOrders(bot: any, channel: string) {
-  const order: Order = {
-    id: "ORD-001",
-    slave: "bot-1",
-    symbol: "BTCUSDT",
-    side: "LONG",
-    price: 45000.5,
-    size: 0.01,
-    stop_loss: 44000,
-    take_profit: 47000,
-    account_risk: 0.02,
-    risk_usd: 50,
-    notified: false,
-    created_at: Date.now(),
-    updated_at: Date.now(),
-  };
+async function watchOrders(database: any, bot: any, channel: string) {
+  let connection: any = null;
 
-  const message = buildOrderMessage(order);
+  try {
+    connection = await database.client.getConnection();
+    const result = await findNewOrders(connection);
+    connection?.release();
 
-  await bot.telegram.sendMessage(channel, message, {
-    parse_mode: "HTML",
-  });
+    for (const order of result) {
+      let conn2: any = null;
+      try {
+        conn2 = await database.client.getConnection();
+        await conn2.beginTransaction();
+
+        const message = buildOrderMessage(order);
+
+        const sened = await bot.telegram.sendMessage(channel, message, {
+          parse_mode: "HTML",
+        });
+
+        console.log(sened.message_id);
+
+        await updateOrder(conn2, order.id, { notified: true });
+
+        await conn2.commit();
+      } catch (err: any) {
+        logger.error(err);
+        await conn2.rollback();
+      } finally {
+        conn2?.release();
+      }
+    }
+  } catch (err: any) {
+    logger.error(err);
+  }
 }

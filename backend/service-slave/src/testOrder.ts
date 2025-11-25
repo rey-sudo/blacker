@@ -39,6 +39,7 @@ async function main() {
     );
 
     await connection.commit();
+    console.log("end");
   } catch (err: any) {
     await connection?.rollback();
     throw err;

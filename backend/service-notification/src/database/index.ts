@@ -1,3 +1,3 @@
-import { DatabaseWrap } from "../common/database.js";
+import { DatabaseWrap } from "@whiterockdev/common";
 
 export const database = new DatabaseWrap();
