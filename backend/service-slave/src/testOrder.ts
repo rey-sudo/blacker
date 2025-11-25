@@ -2,6 +2,7 @@ import { generateId, withRetry } from "@whiterockdev/common";
 import { createOrder } from "./utils/createOrder.js";
 import database from "./database/client.js";
 import dotenv from "dotenv";
+import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -13,6 +14,13 @@ database.connect({
   database: process.env.DATABASE_NAME,
 });
 
+const ACCOUNT_BALANCE = 2_000;
+const MARKET = "crypto";
+const ACCOUNT_RISK = 1.0;
+const STOP_LOSS = 4.2;
+const ENTRY_PRICE = 87705;
+const CONTRACT_SIZE = 1;
+
 let connection: any = null;
 
 async function main() {
@@ -20,18 +28,51 @@ async function main() {
     console.log("start");
     connection = await database.client.getConnection();
 
+    let lotSize = null;
+    let stopLoss = null;
+    let riskUSD = null;
+
+    if (MARKET === "crypto") {
+      const btc = calcLotSizeCrypto({
+        balance: ACCOUNT_BALANCE,
+        riskPercent: ACCOUNT_RISK,
+        stopPercent: STOP_LOSS,
+        entryPrice: ENTRY_PRICE,
+        contractSize: CONTRACT_SIZE,
+      });
+
+      lotSize = btc.lotSize;
+      stopLoss = btc.stopLossPrice;
+      riskUSD = btc.riskUSD;
+    } else if (MARKET === "forex") {
+      const lastPriceF = 1.1516;
+
+      const forex = calcLotSizeForex({
+        balance: ACCOUNT_BALANCE,
+        riskPercent: ACCOUNT_RISK,
+        stopPercent: STOP_LOSS,
+        entryPrice: ENTRY_PRICE,
+        pipSize: 0.0001,
+        contractSize: 100_000,
+      });
+
+      lotSize = forex.lotSize;
+      stopLoss = forex.stopLossPrice;
+      riskUSD = forex.riskUSD;
+    }
+
     await withRetry(() =>
       createOrder(connection, {
         id: generateId(),
         slave: "slave-test",
         symbol: "BTCUSDT",
         side: "LONG",
-        price: 87599,
-        size: 0.01,
-        stop_loss: 84599,
+        price: ENTRY_PRICE,
+        size: lotSize,
+        stop_loss: stopLoss,
         take_profit: 87600,
-        account_risk: 0.5,
-        risk_usd: 50,
+        account_risk: ACCOUNT_RISK,
+        risk_usd: riskUSD,
         notified: false,
         created_at: Date.now(),
         updated_at: Date.now(),
