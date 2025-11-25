@@ -91,7 +91,7 @@ export class SlaveBot {
       iteration: 0,
       market: MARKET as Market,
       symbol: SYMBOL,
-      interval: INTERVAL as Interval,
+      interval_: INTERVAL as Interval,
       side: SIDE as Side,
       account_balance: ACCOUNT_BALANCE,
       account_risk: ACCOUNT_RISK,
@@ -299,7 +299,7 @@ export class SlaveBot {
 
     const params = {
       symbol: this.state.symbol,
-      interval: this.state.interval,
+      interval: this.state.interval_,
       window: 500
     };
 

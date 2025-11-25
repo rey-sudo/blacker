@@ -18,7 +18,7 @@ export interface BotState {
   iteration: number;
   market: Market;
   symbol: string;
-  interval: Interval;
+  interval_: Interval;
   side: Side;
   account_balance: number;
   account_risk: number;

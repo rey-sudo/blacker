@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS slaves (
   iteration INT UNSIGNED NOT NULL,
   market VARCHAR(100) NOT NULL,
   symbol VARCHAR(50) NOT NULL,
-  interval VARCHAR(20) NOT NULL,
+  interval_ VARCHAR(20) NOT NULL,
   side VARCHAR(20) NOT NULL,
 
   account_balance DECIMAL(20,10) UNSIGNED NOT NULL,
