@@ -15,17 +15,17 @@ import {
   Candle,
   generateId,
 } from "@whiterockdev/common";
-import { createSlave } from "./utils/createSlave.js";
-import { fileURLToPath } from "url";
-import { BotState, Interval, Market, Side } from "./types/index.js";
-import { startHttpServer } from "./server/index.js";
-import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
-import { createOrder } from "./utils/createOrder.js";
 import {
   fetchCandle,
   fetchCandles,
   GetCandlesParams,
 } from "./lib/market/getCandles.js";
+import { createSlave } from "./utils/createSlave.js";
+import { fileURLToPath } from "url";
+import { BotState, Interval, Market, Side } from "./types/index.js";
+import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
+import { createOrder } from "./utils/createOrder.js";
+import { startHttpServer } from "./server/index.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -170,9 +170,8 @@ export class SlaveBot {
     try {
       connection = await database.client.getConnection();
 
-      const findSlave = await findSlaveById(connection, this.state.id);
-
-      if (!findSlave) throw new Error("❌ Error slave not found");
+      const slave = await findSlaveById(connection, this.state.id);
+      if (!slave) throw new Error("❌ Error slave not found");
 
       await connection.beginTransaction();
 
@@ -219,8 +218,8 @@ export class SlaveBot {
 
     if (isExecuted) {
       logger.info("Already executed");
-      // await this.sleep(86_400_000);
-      //return;
+      await this.sleep(86_400_000);
+      return;
     }
 
     let lotSize = null;
@@ -270,7 +269,7 @@ export class SlaveBot {
           price: lastCandle.close,
           size: lotSize,
           stop_loss: stopLoss,
-          take_profit: 1000,
+          take_profit: 1000, ///
           account_risk: this.state.account_risk,
           risk_usd: riskUSD,
           notified: false,
@@ -280,6 +279,8 @@ export class SlaveBot {
       );
 
       await connection.commit();
+      this.state.executed = true;
+      this.state.status = "executed";
     } catch (err: any) {
       await connection?.rollback();
       throw err;
@@ -314,7 +315,9 @@ export class SlaveBot {
         if (!this.getRule(0)) {
           const lastRsi = calculateRSI(candles).at(-1)?.value;
 
-          if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) continue;
+          if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) {
+            throw new Error("lastRsi value typeError");
+          }
 
           const rule1 = lastRsi < 35;
 
@@ -381,18 +384,11 @@ export class SlaveBot {
           }
         }
 
-        this.execute(lastCandle);
-
-        this.state.executed = true;
-        this.state.status = "executed";
-
-        this.state.finished = true;
-        this.state.status = "finished";
-        await this.save();
-        await this.sleep(60_000_600);
+        await this.execute(lastCandle);
       } catch (err: any) {
         this.state.status = "error";
         logger.error(err);
+        await this.sleep(60_000);
       }
     }
   }
