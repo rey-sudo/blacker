@@ -18,7 +18,6 @@ const main = async () => {
       "DATABASE_USER",
       "DATABASE_PASSWORD",
       "DATABASE_NAME",
-      "REDIS_CACHE_HOST",
       "TELEGRAM_API_KEY",
     ];
 
@@ -50,7 +49,7 @@ const main = async () => {
     const channel = "@whiterock_latam";
 
     let orderInterval = setInterval(
-      () => watchOrders(database, bot, channel),
+      () => listenOrders(database, bot, channel),
       10_000
     );
 
@@ -64,15 +63,17 @@ const main = async () => {
 
 main();
 
-async function watchOrders(database: any, bot: any, channel: string) {
+async function listenOrders(database: any, bot: any, channel: string) {
   let connection: any = null;
 
   try {
     connection = await database.client.getConnection();
-    const result = await findNewOrders(connection);
+    const orders = await findNewOrders(connection);
     connection?.release();
 
-    for (const order of result) {
+    logger.info(`CurrentOrders: ${orders.length}`);
+
+    for (const order of orders) {
       let conn2: any = null;
       try {
         conn2 = await database.client.getConnection();

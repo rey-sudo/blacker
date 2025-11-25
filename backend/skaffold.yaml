@@ -27,6 +27,14 @@ build:
           - src: 'src/**/*.{ts,js,json,vue}'
             dest: .
 
+    - image: pairfy/service-notification
+      context: service-notification
+      docker:
+        dockerfile: Dockerfile
+      sync:
+        manual:
+          - src: 'src/**/*.{ts,js,json,vue}'
+            dest: .
 deploy:
   statusCheckDeadlineSeconds: 600
   kubectl:
