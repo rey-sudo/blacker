@@ -1,30 +1,31 @@
 import path from "path";
 import dotenv from "dotenv";
 import database from "./database/client.js";
-import { findSlaveById } from "./common/sql/findSlaveById.js";
-import { ERROR_EVENTS } from "./common/utils/errors.js";
+import {
+  findSlaveById,
+  ERROR_EVENTS,
+  sleep,
+  updateSlave,
+  logger,
+  withRetry,
+  calculateRSI,
+  calculateSqueeze,
+  calculateADX,
+  calculateMFI,
+  Candle,
+  generateId,
+} from "@whiterockdev/common";
 import { createSlave } from "./utils/createSlave.js";
-import { updateSlave } from "./common/sql/updateSlave.js";
-import { sleep } from "./common/utils/sleep.js";
 import { fileURLToPath } from "url";
-import { logger } from "./common/utils/logger.js";
 import { BotState, Market, Side } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
-import { withRetry } from "./common/utils/withRetry.js";
+import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
+import { createOrder } from "./utils/createOrder.js";
 import {
   fetchCandle,
   fetchCandles,
   GetCandlesParams,
 } from "./lib/market/getCandles.js";
-import { calculateRSI } from "./common/lib/rsi/rsi.js";
-import { calculateSqueeze } from "./common/lib/squeeze/squeeze.js";
-import { calculateADX } from "./common/lib/adx/adx.js";
-import { calculateMFI } from "./common/lib/mfi/mfi.js";
-import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
-import { Candle } from "./common/types/types.js";
-import { calcStopLossPrice } from "./lib/order/stopLoss.js";
-import { generateId } from "./common/utils/createId.js";
-import { createOrder } from "./utils/createOrder.js";
 
 dotenv.config({ path: ".env.development" });
 
