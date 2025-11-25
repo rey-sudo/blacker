@@ -223,7 +223,7 @@ export class SlaveBot {
     const isExecuted = this.state.executed || this.state.finished;
 
     if (isExecuted) {
-      logger.info("Already executed");
+      logger.info("✅ Already executed");
       await this.sleep(86_400_000);
       return;
     }
