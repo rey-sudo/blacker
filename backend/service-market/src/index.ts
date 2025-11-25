@@ -1,24 +1,15 @@
 import * as route from "./routes/index.js";
 import compression from "compression";
 import dotenv from "dotenv";
-import { database } from "./database/index.js";
+import { ApiError, ERROR_EVENTS, errorHandler } from "@whiterockdev/common";
 import { Request, Response } from "express";
-import { ApiError, ERROR_EVENTS, errorHandler } from "./common/errors.js";
 import { app } from "./app.js";
 
 dotenv.config({ path: ".env.development" });
 
 const main = async () => {
   try {
-    const requiredEnvVars = [
-      "NODE_ENV",
-      "DATABASE_HOST",
-      "DATABASE_PORT",
-      "DATABASE_USER",
-      "DATABASE_PASSWORD",
-      "DATABASE_NAME",
-      "REDIS_CACHE_HOST",
-    ];
+    const requiredEnvVars = ["NODE_ENV"];
 
     for (const varName of requiredEnvVars) {
       if (!process.env[varName]) {
@@ -31,24 +22,6 @@ const main = async () => {
         console.error(err);
         process.exit(1);
       })
-    );
-
-    const databasePort = parseInt(process.env.DATABASE_PORT!);
-
-    database.connect({
-      host: process.env.DATABASE_HOST,
-      port: databasePort,
-      user: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
-    });
-
-    app.post(
-      "/api/market/login-user",
-
-      ...route.loginUserMiddlewares,
-
-      route.loginUserHandler
     );
 
     app.get(

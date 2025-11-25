@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { marketList } from "../lib/sources/list.js";
-import { ApiError } from "../common/errors.js";
+import { ApiError } from "@whiterockdev/common";
 import { Market } from "../types/index.js";
 
 export const getCandlesMiddlewares: any = [];

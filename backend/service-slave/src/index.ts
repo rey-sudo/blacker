@@ -330,7 +330,7 @@ export class SlaveBot {
 
         const candles = await this.getCandles(params);
         const lastCandle = await this.getCandle(params);
-        
+
         this.dataset = [...candles, lastCandle];
 
         if (!this.getRule(0)) {
@@ -343,6 +343,8 @@ export class SlaveBot {
           const rule1 = lastRsi < 35;
 
           this.setRule(0, rule1);
+
+          logger.info(`RSI:${lastRsi}`);
 
           if (!this.getRule(0)) {
             await this.sleep(300_000);

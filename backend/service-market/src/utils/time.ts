@@ -1,4 +1,4 @@
-import { Candle } from "../types/index.js";
+import { Candle } from "@whiterockdev/common";
 
 export function convertMsToSeconds(data: Candle[]) {
   if (!Array.isArray(data)) return [];

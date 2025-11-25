@@ -1,5 +1,5 @@
-import API from "../../api";
-import { Candle } from "../../types";
+import { Candle } from "@whiterockdev/common";
+import API from "../../api/index.js";
 
 export async function fetchCandlesBinance(
   symbol: string,

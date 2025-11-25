@@ -1,5 +1,5 @@
+import { Candle } from "@whiterockdev/common";
 import API from "../../api/index.js";
-import { Candle } from "../../types/index.js";
 
 /**
  * Yahoo Finance Data.

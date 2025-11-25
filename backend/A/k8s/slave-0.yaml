@@ -25,39 +25,37 @@ spec:
           env:
             - name: NODE_ENV
               value: "development"
-            - name: SERVICE_NAME
-              value: "slave-0"  
             - name: SLAVE_NAME
               value: "slave-0"
+            - name: MARKET
+              value: "crypto"              
             - name: SYMBOL
               value: "BTCUSDT"
-            - name: LEVERAGE
-              value: "41"
+            - name: INTERVAL
+              value: "4h"
+            - name: SIDE
+              value: "LONG"          
+            - name: ACCOUNT_BALANCE
+              value: "2000"               
+            - name: ACCOUNT_RISK
+              value: "1"                          
             - name: STOP_LOSS
-              value: "0.95"
-            - name: MARGIN_TYPE
-              value: "ISOLATED"
-            - name: ORDER_AMOUNT
-              value: "5000"
+              value: "4.2"
+            - name: TAKE_PROFIT
+              value: "6.9"              
+            - name: CONTRACT_SIZE
+              value: "1"
             - name: SHOW_PLOTS
-              value: "false"
+              value: "false"              
             - name: DESCRIPTION
-              value: "RSI,Squeeze,ADX,Heikin"  
+              value: "RSI,Squeeze,ADX,MFI"  
+            - name: MARKET_HOST
+              value: "http://service-market:8001"
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: database-password-secret
                   key: password
-            - name: BINANCE_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: binance-key-secret
-                  key: key
-            - name: BINANCE_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: binance-secret-secret
-                  key: secret
                                     
           resources:
             requests:
@@ -95,5 +93,5 @@ spec:
   ports:
     - name: http
       protocol: TCP
-      port: 3000
-      targetPort: 3000
+      port: 8002
+      targetPort: 8002
