@@ -1,16 +1,16 @@
 import path from "path";
 import dotenv from "dotenv";
 import database from "./database/client.js";
-import { findSlaveById } from "./utils/findSlaveById.js";
-import { ERROR_EVENTS } from "./utils/errors.js";
+import { findSlaveById } from "./common/sql/findSlaveById.js";
+import { ERROR_EVENTS } from "./common/utils/errors.js";
 import { createSlave } from "./utils/createSlave.js";
-import { updateSlave } from "./utils/updateSlave.js";
-import { sleep } from "./utils/sleep.js";
+import { updateSlave } from "./common/sql/updateSlave.js";
+import { sleep } from "./common/utils/sleep.js";
 import { fileURLToPath } from "url";
-import { logger } from "./utils/logger.js";
+import { logger } from "./common/utils/logger.js";
 import { BotState, Market, Side } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
-import { withRetry } from "./utils/index.js";
+import { withRetry } from "./common/utils/withRetry.js";
 import {
   fetchCandle,
   fetchCandles,

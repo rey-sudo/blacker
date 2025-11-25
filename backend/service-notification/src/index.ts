@@ -41,7 +41,7 @@ const main = async () => {
       database: process.env.DATABASE_NAME,
     });
 
-    const bot = new Telegraf("8390139140:AAFTxUQ1nhew8ottzQBuFiEFeSoWRWidIc0");
+    const bot = new Telegraf();
 
     const channel = "@whiterock_latam";
 
