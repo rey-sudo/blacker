@@ -1,7 +1,7 @@
 import morgan from "morgan";
 import helmet from "helmet";
 import express from "express";
-import { Backtester, root } from "../index.js";
+import { Backtester } from "../index.js";
 import { logger } from "../utils/logger.js";
 import { getLogsHandler } from "../routes/get-logs.js";
 

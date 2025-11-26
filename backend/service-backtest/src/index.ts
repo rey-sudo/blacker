@@ -8,15 +8,14 @@ import { State, Candle, Order } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { sleep } from "./utils/sleep.js";
 import { logger } from "./utils/logger.js";
-import { calculateRSI } from "./lib/rsi/rsi.js";
 import { calculateSqueeze } from "./lib/squeeze/squeeze.js";
 import { calculateADX } from "./lib/adx/adx.js";
 import { calculateMFI } from "./lib/mfi/mfi.js";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
-import { generarRenkoATR } from "./lib/renko/renko.js";
 import { calculateEMA } from "./lib/ema/ema.js";
-import { applyDiscount } from "./utils/applyDiscount.js";
 import { calculateHeikenAshiCustom } from "./lib/heikin/heikin.js";
+import { R0_, } from "./rules/0.js";
+import { R1_ } from "./rules/1.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -340,29 +339,13 @@ export class Backtester {
 
         this.processOrders(currentCandle);
 
-        if (!this.state.rule_values[0]) {
-          const lastRsi = calculateRSI(candles).at(-1)?.value;
+        const R0 = await R0_.call(this, candles);
 
-          if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) continue;
+        if (!R0) continue;
 
-          const rule1 = lastRsi < 33;
+        const R1 = await R1_.call(this, candles);
 
-          this.state.rule_values[0] = rule1;
-
-          if (!rule1) continue;
-        }
-
-        if (!this.state.rule_values[1]) {
-          const lastSqueeze = calculateSqueeze(candles).at(-1)?.color;
-
-          if (!lastSqueeze) continue;
-
-          const rule1 = lastSqueeze === "green";
-
-          this.state.rule_values[1] = rule1;
-
-          if (!rule1) continue;
-        }
+        if (!R1) continue;
 
         if (!this.state.rule_values[2]) {
           const keyLevel = 23;
