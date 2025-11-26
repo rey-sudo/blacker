@@ -1,0 +1,37 @@
+//@version=6
+indicator("Heiken Ashi Custom (con suavización)", overlay = true)
+
+//---------------------------------------------
+// Parámetro de suavización
+//---------------------------------------------
+smoothingLength = input.int(0, "Suavización EMA (0 = off)", minval = 0)
+
+//---------------------------------------------
+// Cálculo básico Heiken Ashi
+//---------------------------------------------
+haCloseRaw = ((open + high + low + close) / 4)
+
+var float haOpenRaw = ((open + close) / 2)
+haOpenRaw := ( (nz(haOpenRaw[1], ((open + close) / 2))) * 0.5 ) + (haCloseRaw[1] * 0.5)
+
+haHighRaw = math.max(high, math.max(haOpenRaw, haCloseRaw))
+haLowRaw  = math.min(low,  math.min(haOpenRaw, haCloseRaw))
+
+//---------------------------------------------
+// Aplicar suavización (si smoothingLength > 0)
+//---------------------------------------------
+haOpen  = smoothingLength > 0 ? ta.ema(haOpenRaw, smoothingLength)  : haOpenRaw
+haClose = smoothingLength > 0 ? ta.ema(haCloseRaw, smoothingLength) : haCloseRaw
+haHigh  = smoothingLength > 0 ? ta.ema(haHighRaw, smoothingLength)  : haHighRaw
+haLow   = smoothingLength > 0 ? ta.ema(haLowRaw, smoothingLength)   : haLowRaw
+
+//---------------------------------------------
+// Colores
+//---------------------------------------------
+bullColor = color.new(color.green, 0)
+bearColor = color.new(color.red, 0)
+
+//---------------------------------------------
+// plotcandle EN UNA SOLA LÍNEA
+//---------------------------------------------
+plotcandle(open = haOpen, high = haHigh, low = haLow, close = haClose, color = (haClose >= haOpen ? bullColor : bearColor), wickcolor = color.white, bordercolor = na)
