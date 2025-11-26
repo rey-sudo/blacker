@@ -16,6 +16,7 @@ import { ChartJSNodeCanvas } from "chartjs-node-canvas";
 import { generarRenkoATR } from "./lib/renko/renko.js";
 import { calculateEMA } from "./lib/ema/ema.js";
 import { applyDiscount } from "./utils/applyDiscount.js";
+import { calculateHeikenAshiCustom } from "./lib/heikin/heikin.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -386,10 +387,12 @@ export class Backtester {
         }
 
         if (!this.state.rule_values[3]) {
-          const renko = generarRenkoATR(candles).at(-1)?.direction;
+          const renko = calculateHeikenAshiCustom(candles, 5).at(-1)?.color;
+
+         // console.log(renko);
 
           if (renko) {
-            const rule1 = renko === 1;
+            const rule1 = renko === "green";
             this.state.rule_values[3] = rule1;
           }
 
@@ -405,7 +408,7 @@ export class Backtester {
           const lastSma = smaData.at(-1);
 
           if (lastHeikin && lastSma) {
-            const rule1 = lastHeikin.close < 40;   // RESET after 40
+            const rule1 = lastHeikin.close < 40; // RESET after 40
             const rule2 = lastHeikin.close > lastSma.value;
 
             this.state.rule_values[4] = rule1 && rule2;
