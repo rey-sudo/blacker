@@ -344,7 +344,7 @@ export class SlaveBot {
             throw new Error("lastRsi value typeError");
           }
 
-          const rule1 = lastRsi < 35;
+          const rule1 = lastRsi < 33;
 
           this.setRule(0, rule1);
 
