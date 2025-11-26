@@ -405,7 +405,7 @@ export class Backtester {
           const lastSma = smaData.at(-1);
 
           if (lastHeikin && lastSma) {
-            const rule1 = lastHeikin.close < 45;
+            const rule1 = lastHeikin.close < 40;
             const rule2 = lastHeikin.close > lastSma.value;
 
             this.state.rule_values[4] = rule1 && rule2;
