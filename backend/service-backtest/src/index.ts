@@ -387,9 +387,7 @@ export class Backtester {
         }
 
         if (!this.state.rule_values[3]) {
-          const renko = calculateHeikenAshiCustom(candles, 5).at(-1)?.color;
-
-         // console.log(renko);
+          const renko = calculateHeikenAshiCustom(candles, 1).at(-1)?.color;
 
           if (renko) {
             const rule1 = renko === "green";
