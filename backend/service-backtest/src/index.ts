@@ -14,8 +14,11 @@ import { calculateMFI } from "./lib/mfi/mfi.js";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
 import { calculateEMA } from "./lib/ema/ema.js";
 import { calculateHeikenAshiCustom } from "./lib/heikin/heikin.js";
-import { R0_, } from "./rules/0.js";
+import { R0_ } from "./rules/0.js";
 import { R1_ } from "./rules/1.js";
+import { R2_ } from "./rules/2.js";
+import { R3_ } from "./rules/3.js";
+import { R4_ } from "./rules/4.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -316,6 +319,10 @@ export class Backtester {
     this.orders.push(order);
   }
 
+  public reset() {
+    this.state.rule_values = this.state.rule_values.map(() => false);
+  }
+
   public async run() {
     await this.setup();
 
@@ -347,61 +354,20 @@ export class Backtester {
 
         if (!R1) continue;
 
-        if (!this.state.rule_values[2]) {
-          const keyLevel = 23;
+        const R2 = await R2_.call(this, candles, this.state.dataset[i - 1]);
 
-          const { reversalPoints } = calculateADX(candles);
+        if (!R2) continue;
 
-          const lastReversal = reversalPoints.at(-1);
+        const R3 = await R3_.call(this, candles);
 
-          if (lastReversal) {
-            const lastCandle = this.state.dataset[i - 1];
+        if (!R3) continue;
 
-            const rule1 = lastReversal.time === lastCandle.time;
+        const R4 = await R4_.call(this, candles);
 
-            const rule2 = lastReversal.value > keyLevel;
-
-            this.state.rule_values[2] = rule1 && rule2;
-          }
-
-          if (!this.state.rule_values[2]) {
-            continue;
-          }
-        }
-
-        if (!this.state.rule_values[3]) {
-          const renko = calculateHeikenAshiCustom(candles, 1).at(-1)?.color;
-
-          if (renko) {
-            const rule1 = renko === "green";
-            this.state.rule_values[3] = rule1;
-          }
-
-          if (!this.state.rule_values[3]) {
-            continue;
-          }
-        }
-
-        if (!this.state.rule_values[4]) {
-          const { haCandles, smaData } = calculateMFI(candles);
-
-          const lastHeikin = haCandles.at(-1);
-          const lastSma = smaData.at(-1);
-
-          if (lastHeikin && lastSma) {
-            const rule1 = lastHeikin.close < 40; // RESET after 40
-            const rule2 = lastHeikin.close > lastSma.value;
-
-            this.state.rule_values[4] = rule1 && rule2;
-          }
-
-          if (!this.state.rule_values[4]) {
-            continue;
-          }
-        }
+        if (!R4) continue;
 
         this.execute(candles, currentCandle);
-        this.state.rule_values = [false, false, false, false, false];
+        this.reset();
       } catch (err: any) {
         this.state.status = "error";
         logger.error(err);
