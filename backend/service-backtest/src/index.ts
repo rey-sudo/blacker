@@ -308,9 +308,8 @@ export class Backtester {
     const stopDistance = currentCandle.close * sl_decimal;
     const quantity = riskUsd / stopDistance;
 
-    if (EMA55 && EMA55 > currentCandle.close) {
-      takeProfit = currentCandle.close * (1 + tp_decimal);
-      //
+    if (EMA55) {
+      takeProfit = EMA55
     } else {
       takeProfit = currentCandle.close * (1 + tp_decimal);
     }
@@ -358,7 +357,6 @@ export class Backtester {
         const R0 = await R0_.call(this, candles, currentCandle);
 
         if (!R0) continue;
-
 
         const R2 = await R2_.call(this, candles, currentCandle);
 
