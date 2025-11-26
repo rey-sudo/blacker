@@ -4,7 +4,7 @@ import { Backtester } from "../index.js";
 export async function R2_(
   this: Backtester,
   candles: Candle[],
-  lastCandle: Candle
+  currentCandle: Candle
 ): Promise<boolean> {
   const RULE = 2;
 
@@ -16,7 +16,13 @@ export async function R2_(
     const lastReversal = reversalPoints.at(-1);
 
     if (lastReversal) {
-      const rule1 = lastReversal.time === lastCandle.time;
+      const range = [
+        currentCandle.time,
+        candles.at(-2)?.time,
+        candles.at(-3)?.time,
+      ];
+
+      const rule1 = range.includes(lastReversal.time);
 
       const rule2 = lastReversal.value > keyLevel;
 

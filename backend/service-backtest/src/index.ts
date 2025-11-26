@@ -15,6 +15,7 @@ import { R1_ } from "./rules/1.js";
 import { R2_ } from "./rules/2.js";
 import { R3_ } from "./rules/3.js";
 import { R4_ } from "./rules/4.js";
+import { calculateSqueeze } from "./common/squeeze.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -147,7 +148,13 @@ export class Backtester {
     return dataset.slice(index - window + 1, index + 1);
   }
 
-  private processOrders(currentCandle: Candle) {
+  private async processOrders(candles: Candle[], currentCandle: Candle) {
+    const lastSqueeze = calculateSqueeze(candles).at(-1)?.color;
+
+    if (!lastSqueeze) return !lastSqueeze;
+
+    const rule1 = lastSqueeze === "blue";
+
     for (const order of this.orders) {
       if (order.state !== "executed") continue;
 
@@ -159,14 +166,20 @@ export class Backtester {
       const isLong = order.side === "long";
       const isShort = order.side === "short";
 
-      if (isLong && currentCandle.low <= order.stop_loss) {
-        closeInfo = { reason: "stop_loss", price: order.stop_loss };
-      } else if (isShort && currentCandle.high >= order.stop_loss) {
-        closeInfo = { reason: "stop_loss", price: order.stop_loss };
-      } else if (isLong && currentCandle.high >= order.take_profit) {
-        closeInfo = { reason: "take_profit", price: order.take_profit };
-      } else if (isShort && currentCandle.low <= order.take_profit) {
-        closeInfo = { reason: "take_profit", price: order.take_profit };
+      if (isLong) {
+        if (currentCandle.low <= order.stop_loss) {
+          closeInfo = { reason: "stop_loss", price: order.stop_loss };
+        } else if (rule1) {
+          closeInfo = { reason: "take_profit", price: currentCandle.high };
+        }
+      }
+
+      if (isShort) {
+        if (currentCandle.high >= order.stop_loss) {
+          closeInfo = { reason: "stop_loss", price: order.stop_loss };
+        } else if (currentCandle.low <= order.take_profit) {
+          closeInfo = { reason: "take_profit", price: order.take_profit };
+        }
       }
 
       if (closeInfo) {
@@ -338,19 +351,16 @@ export class Backtester {
       }
 
       try {
-        //await this.sleep(500);
+       // await this.sleep(1000);
 
-        this.processOrders(currentCandle);
+        await this.processOrders(candles, currentCandle);
 
-        const R0 = await R0_.call(this, candles);
+        const R0 = await R0_.call(this, candles, currentCandle);
 
         if (!R0) continue;
 
-        const R1 = await R1_.call(this, candles);
 
-        if (!R1) continue;
-
-        const R2 = await R2_.call(this, candles, this.state.dataset[i - 1]);
+        const R2 = await R2_.call(this, candles, currentCandle);
 
         if (!R2) continue;
 

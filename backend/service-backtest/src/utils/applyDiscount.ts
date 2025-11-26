@@ -12,3 +12,19 @@ export function applyDiscount(price: number, discount: number): number {
     const finalPrice = price - discountAmount;
     return parseFloat(finalPrice.toFixed(2)); // rounds to 2 decimals
 }
+
+
+/**
+ * Applies a percentage increase to a price and returns the final price.
+ * @param price - Current price of the item.
+ * @param percentage - Percentage to add (e.g., 10 for 10%).
+ * @returns Price with the percentage added.
+ */
+export function addPercentage(price: number, percentage: number): number {
+    if (percentage < 0) {
+        throw new Error("Percentage must be 0 or greater");
+    }
+    const increaseAmount = (price * percentage) / 100;
+    const finalPrice = price + increaseAmount;
+    return parseFloat(finalPrice.toFixed(2)); // rounds to 2 decimals
+}

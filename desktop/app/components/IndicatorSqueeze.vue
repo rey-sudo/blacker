@@ -136,7 +136,7 @@ onMounted(async () => {
           const sqzData = computeSQZMOM(allCandles);
 
           const lbGreenLight = colors.red;
-          const lbGreenDark = colors.red;
+          const lbGreenDark = colors.blue;
 
           const lbRedLight = colors.green;
           const lbRedDark = colors.red;
