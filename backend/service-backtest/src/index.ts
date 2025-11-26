@@ -13,6 +13,9 @@ import { calculateSqueeze } from "./lib/squeeze/squeeze.js";
 import { calculateADX } from "./lib/adx/adx.js";
 import { calculateMFI } from "./lib/mfi/mfi.js";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
+import { generarRenkoATR } from "./lib/renko/renko.js";
+import { calculateEMA } from "./lib/ema/ema.js";
+import { applyDiscount } from "./utils/applyDiscount.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -78,8 +81,8 @@ export class Backtester {
       current_window: [],
       created_at: Date.now(),
       updated_at: Date.now(),
-      rule_labels: ["rsi", "squeeze", "adx", "heikin"],
-      rule_values: [false, false, false, false],
+      rule_labels: ["rsi", "squeeze", "adx", "renko", "mfi"],
+      rule_values: [false, false, false, false, false],
     };
 
     this.orders = [];
@@ -277,7 +280,11 @@ export class Backtester {
     return equityCurve;
   }
 
-  private createOrder(currentCandle: Candle) {
+  private execute(candles: Candle[], currentCandle: Candle) {
+    let takeProfit = null;
+
+    const EMA55 = calculateEMA(candles, 55).at(-1)?.value;
+
     const riskPct = this.state.position_risk;
     const riskUsd = (this.state.account_balance * riskPct) / 100;
 
@@ -289,13 +296,20 @@ export class Backtester {
     const stopDistance = currentCandle.close * sl_decimal;
     const quantity = riskUsd / stopDistance;
 
+    if (EMA55 && EMA55 > currentCandle.close) {
+      takeProfit = currentCandle.close * (1 + tp_decimal);
+      //
+    } else {
+      takeProfit = currentCandle.close * (1 + tp_decimal);
+    }
+
     const order: Order = {
       type: "market",
       side: "long",
       state: "executed",
       price: currentCandle.close,
       quantity,
-      take_profit: currentCandle.close * (1 + tp_decimal),
+      take_profit: takeProfit,
       stop_loss: currentCandle.close * (1 - sl_decimal),
     };
 
@@ -372,6 +386,19 @@ export class Backtester {
         }
 
         if (!this.state.rule_values[3]) {
+          const renko = generarRenkoATR(candles).at(-1)?.direction;
+
+          if (renko) {
+            const rule1 = renko === 1;
+            this.state.rule_values[3] = rule1;
+          }
+
+          if (!this.state.rule_values[3]) {
+            continue;
+          }
+        }
+
+        if (!this.state.rule_values[4]) {
           const { haCandles, smaData } = calculateMFI(candles);
 
           const lastHeikin = haCandles.at(-1);
@@ -381,16 +408,16 @@ export class Backtester {
             const rule1 = lastHeikin.close < 45;
             const rule2 = lastHeikin.close > lastSma.value;
 
-            this.state.rule_values[3] = rule1 && rule2;
+            this.state.rule_values[4] = rule1 && rule2;
           }
 
-          if (!this.state.rule_values[3]) {
+          if (!this.state.rule_values[4]) {
             continue;
           }
         }
 
-        this.createOrder(currentCandle);
-        this.state.rule_values = [false, false, false, false];
+        this.execute(candles, currentCandle);
+        this.state.rule_values = [false, false, false, false, false];
       } catch (err: any) {
         this.state.status = "error";
         logger.error(err);
