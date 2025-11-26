@@ -3,9 +3,9 @@ import { defineStore } from "pinia";
 export const createTabStore = (tabId: string) =>
   defineStore(`tab-${tabId}`, () => {
     const symbol = ref("BTCUSDT");
-    const source = ref("binance");
+    const market = ref("crypto");
     const interval = ref("4h");
-    const exchange = ref("binance");
+    const window = ref(500);
 
     const candles: any = ref([]);
     const candle = ref(null);
@@ -82,9 +82,9 @@ export const createTabStore = (tabId: string) =>
           method: "GET",
           params: {
             symbol: symbol.value,
-            source: source.value,
+            market: market.value,
             interval: interval.value,
-            exchange: exchange.value,
+            window: window.value,
           },
         });
 
@@ -109,9 +109,9 @@ export const createTabStore = (tabId: string) =>
           method: "GET",
           params: {
             symbol: symbol.value,
-            source: source.value,
+            market: market.value,
             interval: interval.value,
-            exchange: exchange.value,
+            window: window.value,
           },
         });
 

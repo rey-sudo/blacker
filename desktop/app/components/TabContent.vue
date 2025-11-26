@@ -29,6 +29,13 @@
         />
       </div>
       <div class="indicator">
+        <IndicatorRenko
+          :tabId="tabId"
+          :width="chartWidth"
+          :height="chartHeight / 2"
+        />
+      </div>
+      <div class="indicator">
         <IndicatorMFI
           :tabId="tabId"
           :width="chartWidth"

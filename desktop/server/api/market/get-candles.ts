@@ -1,15 +1,15 @@
 import { defineEventHandler, getQuery, createError } from "h3";
 
 export default defineEventHandler(async (event) => {
-  const { symbol, source, interval, exchange } = getQuery(event);
+  const { symbol, market, interval, window } = getQuery(event);
 
   try {
-    console.log(symbol, source, interval, exchange);
+    console.log(symbol, market, interval, window);
 
     const apiUrl = "http://localhost:8001/api/market/get-candles";
     const res = await $fetch(apiUrl, {
       method: "GET",
-      params: { symbol, source, interval, exchange },
+      params: { symbol, market, interval, window },
     });
     return res;
   } catch (err: any) {
