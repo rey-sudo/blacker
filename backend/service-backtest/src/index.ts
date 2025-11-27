@@ -364,10 +364,6 @@ export class Backtester {
 
         if (!R2) continue;
 
-        const R3 = await R3_.call(this, candles);
-
-        if (!R3) continue;
-
         const R4 = await R4_.call(this, candles, currentCandle);
 
         if (!R4) continue;
