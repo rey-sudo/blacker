@@ -14,13 +14,7 @@
           :height="chartHeight / 2"
         />
       </div>
-      <div class="indicator">
-        <IndicatorSqueeze
-          :tabId="tabId"
-          :width="chartWidth"
-          :height="chartHeight / 2"
-        />
-      </div>
+
       <div class="indicator">
         <IndicatorADX
           :tabId="tabId"
@@ -29,7 +23,7 @@
         />
       </div>
       <div class="indicator">
-        <IndicatorRenko
+        <IndicatorHeikinAshi
           :tabId="tabId"
           :width="chartWidth"
           :height="chartHeight / 2"
@@ -37,6 +31,13 @@
       </div>
       <div class="indicator">
         <IndicatorMFI
+          :tabId="tabId"
+          :width="chartWidth"
+          :height="chartHeight / 2"
+        />
+      </div>
+      <div class="indicator">
+        <IndicatorSqueeze
           :tabId="tabId"
           :width="chartWidth"
           :height="chartHeight / 2"
