@@ -54,7 +54,7 @@ export async function R4_(
 
 export function countEMATouches(candles: Candle[], ema: any, periods = 4) {
   const realTolerance = 0.0015; // 0.15%
-  const nearTolerance = 0.005; // 0.30%
+  const nearTolerance = 0.005; // 0.50%
 
   let touchCount = 0; 
   let nearTouchCount = 0; 
