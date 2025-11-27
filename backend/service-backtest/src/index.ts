@@ -358,7 +358,7 @@ export class Backtester {
       }
 
       try {
-        // await this.sleep(1000);
+        //await this.sleep(1000);
 
         await this.processOrders(candles, currentCandle);
 

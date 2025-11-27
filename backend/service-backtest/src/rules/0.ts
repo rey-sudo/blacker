@@ -27,10 +27,7 @@ export async function R0_(
 
     const rule2 = EMA55 > currentCandle.high; //The price did not touch the EMA
 
-    const rule3 =
-      EMA55 > addPercentage(currentCandle.close, this.state.take_profit);
-
-    this.state.rule_values[RULE] = rule1 && rule2 && rule3;
+    this.state.rule_values[RULE] = rule1 && rule2 
 
     if (this.state.rule_values[RULE]) {
       console.log("🚨 UNDER EMA5");
