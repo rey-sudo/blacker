@@ -158,7 +158,7 @@ export class Backtester {
     const EMA25 = calculateEMA(candles, 25);
     const { touchCount, totalTouches } = countEMATouches(candles, EMA25, 5);
 
-    const rule4 = touchCount >= 2;
+    const rule4 = touchCount >= 3;
 
     for (const order of this.orders) {
       if (order.state !== "executed") continue;
