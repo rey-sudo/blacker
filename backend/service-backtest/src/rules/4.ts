@@ -25,7 +25,7 @@ export async function R4_(
       const rule1 = lastHeikin.close < 50;
       const rule2 = lastHeikin.close > lastSma.value;
       const rule3 =
-        EMA55 > addPercentage(currentCandle.close, this.state.take_profit);
+        EMA55 > addPercentage(currentCandle.close, 1);
 
       if (!rule1) {
         this.reset();
