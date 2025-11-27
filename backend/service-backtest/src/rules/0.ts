@@ -31,6 +31,10 @@ export async function R0_(
       EMA55 > addPercentage(currentCandle.close, this.state.take_profit);
 
     this.state.rule_values[RULE] = rule1 && rule2 && rule3;
+
+    if (this.state.rule_values[RULE]) {
+      console.log("🚨 UNDER EMA5");
+    }
   }
 
   return this.state.rule_values[RULE];

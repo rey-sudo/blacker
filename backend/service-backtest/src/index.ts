@@ -193,6 +193,8 @@ export class Backtester {
         } else {
           order.pnl = (order.price - closeInfo.price) * order.quantity;
         }
+
+        console.log(order);
       }
     }
   }
@@ -309,7 +311,7 @@ export class Backtester {
     const quantity = riskUsd / stopDistance;
 
     if (EMA55) {
-      takeProfit = EMA55
+      takeProfit = EMA55;
     } else {
       takeProfit = currentCandle.close * (1 + tp_decimal);
     }
@@ -350,7 +352,7 @@ export class Backtester {
       }
 
       try {
-       // await this.sleep(1000);
+      //  await this.sleep(1000);
 
         await this.processOrders(candles, currentCandle);
 
@@ -366,12 +368,14 @@ export class Backtester {
 
         if (!R3) continue;
 
-        const R4 = await R4_.call(this, candles);
+        const R4 = await R4_.call(this, candles, currentCandle);
 
         if (!R4) continue;
 
         this.execute(candles, currentCandle);
         this.reset();
+
+        console.log("✅ EXECUTED");
       } catch (err: any) {
         this.state.status = "error";
         logger.error(err);
