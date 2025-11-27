@@ -28,9 +28,9 @@ export async function R4_(
       const rule2 = lastHeikin.close > lastSma.value;
       const rule3 = EMA55 > addPercentage(currentCandle.close, 1);
 
-      const touchCount = countEMATouches(candles, EMA25, 4);
+     const { touchCount, totalTouches } = countEMATouches(candles, EMA25, 4);
 
-      const rule4 = touchCount >= 3;
+      const rule4 = touchCount >= 3 || totalTouches >= 4
 
       this.state.rule_values[RULE] = rule1 && rule2 && rule3;
 
@@ -52,11 +52,16 @@ export async function R4_(
   return this.state.rule_values[RULE];
 }
 
-export function countEMATouches(candles: Candle[], ema: any, periods = 4) {
-  const realTolerance = 0.0015;
-  const nearTolerance = 0.0030 
+export function countEMATouches(
+  candles: Candle[],
+  ema: any,
+  periods = 4
+) {
+  const realTolerance = 0.0015; // 0.15%
+  const nearTolerance = 0.0030; // 0.30%
 
-  let touches = 0;
+  let touchCount = 0;      // toques reales
+  let nearTouchCount = 0;  // casi toques
 
   for (let i = 1; i <= periods; i++) {
     const candle = candles.at(-i);
@@ -66,20 +71,25 @@ export function countEMATouches(candles: Candle[], ema: any, periods = 4) {
 
     const high = candle.high;
     const emaValue = emaPoint.value;
-
     const diff = high - emaValue;
 
-
+    // ✔ Toque real
     if (diff >= 0 && diff <= emaValue * realTolerance) {
-      touches++;
+      touchCount++;
       continue;
     }
 
+    // ✔ Casi toque
     if (diff < 0 && Math.abs(diff) <= emaValue * nearTolerance) {
-      touches++;
+      nearTouchCount++;
       continue;
     }
   }
 
-  return touches;
+  return {
+    touchCount,
+    nearTouchCount,
+    totalTouches: touchCount + nearTouchCount,
+  };
 }
+
