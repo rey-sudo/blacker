@@ -14,7 +14,7 @@ import { R0_ } from "./rules/0.js";
 import { R1_ } from "./rules/1.js";
 import { R2_ } from "./rules/2.js";
 import { R3_ } from "./rules/3.js";
-import { R4_ } from "./rules/4.js";
+import { countEMATouches, R4_ } from "./rules/4.js";
 import { calculateSqueeze } from "./common/squeeze.js";
 
 dotenv.config({ path: ".env.development" });
@@ -155,6 +155,11 @@ export class Backtester {
 
     const rule1 = lastSqueeze === "blue";
 
+    const EMA25 = calculateEMA(candles, 25);
+    const { touchCount, totalTouches } = countEMATouches(candles, EMA25, 5);
+
+    const rule4 = touchCount >= 2;
+
     for (const order of this.orders) {
       if (order.state !== "executed") continue;
 
@@ -169,8 +174,9 @@ export class Backtester {
       if (isLong) {
         if (currentCandle.low <= order.stop_loss) {
           closeInfo = { reason: "stop_loss", price: order.stop_loss };
-        } else if (rule1) {
-          closeInfo = { reason: "take_profit", price: currentCandle.high };
+        } else if (rule1 || rule4) {
+          const closeAt = rule4 ? EMA25.at(-1)?.value! : currentCandle.high;
+          closeInfo = { reason: "take_profit", price: closeAt };
         }
       }
 
@@ -352,7 +358,7 @@ export class Backtester {
       }
 
       try {
-        //await this.sleep(1000);
+        // await this.sleep(1000);
 
         await this.processOrders(candles, currentCandle);
 
