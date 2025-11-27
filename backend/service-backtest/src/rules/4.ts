@@ -30,7 +30,7 @@ export async function R4_(
 
       const { touchCount, totalTouches } = countEMATouches(candles, EMA25, 4);
 
-      const rule4 = touchCount >= 3 || totalTouches >= 4;
+      const rule4 = touchCount >= 2 || totalTouches >= 4;
 
       this.state.rule_values[RULE] = rule1 && rule2 && rule3;
 
