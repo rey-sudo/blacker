@@ -22,7 +22,7 @@ export async function R4_(
     const lastSma = smaData.at(-1);
 
     if (lastHeikin && lastSma) {
-      const rule1 = lastHeikin.close < 50;
+      const rule1 = lastHeikin.close < 90;
       const rule2 = lastHeikin.close > lastSma.value;
       const rule3 =
         EMA55 > addPercentage(currentCandle.close, 1);
