@@ -23,13 +23,6 @@
         />
       </div>
       <div class="indicator">
-        <IndicatorHeikinAshi
-          :tabId="tabId"
-          :width="chartWidth"
-          :height="chartHeight / 2"
-        />
-      </div>
-      <div class="indicator">
         <IndicatorMFI
           :tabId="tabId"
           :width="chartWidth"
@@ -38,6 +31,13 @@
       </div>
       <div class="indicator">
         <IndicatorSqueeze
+          :tabId="tabId"
+          :width="chartWidth"
+          :height="chartHeight / 2"
+        />
+      </div>
+      <div class="indicator">
+        <IndicatorHeikinAshi
           :tabId="tabId"
           :width="chartWidth"
           :height="chartHeight / 2"
