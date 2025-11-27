@@ -24,25 +24,20 @@ export async function R4_(
     const lastSma = smaData.at(-1);
 
     if (lastHeikin && lastSma) {
-      const rule1 = lastHeikin.close < 90;
+      const rule1 = lastHeikin.close < 70;
       const rule2 = lastHeikin.close > lastSma.value;
-      const rule3 = EMA55 > addPercentage(currentCandle.close, 1);
 
       const { touchCount, totalTouches } = countEMATouches(candles, EMA25, 5);
 
-      const rule4 = touchCount >= 2 || totalTouches >= 2;
+      const rule3 = touchCount >= 2 || totalTouches >= 2;
 
-      this.state.rule_values[RULE] = rule1 && rule2 && rule3;
+      this.state.rule_values[RULE] = rule1 && rule2;
 
       if (!rule1) {
         this.reset();
       }
 
-      if (!rule3) {
-        this.reset();
-      }
-
-      if (rule4) {
+      if (rule3) {
         console.log("⚠️⚠️⚠️⚠️⚠️EMA25 TOUCHES⚠️⚠️⚠️⚠️⚠️");
         this.reset();
       }
