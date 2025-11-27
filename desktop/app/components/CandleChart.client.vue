@@ -136,15 +136,22 @@ const setupChart = () => {
     borderVisible: true,
   });
 
-  const maSeries = candleChart.addSeries(LineSeries, {
+  const ema55series = candleChart.addSeries(LineSeries, {
     color: colors.red,
     lineWidth: 2,
   });
 
-  const calculateMa = (data) => {
-    const maData = calculateEMAseries(data, 55);
+  const ema25series = candleChart.addSeries(LineSeries, {
+    color: colors.yellow,
+    lineWidth: 1,
+  });
 
-    maSeries.setData(maData);
+  const calculateMa = (data) => {
+    const ema55 = calculateEMAseries(data, 55);
+    const ema25 = calculateEMAseries(data, 25);
+
+    ema55series.setData(ema55);
+    ema25series.setData(ema25);
   };
 
   let markersApi = null;
@@ -185,7 +192,7 @@ const setupChart = () => {
 
       candleSeries.setData(data);
       calculateMa(data);
-     // addMarkers(data);
+      // addMarkers(data);
     },
     { deep: true }
   );
