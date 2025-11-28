@@ -31,7 +31,7 @@ export async function R4_(
 
       console.log(toques, intentosDeRuptura);
       
-      const rule3 = toques >= 2 || intentosDeRuptura >= 2;
+      const rule3 = toques >= 3 || intentosDeRuptura >= 4;
 
       this.state.rule_values[RULE] = rule1 && rule2;
 
