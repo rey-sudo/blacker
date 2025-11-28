@@ -18,11 +18,9 @@ export async function mfiRule(
       const rule1 = lastHeikin.close < 70;
       const rule2 = lastHeikin.close > lastSma.value;
 
-      const { toques, intentosDeRuptura } = countEMATouches(candles, EMA25);
+      const { touches, failedBreakouts } = countEMATouches(candles, EMA25);
 
-      console.log(toques, intentosDeRuptura);
-
-      const rule3 = toques >= 3 || intentosDeRuptura >= 4;
+      const rule3 = touches >= 3 || failedBreakouts >= 4;
 
       this.state.rule_values[RULE] = rule1 && rule2;
 
@@ -40,74 +38,100 @@ export async function mfiRule(
   return this.state.rule_values[RULE];
 }
 
-/**
- * @param {Array<Object>} data Array de datos de velas OHLCV.
- * @param {Array<Object>} ema25Data Array de objetos con el valor de la EMA 25, sincronizado con 'data'.
- * @returns {Object} Un objeto con el recuento de toques e intentos de ruptura.
- */
+
 export function countEMATouches(
   data: Candle[],
-  ema25Data: any,
-  periodosAAnalizar: number = 5
+  emaData: any,
+  periodsToAnalyze: number = 5
 ) {
-  let toques = 0;
-  let intentosDeRuptura = 0;
-  // Tolerancia del 0.05% para considerar un "toque" o "cercanía extrema"
-  const toleranciaPorcentual = 0.0005;
-
-  // Verificación de sincronización
-  if (data.length !== ema25Data.length) {
-    console.error(
-      "Error: Los arrays de datos (precios) y EMA25 no tienen la misma longitud."
-    );
-    return { toques: 0, intentosDeRuptura: 0 };
+  // Basic length check
+  if (data.length !== emaData.length) {
+    console.error("Error: Price data and EMA data must have the same length.");
+    return { touches: 0, failedBreakouts: 0 };
   }
 
-  // --- Lógica para limitar el análisis a los últimos 'periodosAAnalizar' ---
+  const len = data.length;
+  if (len < 2) {
+    // We need at least one previous candle to evaluate context
+    return { touches: 0, failedBreakouts: 0 };
+  }
 
-  // 1. Determinar el punto de inicio del análisis.
-  // Aseguramos que el punto de inicio no sea menor que 1 (necesitamos el elemento anterior)
-  // y que no exceda la longitud total de los datos.
-  const inicioAnalisis = Math.max(1, data.length - periodosAAnalizar);
+  let touches = 0;
+  let failedBreakouts = 0;
 
-  // Iteramos desde el punto de inicio calculado hasta el final.
-  for (let i = inicioAnalisis; i < data.length; i++) {
-    const vela = data[i];
-    const ma25 = ema25Data[i].value;
-    const velaAnterior = data[i - 1]; // Siempre disponible ya que inicioAnalisis >= 1
+  const tolerancePercent = 0.0005;
+  const start = Math.max(1, len - periodsToAnalyze);
 
-    // La tolerancia se calcula en base al valor actual de la MA.
-    const toleranciaAbsoluta = ma25 * toleranciaPorcentual;
+  for (let i = start; i < len; i++) {
+    const candle = data[i];
+    const previousCandle = data[i - 1];
 
-    // --- Criterio 1: Intento de Toque (Cercanía o contacto) ---
-    // Se considera toque si el precio mínimo o máximo está dentro del rango de tolerancia de la MA.
-    // O si la mecha toca o cruza ligeramente.
-    if (
-      (Math.abs(vela.high - ma25) <= toleranciaAbsoluta && vela.high >= ma25) ||
-      (Math.abs(vela.low - ma25) <= toleranciaAbsoluta && vela.low <= ma25)
-    ) {
-      toques++;
+    // Validate candle shape and numeric fields
+    const high = Number(candle?.high);
+    const low = Number(candle?.low);
+    const close = Number(candle?.close);
+    const prevClose = Number(previousCandle?.close);
+
+    if (!isFinite(high) || !isFinite(low) || !isFinite(close) || !isFinite(prevClose)) {
+      // Skip bad data (could also log a counter)
+      continue;
     }
 
-    // --- Criterio 2: Intención de Romper (Cruza y Cierra en el lado opuesto - Falla) ---
+    // --- Robust EMA extraction ---
+    const emaItem = emaData[i];
+    let ema: number;
 
-    // 1. Falla Alcista (Quiebra el soporte, pero el precio se mantiene arriba)
-    // La vela anterior cerró POR ENCIMA de la MA, la vela actual toca/cruza POR DEBAJO,
-    // pero el cierre de la vela actual termina POR ENCIMA de la MA.
-    if (velaAnterior.close > ma25 && vela.low < ma25 && vela.close > ma25) {
-      intentosDeRuptura++;
+    if (typeof emaItem === "number") {
+      ema = emaItem;
+    } else if (emaItem != null && typeof emaItem.value === "number") {
+      ema = emaItem.value;
+    } else if (emaItem != null && typeof emaItem === "object") {
+      // try to coerce a common numeric field if exists
+      const maybeNumber = Number(emaItem);
+      ema = isFinite(maybeNumber) ? maybeNumber : NaN;
+    } else {
+      ema = NaN;
     }
 
-    // 2. Falla Bajista (Quiebra la resistencia, pero el precio se mantiene abajo)
-    // La vela anterior cerró POR DEBAJO de la MA, la vela actual toca/cruza POR ENCIMA,
-    // pero el cierre de la vela actual termina POR DEBAJO de la MA.
-    if (velaAnterior.close < ma25 && vela.high > ma25 && vela.close < ma25) {
-      intentosDeRuptura++;
+    if (!isFinite(ema)) {
+      // skip if EMA is not a valid number
+      continue;
+    }
+
+    // --- Tolerance: avoid zero tolerance if ema === 0 ---
+    // fallbackTolerance is based on candle size (if ema is 0 or too small)
+    const candleRange = high - low;
+    const baseTolerance = Math.abs(ema) * tolerancePercent;
+    const fallbackTolerance = Math.max(candleRange * tolerancePercent, 1e-8);
+    const toleranceAbs = Math.max(baseTolerance, fallbackTolerance);
+
+    // Distances
+    const distHigh = high - ema;  // positive if wick above EMA
+    const distLow = ema - low;    // positive if wick below EMA
+
+    // Touch detection (respecting side)
+    const touchAbove = distHigh >= 0 && distHigh <= toleranceAbs;
+    const touchBelow = distLow >= 0 && distLow <= toleranceAbs;
+
+    // Context: previous close relative to EMA
+    const isSupport = prevClose > ema;      // price was above EMA → EMA acting like support
+    const isResistance = prevClose < ema;   // price was below EMA → EMA acting like resistance
+
+    if ((touchAbove && isResistance) || (touchBelow && isSupport)) {
+      touches++;
+    }
+
+    // Failed breakout detection (same logic but validated numerically)
+    const breaksDownButClosesAbove = isSupport && low < ema && close > ema;
+    const breaksUpButClosesBelow = isResistance && high > ema && close < ema;
+
+    // Significant candle threshold (avoid micro-noise)
+    const significantBreak = candleRange > toleranceAbs * 4;
+
+    if ((breaksDownButClosesAbove || breaksUpButClosesBelow) && significantBreak) {
+      failedBreakouts++;
     }
   }
 
-  return {
-    toques: toques,
-    intentosDeRuptura: intentosDeRuptura,
-  };
+  return { touches, failedBreakouts };
 }

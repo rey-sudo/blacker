@@ -137,7 +137,7 @@ export class Backtester {
     });
   }
 
-  private async sleep(timeMs: number) {
+  public async sleep(timeMs: number) {
     logger.info("🕒 Sleeping");
     return await sleep(timeMs);
   }
@@ -156,9 +156,9 @@ export class Backtester {
     const rule1 = lastSqueeze === "blue";
 
     const EMA25 = calculateEMA(candles, 25);
-    const { toques, intentosDeRuptura } = countEMATouches(candles, EMA25);
+    const { touches, failedBreakouts } = countEMATouches(candles, EMA25);
 
-    const rule4 = toques >= 3 || intentosDeRuptura >= 4;
+    const rule4 = touches >= 3 || failedBreakouts >= 4;
 
     for (const order of this.orders) {
       if (order.state !== "executed") continue;
