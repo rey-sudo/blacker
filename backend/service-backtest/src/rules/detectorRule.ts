@@ -27,7 +27,7 @@ export async function detectorRule(
       throw new Error("lastCandle variable error");
     }
 
-    const rule1 = lastRsi < 33;
+    const rule1 = lastRsi <= 33;
 
     const rule2 = lastEma55 > lastCandle.high; //The price did not touch the EMA
 
