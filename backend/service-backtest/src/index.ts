@@ -11,7 +11,7 @@ import { logger } from "./utils/logger.js";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
 import { calculateEMA } from "./lib/ema/ema.js";
 import { detectorRule } from "./rules/detectorRule.js";
-import { countEMATouches, R4_ } from "./rules/4.js";
+import { countEMATouches, mfiRule } from "./rules/mfiRule.js";
 import { calculateSqueeze } from "./common/squeeze.js";
 import { adxRule } from "./rules/adxRule.js";
 
@@ -361,16 +361,13 @@ export class Backtester {
         await this.processOrders(candles, currentCandle);
 
         const R0 = await detectorRule.call(this, 0, candles);
-
         if (!R0) continue;
 
-        const R2 = await adxRule.call(this, 1, candles);
+        const R1 = await adxRule.call(this, 1, candles);
+        if (!R1) continue;
 
+        const R2 = await mfiRule.call(this, 2, candles);
         if (!R2) continue;
-
-        const R4 = await R4_.call(this, candles, currentCandle);
-
-        if (!R4) continue;
 
         this.execute(candles, currentCandle);
         this.reset();

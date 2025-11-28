@@ -1,27 +1,19 @@
-import { calculateMFI, Candle, TimeValue } from "@whiterockdev/common";
-import { addPercentage } from "../utils/applyDiscount.js";
+import { calculateMFI, Candle } from "@whiterockdev/common";
 import { calculateEMA } from "../lib/ema/ema.js";
 import { Backtester } from "../index.js";
 
-export async function R4_(
+export async function mfiRule(
   this: Backtester,
-  candles: Candle[],
-  currentCandle: Candle
+  RULE: number,
+  candles: Candle[]
 ): Promise<boolean> {
-  const RULE = 4;
-
   if (!this.state.rule_values[RULE]) {
     const { haCandles, smaData } = calculateMFI(candles);
 
-    const EMA55 = calculateEMA(candles, 55).at(-1)?.value;
-    if (typeof EMA55 !== "number" || Number.isNaN(EMA55)) {
-      throw new Error("EMA55 type error");
-    }
-
-    const EMA25 = calculateEMA(candles, 25);
-
     const lastHeikin = haCandles.at(-1);
     const lastSma = smaData.at(-1);
+
+    const EMA25 = calculateEMA(candles, 25);
 
     if (lastHeikin && lastSma) {
       const rule1 = lastHeikin.close < 70;
@@ -30,7 +22,7 @@ export async function R4_(
       const { toques, intentosDeRuptura } = countEMATouches(candles, EMA25);
 
       console.log(toques, intentosDeRuptura);
-      
+
       const rule3 = toques >= 3 || intentosDeRuptura >= 4;
 
       this.state.rule_values[RULE] = rule1 && rule2;
@@ -77,10 +69,7 @@ export function countEMATouches(
   // 1. Determinar el punto de inicio del análisis.
   // Aseguramos que el punto de inicio no sea menor que 1 (necesitamos el elemento anterior)
   // y que no exceda la longitud total de los datos.
-  const inicioAnalisis = Math.max(
-    1,
-    data.length - periodosAAnalizar
-  );
+  const inicioAnalisis = Math.max(1, data.length - periodosAAnalizar);
 
   // Iteramos desde el punto de inicio calculado hasta el final.
   for (let i = inicioAnalisis; i < data.length; i++) {
