@@ -13,7 +13,7 @@ import { calculateEMA } from "./lib/ema/ema.js";
 import { detectorRule } from "./rules/detectorRule.js";
 import { countEMATouches, R4_ } from "./rules/4.js";
 import { calculateSqueeze } from "./common/squeeze.js";
-import { R2_ } from "./rules/2.js";
+import { adxRule } from "./rules/adxRule.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -360,11 +360,11 @@ export class Backtester {
 
         await this.processOrders(candles, currentCandle);
 
-        const R0 = await detectorRule.call(this, 0, candles, currentCandle);
+        const R0 = await detectorRule.call(this, 0, candles);
 
         if (!R0) continue;
 
-        const R2 = await R2_.call(this, candles, currentCandle);
+        const R2 = await adxRule.call(this, 1, candles);
 
         if (!R2) continue;
 

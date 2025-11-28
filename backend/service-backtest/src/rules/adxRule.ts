@@ -1,12 +1,11 @@
 import { calculateADX, Candle } from "@whiterockdev/common";
 import { Backtester } from "../index.js";
 
-export async function R2_(
+export async function adxRule(
   this: Backtester,
+  RULE: number,
   candles: Candle[],
-  currentCandle: Candle
 ): Promise<boolean> {
-  const RULE = 2;
 
   if (!this.state.rule_values[RULE]) {
     const keyLevel = 23;
@@ -17,7 +16,7 @@ export async function R2_(
 
     if (lastReversal) {
       const range = [
-        currentCandle.time,
+        candles.at(-1)?.time,
         candles.at(-2)?.time,
         candles.at(-3)?.time,
       ];

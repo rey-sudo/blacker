@@ -6,17 +6,16 @@ export async function detectorRule(
   this: Backtester,
   RULE: number,
   candles: Candle[],
-  currentCandle: Candle
 ): Promise<boolean> {
-
   if (!this.state.rule_values[RULE]) {
+    const lastCandle = candles.at(-1);
+
     const rsiData = calculateRSI(candles);
     const lastRsi = rsiData.at(-1)?.value;
 
     const ema55Data = calculateEMA(candles, 55);
     const lastEma55 = ema55Data.at(-1)?.value;
 
-  
     if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) {
       throw new Error("lastRsi type error");
     }
@@ -25,9 +24,13 @@ export async function detectorRule(
       throw new Error("EMA55 type error");
     }
 
+    if (!lastCandle) {
+      throw new Error("lastCandle variable error");
+    }
+
     const rule1 = lastRsi < 33;
 
-    const rule2 = lastEma55 > currentCandle.high; //The price did not touch the EMA
+    const rule2 = lastEma55 > lastCandle.high; //The price did not touch the EMA
 
     this.state.rule_values[RULE] = rule1 && rule2;
   }
