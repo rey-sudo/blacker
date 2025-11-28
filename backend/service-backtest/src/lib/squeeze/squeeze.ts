@@ -150,7 +150,7 @@ export function calculateSqueeze(allCandles: Candle[]) {
   const lbRedDark = "red";
 
   const result = sqzData.map((d, i) => {
-    let prev = sqzData[i - 1] ? sqzData[i - 1].value : 0;
+    const prev = i > 0 ? sqzData[i - 1].value ?? 0 : 0;
     let color;
 
     if (d.value >= 0) {

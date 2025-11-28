@@ -145,7 +145,7 @@ onMounted(async () => {
 
           histogramSeries.setData(
             sqzData.map((d, i) => {
-              let prev = sqzData[i - 1] ? sqzData[i - 1].value : 0;
+              const prev = i > 0 ? sqzData[i - 1].value ?? 0 : 0;
               let color;
 
               if (d.value >= 0) {
