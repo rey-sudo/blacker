@@ -10,12 +10,10 @@ import { sleep } from "./utils/sleep.js";
 import { logger } from "./utils/logger.js";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
 import { calculateEMA } from "./lib/ema/ema.js";
-import { R0_ } from "./rules/0.js";
-import { R1_ } from "./rules/1.js";
-import { R2_ } from "./rules/2.js";
-import { R3_ } from "./rules/3.js";
+import { detectorRule } from "./rules/detectorRule.js";
 import { countEMATouches, R4_ } from "./rules/4.js";
 import { calculateSqueeze } from "./common/squeeze.js";
+import { R2_ } from "./rules/2.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -362,7 +360,7 @@ export class Backtester {
 
         await this.processOrders(candles, currentCandle);
 
-        const R0 = await R0_.call(this, candles, currentCandle);
+        const R0 = await detectorRule.call(this, 0, candles, currentCandle);
 
         if (!R0) continue;
 
