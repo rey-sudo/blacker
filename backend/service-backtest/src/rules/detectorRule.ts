@@ -1,5 +1,4 @@
-import { calculateRSI, Candle } from "@whiterockdev/common";
-import { calculateEMA } from "../lib/ema/ema.js";
+import { calculateRSI, Candle, calculateEMA } from "@whiterockdev/common";
 import { Backtester } from "../index.js";
 
 export async function detectorRule(

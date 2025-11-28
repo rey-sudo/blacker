@@ -9,11 +9,11 @@ import { startHttpServer } from "./server/index.js";
 import { sleep } from "./utils/sleep.js";
 import { logger } from "./utils/logger.js";
 import { ChartJSNodeCanvas } from "chartjs-node-canvas";
-import { calculateEMA } from "./lib/ema/ema.js";
 import { detectorRule } from "./rules/detectorRule.js";
 import { countEMATouches, mfiRule } from "./rules/mfiRule.js";
 import { calculateSqueeze } from "./common/squeeze.js";
 import { adxRule } from "./rules/adxRule.js";
+import { calculateEMA } from "@whiterockdev/common";
 
 dotenv.config({ path: ".env.development" });
 

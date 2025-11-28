@@ -10,7 +10,7 @@
     "setup": "tsx setup.ts"
   },
   "dependencies": {
-    "@whiterockdev/common": "^1.0.5",
+    "@whiterockdev/common": "^1.0.6",
     "axios": "^1.13.2",
     "compression": "^1.7.4",
     "cookie-session": "^2.1.1",

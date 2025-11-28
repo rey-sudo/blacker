@@ -1,6 +1,7 @@
 export * from "./lib/adx/adx.js";
 export * from "./lib/mfi/mfi.js";
 export * from "./lib/rsi/rsi.js";
+export * from "./lib/ema/ema.js";
 export * from "./lib/squeeze/squeeze.js";
 export * from "./middleware/ip.js";
 export * from "./sql/findSlaveById.js";

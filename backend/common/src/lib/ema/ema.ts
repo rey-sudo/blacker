@@ -1,4 +1,4 @@
-import { Candle } from "@whiterockdev/common";
+import { Candle } from "../../types/index.js";
 
 export interface EMAValue {
   time: number;
