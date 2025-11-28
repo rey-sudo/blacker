@@ -61,6 +61,8 @@ export class Backtester {
     const LEVERAGE = parseInt(process.env.LEVERAGE!, 10);
     const SHOW_PLOTS = process.env.SHOW_PLOTS === "true";
 
+    const RULES = ["rsi", "adx", "mfi"];
+
     this.state = {
       id: SLAVE_NAME,
       iteration: 0,
@@ -79,8 +81,8 @@ export class Backtester {
       current_window: [],
       created_at: Date.now(),
       updated_at: Date.now(),
-      rule_labels: ["rsi", "squeeze", "adx", "renko", "mfi"],
-      rule_values: [false, false, false, false, false],
+      rule_labels: RULES,
+      rule_values: RULES.map(() => false),
     };
 
     this.orders = [];
@@ -368,6 +370,7 @@ export class Backtester {
 
         const R2 = await mfiRule.call(this, 2, candles);
         if (!R2) continue;
+
 
         this.execute(candles, currentCandle);
         this.reset();
