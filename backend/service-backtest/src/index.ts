@@ -7,11 +7,11 @@ import { State, Candle, Order } from "./types/index.js";
 import { startHttpServer } from "./server/index.js";
 import { detectorRule } from "./rules/detectorRule.js";
 import { countEMATouches, mfiRule } from "./rules/mfiRule.js";
-import { calculateSqueeze } from "./common/squeeze.js";
 import { adxRule } from "./rules/adxRule.js";
 import { calculateEMA, logger, sleep } from "@whiterockdev/common";
 import { generateChart } from "./utils/generateChart.js";
 import * as fs from "fs";
+import { calculateSqueeze } from "./lib/squeeze/squeeze.js";
 
 dotenv.config({ path: ".env.development" });
 
