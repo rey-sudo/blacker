@@ -57,7 +57,7 @@ export async function R4_(
 export function countEMATouches(
   data: Candle[],
   ema25Data: any,
-  periodosAAnalizar: number = 10
+  periodosAAnalizar: number = 5
 ) {
   let toques = 0;
   let intentosDeRuptura = 0;
