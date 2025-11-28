@@ -27,9 +27,11 @@ export async function R4_(
       const rule1 = lastHeikin.close < 70;
       const rule2 = lastHeikin.close > lastSma.value;
 
-      const { touchCount, totalTouches } = countEMATouches(candles, EMA25, 5);
+      const { toques, intentosDeRuptura } = countEMATouches(candles, EMA25);
 
-      const rule3 = touchCount >= 2 || totalTouches >= 2;
+      console.log(toques, intentosDeRuptura);
+      
+      const rule3 = toques >= 2 || intentosDeRuptura >= 2;
 
       this.state.rule_values[RULE] = rule1 && rule2;
 
@@ -47,44 +49,77 @@ export async function R4_(
   return this.state.rule_values[RULE];
 }
 
-export function countEMATouches(candles: Candle[], ema: any, periods = 4) {
-  const realTolerance = 0.0015; // 0.15%
-  const nearTolerance = 0.005; // 0.50%
+/**
+ * @param {Array<Object>} data Array de datos de velas OHLCV.
+ * @param {Array<Object>} ema25Data Array de objetos con el valor de la EMA 25, sincronizado con 'data'.
+ * @returns {Object} Un objeto con el recuento de toques e intentos de ruptura.
+ */
+export function countEMATouches(
+  data: Candle[],
+  ema25Data: any,
+  periodosAAnalizar: number = 10
+) {
+  let toques = 0;
+  let intentosDeRuptura = 0;
+  // Tolerancia del 0.05% para considerar un "toque" o "cercanía extrema"
+  const toleranciaPorcentual = 0.0005;
 
-  let touchCount = 0; 
-  let nearTouchCount = 0; 
+  // Verificación de sincronización
+  if (data.length !== ema25Data.length) {
+    console.error(
+      "Error: Los arrays de datos (precios) y EMA25 no tienen la misma longitud."
+    );
+    return { toques: 0, intentosDeRuptura: 0 };
+  }
 
-  for (let i = 1; i <= periods; i++) {
-    const candle = candles.at(-i);
-    const emaPoint = ema.at(-i);
+  // --- Lógica para limitar el análisis a los últimos 'periodosAAnalizar' ---
 
-    if (!candle || !emaPoint || emaPoint.value === null) continue;
+  // 1. Determinar el punto de inicio del análisis.
+  // Aseguramos que el punto de inicio no sea menor que 1 (necesitamos el elemento anterior)
+  // y que no exceda la longitud total de los datos.
+  const inicioAnalisis = Math.max(
+    1,
+    data.length - periodosAAnalizar
+  );
 
-    const high = candle.high;
-    const emaValue = emaPoint.value;
-    const diff = high - emaValue;
+  // Iteramos desde el punto de inicio calculado hasta el final.
+  for (let i = inicioAnalisis; i < data.length; i++) {
+    const vela = data[i];
+    const ma25 = ema25Data[i].value;
+    const velaAnterior = data[i - 1]; // Siempre disponible ya que inicioAnalisis >= 1
 
-    if (i === 1) {
-      if (high >= emaValue) {
-        touchCount++;
-      }
-      continue; 
+    // La tolerancia se calcula en base al valor actual de la MA.
+    const toleranciaAbsoluta = ma25 * toleranciaPorcentual;
+
+    // --- Criterio 1: Intento de Toque (Cercanía o contacto) ---
+    // Se considera toque si el precio mínimo o máximo está dentro del rango de tolerancia de la MA.
+    // O si la mecha toca o cruza ligeramente.
+    if (
+      (Math.abs(vela.high - ma25) <= toleranciaAbsoluta && vela.high >= ma25) ||
+      (Math.abs(vela.low - ma25) <= toleranciaAbsoluta && vela.low <= ma25)
+    ) {
+      toques++;
     }
 
-    if (diff >= 0 && diff <= emaValue * realTolerance) {
-      touchCount++;
-      continue;
+    // --- Criterio 2: Intención de Romper (Cruza y Cierra en el lado opuesto - Falla) ---
+
+    // 1. Falla Alcista (Quiebra el soporte, pero el precio se mantiene arriba)
+    // La vela anterior cerró POR ENCIMA de la MA, la vela actual toca/cruza POR DEBAJO,
+    // pero el cierre de la vela actual termina POR ENCIMA de la MA.
+    if (velaAnterior.close > ma25 && vela.low < ma25 && vela.close > ma25) {
+      intentosDeRuptura++;
     }
 
-    if (diff < 0 && Math.abs(diff) <= emaValue * nearTolerance) {
-      nearTouchCount++;
-      continue;
+    // 2. Falla Bajista (Quiebra la resistencia, pero el precio se mantiene abajo)
+    // La vela anterior cerró POR DEBAJO de la MA, la vela actual toca/cruza POR ENCIMA,
+    // pero el cierre de la vela actual termina POR DEBAJO de la MA.
+    if (velaAnterior.close < ma25 && vela.high > ma25 && vela.close < ma25) {
+      intentosDeRuptura++;
     }
   }
 
   return {
-    touchCount,
-    nearTouchCount,
-    totalTouches: touchCount + nearTouchCount,
+    toques: toques,
+    intentosDeRuptura: intentosDeRuptura,
   };
 }

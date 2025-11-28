@@ -156,9 +156,9 @@ export class Backtester {
     const rule1 = lastSqueeze === "blue";
 
     const EMA25 = calculateEMA(candles, 25);
-    const { touchCount, totalTouches } = countEMATouches(candles, EMA25, 5);
+    const { toques, intentosDeRuptura } = countEMATouches(candles, EMA25);
 
-    const rule4 = touchCount >= 3;
+    const rule4 = toques >= 2 || intentosDeRuptura >= 2;
 
     for (const order of this.orders) {
       if (order.state !== "executed") continue;
@@ -358,7 +358,7 @@ export class Backtester {
       }
 
       try {
-        //await this.sleep(1000);
+        //await this.sleep(1_000);
 
         await this.processOrders(candles, currentCandle);
 
