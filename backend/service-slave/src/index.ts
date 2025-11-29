@@ -6,7 +6,6 @@ import { fileURLToPath } from "url";
 import { SlaveState, Interval } from "./types/index.js";
 import { createOrder } from "./utils/createOrder.js";
 import { startHttpServer } from "./server/index.js";
-import { applyDiscount } from "./utils/applyDiscount.js";
 import { calculateTakeProfit } from "./utils/takeProfit.js";
 import { detectorRule } from "./rules/detectorRule.js";
 import { adxRule } from "./rules/adxRule.js";
@@ -241,7 +240,7 @@ export class SlaveBot {
     }
 
     if (last55ema > lastCandle.close) {
-      takeProfit = applyDiscount(last55ema, 0.5);
+      takeProfit = last55ema;
     } else {
       takeProfit = calculateTakeProfit(
         lastCandle.close,
