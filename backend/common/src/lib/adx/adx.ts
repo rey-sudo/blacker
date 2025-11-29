@@ -14,7 +14,7 @@ export interface IndicatorOutput {
 export function calculateADX(allCandles: Candle[]): IndicatorOutput {
   const result = calculate(allCandles, diLength, adxLength);
 
-  const defaultResponse = {
+  const defaultResponse: IndicatorOutput = {
     adxData: [],
     plusDIData: [],
     minusDIData: [],
@@ -26,11 +26,11 @@ export function calculateADX(allCandles: Candle[]): IndicatorOutput {
   return result;
 }
 
-function rma(data: any, length: number) {
+function rma(data: number[], length: number): number[] {
   if (!data || data.length === 0) return [];
 
-  const result = new Array(data.length);
-  let alpha = 1.0 / length;
+  const result: number[] = new Array(data.length);
+  const alpha = 1 / length;
 
   result[0] = data[0];
 
@@ -41,10 +41,10 @@ function rma(data: any, length: number) {
   return result;
 }
 
-function calculateTR(candles: Candle[]) {
+function calculateTR(candles: Candle[]): number[] {
   if (!candles || candles.length === 0) return [];
 
-  const tr = new Array(candles.length);
+  const tr: number[] = new Array(candles.length);
 
   tr[0] = candles[0].high - candles[0].low;
 
@@ -58,11 +58,14 @@ function calculateTR(candles: Candle[]) {
   return tr;
 }
 
-function dirmov(candles: Candle[], length: number) {
+function dirmov(
+  candles: Candle[],
+  length: number
+): { plus: number[]; minus: number[] } | null {
   if (!candles || candles.length < 2) return null;
 
-  const upMove = new Array(candles.length);
-  const downMove = new Array(candles.length);
+  const upMove: number[] = new Array(candles.length);
+  const downMove: number[] = new Array(candles.length);
 
   upMove[0] = 0;
   downMove[0] = 0;
@@ -78,12 +81,11 @@ function dirmov(candles: Candle[], length: number) {
   const tr = calculateTR(candles);
 
   const truerange = rma(tr, length);
-
   const smoothedUp = rma(upMove, length);
   const smoothedDown = rma(downMove, length);
 
-  const plus = new Array(candles.length);
-  const minus = new Array(candles.length);
+  const plus: number[] = new Array(candles.length);
+  const minus: number[] = new Array(candles.length);
 
   for (let i = 0; i < candles.length; i++) {
     if (truerange[i] === 0) {
@@ -102,7 +104,7 @@ export function calculate(
   candles: Candle[],
   diLength: number,
   adxLength: number
-) {
+): IndicatorOutput | null {
   if (!candles || candles.length < Math.max(diLength, adxLength) + 2) {
     return null;
   }
@@ -112,42 +114,25 @@ export function calculate(
 
   const { plus, minus } = dm;
 
-  // Calculate DX (ratio between 0 and 1)
-  const dx = new Array(candles.length);
+  const dx: number[] = new Array(candles.length);
 
   for (let i = 0; i < candles.length; i++) {
     const sum = plus[i] + minus[i];
-    if (sum === 0) {
-      dx[i] = 0;
-    } else {
-      // Calculate ratio WITHOUT multiplying by 100
-      dx[i] = Math.abs(plus[i] - minus[i]) / sum;
-    }
+    dx[i] = sum === 0 ? 0 : Math.abs(plus[i] - minus[i]) / sum;
   }
 
   const smoothedDX = rma(dx, adxLength);
   const adx = smoothedDX.map((val) => val * 100);
 
-  const adxData = [];
-  const plusDIData = [];
-  const minusDIData = [];
-  const reversalPoints = [];
+  const adxData: TimeValue[] = [];
+  const plusDIData: TimeValue[] = [];
+  const minusDIData: TimeValue[] = [];
+  const reversalPoints: TimeValue[] = [];
 
   for (let i = 0; i < candles.length; i++) {
-    adxData.push({
-      time: candles[i].time,
-      value: Number(adx[i].toFixed(2)),
-    });
-
-    plusDIData.push({
-      time: candles[i].time,
-      value: Number(plus[i].toFixed(2)),
-    });
-
-    minusDIData.push({
-      time: candles[i].time,
-      value: Number(minus[i].toFixed(2)),
-    });
+    adxData.push({ time: candles[i].time, value: Number(adx[i].toFixed(2)) });
+    plusDIData.push({ time: candles[i].time, value: Number(plus[i].toFixed(2)) });
+    minusDIData.push({ time: candles[i].time, value: Number(minus[i].toFixed(2)) });
 
     if (i >= 2) {
       const rule1 = adx[i] < adx[i - 1];
