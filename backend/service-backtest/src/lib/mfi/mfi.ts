@@ -21,7 +21,7 @@ export function calculateMFI(allCandles: Candle[]): MFIResponse {
 }
 
 /**
- * Calcula el MFI estándar siguiendo el algoritmo de TradingView
+ * Calculates the standard MFI following the TradingView algorithm
  */
 function calculate(candles: Candle[], length: number): (number | null)[] {
   if (!candles || candles.length < length + 1) return [];
@@ -35,7 +35,7 @@ function calculate(candles: Candle[], length: number): (number | null)[] {
   });
 
   for (let i = 0; i < candles.length; i++) {
-    // Los primeros 'length' valores son null (como na en Pine)
+    // The first 'length' values are null (like na in Pine)
     if (i < length) {
       mfi[i] = null;
       continue;
@@ -66,7 +66,7 @@ function calculate(candles: Candle[], length: number): (number | null)[] {
 }
 
 /**
- * Calcula SMA manejando valores null como Pine Script
+ * Calculates SMA handling null values like Pine Script
  */
 function calculateSMA(data: (number | null)[], length: number): (number | null)[] {
   if (!data || data.length < length) return [];
@@ -75,7 +75,7 @@ function calculateSMA(data: (number | null)[], length: number): (number | null)[
 
   for (let i = 0; i < data.length; i++) {
     if (i < length - 1) {
-      sma[i] = null; // na en Pine
+      sma[i] = null; // na in Pine
       continue;
     }
 
@@ -97,7 +97,7 @@ function calculateSMA(data: (number | null)[], length: number): (number | null)[
 }
 
 /**
- * Calcula MFI con Heikin-Ashi siguiendo exactamente la lógica de Pine Script
+ * Calculates MFI with Heikin-Ashi following exactly the Pine Script logic
  */
 function calculateMFIHA(
   candles: Candle[],
@@ -113,12 +113,12 @@ function calculateMFIHA(
 
   const haCandles: Candle[] = [];
   let ha_open: number | null = null; // var float ha_open = na
-  let prev_ha_close: number | null = null; // ha_close[1] - valor de la barra anterior
+  let prev_ha_close: number | null = null; // ha_close[1] - value from previous bar
 
   for (let i = 0; i < candles.length; i++) {
     const mf = mfi[i];
 
-    // Si MFI es null, skipear (como na en Pine)
+    // If MFI is null, skip (like na in Pine)
     if (mf === null) {
       haCandles.push({
         time: candles[i].time,
@@ -132,15 +132,15 @@ function calculateMFIHA(
     }
 
     // Pine: ha_close := (mf + nz(ha_open, mf)) / 2
-    // Usa el ha_open ACTUAL (aún no actualizado para esta barra)
+    // Uses the CURRENT ha_open (not yet updated for this bar)
     const ha_close: number = (mf + (ha_open ?? mf)) / 2;
 
     // Pine: ha_open := na(ha_open) ? mf : (nz(ha_open) + nz(ha_close[1])) / 2
-    // Actualiza ha_open para la SIGUIENTE barra usando prev_ha_close
+    // Updates ha_open for the NEXT bar using prev_ha_close
     const new_ha_open:any = ha_open === null ? mf : (ha_open + (prev_ha_close ?? 0)) / 2;
 
     // Pine: ha_high = math.max(math.max(ha_close, new_ha_open), mf)
-    // Usa new_ha_open que es el valor que se guardará para la siguiente barra
+    // Uses new_ha_open which is the value that will be saved for the next bar
     const ha_high = Math.max(Math.max(ha_close, new_ha_open), mf);
 
     // Pine: ha_low = math.min(math.min(ha_close, new_ha_open), mf)
@@ -155,9 +155,9 @@ function calculateMFIHA(
       volume: candles[i].volume || 0,
     });
 
-    // Actualizar variables persistentes para la siguiente barra
-    prev_ha_close = ha_close; // Este será ha_close[1] en la siguiente iteración
-    ha_open = new_ha_open;     // Este será el ha_open en la siguiente iteración
+    // Update persistent variables for the next bar
+    prev_ha_close = ha_close; // This will be ha_close[1] in the next iteration
+    ha_open = new_ha_open;     // This will be the ha_open in the next iteration
   }
 
   const smaData: TimeValue[] = mfiSMA.map((value, i) => ({
