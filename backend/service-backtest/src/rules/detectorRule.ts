@@ -4,7 +4,7 @@ import { Backtester } from "../index.js";
 export async function detectorRule(
   this: Backtester,
   RULE: number,
-  candles: Candle[],
+  candles: Candle[]
 ): Promise<boolean> {
   if (!this.state.rule_values[RULE]) {
     const lastCandle = candles.at(-1);
@@ -15,16 +15,16 @@ export async function detectorRule(
     const ema55Data = calculateEMA(candles, 55);
     const lastEma55 = ema55Data.at(-1)?.value;
 
+    if (!lastCandle) {
+      throw new Error("lastCandle  error");
+    }
+
     if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) {
       throw new Error("lastRsi type error");
     }
 
     if (typeof lastEma55 !== "number" || Number.isNaN(lastEma55)) {
       throw new Error("EMA55 type error");
-    }
-
-    if (!lastCandle) {
-      throw new Error("lastCandle variable error");
     }
 
     const rule1 = lastRsi <= 33;

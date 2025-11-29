@@ -12,32 +12,37 @@ export async function mfiRule(
     const lastHeikin = haCandles.at(-1);
     const lastSma = smaData.at(-1);
 
+    if (!lastHeikin) {
+      throw new Error("lastHeikin  error");
+    }
+
+    if (!lastSma) {
+      throw new Error("lastSma  error");
+    }
+
     const EMA25 = calculateEMA(candles, 25);
 
-    if (lastHeikin && lastSma) {
-      const rule1 = lastHeikin.close < 70;
-      const rule2 = lastHeikin.close > lastSma.value;
+    const rule1 = lastHeikin.close < 70;
+    const rule2 = lastHeikin.close > lastSma.value;
 
-      const { touches, failedBreakouts } = countEMATouches(candles, EMA25);
+    const { touches, failedBreakouts } = countEMATouches(candles, EMA25);
 
-      const rule3 = touches >= 3 || failedBreakouts >= 4;
+    const rule3 = touches >= 3 || failedBreakouts >= 4;
 
-      this.state.rule_values[RULE] = rule1 && rule2;
+    this.state.rule_values[RULE] = rule1 && rule2;
 
-      if (!rule1) {
-        this.reset();
-      }
+    if (!rule1) {
+      this.reset();
+    }
 
-      if (rule3) {
-        console.log("⚠️⚠️⚠️⚠️⚠️EMA25 TOUCHES⚠️⚠️⚠️⚠️⚠️");
-        this.reset();
-      }
+    if (rule3) {
+      console.log("⚠️⚠️⚠️⚠️⚠️EMA25 TOUCHES⚠️⚠️⚠️⚠️⚠️");
+      this.reset();
     }
   }
 
   return this.state.rule_values[RULE];
 }
-
 
 export function countEMATouches(
   data: Candle[],
@@ -72,7 +77,12 @@ export function countEMATouches(
     const close = Number(candle?.close);
     const prevClose = Number(previousCandle?.close);
 
-    if (!isFinite(high) || !isFinite(low) || !isFinite(close) || !isFinite(prevClose)) {
+    if (
+      !isFinite(high) ||
+      !isFinite(low) ||
+      !isFinite(close) ||
+      !isFinite(prevClose)
+    ) {
       // Skip bad data (could also log a counter)
       continue;
     }
@@ -106,16 +116,16 @@ export function countEMATouches(
     const toleranceAbs = Math.max(baseTolerance, fallbackTolerance);
 
     // Distances
-    const distHigh = high - ema;  // positive if wick above EMA
-    const distLow = ema - low;    // positive if wick below EMA
+    const distHigh = high - ema; // positive if wick above EMA
+    const distLow = ema - low; // positive if wick below EMA
 
     // Touch detection (respecting side)
     const touchAbove = distHigh >= 0 && distHigh <= toleranceAbs;
     const touchBelow = distLow >= 0 && distLow <= toleranceAbs;
 
     // Context: previous close relative to EMA
-    const isSupport = prevClose > ema;      // price was above EMA → EMA acting like support
-    const isResistance = prevClose < ema;   // price was below EMA → EMA acting like resistance
+    const isSupport = prevClose > ema; // price was above EMA → EMA acting like support
+    const isResistance = prevClose < ema; // price was below EMA → EMA acting like resistance
 
     if ((touchAbove && isResistance) || (touchBelow && isSupport)) {
       touches++;
@@ -128,7 +138,10 @@ export function countEMATouches(
     // Significant candle threshold (avoid micro-noise)
     const significantBreak = candleRange > toleranceAbs * 4;
 
-    if ((breaksDownButClosesAbove || breaksUpButClosesBelow) && significantBreak) {
+    if (
+      (breaksDownButClosesAbove || breaksUpButClosesBelow) &&
+      significantBreak
+    ) {
       failedBreakouts++;
     }
   }
