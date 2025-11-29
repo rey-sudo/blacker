@@ -24,7 +24,7 @@ export async function detectorRule(
     }
 
     if (typeof lastEma55 !== "number" || Number.isNaN(lastEma55)) {
-      throw new Error("EMA55 type error");
+      throw new Error("lastEma55 type error");
     }
 
     const rule1 = lastRsi <= 33;
