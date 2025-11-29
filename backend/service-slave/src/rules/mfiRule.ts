@@ -21,12 +21,10 @@ export async function mfiRule(
     }
 
     const EMA25 = calculateEMA(candles, 25);
+    const { touches, failedBreakouts } = countEMATouches(candles, EMA25);
 
     const rule1 = lastHeikin.close < 70;
     const rule2 = lastHeikin.close > lastSma.value;
-
-    const { touches, failedBreakouts } = countEMATouches(candles, EMA25);
-
     const rule3 = touches >= 3 || failedBreakouts >= 4;
 
     this.state.rule_values[RULE] = rule1 && rule2;

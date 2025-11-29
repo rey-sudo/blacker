@@ -338,18 +338,18 @@ export class SlaveBot {
   public async run() {
     await this.setup();
 
-    const params = {
-      symbol: this.state.symbol,
-      market: this.state.market,
-      interval: this.state.interval_,
-      window: 500,
-    };
-
     while (true) {
       try {
         await this.save();
 
         //this.processOrders
+
+        const params = {
+          symbol: this.state.symbol,
+          market: this.state.market,
+          interval: this.state.interval_,
+          window: 500,
+        };
 
         const candles = await this.getCandles(params);
 
@@ -376,8 +376,8 @@ export class SlaveBot {
 
         await this.execute(candles);
       } catch (err: any) {
-        this.state.status = "error";
         logger.error(err);
+        this.state.status = "error";
         await this.sleep(60_000);
       }
     }
