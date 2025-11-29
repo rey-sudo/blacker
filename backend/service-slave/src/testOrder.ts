@@ -1,8 +1,9 @@
+import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
 import { generateId, withRetry } from "@whiterockdev/common";
 import { createOrder } from "./utils/createOrder.js";
+import { Market, Order } from "./common/types/index.js";
 import database from "./database/client.js";
 import dotenv from "dotenv";
-import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -14,9 +15,9 @@ database.connect({
   database: process.env.DATABASE_NAME,
 });
 
-const ACCOUNT_BALANCE = 2_000;
-const MARKET = "crypto";
-const ACCOUNT_RISK = 1.0;
+const ACCOUNT_BALANCE = 10_000;
+const MARKET: Market = "crypto";
+const ACCOUNT_RISK = 0.5;
 const STOP_LOSS = 4.2;
 const ENTRY_PRICE = 87705;
 const CONTRACT_SIZE = 1;
@@ -44,7 +45,9 @@ async function main() {
       lotSize = btc.lotSize;
       stopLoss = btc.stopLossPrice;
       riskUSD = btc.riskUSD;
-    } else if (MARKET === "forex") {
+    }
+
+    if (MARKET === "forex") {
       const lastPriceF = 1.1516;
 
       const forex = calcLotSizeForex({
@@ -61,23 +64,25 @@ async function main() {
       riskUSD = forex.riskUSD;
     }
 
-    await withRetry(() =>
-      createOrder(connection, {
-        id: generateId(),
-        slave: "slave-test",
-        symbol: "BTCUSDT",
-        side: "LONG",
-        price: ENTRY_PRICE,
-        size: lotSize,
-        stop_loss: stopLoss,
-        take_profit: 87600,
-        account_risk: ACCOUNT_RISK,
-        risk_usd: riskUSD,
-        notified: false,
-        created_at: Date.now(),
-        updated_at: Date.now(),
-      })
-    );
+    const orderParams: Order = {
+      id: generateId(),
+      status: "executed",
+      market: MARKET,
+      slave: "slave-test",
+      symbol: "BTCUSDT",
+      side: "LONG",
+      price: ENTRY_PRICE,
+      size: lotSize as number,
+      stop_loss: stopLoss as number,
+      take_profit: 87600,
+      account_risk: ACCOUNT_RISK,
+      risk_usd: riskUSD as number,
+      notified: false,
+      created_at: Date.now(),
+      updated_at: Date.now(),
+    };
+
+    await withRetry(() => createOrder(connection, orderParams));
 
     await connection.commit();
     console.log("end");

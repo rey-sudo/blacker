@@ -1,9 +1,10 @@
 import { Connection } from "mysql2/promise";
+import { Order } from "../common/types/index.js";
 
 
 export async function createOrder(
   connection: Connection,
-  scheme: any
+  scheme: Order
 ): Promise<any> {
 
   const columns = Object.keys(scheme);
