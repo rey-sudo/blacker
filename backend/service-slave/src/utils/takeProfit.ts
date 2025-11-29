@@ -1,4 +1,4 @@
-import { Side } from "../types";
+import { Side } from "../common/types/index.js";
 
 export function calculateTakeProfit(
     price: number,

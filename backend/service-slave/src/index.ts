@@ -1,6 +1,18 @@
 import path from "path";
 import dotenv from "dotenv";
 import database from "./database/client.js";
+import { createSlave } from "./utils/createSlave.js";
+import { fileURLToPath } from "url";
+import { SlaveState, Interval } from "./types/index.js";
+import { createOrder } from "./utils/createOrder.js";
+import { startHttpServer } from "./server/index.js";
+import { applyDiscount } from "./utils/applyDiscount.js";
+import { calculateTakeProfit } from "./utils/takeProfit.js";
+import { detectorRule } from "./rules/detectorRule.js";
+import { adxRule } from "./rules/adxRule.js";
+import { mfiRule } from "./rules/mfiRule.js";
+import { Market, Order, OrderStatus, Side } from "./common/types/index.js";
+import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
 import {
   findSlaveById,
   ERROR_EVENTS,
@@ -8,27 +20,11 @@ import {
   updateSlave,
   logger,
   withRetry,
-  calculateRSI,
-  calculateSqueeze,
-  calculateADX,
-  calculateMFI,
   Candle,
   generateId,
+  calculateEMA,
 } from "@whiterockdev/common";
-import {
-  fetchCandle,
-  fetchCandles,
-  GetCandlesParams,
-} from "./lib/market/getCandles.js";
-import { createSlave } from "./utils/createSlave.js";
-import { fileURLToPath } from "url";
-import { BotState, Interval, Market, Side } from "./types/index.js";
-import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
-import { createOrder } from "./utils/createOrder.js";
-import { startHttpServer } from "./server/index.js";
-import { calculateEMA } from "./common/lib/ema/ema.js";
-import { applyDiscount } from "./utils/applyDiscount.js";
-import { calculateTakeProfit } from "./utils/takeProfit.js";
+import { fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -37,7 +33,8 @@ export const __dirname = path.dirname(__filename);
 export const root = path.join(__dirname, "..");
 
 export class SlaveBot {
-  public state: BotState;
+  public state: SlaveState;
+  public orders: Order[];
   private config: any;
   private binance: any;
   public dataset: Candle[];
@@ -89,6 +86,8 @@ export class SlaveBot {
     const CONTRACT_SIZE = parseInt(process.env.CONTRACT_SIZE!, 10);
     const SHOW_PLOTS = process.env.SHOW_PLOTS === "true";
 
+    const RULES = ["rsi", "adx", "mfi"];
+
     this.state = {
       id: SLAVE_NAME,
       status: "started",
@@ -107,9 +106,11 @@ export class SlaveBot {
       finished: false,
       created_at: Date.now(),
       updated_at: Date.now(),
-      rule_labels: ["rsi", "squeeze", "adx", "heikin"],
-      rule_values: [false, false, false, false],
+      rule_labels: RULES,
+      rule_values: RULES.map(() => false),
     };
+
+    this.orders = [];
 
     this.config = {
       show_plots: SHOW_PLOTS,
@@ -202,24 +203,16 @@ export class SlaveBot {
     return withRetry(() => fetchCandles(process.env.MARKET_HOST!, params));
   }
 
-  private async getCandle(params: GetCandlesParams) {
-    return withRetry(() => fetchCandle(process.env.MARKET_HOST!, params));
-  }
-
   private async sleep(timeMs: number) {
     logger.info("🕒 Sleeping");
     return await sleep(timeMs);
   }
 
-  private getRule(index: number) {
-    return this.state.rule_values[index];
+  public reset() {
+    this.state.rule_values = this.state.rule_values.map(() => false);
   }
 
-  private setRule(index: number, value: boolean) {
-    return (this.state.rule_values[index] = value);
-  }
-
-  public async execute(candles: Candle[], lastCandle: Candle) {
+  public async execute(candles: Candle[]) {
     const isExecuted = this.state.executed || this.state.finished;
 
     if (isExecuted) {
@@ -229,14 +222,26 @@ export class SlaveBot {
     }
 
     let takeProfit = null;
+
     let lotSize = null;
     let stopLoss = null;
     let riskUSD = null;
 
-    const EMA55 = calculateEMA(candles, 55).at(-1)?.value;
+    const lastCandle = candles.at(-1);
 
-    if (EMA55 && EMA55 > lastCandle.close) {
-      takeProfit = applyDiscount(EMA55, 0.6);
+    const ema55Data = calculateEMA(candles, 55);
+    const last55ema = ema55Data.at(-1)?.value;
+
+    if (!lastCandle) {
+      throw new Error("lastCandle type error");
+    }
+
+    if (typeof last55ema !== "number" || Number.isNaN(last55ema)) {
+      throw new Error("last55ema type error");
+    }
+
+    if (last55ema > lastCandle.close) {
+      takeProfit = applyDiscount(last55ema, 0.5);
     } else {
       takeProfit = calculateTakeProfit(
         lastCandle.close,
@@ -246,7 +251,7 @@ export class SlaveBot {
     }
 
     if (this.state.market === "crypto") {
-      const btc = calcLotSizeCrypto({
+      const crypto = calcLotSizeCrypto({
         balance: this.state.account_balance,
         riskPercent: this.state.account_risk,
         stopPercent: this.state.stop_loss,
@@ -254,10 +259,12 @@ export class SlaveBot {
         contractSize: this.state.contract_size,
       });
 
-      lotSize = btc.lotSize;
-      stopLoss = btc.stopLossPrice;
-      riskUSD = btc.riskUSD;
-    } else if (this.state.market === "forex") {
+      lotSize = crypto.lotSize;
+      stopLoss = crypto.stopLossPrice;
+      riskUSD = crypto.riskUSD;
+    }
+
+    if (this.state.market === "forex") {
       const lastPriceF = 1.1516;
 
       const forex = calcLotSizeForex({
@@ -274,48 +281,58 @@ export class SlaveBot {
       riskUSD = forex.riskUSD;
     }
 
+    for (const v of [takeProfit, lotSize, stopLoss, riskUSD]) {
+      if (v == null) throw new Error("Order error: null values");
+    }
+
+    if (typeof last55ema !== "number" || Number.isNaN(last55ema)) {
+      throw new Error("last55ema type error");
+    }
+
+    // Order execution
+
     let connection: any = null;
 
     try {
       connection = await database.client.getConnection();
 
-      await withRetry(() =>
-        createOrder(connection, {
-          id: generateId(),
-          slave: this.state.id,
-          symbol: this.state.symbol,
-          side: this.state.side,
-          price: lastCandle.close,
-          size: lotSize,
-          stop_loss: stopLoss,
-          take_profit: takeProfit,
-          account_risk: this.state.account_risk,
-          risk_usd: riskUSD,
-          notified: false,
-          created_at: Date.now(),
-          updated_at: Date.now(),
-        })
-      );
+      const orderParams: Order = {
+        id: generateId(),
+        status: "executed" as OrderStatus,
+        market: this.state.market,
+        slave: this.state.id,
+        symbol: this.state.symbol,
+        side: this.state.side,
+        price: lastCandle.close,
+        size: lotSize as number,
+        stop_loss: stopLoss as number,
+        take_profit: takeProfit as number,
+        account_risk: this.state.account_risk,
+        risk_usd: riskUSD as number,
+        notified: false,
+        created_at: Date.now(),
+        updated_at: Date.now(),
+      };
+
+      await withRetry(() => createOrder(connection, orderParams));
 
       await connection.commit();
+
+      this.orders.push(orderParams);
 
       this.state.executed = true;
       this.state.status = "executed";
       await this.save();
+      logger.info("✅ OrderExecuted");
 
-      logger.info("✅ OrderExecuted")
-
+      await this.sleep(86_400_000);
+      this.reset();
     } catch (err: any) {
       await connection?.rollback();
       throw err;
     } finally {
       connection?.release();
     }
-
-    this.state.finished = true;
-    this.state.status = "finished";
-    await this.save();
-    await this.sleep(86_400_000);
   }
 
   public async run() {
@@ -332,86 +349,32 @@ export class SlaveBot {
       try {
         await this.save();
 
+        //this.processOrders
+
         const candles = await this.getCandles(params);
-        const lastCandle = await this.getCandle(params);
 
-        this.dataset = [...candles, lastCandle];
+        this.dataset = [...candles];
 
-        if (!this.getRule(0)) {
-          const lastRsi = calculateRSI(candles).at(-1)?.value;
-
-          if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) {
-            throw new Error("lastRsi value typeError");
-          }
-
-          const rule1 = lastRsi < 33;
-
-          this.setRule(0, rule1);
-
-          logger.info(`RSI:${lastRsi}`);
-
-          if (!this.getRule(0)) {
-            await this.sleep(300_000);
-            continue;
-          }
+        const R0 = await detectorRule.call(this, 0, candles);
+        if (!R0) {
+          await this.sleep(300_000);
+          continue;
         }
 
-        if (!this.getRule(1)) {
-          const lastSqueeze = calculateSqueeze(candles).at(-1)?.color;
+        const R1 = await adxRule.call(this, 1, candles);
 
-          if (!lastSqueeze) continue;
-
-          const rule1 = lastSqueeze === "green";
-
-          this.setRule(1, rule1);
-
-          if (!this.getRule(1)) {
-            await this.sleep(300_000);
-            continue;
-          }
+        if (!R1) {
+          await this.sleep(300_000);
+          continue;
         }
 
-        if (!this.getRule(2)) {
-          const keyLevel = 23;
-
-          const { reversalPoints } = calculateADX(candles);
-
-          const lastReversal = reversalPoints.at(-1);
-
-          if (lastReversal) {
-            const rule1 = lastReversal.time === lastCandle.time;
-
-            const rule2 = lastReversal.value > keyLevel;
-
-            this.setRule(2, rule1 && rule2);
-          }
-
-          if (!this.getRule(2)) {
-            await this.sleep(300_000);
-            continue;
-          }
+        const R2 = await mfiRule.call(this, 2, candles);
+        if (!R2) {
+          await this.sleep(300_000);
+          continue;
         }
 
-        if (!this.getRule(3)) {
-          const { haCandles, smaData } = calculateMFI(candles);
-
-          const lastHeikin = haCandles.at(-1);
-          const lastSma = smaData.at(-1);
-
-          if (lastHeikin && lastSma) {
-            const rule1 = lastHeikin.close < 40; //ADD RESET FUNCTION
-            const rule2 = lastHeikin.close > lastSma.value;
-
-            this.setRule(3, rule1 && rule2);
-          }
-
-          if (!this.getRule(3)) {
-            await this.sleep(60_000);
-            continue;
-          }
-        }
-
-        await this.execute(candles, lastCandle);
+        await this.execute(candles);
       } catch (err: any) {
         this.state.status = "error";
         logger.error(err);

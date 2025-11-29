@@ -1,3 +1,5 @@
+import { Market, Side } from "../common/types/index.js";
+
 export type Status =
   | "started"
   | "running"
@@ -6,13 +8,10 @@ export type Status =
   | "finished"
   | "error";
 
-export type Side = "LONG" | "SHORT"; 
-
-export type Market = "forex" | "crypto"; 
 
 export type Interval = "4h"; 
 
-export interface BotState {
+export interface SlaveState {
   id: string;
   status: Status;
   iteration: number;
