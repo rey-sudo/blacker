@@ -8,7 +8,12 @@ import { startHttpServer } from "./server/index.js";
 import { detectorRule } from "./rules/detectorRule.js";
 import { countEMATouches, mfiRule } from "./rules/mfiRule.js";
 import { adxRule } from "./rules/adxRule.js";
-import { calculateEMA, logger, sleep, calculateSqueeze } from "@whiterockdev/common";
+import {
+  calculateEMA,
+  logger,
+  sleep,
+  calculateSqueeze,
+} from "@whiterockdev/common";
 import { generateChart } from "./utils/generateChart.js";
 import * as fs from "fs";
 
@@ -146,16 +151,20 @@ export class Backtester {
   }
 
   private async processOrders(candles: Candle[], currentCandle: Candle) {
-    const lastSqueeze = calculateSqueeze(candles).at(-1)?.color;
+    const squeeze = calculateSqueeze(candles);
+    const lastSqueeze = squeeze.at(-1)?.color;
 
-    if (!lastSqueeze) return !lastSqueeze;
+    if (!lastSqueeze) return;
 
     const rule1 = lastSqueeze === "blue";
 
     const EMA25 = calculateEMA(candles, 25);
+    const lastEma25 = EMA25.at(-1)?.value;
+    if (!lastEma25) return;
+
     const { touches, failedBreakouts } = countEMATouches(candles, EMA25);
 
-    const rule4 = touches >= 3 || failedBreakouts >= 4;
+    const rule2 = touches >= 3 || failedBreakouts >= 4;
 
     for (const order of this.orders) {
       if (order.state !== "executed") continue;
@@ -171,8 +180,8 @@ export class Backtester {
       if (isLong) {
         if (currentCandle.low <= order.stop_loss) {
           closeInfo = { reason: "stop_loss", price: order.stop_loss };
-        } else if (rule1 || rule4) {
-          const closeAt = rule4 ? EMA25.at(-1)?.value! : currentCandle.high;
+        } else if (rule1 || rule2) {
+          const closeAt = rule2 ? lastEma25! : currentCandle.high;
           closeInfo = { reason: "take_profit", price: closeAt };
         }
       }
@@ -201,7 +210,6 @@ export class Backtester {
       }
     }
   }
-
 
   private execute(candles: Candle[], currentCandle: Candle) {
     let takeProfit = null;
@@ -273,7 +281,6 @@ export class Backtester {
 
         const R2 = await mfiRule.call(this, 2, candles);
         if (!R2) continue;
-
 
         this.execute(candles, currentCandle);
         this.reset();
