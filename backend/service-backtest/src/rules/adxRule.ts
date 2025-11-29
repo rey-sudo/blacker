@@ -1,6 +1,5 @@
-import { Candle } from "@whiterockdev/common";
+import { Candle, calculateADX } from "@whiterockdev/common";
 import { Backtester } from "../index.js";
-import { calculateADX } from "../lib/adx/adx.js";
 
 export async function adxRule(
   this: Backtester,
