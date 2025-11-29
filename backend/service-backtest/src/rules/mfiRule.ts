@@ -1,5 +1,7 @@
-import { calculateMFI, Candle, calculateEMA } from "@whiterockdev/common";
+import { calculateEMA } from "@whiterockdev/common";
 import { Backtester } from "../index.js";
+import { calculateMFI } from "../lib/mfi/mfi.js";
+import { Candle } from "../types/index.js";
 
 export async function mfiRule(
   this: Backtester,
