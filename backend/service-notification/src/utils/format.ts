@@ -1,5 +1,4 @@
-import { Order } from "@whiterockdev/common";
-
+import { Alert, Order } from "@whiterockdev/common";
 
 export function buildOrderMessage(order: Order): string {
   const orderSize = Number(order.size).toFixed(2);
@@ -11,9 +10,8 @@ export function buildOrderMessage(order: Order): string {
 
   const isTesting = order.slave === "slave-test";
 
-
   return `
-<b>${isTesting ? '⚠️ TEST' : '🚨 New Order' }</b>
+<b>${isTesting ? "⚠️ TEST" : "🚨 New Order"}</b>
 
 <b>🆔 Order:</b> ${shortUUID(order.id)}
 <b>👤 Slave:</b> ${order.slave}
@@ -28,6 +26,20 @@ export function buildOrderMessage(order: Order): string {
 
 <b>⚖️ Account Risk:</b> ${accountRisk}% (${riskUSD} USD)
 
+`;
+}
+
+export function buildAlertMessage(alert: Alert): string {
+  return `
+<b>🚨 Alert</b>
+
+<b>🆔 ID:</b> ${shortUUID(alert.id)}
+<b>📌 Type:</b> ${alert.type}
+<b>🏷 Title:</b> ${alert.title}
+<b>📡 Source:</b> ${alert.source}
+
+<b>💬 Message:</b>
+${alert.message}
 `;
 }
 

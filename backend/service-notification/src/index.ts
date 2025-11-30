@@ -5,6 +5,7 @@ import { buildOrderMessage } from "./utils/format.js";
 import { updateOrder } from "./common/updateOrder.js";
 import { findNewOrders } from "./common/findNewOrders.js";
 import { Telegraf } from "telegraf";
+import { listenAlerts } from "./lib/listenAlerts.js";
 
 dotenv.config({ path: ".env.production" });
 
@@ -49,6 +50,11 @@ const main = async () => {
 
     let orderInterval = setInterval(
       () => listenOrders(database, bot, channel),
+      10_000
+    );
+
+    let alertInterval = setInterval(
+      () => listenAlerts(database, bot, channel),
       10_000
     );
 
@@ -102,3 +108,6 @@ async function listenOrders(database: any, bot: any, channel: string) {
     logger.error(err);
   }
 }
+
+
+
