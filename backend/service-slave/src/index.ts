@@ -27,6 +27,7 @@ import {
   Side,
 } from "@whiterockdev/common";
 import { fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
+import { processOrders } from "./lib/order/processOrders.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -334,23 +335,23 @@ export class SlaveBot {
 
   public async run() {
     await this.setup();
+    
+    const params = {
+      symbol: this.state.symbol,
+      market: this.state.market,
+      interval: this.state.interval_,
+      window: 500,
+    };
 
     while (true) {
       try {
         await this.save();
 
-        //this.processOrders
-
-        const params = {
-          symbol: this.state.symbol,
-          market: this.state.market,
-          interval: this.state.interval_,
-          window: 500,
-        };
-
         const candles = await this.getCandles(params);
 
         this.dataset = [...candles];
+
+        await processOrders.call(this, candles);
 
         const R0 = await detectorRule.call(this, 0, candles);
         if (!R0) {
