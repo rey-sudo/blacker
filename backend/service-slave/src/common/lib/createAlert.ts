@@ -1,5 +1,5 @@
+import { Alert } from "@whiterockdev/common";
 import { Connection } from "mysql2/promise";
-import { Alert } from "../types.js";
 
 
 export async function createAlert(

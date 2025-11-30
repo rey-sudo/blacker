@@ -1,9 +1,9 @@
 import database from "../../database/client.js";
 import { calculateEMA, Candle, generateId, logger, Order, withRetry } from "@whiterockdev/common";
-import { SlaveBot } from "../../index.js";
 import { calculateTakeProfit } from "../../utils/takeProfit.js";
 import { calcLotSizeCrypto, calcLotSizeForex } from "./lotSize.js";
 import { createOrder } from "./createOrder.js";
+import { SlaveBot } from "../../index.js";
 
 export async function executeOrder(this: SlaveBot, candles: Candle[]) {
   const isExecuted = this.state.executed || this.state.finished;

@@ -1,5 +1,6 @@
 import database from "../../database/client.js";
 import {
+  Alert,
   calculateEMA,
   calculateSqueeze,
   Candle,
@@ -7,7 +8,6 @@ import {
   logger,
 } from "@whiterockdev/common";
 import { countEMATouches } from "../../rules/mfiRule.js";
-import { Alert } from "../../common/types.js";
 import { SlaveBot } from "../../index.js";
 import { createAlert } from "../../common/lib/createAlert.js";
 
@@ -51,7 +51,7 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
             message: `Sell ${order.symbol} at ${lastCandle.close} or market`,
             notified: false,
             created_at: Date.now(),
-            update_at: Date.now(),
+            updated_at: Date.now(),
           };
 
           await createAlert(connection, alertParams);

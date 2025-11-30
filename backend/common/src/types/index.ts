@@ -35,3 +35,16 @@ export type OrderStatus = "executed";
 export type Side = "LONG" | "SHORT";
 
 export type Market = "forex" | "crypto";
+
+export type AlertType = "order:sell";
+
+export interface Alert {
+  id: string;
+  type: AlertType;
+  title: string;
+  source: string;
+  message: string;
+  notified: boolean;
+  created_at: number;
+  updated_at: number;
+}

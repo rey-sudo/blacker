@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS alerts (
 
   type VARCHAR(50) NOT NULL,
   title VARCHAR(200) NOT NULL,
+  source VARCHAR(50) NOT NULL,
   message TEXT NOT NULL,
   
   notified BOOLEAN NOT NULL,

@@ -1,7 +1,17 @@
+import dotenv from "dotenv";
 import database from "./database/client.js";
-import { generateId, logger } from "@whiterockdev/common";
+import { Alert, generateId, logger } from "@whiterockdev/common";
 import { createAlert } from "./common/lib/createAlert";
-import { Alert } from "./common/types.js";
+
+dotenv.config({ path: ".env.development" });
+
+database.connect({
+  host: process.env.DATABASE_HOST,
+  port: parseInt(process.env.DATABASE_PORT!),
+  user: process.env.DATABASE_USER,
+  password: process.env.DATABASE_PASSWORD,
+  database: process.env.DATABASE_NAME,
+});
 
 const SYMBOL = "BTCUSDT";
 const PRICE = 98000;
@@ -20,7 +30,7 @@ async function main() {
       message: `Sell ${SYMBOL} at ${PRICE} or market`,
       notified: false,
       created_at: Date.now(),
-      update_at: Date.now(),
+      updated_at: Date.now(),
     };
 
     await createAlert(connection, alertParams);
