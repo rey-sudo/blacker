@@ -1,6 +1,7 @@
 export type AlertType = "order:sell";
 
 export interface Alert {
+  id: string;
   type: AlertType;
   title: string;
   message: string;

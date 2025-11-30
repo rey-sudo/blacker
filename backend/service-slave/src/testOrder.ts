@@ -1,6 +1,6 @@
 import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
 import { generateId, Market, Order, withRetry } from "@whiterockdev/common";
-import { createOrder } from "./utils/createOrder.js";
+import { createOrder } from "./lib/order/createOrder.js";
 import database from "./database/client.js";
 import dotenv from "dotenv";
 

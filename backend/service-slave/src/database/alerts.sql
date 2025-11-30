@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS alerts (
+  id VARCHAR(100) NOT NULL,
+
+  type VARCHAR(50) NOT NULL,
+  title VARCHAR(200) NOT NULL,
+  message TEXT NOT NULL,
+  
+  notified BOOLEAN NOT NULL,
+
+  created_at BIGINT UNSIGNED NOT NULL,
+  updated_at BIGINT UNSIGNED NOT NULL,
+
+  PRIMARY KEY (id),
+  INDEX (type),
+  INDEX (notified)
+) ENGINE=InnoDB;

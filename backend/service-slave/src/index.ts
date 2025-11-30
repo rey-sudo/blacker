@@ -1,10 +1,10 @@
 import path from "path";
 import dotenv from "dotenv";
 import database from "./database/client.js";
-import { createSlave } from "./utils/createSlave.js";
+import { createSlave } from "./lib/slave/createSlave.js";
 import { fileURLToPath } from "url";
 import { SlaveState, Interval } from "./types/index.js";
-import { createOrder } from "./utils/createOrder.js";
+import { createOrder } from "./lib/order/createOrder.js";
 import { startHttpServer } from "./server/index.js";
 import { calculateTakeProfit } from "./utils/takeProfit.js";
 import { detectorRule } from "./rules/detectorRule.js";

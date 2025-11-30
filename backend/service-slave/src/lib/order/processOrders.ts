@@ -1,4 +1,4 @@
-import { calculateEMA, calculateSqueeze, Candle } from "@whiterockdev/common";
+import { calculateEMA, calculateSqueeze, Candle, generateId } from "@whiterockdev/common";
 import { countEMATouches } from "../../rules/mfiRule.js";
 import { Alert } from "../../common/types.js";
 import { SlaveBot } from "../../index.js";
@@ -30,6 +30,7 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
     if (isLong) {
       if (rule1 || rule2) {
         let alertParams: Alert = {
+          id: generateId(),
           type: "order:sell",
           title: "⚠️ SELL NOW ⚠️",
           message: `Sell ${order.symbol} at ${lastCandle.close} or market`,
