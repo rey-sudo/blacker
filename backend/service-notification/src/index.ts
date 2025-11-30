@@ -1,11 +1,10 @@
 import dotenv from "dotenv";
 import { database } from "./database/index.js";
 import { ERROR_EVENTS, logger } from "@whiterockdev/common";
-import { buildOrderMessage, Order } from "./utils/format.js";
-import { Telegraf } from "telegraf";
-import { findAllSlaves } from "./common/findAllSlaves.js";
+import { buildOrderMessage } from "./utils/format.js";
 import { updateOrder } from "./common/updateOrder.js";
 import { findNewOrders } from "./common/findNewOrders.js";
+import { Telegraf } from "telegraf";
 
 dotenv.config({ path: ".env.production" });
 

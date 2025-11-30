@@ -1,4 +1,4 @@
-import { Side } from "../common/types/index.js";
+import { Side } from "@whiterockdev/common";
 
 export function calculateTakeProfit(
     price: number,

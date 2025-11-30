@@ -1,18 +1,5 @@
-export interface Order {
-  id: string;
-  slave: string;
-  symbol: string;
-  side: "LONG" | "SHORT";
-  price: number;
-  size: number;
-  stop_loss: number;
-  take_profit: number;
-  account_risk: number;
-  risk_usd: number;
-  notified: boolean;
-  created_at: number;
-  updated_at: number;
-}
+import { Order } from "@whiterockdev/common";
+
 
 export function buildOrderMessage(order: Order): string {
   const orderSize = Number(order.size).toFixed(2);

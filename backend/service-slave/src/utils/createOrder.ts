@@ -1,5 +1,5 @@
+import { Order } from "@whiterockdev/common";
 import { Connection } from "mysql2/promise";
-import { Order } from "../common/types/index.js";
 
 
 export async function createOrder(

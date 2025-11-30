@@ -10,7 +10,6 @@ import { calculateTakeProfit } from "./utils/takeProfit.js";
 import { detectorRule } from "./rules/detectorRule.js";
 import { adxRule } from "./rules/adxRule.js";
 import { mfiRule } from "./rules/mfiRule.js";
-import { Market, Order, OrderStatus, Side } from "./common/types/index.js";
 import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
 import {
   findSlaveById,
@@ -22,6 +21,10 @@ import {
   Candle,
   generateId,
   calculateEMA,
+  Market,
+  Order,
+  OrderStatus,
+  Side,
 } from "@whiterockdev/common";
 import { fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
 

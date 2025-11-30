@@ -10,7 +10,7 @@
     "setup": "tsx setup.ts"
   },
   "dependencies": {
-    "@whiterockdev/common": "^1.0.8",
+    "@whiterockdev/common": "^1.0.10",
     "dotenv": "^17.2.3",
     "mysql2": "^3.7.0",
     "nodemon": "^3.1.11",

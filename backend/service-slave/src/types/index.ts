@@ -1,6 +1,6 @@
-import { Market, Side } from "../common/types/index.js";
+import { Market, Side } from "@whiterockdev/common";
 
-export type Status =
+export type SlaveStatus =
   | "started"
   | "running"
   | "paused"
@@ -13,7 +13,7 @@ export type Interval = "4h";
 
 export interface SlaveState {
   id: string;
-  status: Status;
+  status: SlaveStatus;
   iteration: number;
   market: Market;
   symbol: string;
