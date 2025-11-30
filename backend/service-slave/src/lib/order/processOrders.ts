@@ -1,8 +1,16 @@
-import { calculateEMA, calculateSqueeze, Candle, generateId } from "@whiterockdev/common";
+import database from "../../database/client.js";
+import {
+  calculateEMA,
+  calculateSqueeze,
+  Candle,
+  generateId,
+  logger,
+} from "@whiterockdev/common";
 import { countEMATouches } from "../../rules/mfiRule.js";
 import { Alert } from "../../common/types.js";
 import { SlaveBot } from "../../index.js";
 import { createAlert } from "../../common/lib/createAlert.js";
+
 
 export async function processOrders(this: SlaveBot, candles: Candle[]) {
   const lastCandle = candles.at(-1);
@@ -27,21 +35,34 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
     const isLong = order.side === "LONG";
     const isShort = order.side === "SHORT";
 
+    let connection = null;
+
     if (isLong) {
       if (rule1 || rule2) {
-        let alertParams: Alert = {
-          id: generateId(),
-          type: "order:sell",
-          title: "⚠️ SELL NOW ⚠️",
-          message: `Sell ${order.symbol} at ${lastCandle.close} or market`,
-          notified: false,
-          created_at: Date.now(),
-          update_at: Date.now(),
-        };
 
-        await createAlert(connection, alertParams);
+        try {
+          connection = await database.client.getConnection();
+
+          const alertParams: Alert = {
+            id: generateId(),
+            type: "order:sell",
+            title: "⚠️ SELL NOW ⚠️",
+            source: this.state.id,
+            message: `Sell ${order.symbol} at ${lastCandle.close} or market`,
+            notified: false,
+            created_at: Date.now(),
+            update_at: Date.now(),
+          };
+
+          await createAlert(connection, alertParams);
+        } catch (err: any) {
+          await connection?.rollback();
+          logger.error(err)
+        } finally {
+          connection?.release();
+        }
+
       }
     }
-    
   }
 }

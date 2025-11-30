@@ -4,13 +4,13 @@ import database from "./database/client.js";
 import { createSlave } from "./lib/slave/createSlave.js";
 import { fileURLToPath } from "url";
 import { SlaveState, Interval } from "./types/index.js";
-import { createOrder } from "./lib/order/createOrder.js";
 import { startHttpServer } from "./server/index.js";
-import { calculateTakeProfit } from "./utils/takeProfit.js";
 import { detectorRule } from "./rules/detectorRule.js";
 import { adxRule } from "./rules/adxRule.js";
 import { mfiRule } from "./rules/mfiRule.js";
-import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
+import { fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
+import { processOrders } from "./lib/order/processOrders.js";
+import { executeOrder } from "./lib/order/executeOrder.js";
 import {
   findSlaveById,
   ERROR_EVENTS,
@@ -19,15 +19,10 @@ import {
   logger,
   withRetry,
   Candle,
-  generateId,
-  calculateEMA,
   Market,
   Order,
-  OrderStatus,
   Side,
 } from "@whiterockdev/common";
-import { fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
-import { processOrders } from "./lib/order/processOrders.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -173,13 +168,14 @@ export class SlaveBot {
     }
   }
 
-  private async save() {
+  public async save() {
     let connection = null;
 
     try {
       connection = await database.client.getConnection();
 
       const slave = await findSlaveById(connection, this.state.id);
+
       if (!slave) throw new Error("❌ Error slave not found");
 
       await connection.beginTransaction();
@@ -205,7 +201,7 @@ export class SlaveBot {
     return withRetry(() => fetchCandles(process.env.MARKET_HOST!, params));
   }
 
-  private async sleep(timeMs: number) {
+  public async sleep(timeMs: number) {
     logger.info("🕒 Sleeping");
     return await sleep(timeMs);
   }
@@ -214,128 +210,9 @@ export class SlaveBot {
     this.state.rule_values = this.state.rule_values.map(() => false);
   }
 
-  public async execute(candles: Candle[]) {
-    const isExecuted = this.state.executed || this.state.finished;
-
-    if (isExecuted) {
-      logger.info("✅ Already executed");
-      await this.sleep(86_400_000);
-      return;
-    }
-
-    let takeProfit = null;
-
-    let lotSize = null;
-    let stopLoss = null;
-    let riskUSD = null;
-
-    const lastCandle = candles.at(-1);
-
-    const ema55Data = calculateEMA(candles, 55);
-    const last55ema = ema55Data.at(-1)?.value;
-
-    if (!lastCandle) {
-      throw new Error("lastCandle type error");
-    }
-
-    if (typeof last55ema !== "number" || Number.isNaN(last55ema)) {
-      throw new Error("last55ema type error");
-    }
-
-    if (last55ema > lastCandle.close) {
-      takeProfit = last55ema;
-    } else {
-      takeProfit = calculateTakeProfit(
-        lastCandle.close,
-        this.state.take_profit,
-        this.state.side
-      );
-    }
-
-    if (this.state.market === "crypto") {
-      const crypto = calcLotSizeCrypto({
-        balance: this.state.account_balance,
-        riskPercent: this.state.account_risk,
-        stopPercent: this.state.stop_loss,
-        entryPrice: lastCandle.close,
-        contractSize: this.state.contract_size,
-      });
-
-      lotSize = crypto.lotSize;
-      stopLoss = crypto.stopLossPrice;
-      riskUSD = crypto.riskUSD;
-    }
-
-    if (this.state.market === "forex") {
-      const lastPriceF = 1.1516;
-
-      const forex = calcLotSizeForex({
-        balance: this.state.account_balance,
-        riskPercent: this.state.account_risk,
-        stopPercent: this.state.stop_loss,
-        entryPrice: lastPriceF,
-        pipSize: 0.0001,
-        contractSize: 100_000,
-      });
-
-      lotSize = forex.lotSize;
-      stopLoss = forex.stopLossPrice;
-      riskUSD = forex.riskUSD;
-    }
-
-    for (const v of [takeProfit, lotSize, stopLoss, riskUSD]) {
-      if (v == null) throw new Error("Order error: null values");
-    }
-
-    // Order execution
-
-    let connection: any = null;
-
-    try {
-      connection = await database.client.getConnection();
-
-      const orderParams: Order = {
-        id: generateId(),
-        status: "executed" as OrderStatus,
-        market: this.state.market,
-        slave: this.state.id,
-        symbol: this.state.symbol,
-        side: this.state.side,
-        price: lastCandle.close,
-        size: lotSize as number,
-        stop_loss: stopLoss as number,
-        take_profit: takeProfit as number,
-        account_risk: this.state.account_risk,
-        risk_usd: riskUSD as number,
-        notified: false,
-        created_at: Date.now(),
-        updated_at: Date.now(),
-      };
-
-      await withRetry(() => createOrder(connection, orderParams));
-
-      await connection.commit();
-
-      this.orders.push(orderParams);
-
-      this.state.executed = true;
-      this.state.status = "executed";
-      await this.save();
-      logger.info("✅ OrderExecuted");
-
-      await this.sleep(86_400_000);
-      this.reset();
-    } catch (err: any) {
-      await connection?.rollback();
-      throw err;
-    } finally {
-      connection?.release();
-    }
-  }
-
   public async run() {
     await this.setup();
-    
+
     const params = {
       symbol: this.state.symbol,
       market: this.state.market,
@@ -372,7 +249,7 @@ export class SlaveBot {
           continue;
         }
 
-        await this.execute(candles);
+        await executeOrder.call(this, candles);
       } catch (err: any) {
         logger.error(err);
         this.state.status = "error";
