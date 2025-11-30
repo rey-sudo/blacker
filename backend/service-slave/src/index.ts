@@ -38,7 +38,6 @@ export class SlaveBot {
   public state: SlaveState;
   public orders: Order[];
   private config: any;
-  private binance: any;
   public dataset: Candle[];
 
   constructor() {
@@ -285,10 +284,6 @@ export class SlaveBot {
 
     for (const v of [takeProfit, lotSize, stopLoss, riskUSD]) {
       if (v == null) throw new Error("Order error: null values");
-    }
-
-    if (typeof last55ema !== "number" || Number.isNaN(last55ema)) {
-      throw new Error("last55ema type error");
     }
 
     // Order execution
