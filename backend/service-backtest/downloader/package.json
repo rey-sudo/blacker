@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.13.2"
+    "axios": "^1.13.2",
+    "dukascopy-node": "^1.45.1"
   }
 }
