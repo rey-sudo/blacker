@@ -99,7 +99,7 @@ async function downloadDukascopy(instrument, timeframe, yearsToBacktest, outputF
     await downloadDukascopy(
         "eurusd", 
         "h4", 
-        6, 
-        "eurusd_4h_6y.csv"
+        4, 
+        "eurusd_4h_4y.csv"
     );
 })();

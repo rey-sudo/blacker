@@ -15,6 +15,7 @@
     "compression": "^1.7.4",
     "cookie-session": "^2.1.1",
     "dotenv": "^17.2.3",
+    "dukascopy-node": "^1.45.1",
     "express-async-errors": "^3.1.1",
     "helmet": "^7.1.0",
     "mysql2": "^3.7.0",
