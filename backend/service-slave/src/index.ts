@@ -1,16 +1,16 @@
 import path from "path";
 import dotenv from "dotenv";
 import database from "./database/client.js";
-import { createSlave } from "./lib/slave/createSlave.js";
-import { fileURLToPath } from "url";
-import { SlaveState, Interval } from "./types/index.js";
-import { startHttpServer } from "./server/index.js";
-import { detectorRule } from "./rules/detectorRule.js";
-import { adxRule } from "./rules/adxRule.js";
-import { mfiRule } from "./rules/mfiRule.js";
 import { fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
 import { processOrders } from "./lib/order/processOrders.js";
 import { executeOrder } from "./lib/order/executeOrder.js";
+import { createSlave } from "./lib/slave/createSlave.js";
+import { SlaveState, Interval } from "./types/index.js";
+import { detectorRule } from "./rules/detectorRule.js";
+import { startHttpServer } from "./server/index.js";
+import { adxRule } from "./rules/adxRule.js";
+import { mfiRule } from "./rules/mfiRule.js";
+import { fileURLToPath } from "url";
 import {
   findSlaveById,
   ERROR_EVENTS,
@@ -82,6 +82,12 @@ export class SlaveBot {
     const TAKE_PROFIT = parseFloat(process.env.TAKE_PROFIT!);
     const CONTRACT_SIZE = parseInt(process.env.CONTRACT_SIZE!, 10);
     const SHOW_PLOTS = process.env.SHOW_PLOTS === "true";
+    const DESCRIPTION = process.env.DESCRIPTION!;
+    const DATABASE_HOST = process.env.DATABASE_HOST;
+    const DATABASE_PORT = parseInt(process.env.DATABASE_PORT!);
+    const DATABASE_USER = process.env.DATABASE_USER;
+    const DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
+    const DATABASE_NAME = process.env.DATABASE_NAME;
 
     const RULES = ["rsi", "adx", "mfi"];
 
@@ -98,7 +104,7 @@ export class SlaveBot {
       stop_loss: STOP_LOSS,
       take_profit: TAKE_PROFIT,
       contract_size: CONTRACT_SIZE,
-      description: process.env.DESCRIPTION!,
+      description: DESCRIPTION,
       executed: false,
       finished: false,
       created_at: Date.now(),
@@ -116,11 +122,11 @@ export class SlaveBot {
     this.dataset = [];
 
     database.connect({
-      host: process.env.DATABASE_HOST,
-      port: parseInt(process.env.DATABASE_PORT!),
-      user: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
+      host: DATABASE_HOST,
+      port: DATABASE_PORT,
+      user: DATABASE_USER,
+      password: DATABASE_PASSWORD,
+      database: DATABASE_NAME,
     });
 
     startHttpServer(this);
@@ -147,11 +153,11 @@ export class SlaveBot {
       connection = await database.client.getConnection();
       await connection.beginTransaction();
 
-      const slave = await findSlaveById(connection, this.state.id);
+      const findSlave = await findSlaveById(connection, this.state.id);
 
-      if (slave) {
-        logger.info("🔄 Resuming " + slave.id);
-        this.state = slave;
+      if (findSlave) {
+        logger.info("🔄 Resuming " + findSlave.id);
+        this.state = findSlave;
       } else {
         logger.info("⚠️ Slave not found, creating...");
         await createSlave(connection, this.state);
@@ -174,9 +180,9 @@ export class SlaveBot {
     try {
       connection = await database.client.getConnection();
 
-      const slave = await findSlaveById(connection, this.state.id);
+      const findSlave = await findSlaveById(connection, this.state.id);
 
-      if (!slave) throw new Error("❌ Error slave not found");
+      if (!findSlave) throw new Error("❌ Error slave not found");
 
       await connection.beginTransaction();
 
@@ -221,8 +227,6 @@ export class SlaveBot {
     while (true) {
       try {
         this.state.iteration++;
-
-        await this.save();
 
         const candles = await this.getCandles(params);
 
