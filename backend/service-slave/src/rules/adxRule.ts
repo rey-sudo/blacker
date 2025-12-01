@@ -27,9 +27,13 @@ export async function adxRule(
 
     const rule2 = lastReversal.value > keyLevel;
 
-    this.state.rule_values[RULE] = rule1 && rule2;
-    
-    await this.save();
+    const result = rule1 && rule2;
+
+    this.state.rule_values[RULE] = result;
+
+    if (result) {
+      await this.save();
+    }
   }
 
   return this.state.rule_values[RULE];

@@ -27,7 +27,9 @@ export async function mfiRule(
     const rule2 = lastHeikin.close > lastSma.value;
     const rule3 = touches >= 3 || failedBreakouts >= 4;
 
-    this.state.rule_values[RULE] = rule1 && rule2;
+    const result = rule1 && rule2;
+
+    this.state.rule_values[RULE] = result;
 
     if (!rule1) {
       this.reset();
@@ -37,7 +39,7 @@ export async function mfiRule(
       console.log("⚠️⚠️⚠️⚠️⚠️EMA25 TOUCHES⚠️⚠️⚠️⚠️⚠️");
       this.reset();
     }
-    
+
     await this.save();
   }
 
