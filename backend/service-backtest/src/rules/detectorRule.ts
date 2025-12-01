@@ -29,9 +29,7 @@ export async function detectorRule(
 
     const rule1 = lastRsi <= 33;
 
-    const rule2 = lastEma55 > lastCandle.high; //The price did not touch the EMA
-
-    this.state.rule_values[RULE] = rule1 && rule2;
+    this.state.rule_values[RULE] = rule1;
   }
 
   return this.state.rule_values[RULE];
