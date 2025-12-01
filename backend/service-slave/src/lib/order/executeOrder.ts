@@ -1,5 +1,12 @@
 import database from "../../database/client.js";
-import { calculateEMA, Candle, generateId, logger, Order, withRetry } from "@whiterockdev/common";
+import {
+  calculateEMA,
+  Candle,
+  generateId,
+  logger,
+  Order,
+  withRetry,
+} from "@whiterockdev/common";
 import { calculateTakeProfit } from "../../utils/takeProfit.js";
 import { calcLotSizeCrypto, calcLotSizeForex } from "./lotSize.js";
 import { createOrder } from "./createOrder.js";
@@ -85,7 +92,8 @@ export async function executeOrder(this: SlaveBot, candles: Candle[]) {
 
   try {
     connection = await database.client.getConnection();
-
+    await connection.beginTransaction();
+    
     const orderParams: Order = {
       id: generateId(),
       status: "executed"!,

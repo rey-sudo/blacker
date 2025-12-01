@@ -11,7 +11,6 @@ import {
   logger,
 } from "@whiterockdev/common";
 
-
 export async function processOrders(this: SlaveBot, candles: Candle[]) {
   const lastCandle = candles.at(-1);
   if (!lastCandle) return;
@@ -39,9 +38,9 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
 
     if (isLong) {
       if (rule1 || rule2) {
-
         try {
           connection = await database.client.getConnection();
+          await connection.beginTransaction();
 
           const alertParams: Alert = {
             id: generateId(),
@@ -55,13 +54,14 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
           };
 
           await createAlert(connection, alertParams);
+          await connection.commit();
+          
         } catch (err: any) {
           await connection?.rollback();
-          logger.error(err)
+          logger.error(err);
         } finally {
           connection?.release();
         }
-
       }
     }
   }
