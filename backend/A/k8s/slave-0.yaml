@@ -36,9 +36,9 @@ spec:
             - name: SIDE
               value: "LONG"          
             - name: ACCOUNT_BALANCE
-              value: "2000"               
+              value: "10000"               
             - name: ACCOUNT_RISK
-              value: "1"                          
+              value: "0.5"                          
             - name: STOP_LOSS
               value: "4.2"
             - name: TAKE_PROFIT
