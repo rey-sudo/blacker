@@ -222,7 +222,7 @@ class CSVValidator {
 // - new CSVValidator('btcusdt_15m_1year.csv', '15m')
 // - new CSVValidator('ethusdt_1h_1year.csv', '1h')
 
-const validator = new CSVValidator('btcusdt_15m_1year.csv', '15m');
+const validator = new CSVValidator('btcusdt_4h_4y.csv', '4h');
 validator.validate().catch(err => {
   console.error('Error en validación:', err.message);
   process.exit(1);
