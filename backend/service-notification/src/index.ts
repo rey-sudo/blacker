@@ -17,6 +17,7 @@ const main = async () => {
       "DATABASE_PASSWORD",
       "DATABASE_NAME",
       "TELEGRAM_API_KEY",
+      "TELEGRAM_CHANNEL"
     ];
 
     for (const varName of requiredEnvVars) {
@@ -44,7 +45,7 @@ const main = async () => {
 
     const bot = new Telegraf(process.env.TELEGRAM_API_KEY!);
 
-    const channel = "@whiterock_latam";
+    const channel = process.env.TELEGRAM_CHANNEL!;
 
     let orderInterval = setInterval(
       () => listenOrders(database, bot, channel),

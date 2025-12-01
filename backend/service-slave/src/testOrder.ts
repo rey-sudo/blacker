@@ -1,8 +1,8 @@
+import dotenv from "dotenv";
+import database from "./database/client.js";
 import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
 import { generateId, Market, Order, withRetry } from "@whiterockdev/common";
 import { createOrder } from "./lib/order/createOrder.js";
-import database from "./database/client.js";
-import dotenv from "dotenv";
 
 dotenv.config({ path: ".env.development" });
 
@@ -14,12 +14,14 @@ database.connect({
   database: process.env.DATABASE_NAME,
 });
 
+const SYMBOL = "BTCUSDT";
 const ACCOUNT_BALANCE = 10_000;
 const MARKET: Market = "crypto";
+const ENTRY_PRICE = 86671;
 const ACCOUNT_RISK = 0.5;
 const STOP_LOSS = 4.2;
-const ENTRY_PRICE = 87705;
 const CONTRACT_SIZE = 1;
+const TAKE_PROFIT = 87600;
 
 let connection: any = null;
 
@@ -68,14 +70,14 @@ async function main() {
       status: "executed",
       market: MARKET,
       slave: "slave-test",
-      symbol: "BTCUSDT",
+      symbol: SYMBOL,
       side: "LONG",
       price: ENTRY_PRICE,
-      size: lotSize as number,
-      stop_loss: stopLoss as number,
-      take_profit: 87600,
+      size: lotSize!,
+      stop_loss: stopLoss!,
+      take_profit: TAKE_PROFIT,
       account_risk: ACCOUNT_RISK,
-      risk_usd: riskUSD as number,
+      risk_usd: riskUSD!,
       notified: false,
       created_at: Date.now(),
       updated_at: Date.now(),
