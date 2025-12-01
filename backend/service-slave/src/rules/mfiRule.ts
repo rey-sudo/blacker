@@ -37,6 +37,8 @@ export async function mfiRule(
       console.log("⚠️⚠️⚠️⚠️⚠️EMA25 TOUCHES⚠️⚠️⚠️⚠️⚠️");
       this.reset();
     }
+    
+    await this.save();
   }
 
   return this.state.rule_values[RULE];

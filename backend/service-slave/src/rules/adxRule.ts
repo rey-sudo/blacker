@@ -14,7 +14,7 @@ export async function adxRule(
     const lastReversal = reversalPoints.at(-1);
 
     if (!lastReversal) {
-      throw new Error("lastReversal  error");
+      throw new Error("lastReversal error");
     }
 
     const range = [
@@ -28,6 +28,8 @@ export async function adxRule(
     const rule2 = lastReversal.value > keyLevel;
 
     this.state.rule_values[RULE] = rule1 && rule2;
+    
+    await this.save();
   }
 
   return this.state.rule_values[RULE];

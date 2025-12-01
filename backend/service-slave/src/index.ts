@@ -186,8 +186,6 @@ export class SlaveBot {
 
       this.state.updated_at = Date.now();
 
-      this.state.iteration++;
-
       logger.info("✅ State saved");
     } catch (err: any) {
       await connection?.rollback();
@@ -222,6 +220,8 @@ export class SlaveBot {
 
     while (true) {
       try {
+        this.state.iteration++;
+
         await this.save();
 
         const candles = await this.getCandles(params);
@@ -230,21 +230,22 @@ export class SlaveBot {
 
         await processOrders.call(this, candles);
 
-        const R0 = await detectorRule.call(this, 0, candles);
-        if (!R0) {
+        const rule0 = await detectorRule.call(this, 0, candles);
+
+        if (!rule0) {
           await this.sleep(300_000);
           continue;
         }
 
-        const R1 = await adxRule.call(this, 1, candles);
+        const rule1 = await adxRule.call(this, 1, candles);
 
-        if (!R1) {
+        if (!rule1) {
           await this.sleep(300_000);
           continue;
         }
 
-        const R2 = await mfiRule.call(this, 2, candles);
-        if (!R2) {
+        const rule2 = await mfiRule.call(this, 2, candles);
+        if (!rule2) {
           await this.sleep(300_000);
           continue;
         }
