@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   try {
     console.log(id);
 
-    const apiUrl = `http://localhost:8002/api/slave/${id}/get-candle`;
+    const apiUrl = `http://localhost:8082/api/slave/${id}/get-candle`;
     const res = await $fetch(apiUrl, {
       method: "GET",
     });
