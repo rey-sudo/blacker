@@ -24,7 +24,7 @@ export interface SlaveState {
   stop_loss: number;
   take_profit: number;
   contract_size: number;
-  precision: number;
+  precision_: number;
   description: string;
   executed: boolean;
   finished: boolean;

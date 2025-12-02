@@ -106,7 +106,7 @@ export class SlaveBot {
       stop_loss: STOP_LOSS,
       take_profit: TAKE_PROFIT,
       contract_size: CONTRACT_SIZE,
-      precision: PRECISION,
+      precision_: PRECISION,
       description: DESCRIPTION,
       executed: false,
       finished: false,

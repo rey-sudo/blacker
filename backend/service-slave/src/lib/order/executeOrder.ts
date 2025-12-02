@@ -59,7 +59,7 @@ export async function executeOrder(this: SlaveBot, candles: Candle[]) {
       riskPercent: this.state.account_risk,
       stopPercent: this.state.stop_loss,
       entryPrice: lastCandle.close,
-      precision: this.state.precision,
+      precision: this.state.precision_,
       contractSize: this.state.contract_size,
     });
 
@@ -74,7 +74,7 @@ export async function executeOrder(this: SlaveBot, candles: Candle[]) {
       riskPercent: this.state.account_risk,
       stopPercent: this.state.stop_loss,
       entryPrice: lastCandle.close,
-      precision: this.state.precision,
+      precision: this.state.precision_,
       contractSize: this.state.contract_size,
     });
 

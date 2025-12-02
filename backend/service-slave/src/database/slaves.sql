@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS slaves (
   stop_loss DECIMAL(5,4) UNSIGNED NOT NULL,
   take_profit DECIMAL(5,4) UNSIGNED NOT NULL,
   contract_size INT UNSIGNED NOT NULL,
+  precision_ INT UNSIGNED NOT NULL,
 
   description VARCHAR(255) NOT NULL,
   executed BOOLEAN NOT NULL,
