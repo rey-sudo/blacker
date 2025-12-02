@@ -1,6 +1,9 @@
 import dotenv from "dotenv";
 import database from "./database/client.js";
-import { calcLotSizeCrypto, calcLotSizeForex } from "./lib/order/lotSize.js";
+import {
+  calcLotSizeCrypto,
+  calcLotSizeForex,
+} from "./lib/order/lotSize.js";
 import { generateId, Market, Order, withRetry } from "@whiterockdev/common";
 import { createOrder } from "./lib/order/createOrder.js";
 
@@ -14,14 +17,15 @@ database.connect({
   database: process.env.DATABASE_NAME,
 });
 
-const SYMBOL = "BTCUSDT";
+const SYMBOL = "EURUSD";
 const ACCOUNT_BALANCE = 10_000;
-const MARKET: Market = "crypto";
-const ENTRY_PRICE = 86671;
+const MARKET: Market = "forex";
+const ENTRY_PRICE = 1.16088;
 const ACCOUNT_RISK = 0.5;
-const STOP_LOSS = 4.2;
-const CONTRACT_SIZE = 1;
-const TAKE_PROFIT = 87600;
+const STOP_LOSS = 0.9;
+const CONTRACT_SIZE = 100_000;
+const TAKE_PROFIT = 1.16873;
+const PRECISION = 5;
 
 let connection: any = null;
 
@@ -40,6 +44,7 @@ async function main() {
         riskPercent: ACCOUNT_RISK,
         stopPercent: STOP_LOSS,
         entryPrice: ENTRY_PRICE,
+        precision: PRECISION,
         contractSize: CONTRACT_SIZE,
       });
 
@@ -49,15 +54,13 @@ async function main() {
     }
 
     if (MARKET === "forex") {
-      const lastPriceF = 1.1516;
-
       const forex = calcLotSizeForex({
         balance: ACCOUNT_BALANCE,
         riskPercent: ACCOUNT_RISK,
         stopPercent: STOP_LOSS,
         entryPrice: ENTRY_PRICE,
-        pipSize: 0.0001,
-        contractSize: 100_000,
+        precision: PRECISION,
+        contractSize: CONTRACT_SIZE,
       });
 
       lotSize = forex.lotSize;

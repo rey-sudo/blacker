@@ -8,7 +8,10 @@ import {
   withRetry,
 } from "@whiterockdev/common";
 import { calculateTakeProfit } from "../../utils/takeProfit.js";
-import { calcLotSizeCrypto, calcLotSizeForex } from "./lotSize.js";
+import {
+  calcLotSizeCrypto,
+  calcLotSizeForex,
+} from "./lotSize.js";
 import { createOrder } from "./createOrder.js";
 import { SlaveBot } from "../../index.js";
 
@@ -56,6 +59,7 @@ export async function executeOrder(this: SlaveBot, candles: Candle[]) {
       riskPercent: this.state.account_risk,
       stopPercent: this.state.stop_loss,
       entryPrice: lastCandle.close,
+      precision: this.state.precision,
       contractSize: this.state.contract_size,
     });
 
@@ -65,15 +69,13 @@ export async function executeOrder(this: SlaveBot, candles: Candle[]) {
   }
 
   if (this.state.market === "forex") {
-    const lastPriceF = 1.1516;
-
     const forex = calcLotSizeForex({
       balance: this.state.account_balance,
       riskPercent: this.state.account_risk,
       stopPercent: this.state.stop_loss,
-      entryPrice: lastPriceF,
-      pipSize: 0.0001,
-      contractSize: 100_000,
+      entryPrice: lastCandle.close,
+      precision: this.state.precision,
+      contractSize: this.state.contract_size,
     });
 
     lotSize = forex.lotSize;
@@ -93,7 +95,7 @@ export async function executeOrder(this: SlaveBot, candles: Candle[]) {
   try {
     connection = await database.client.getConnection();
     await connection.beginTransaction();
-    
+
     const orderParams: Order = {
       id: generateId(),
       status: "executed"!,

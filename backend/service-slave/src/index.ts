@@ -48,6 +48,7 @@ export class SlaveBot {
       "STOP_LOSS",
       "TAKE_PROFIT",
       "CONTRACT_SIZE",
+      "PRECISION",
       "SHOW_PLOTS",
       "DESCRIPTION",
       "MARKET_HOST",
@@ -81,6 +82,7 @@ export class SlaveBot {
     const STOP_LOSS = parseFloat(process.env.STOP_LOSS!);
     const TAKE_PROFIT = parseFloat(process.env.TAKE_PROFIT!);
     const CONTRACT_SIZE = parseInt(process.env.CONTRACT_SIZE!, 10);
+    const PRECISION = parseInt(process.env.PRECISION!, 10);
     const SHOW_PLOTS = process.env.SHOW_PLOTS === "true";
     const DESCRIPTION = process.env.DESCRIPTION!;
     const DATABASE_HOST = process.env.DATABASE_HOST;
@@ -104,6 +106,7 @@ export class SlaveBot {
       stop_loss: STOP_LOSS,
       take_profit: TAKE_PROFIT,
       contract_size: CONTRACT_SIZE,
+      precision: PRECISION,
       description: DESCRIPTION,
       executed: false,
       finished: false,
