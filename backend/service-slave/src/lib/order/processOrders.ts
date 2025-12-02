@@ -55,10 +55,9 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
 
           await createAlert(connection, alertParams);
           await connection.commit();
-          
         } catch (err: any) {
-          await connection?.rollback();
           logger.error(err);
+          await connection?.rollback();
         } finally {
           connection?.release();
         }
