@@ -7,6 +7,8 @@ export const createTabStore = (tabId: string) =>
     const interval = ref("h4");
     const window = ref(500);
 
+    const slaveId = ref("slave-0");
+
     const candles: any = ref([]);
     const candle = ref(null);
 
@@ -20,7 +22,7 @@ export const createTabStore = (tabId: string) =>
 
     const logicalRange = ref(null);
     const crosshair = ref(null);
-    const defaultRightPriceWidth = ref(80)
+    const defaultRightPriceWidth = ref(80);
     const chartSettings = reactive({});
     const indicators = ref([]);
 
@@ -78,7 +80,11 @@ export const createTabStore = (tabId: string) =>
 
     async function fetchCandles() {
       try {
-        const res: any = await $fetch("/api/market/get-candles", {
+        const QUERY_URL = slaveId.value
+          ? `/api/slave/${slaveId.value}/get-candles`
+          : "/api/market/get-candles";
+
+        const res: any = await $fetch(QUERY_URL, {
           method: "GET",
           params: {
             symbol: symbol.value,
@@ -103,9 +109,11 @@ export const createTabStore = (tabId: string) =>
       try {
         fetching.value = true;
 
-        console.log("111111111111");
+        const QUERY_URL = slaveId.value
+          ? `/api/slave/${slaveId.value}/get-candle`
+          : "/api/market/get-candle";
 
-        const res: any = await $fetch("/api/market/get-candle", {
+        const res: any = await $fetch(QUERY_URL, {
           method: "GET",
           params: {
             symbol: symbol.value,
@@ -141,7 +149,7 @@ export const createTabStore = (tabId: string) =>
       crosshair,
       nextClose,
       logicalRange,
-      defaultRightPriceWidth
+      defaultRightPriceWidth,
     };
   });
 

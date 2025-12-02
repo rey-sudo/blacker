@@ -30,7 +30,22 @@ export function startHttpServer(bot: SlaveBot) {
   });
 
   app.get(`/api/slave/${botId}/get-candles`, (req, res) => {
-    res.json(bot.dataset);
+    const response = {
+      success: true,
+      data: bot.dataset,
+    };
+    res.json(response);
+  });
+
+  app.get(`/api/slave/${botId}/get-candle`, (req, res) => {
+    const lastCandle = bot.dataset.at(-1);
+
+    const response = {
+      success: true,
+      data: lastCandle,
+    };
+
+    res.json(response);
   });
 
   app.get(`/api/slave/${botId}/get-logs`, getLogsHandler);
