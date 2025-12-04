@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-notification
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: service-notification
+  template:
+    metadata:
+      labels:
+        role: service-notification
+    spec:
+      containers:
+        - name: service-notification
+          image: pairfy/service-notification
+          envFrom:
+            - configMapRef:
+                name: slave-config                  
+            - configMapRef:
+                name: redis-config             
+          env:
+            - name: NODE_ENV
+              value: "development"   
+            - name: TELEGRAM_CHANNEL
+              value: "@whiterock_latam"                                                                          
+            - name: TELEGRAM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: telegram-key-secret
+                  key: key  
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-password-secret
+                  key: password       
+
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"  
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-notification
+spec:
+  selector:
+    role: service-notification
+  ports:
+    - name: service-notification
+      protocol: TCP
+      port: 8003
+      targetPort: 8003

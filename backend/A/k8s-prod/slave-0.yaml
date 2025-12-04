@@ -52,7 +52,7 @@ spec:
             - name: DESCRIPTION
               value: "RSI,Squeeze,ADX,MFI"  
             - name: MARKET_HOST
-              value: "http://service-market.default.svc.cluster.local:8001"
+              value: "http://service-market:8001"
             - name: DATABASE_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -61,7 +61,7 @@ spec:
                                     
           resources:
             requests:
-              cpu: "50m"
+              cpu: "10m"
               memory: "256Mi"
             limits:
               cpu: "500m"
