@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'service-slave/**'
+      - 'backend/service-slave/**'
 
 jobs:
   build-and-deploy:
