@@ -60,7 +60,7 @@ export async function fetchCandlesDukascopy(
 
     // 3️⃣ Si está vieja, reconstruimos solo la última vela
     if (isLastCandleOld) {
-      const reconstructed = await reconstructLast12hCandles(symbol, interval);
+      const reconstructed = await reconstructLast12hCandles(symbol, mappedInterval);
       if (reconstructed.length > 0) {
         // reemplazamos únicamente la última vela
         const lastReconstructed = reconstructed.at(-1)!;
@@ -85,7 +85,7 @@ export async function fetchCandleDukascopy(symbol: string, interval: string) {
     const mappedInterval = mapInterval(interval);
 
     // ✅ Reconstruir últimas 12h
-    const candles = await reconstructLast12hCandles(symbol, interval);
+    const candles = await reconstructLast12hCandles(symbol, mappedInterval);
 
     if (!candles || candles.length === 0) return [];
 
