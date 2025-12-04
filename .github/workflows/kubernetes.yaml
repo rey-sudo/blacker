@@ -1,0 +1,25 @@
+name: deploy-kubemanifest
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up DigitalOcean CLI
+        uses: digitalocean/action-doctl@v2.3.0
+        with:
+          token: ${{ secrets.CLOUD_API }}
+
+      - name: Set up kubeconfig
+        run: doctl kubernetes cluster kubeconfig save k9blacker
+
+      - name: Deploy manifests to Kubernetes
+        run: kubectl apply -f A/k8s-prod
