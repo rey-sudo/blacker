@@ -43,7 +43,7 @@ def abrir_orden_market(symbol: str, volumen: float, sl: float, tp: float, tipo="
         "price": precio,
         "sl": sl,
         "tp": tp,
-        "deviation": 20,
+        "deviation": 1000000,
         "magic": 12345,
         "comment": "Python-MT5",
         "type_filling": mt5.ORDER_FILLING_FOK,
