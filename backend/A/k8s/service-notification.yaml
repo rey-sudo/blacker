@@ -24,7 +24,7 @@ spec:
             - name: NODE_ENV
               value: "development"   
             - name: TELEGRAM_CHANNEL
-              value: "@whiterock_latam"                                                                          
+              value: "@whiterock_latam_dev"                                                                          
             - name: TELEGRAM_API_KEY
               valueFrom:
                 secretKeyRef:
