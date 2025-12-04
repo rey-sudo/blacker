@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'service-market/**'
+      - 'backend/service-market/**'
 
 jobs:
   build-and-deploy:
