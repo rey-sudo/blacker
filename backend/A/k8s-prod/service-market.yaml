@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-market
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: service-market
+  template:
+    metadata:
+      labels:
+        role: service-market
+    spec:
+      containers:
+        - name: service-market
+          image: pairfy/service-market
+          envFrom:     
+            - configMapRef:
+                name: redis-config             
+          env:
+            - name: NODE_ENV
+              value: "development"                                                                    
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-password-secret
+                  key: password              
+            - name: BINANCE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: binance-key-secret
+                  key: key  
+            - name: BINANCE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: binance-secret-secret
+                  key: secret
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"  
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-market
+spec:
+  selector:
+    role: service-market
+  ports:
+    - name: service-market
+      protocol: TCP
+      port: 8001
+      targetPort: 8001

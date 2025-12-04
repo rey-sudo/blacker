@@ -22,4 +22,4 @@ jobs:
         run: doctl kubernetes cluster kubeconfig save k9blacker
 
       - name: Deploy manifests to Kubernetes
-        run: kubectl apply -f A/k8s-prod
+        run: kubectl apply -f backend/A/k8s-prod
