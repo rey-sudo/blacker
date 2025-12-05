@@ -35,5 +35,15 @@ jobs:
       - name: Set up kubeconfig
         run: doctl kubernetes cluster kubeconfig save k9blacker
 
-      - name: Restart Kubernetes deployment
-        run: kubectl get deployments -o name | grep 'slave-' | xargs -n1 kubectl rollout restart
+      - name: Restart slave deployments gradually (dynamic)
+        run: |
+          kubectl get deployments -o name | grep 'slave-' | while read dep; do
+            echo "🔄 Restart $dep ..."
+            kubectl rollout restart "$dep"
+
+            echo "⏳ Waiting $dep ..."
+            kubectl rollout status "$dep" --timeout=300s
+
+            echo "✅ Completed $dep"
+            echo ""
+          done
