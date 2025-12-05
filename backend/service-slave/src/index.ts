@@ -269,7 +269,7 @@ export class SlaveBot {
 async function main() {
   const bot = new SlaveBot();
   await bot.run();
-  logger.info("LOOP EXIT");
+  logger.info("🚨 LOOP EXIT 🚨");
 }
 
 main();
