@@ -97,9 +97,9 @@ async function downloadDukascopy(instrument, timeframe, yearsToBacktest, outputF
      * - Archivo de salida: eurusd_4years_h4_bid.csv
      */
     await downloadDukascopy(
-        "eurjpy", 
-        "h4", 
-        6, 
-        "eurjpy_4h_6y.csv"
+        "eurusd", 
+        "h1", 
+        4, 
+        "eurusd_1h_4y.csv"
     );
 })();

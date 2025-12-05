@@ -50,3 +50,5 @@ if (!DATABASE_HOST || !DATABASE_USER || !DATABASE_PASSWORD || !DATABASE_NAME) {
     process.exit(1);
   }
 })();
+
+//4
