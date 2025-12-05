@@ -36,4 +36,4 @@ jobs:
         run: doctl kubernetes cluster kubeconfig save k9blacker
 
       - name: Restart Kubernetes deployment
-        run: kubectl rollout restart deployment service-slave
+        run: kubectl get deployments -o name | grep 'slave-' | xargs -n1 kubectl rollout restart
