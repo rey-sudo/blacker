@@ -14,7 +14,6 @@ import { fileURLToPath } from "url";
 import {
   findSlaveById,
   ERROR_EVENTS,
-  sleep,
   updateSlave,
   logger,
   withRetry,
@@ -210,7 +209,7 @@ export class SlaveBot {
 
   public async sleep(timeMs: number) {
     logger.info("🕒 Sleeping");
-    return await sleep(timeMs);
+    return await Bun.sleep(timeMs);
   }
 
   public reset() {
