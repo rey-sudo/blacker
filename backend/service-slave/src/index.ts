@@ -134,6 +134,7 @@ export class SlaveBot {
       connectionLimit: 3,
       enableKeepAlive: true,
       keepAliveInitialDelay: 10_000,
+      connectTimeout: 60000,
     });
 
     startHttpServer(this);
@@ -239,8 +240,6 @@ export class SlaveBot {
     while (true) {
       try {
         this.state.iteration++;
-        
-        await this.save()
 
         const candles = await this.getCandles(params);
 
