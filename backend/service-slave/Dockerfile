@@ -1,15 +1,17 @@
-FROM oven/bun:1
+FROM node:20-slim
 
 WORKDIR /app
 
-COPY package.json bun.lockb* ./
+COPY package.json .
 
-RUN bun install
+RUN ls
+
+RUN npm install --verbose --no-package-lock
 
 COPY . .
 
-RUN bun run build
+RUN npm run build
 
 EXPOSE 8002
 
-CMD ["sh", "-c", "bun run setup && bun run start"]
+CMD ["sh", "-c", "npm run setup && npm start"]
