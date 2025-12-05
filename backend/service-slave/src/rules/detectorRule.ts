@@ -37,8 +37,6 @@ export async function detectorRule(
     const rule1 = lastRsi <= 33;
 
     this.state.rule_values[RULE] = rule1;
-
-    await this.save();
   }
 
   return this.state.rule_values[RULE];
