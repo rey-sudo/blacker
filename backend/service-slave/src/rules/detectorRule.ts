@@ -1,4 +1,9 @@
-import { calculateRSI, Candle, calculateEMA } from "@whiterockdev/common";
+import {
+  calculateRSI,
+  Candle,
+  calculateEMA,
+  logger,
+} from "@whiterockdev/common";
 import { SlaveBot } from "../index.js";
 
 export async function detectorRule(
@@ -26,6 +31,8 @@ export async function detectorRule(
     if (typeof lastEma55 !== "number" || Number.isNaN(lastEma55)) {
       throw new Error("lastEma55 type error");
     }
+
+    logger.info(`RSI:${lastRsi}`);
 
     const rule1 = lastRsi <= 33;
 
