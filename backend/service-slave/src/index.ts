@@ -130,6 +130,10 @@ export class SlaveBot {
       user: DATABASE_USER,
       password: DATABASE_PASSWORD,
       database: DATABASE_NAME,
+      waitForConnections: true,
+      connectionLimit: 3,
+      enableKeepAlive: true,
+      keepAliveInitialDelay: 10_000,
     });
 
     startHttpServer(this);
@@ -148,59 +152,64 @@ export class SlaveBot {
   }
 
   private async database() {
-    let connection = null;
+    let conn = null;
 
     try {
       logger.info("🛠️ Connecting to database...");
 
-      connection = await database.client.getConnection();
-      await connection.beginTransaction();
+      conn = await database.client.getConnection();
 
-      const findSlave = await findSlaveById(connection, this.state.id);
+      await conn.ping();
+
+      await conn.beginTransaction();
+
+      const findSlave = await findSlaveById(conn, this.state.id);
 
       if (findSlave) {
         logger.info("🔄 Resuming " + findSlave.id);
         this.state = findSlave;
       } else {
         logger.info("⚠️ Slave not found, creating...");
-        await createSlave(connection, this.state);
+        await createSlave(conn, this.state);
       }
 
-      await connection.commit();
+      await conn.commit();
 
       this.state.status = "running";
     } catch (err: any) {
-      await connection?.rollback();
+      await conn?.rollback();
       throw err;
     } finally {
-      connection?.release();
+      conn?.release();
     }
   }
 
   public async save() {
-    let connection = null;
+    let conn = null;
 
     try {
-      connection = await database.client.getConnection();
+      conn = await database.client.getConnection();
 
-      const findSlave = await findSlaveById(connection, this.state.id);
+      await conn.ping();
+
+      const findSlave = await findSlaveById(conn, this.state.id);
 
       if (!findSlave) throw new Error("❌ Error slave not found");
 
-      await connection.beginTransaction();
+      await conn.beginTransaction();
 
-      await updateSlave(connection, this.state.id, this.state);
+      await updateSlave(conn, this.state.id, this.state);
 
-      await connection.commit();
+      await conn.commit();
 
       this.state.updated_at = Date.now();
 
       logger.info("✅ State saved");
     } catch (err: any) {
-      await connection?.rollback();
+      await conn?.rollback();
       throw err;
     } finally {
-      connection?.release();
+      conn?.release();
     }
   }
 
