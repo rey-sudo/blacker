@@ -42,7 +42,7 @@ jobs:
             kubectl rollout restart "$dep"
 
             echo "⏳ Waiting $dep ..."
-            kubectl rollout status "$dep" --timeout=300s
+            kubectl rollout status "$dep" --timeout=30m
 
             echo "✅ Completed $dep"
             echo ""
