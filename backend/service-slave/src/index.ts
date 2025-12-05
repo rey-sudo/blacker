@@ -21,6 +21,7 @@ import {
   Market,
   Order,
   Side,
+  sleep,
 } from "@whiterockdev/common";
 
 dotenv.config({ path: ".env.development" });
@@ -209,7 +210,7 @@ export class SlaveBot {
 
   public async sleep(timeMs: number) {
     logger.info("🕒 Sleeping");
-    return await Bun.sleep(timeMs);
+    return await sleep(timeMs);
   }
 
   public reset() {
@@ -232,7 +233,7 @@ export class SlaveBot {
 
         const candles = await this.getCandles(params);
 
-        this.dataset = [...candles];
+        this.dataset = candles;
 
         await processOrders.call(this, candles);
 
