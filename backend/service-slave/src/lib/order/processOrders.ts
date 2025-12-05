@@ -34,13 +34,16 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
     const isLong = order.side === "LONG";
     const isShort = order.side === "SHORT";
 
-    let connection = null;
+    let conn = null;
 
     if (isLong) {
       if (rule1 || rule2) {
         try {
-          connection = await database.client.getConnection();
-          await connection.beginTransaction();
+          conn = await database.client.getConnection();
+          
+          await conn.ping();
+
+          await conn.beginTransaction();
 
           const alertParams: Alert = {
             id: generateId(),
@@ -53,13 +56,13 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
             updated_at: Date.now(),
           };
 
-          await createAlert(connection, alertParams);
-          await connection.commit();
+          await createAlert(conn, alertParams);
+          await conn.commit();
         } catch (err: any) {
           logger.error(err);
-          await connection?.rollback();
+          await conn?.rollback();
         } finally {
-          connection?.release();
+          conn?.release();
         }
       }
     }

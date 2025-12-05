@@ -90,11 +90,14 @@ export async function executeOrder(this: SlaveBot, candles: Candle[]) {
 
   // Order execution
 
-  let connection: any = null;
+  let conn: any = null;
 
   try {
-    connection = await database.client.getConnection();
-    await connection.beginTransaction();
+    conn = await database.client.getConnection();
+
+    await conn.ping();
+
+    await conn.beginTransaction();
 
     const orderParams: Order = {
       id: generateId(),
@@ -114,23 +117,23 @@ export async function executeOrder(this: SlaveBot, candles: Candle[]) {
       updated_at: Date.now(),
     };
 
-    await withRetry(() => createOrder(connection, orderParams));
+    await withRetry(() => createOrder(conn, orderParams));
 
-    await connection.commit();
+    await conn.commit();
 
     this.orders.push(orderParams);
 
     this.state.executed = true;
     this.state.status = "executed";
     await this.save();
-    logger.info("✅ OrderExecuted");
 
+    logger.info("✅ OrderExecuted");
     await this.sleep(86_400_000);
     this.reset();
   } catch (err: any) {
-    await connection?.rollback();
+    await conn?.rollback();
     throw err;
   } finally {
-    connection?.release();
+    conn?.release();
   }
 }
