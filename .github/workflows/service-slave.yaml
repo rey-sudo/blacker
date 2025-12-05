@@ -35,15 +35,25 @@ jobs:
       - name: Set up kubeconfig
         run: doctl kubernetes cluster kubeconfig save k9blacker
 
-      - name: Restart slave deployments gradually (dynamic)
+      - name: Delete all slave deployments and reapply manifests
         run: |
-          kubectl get deployments -o name | grep 'slave-' | while read dep; do
-            echo "🔄 Restart $dep ..."
-            kubectl rollout restart "$dep"
+          echo "🔍 Searching deployments..."
+          deployments=$(kubectl get deployments -o name | grep 'slave-' || true)
 
-            echo "⏳ Waiting $dep ..."
-            kubectl rollout status "$dep" --timeout=30m
+          if [ -z "$deployments" ]; then
+            echo "⚠️ No deployments slave-"
+          else
+            echo "🗑️ Deleting deployments slave-..."
+            for dep in $deployments; do
+              echo "  - Deleting $dep"
+              kubectl delete "$dep" --ignore-not-found=true
+            done
+          fi
 
-            echo "✅ Completed $dep"
-            echo ""
-          done
+          sleep 1m
+
+          echo "📦 Applying deployments..."
+          kubectl apply -f backend/A/k8s-prod
+
+          echo "✅ Finished"
+
