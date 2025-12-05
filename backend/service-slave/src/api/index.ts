@@ -5,18 +5,18 @@ import http from "http";
 const httpsAgent = new https.Agent({
   keepAlive: true,
   maxSockets: 50,
-  timeout: 3000,
+  timeout: 5000,
 });
 
 const httpAgent = new http.Agent({
   keepAlive: true,
   maxSockets: 50,
-  timeout: 3000,
+  timeout: 5000,
 });
 
 const API = axios.create({
   baseURL: process.env.MARKET_API_URL,
-  timeout: 2000,
+  timeout: 5000,
   httpAgent,
   httpsAgent,
   maxBodyLength: 2 * 1024 * 1024,
