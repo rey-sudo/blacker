@@ -11,7 +11,7 @@
         <IndicatorRSI
           :tabId="tabId"
           :width="chartWidth"
-          :height="chartHeight / 2"
+          :height="chartHeight / 1.5"
         />
       </div>
 
@@ -19,28 +19,28 @@
         <IndicatorADX
           :tabId="tabId"
           :width="chartWidth"
-          :height="chartHeight / 2"
+          :height="chartHeight / 1.5"
         />
       </div>
       <div class="indicator">
         <IndicatorMFI
           :tabId="tabId"
           :width="chartWidth"
-          :height="chartHeight / 2"
+          :height="chartHeight / 1.5"
         />
       </div>
       <div class="indicator">
         <IndicatorSqueeze
           :tabId="tabId"
           :width="chartWidth"
-          :height="chartHeight / 2"
+          :height="chartHeight / 1.5"
         />
       </div>
       <div class="indicator">
         <IndicatorHeikinAshi
           :tabId="tabId"
           :width="chartWidth"
-          :height="chartHeight / 2"
+          :height="chartHeight / 1.5"
         />
       </div>
     </div>
