@@ -276,14 +276,14 @@ function calculateCountdown(nextClose, nowValue) {
 #chart-container {
   width: 100%;
   height: 100%;
+  background: var(--chart-background);
 }
 
 .countdown {
   position: fixed;
   height: 50px;
   width: 150px;
-  background: red;
-  left: 0;
+  right: 0;
   top: 0;
 }
 </style>

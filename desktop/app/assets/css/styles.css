@@ -12,16 +12,15 @@ body {
   font-style: normal;
   padding: 0;
   margin: 0;
-  
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   overflow: hidden;
   height: 100%;
 }
-
 
 :root {
   --font-size-0: 0.694rem;
@@ -36,8 +35,9 @@ html, body {
 }
 
 :root {
-  --background-0: #0b0d14;
-  --background-1: #1c1f28;
+  --background-0: #000000;
+  --background-1: #080808; /* 3% */
+  --background-2: #12131c;
 
   --text-0: #ffffff;
   --text-1: #6b7280;
@@ -72,6 +72,12 @@ html, body {
   --placeholder-opacity: 0.9;
 
   --gradient-a: linear-gradient(90deg, var(--primary-a), var(--primary-b));
+}
+
+:root {
+  --main-background: var(--background-0);
+  --chart-background: var(--background-1);
+  --nav-background: var(--background-2);
 }
 
 :root {
@@ -111,11 +117,20 @@ html, body {
   --icon-radius: 8px;
 }
 
-body, h1, h2, h3, h4, h5, h6, p, span, div {
-    caret-color: transparent; 
-    user-select: text;        
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+div {
+  caret-color: transparent;
+  user-select: text;
 }
 
 body :not(input):not(textarea):not([contenteditable="true"]):focus {
-    outline: none;
+  outline: none;
 }

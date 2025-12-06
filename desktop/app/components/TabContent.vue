@@ -89,30 +89,30 @@ onBeforeUnmount(() => {
 .tab {
   display: grid;
   grid-template-rows: 3fr 1fr;
-  padding: 0.5rem;
-  background: black;
+  padding: 1rem 1.5rem;
+  background: var(--main-background);
   box-sizing: border-box;
   gap: 0.5rem;
   height: 100vh;
   overflow-y: scroll;
-  /* Firefox */
-  scrollbar-width: auto;
-  scrollbar-color: #555 #1a1a1a;
 }
 
 /* Chrome, Edge, Safari */
 .tab::-webkit-scrollbar {
-  width: 12px;
+  width: 0.75rem;
 }
 
 .tab::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: transparent;
   border-radius: 12px;
+ 
 }
 
 .tab::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #888, #555);
-  border-radius: 12px;
+  border-radius: 0px;
+  width: 50;
+  cursor: grab;
 }
 
 .tab::-webkit-scrollbar-thumb:hover {
@@ -127,7 +127,6 @@ onBeforeUnmount(() => {
   min-height: 70vh;
   max-width: calc(100vw - 1rem);
   overflow: hidden;
-  border: 1px solid var(--border-0);
 }
 
 .indicators {
@@ -139,7 +138,6 @@ onBeforeUnmount(() => {
 }
 
 .indicator {
-  border: 1px solid var(--border-0);
 }
 
 .footer {

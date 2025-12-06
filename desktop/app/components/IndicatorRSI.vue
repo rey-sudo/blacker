@@ -241,4 +241,8 @@ function calculateSMA(data, period = 14) {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+#rsi-container {
+  background: var(--chart-background);
+}
+</style>

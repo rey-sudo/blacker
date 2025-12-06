@@ -53,13 +53,16 @@ export const createTabStore = (tabId: string) =>
     async function start() {
       await fetchAll();
 
-      historyInterval.value = setInterval(async () => {
-        const isClosed = nextClose.value < getNow();
-        console.log(isClosed);
-        if (isClosed) {
-          await fetchAll();
-        }
-      }, 1_000);
+      historyInterval.value = setInterval(
+        async () => {
+          const isClosed = nextClose.value < getNow();
+          console.log(isClosed);
+          if (isClosed) {
+            await fetchAll();
+          }
+        },
+        slaveId.value ? 60_000 : 1_000
+      );
 
       lastInterval.value = setInterval(() => fetchCandle(), 60_000);
     }

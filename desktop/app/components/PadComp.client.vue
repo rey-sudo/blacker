@@ -18,6 +18,7 @@
   display: flex;
   align-items: center;
   padding: 0 1rem;
+  background: var(--background-1);
 }
 
 .price {
