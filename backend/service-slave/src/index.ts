@@ -250,6 +250,7 @@ export class SlaveBot {
         const rule0 = await detectorRule.call(this, 0, candles);
 
         if (!rule0) {
+          await this.save();
           await this.sleep(300_000);
           continue;
         }
@@ -257,12 +258,14 @@ export class SlaveBot {
         const rule1 = await adxRule.call(this, 1, candles);
 
         if (!rule1) {
+          await this.save();
           await this.sleep(300_000);
           continue;
         }
 
         const rule2 = await mfiRule.call(this, 2, candles);
         if (!rule2) {
+          await this.save();
           await this.sleep(300_000);
           continue;
         }
