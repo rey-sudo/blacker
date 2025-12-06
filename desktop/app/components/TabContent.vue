@@ -1,7 +1,5 @@
 <template>
   <div class="tab">
-    <PadComp />
-
     <div class="chart" ref="chartDiv">
       <CandleChart :tabId="tabId" :width="chartWidth" :height="chartHeight" />
     </div>

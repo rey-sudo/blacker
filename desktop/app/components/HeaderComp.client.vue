@@ -7,7 +7,7 @@
         <SymbolSelector :tabId="String(tab.id)" />
       </div>
 
-      <addTab />
+      <newTabButton />
     </div>
   </div>
 </template>
@@ -21,7 +21,7 @@ const tabsStore = useTabsStore();
   gap: 1rem;
   height: 3rem;
   display: flex;
-  padding: 0 2rem;
+  padding: 0 1rem;
   align-items: center;
   box-sizing: border-box;
   background: var(--nav-background);

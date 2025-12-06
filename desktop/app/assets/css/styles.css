@@ -36,14 +36,15 @@ body {
 
 :root {
   --background-0: #000000;
-  --background-1: #080808; /* 3% */
-  --background-2: #12131c;
+  --background-1:  #0D0D0D; /* 5% */
+  --background-2: #262626; /* 15% */
 
   --text-0: #ffffff;
   --text-1: #6b7280;
 
-  --border-0: rgba(255, 255, 255, 0.2);
+  --border-0: var(--background-0);
   --border-1: rgba(255, 255, 255, 0.3);
+  --border-2: rgba(255, 255, 255, 0.2);
 
   --primary-0: #00e0ff;
   --primary-0-base: 56, 189, 248;

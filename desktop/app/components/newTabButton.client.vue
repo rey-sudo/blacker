@@ -1,5 +1,5 @@
 <template>
-  <Button icon="pi pi-plus" size="small" @click="visible = true" />
+  <Button icon="pi pi-plus" size="small" @click="visible = true" variant="text" />
   <Dialog
     v-model:visible="visible"
     modal
