@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="135"
+   width="95"
    height="48"
-   viewBox="0 0 135 48"
+   viewBox="0 0 95 48"
    version="1.1"
    id="svg1"
    inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
@@ -28,8 +28,8 @@
      inkscape:cy="90.262172"
      inkscape:window-width="1654"
      inkscape:window-height="782"
-     inkscape:window-x="2002"
-     inkscape:window-y="152"
+     inkscape:window-x="129"
+     inkscape:window-y="143"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1" />
   <defs
@@ -48,6 +48,6 @@
          id="tspan1"
          x="-0.528"
          y="33.888"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:24px;font-family:Montserrat;-inkscape-font-specification:'Montserrat Bold';fill:#ffffff">WhiteRock</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:24px;font-family:Montserrat;-inkscape-font-specification:'Montserrat Bold';fill:#ffffff">Blacker</tspan></text>
   </g>
 </svg>

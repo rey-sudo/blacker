@@ -6,7 +6,6 @@ export default defineNuxtConfig({
     "~/assets/css/main.css",
   ],
   modules: [
-    ["@primevue/nuxt-module", {}],
     ["@pinia/nuxt", { autoImports: ["defineStore"] }],
     '@nuxt/ui'
   ]

@@ -3,14 +3,7 @@
     <div @click="visible = true">{{ tabName }}</div>
     <i class="pi pi-times" />
   </div>
-  <Dialog
-    v-model:visible="visible"
-    modal
-    :draggable="false"
-    header="Edit Profile"
-    :style="{ width: '60rem' }"
-  >
-  </Dialog>
+
 </template>
 
 <script setup>

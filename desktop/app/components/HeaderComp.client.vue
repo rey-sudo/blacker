@@ -4,10 +4,10 @@
 
     <div class="header-body">
       <div v-for="tab in tabsStore.tabs" :key="tab">
-        <SymbolSelector :tabId="String(tab.id)" />
+        <Tab :tabId="String(tab.id)" />
       </div>
 
-      <newTabButton />
+      <CreateTab />
     </div>
   </div>
 </template>
