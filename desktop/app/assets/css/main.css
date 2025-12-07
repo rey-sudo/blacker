@@ -4,7 +4,6 @@
   font-style: normal;
 }
 
-
 body {
   font-variation-settings: "wdth" 100;
   font-optical-sizing: auto;
@@ -37,14 +36,16 @@ body {
 :root {
   --background-0: #000000;
   --background-1: #0d0d0d; /* 5% */
-  --background-2: #262626; /* 15% */
+  --background-2: #1a1a1a; /* 15% */
+  --background-3: #262626; /* 15% */
+  --background-4: #333333; /* 20% */
 
   --text-0: #ffffff;
   --text-1: #6b7280;
 
   --border-0: var(--background-0);
-  --border-1: rgba(255, 255, 255, 0.3);
-  --border-2: rgba(255, 255, 255, 0.2);
+  --border-1: rgba(255, 255, 255, 0.2);
+  --border-2: rgba(255, 255, 255, 0.3);
 
   --primary-0: #00e0ff;
   --primary-0-base: 56, 189, 248;
@@ -56,11 +57,13 @@ body {
   --radius-4: 24px;
   --radius-5: 9999px;
 
-  --radius-0: 4px;
-  --radius-1: 8px;
-  --radius-2: 12px;
-  --radius-3: 16px;
-  --radius-4: 24px;
+  --radius-0: 3px;
+  --radius-1: 6px;
+  --radius-2: 9px;
+  --radius-3: 12px;
+  --radius-4: 16px;
+  --radius-5: 24px;
+  --radius-6: 32px;
   --radius-5: 999px;
 
   --shadow-a: 0 6px 20px rgba(0, 0, 0, 0.08);
@@ -78,7 +81,10 @@ body {
 :root {
   --main-background: var(--background-0);
   --chart-background: var(--background-1);
-  --nav-background: var(--background-2);
+  --chart-header-background: var(--background-2);
+  --nav-background: var(--background-4);
+
+  --tab-padding: 0.5rem;
 }
 
 :root {
@@ -120,7 +126,6 @@ body {
 
 @import "tailwindcss";
 @import "@nuxt/ui";
-
 
 body,
 h1,

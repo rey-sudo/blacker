@@ -69,9 +69,11 @@ onMounted(async () => {
   await tabStore.start();
 
   chartObserver = new ResizeObserver(() => {
+    const chartHeaderHeight = 48;
+
     if (chartDiv.value) {
       chartWidth.value = chartDiv.value.clientWidth;
-      chartHeight.value = chartDiv.value.clientHeight;
+      chartHeight.value = chartDiv.value.clientHeight - chartHeaderHeight;
     }
   });
 
@@ -87,9 +89,9 @@ onBeforeUnmount(() => {
 .tab {
   display: grid;
   grid-template-rows: 3fr 1fr;
-  padding: 1rem 1.5rem;
   background: var(--main-background);
   box-sizing: border-box;
+  padding: var(--tab-padding);
   gap: 0.5rem;
   height: 100vh;
   overflow-y: scroll;
@@ -103,7 +105,6 @@ onBeforeUnmount(() => {
 .tab::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 12px;
- 
 }
 
 .tab::-webkit-scrollbar-thumb {
@@ -123,13 +124,13 @@ onBeforeUnmount(() => {
   justify-content: center;
   align-items: center;
   min-height: 70vh;
-  max-width: calc(100vw - 1rem);
+  max-width: calc(100vw - (var(--tab-padding) * 2));
   overflow: hidden;
 }
 
 .indicators {
   display: grid;
-  max-width: calc(100vw - 1rem);
+  max-width: calc(100vw - (var(--tab-padding) * 2));
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: repeat(1, 1fr);
   gap: 0.5rem;

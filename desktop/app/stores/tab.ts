@@ -22,7 +22,7 @@ export const createTabStore = (tabId: string) =>
 
     const logicalRange = ref(null);
     const crosshair = ref(null);
-    const defaultRightPriceWidth = ref(80);
+    const defaultRightPriceWidth = ref(100);
     const chartSettings = reactive({});
     const indicators = ref([]);
 
