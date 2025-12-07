@@ -298,7 +298,7 @@ function calculateCountdown(nextClose, nowValue) {
   overflow: hidden;
   flex-direction: column;
   border-radius: var(--radius-1);
-  border-top: 1px solid var(--border-2);
+  border: 1px solid var(--border-2);
 }
 
 .main-chart-header {
@@ -309,6 +309,9 @@ function calculateCountdown(nextClose, nowValue) {
   align-items: center;
   color: var(--text-0);
   font-size: var(--font-size-3);
+  border-radius: var(--radius-1);
+  border-bottom-left-radius: initial;
+  border-bottom-right-radius: initial;
   background: var(--chart-header-background);
 }
 

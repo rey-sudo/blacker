@@ -3,7 +3,6 @@
     <div @click="visible = true">{{ tabName }}</div>
     <i class="pi pi-times" />
   </div>
-
 </template>
 
 <script setup>
@@ -29,6 +28,7 @@ const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
   border-left: 1px solid var(--border-0);
   border-right: 1px solid var(--border-0);
   font-size: var(--font-size-1);
+  color: var(--text-0);
   padding: 0.5rem 1rem;
   align-items: center;
   font-weight: 600;
