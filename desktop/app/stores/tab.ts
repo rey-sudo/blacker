@@ -7,7 +7,7 @@ export const createTabStore = (tabId: string) =>
     const interval = ref("h4");
     const window = ref(500);
 
-    const slaveId = ref("slave-6");
+    const slaveId = ref("slave-9");
 
     const candles: any = ref([]);
     const candle = ref(null);
@@ -22,7 +22,7 @@ export const createTabStore = (tabId: string) =>
 
     const logicalRange = ref(null);
     const crosshair = ref(null);
-    const defaultRightPriceWidth = ref(80);
+    const defaultRightPriceWidth = ref(100);
     const chartSettings = reactive({});
     const indicators = ref([]);
 
@@ -53,13 +53,16 @@ export const createTabStore = (tabId: string) =>
     async function start() {
       await fetchAll();
 
-      historyInterval.value = setInterval(async () => {
-        const isClosed = nextClose.value < getNow();
-        console.log(isClosed);
-        if (isClosed) {
-          await fetchAll();
-        }
-      }, 1_000);
+      historyInterval.value = setInterval(
+        async () => {
+          const isClosed = nextClose.value < getNow();
+          console.log(isClosed);
+          if (isClosed) {
+            await fetchAll();
+          }
+        },
+        slaveId.value ? 60_000 : 1_000
+      );
 
       lastInterval.value = setInterval(() => fetchCandle(), 60_000);
     }

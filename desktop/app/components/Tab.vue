@@ -1,16 +1,7 @@
 <template>
   <div class="symbol-selector">
     <div @click="visible = true">{{ tabName }}</div>
-    <i class="pi pi-times" />
   </div>
-  <Dialog
-    v-model:visible="visible"
-    modal
-    :draggable="false"
-    header="Edit Profile"
-    :style="{ width: '60rem' }"
-  >
-  </Dialog>
 </template>
 
 <script setup>
@@ -33,14 +24,18 @@ const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
 
 <style lang="css" scoped>
 .symbol-selector {
-  border-left: 1px solid var(--border-0);
-  border-right: 1px solid var(--border-0);
+  border-left: 1px solid var(--border-1);
+  border-right: 1px solid var(--border-1);
+  border-bottom: 1px solid var(--primary-0);
   font-size: var(--font-size-1);
-  padding: 0.5rem 1rem;
+  text-transform: uppercase;
+  padding: 0.5rem 1.5rem;
+  color: var(--text-0);
   align-items: center;
   font-weight: 600;
   cursor: pointer;
   display: flex;
+  height: 3rem;
 }
 
 .symbol-selector i {

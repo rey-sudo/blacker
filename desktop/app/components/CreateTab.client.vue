@@ -1,14 +1,20 @@
 <template>
-  <Button icon="pi pi-plus" size="small" @click="visible = true" />
-  <Dialog
-    v-model:visible="visible"
-    modal
-    :draggable="false"
-    header="Symbol Search"
+  <UButton
+    icon="i-lucide-plus"
+    size="md"
+    @click="visible = true"
+    variant="outline"
+  />
+
+  <UModal
+    v-model:open="visible"
+    title="Search symbol"
     :style="{ width: '60rem', height: '40rem' }"
   >
-    <SymbolSearch @close="visible = false" @select="onSelect" />
-  </Dialog>
+    <template #body>
+         <SymbolSearch @close="visible = false" @select="onSelect" />
+    </template>
+  </UModal>
 </template>
 
 <script setup lang="ts">

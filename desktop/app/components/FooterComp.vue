@@ -9,7 +9,7 @@
   height: 2rem;
   border-top: 1px solid var(--border-0);
   position: fixed;
-  background: var(--background-1); 
+  background: var(--nav-background); 
   width: 100%;
   bottom: 0;
   z-index: 100;

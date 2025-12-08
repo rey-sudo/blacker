@@ -89,17 +89,10 @@ async function downloadDukascopy(instrument, timeframe, yearsToBacktest, outputF
 // --- EJEMPLO DE USO ---
 
 (async () => {
-    /**
-     * Descargar datos:
-     * - Instrumento: EURUSD
-     * - Timeframe: H4 (4 horas)
-     * - Años: 4 años (desde hoy hasta hace 4 años)
-     * - Archivo de salida: eurusd_4years_h4_bid.csv
-     */
     await downloadDukascopy(
-        "eurusd", 
+        "xauusd", 
         "h1", 
         4, 
-        "eurusd_1h_4y.csv"
+        "xauusd_1h_4y.csv"
     );
 })();

@@ -1,11 +1,16 @@
 <template>
-  <div class="countdown">{{ nextClose }}</div>
-  <div
-    ref="chartContainer"
-    class="chart-container"
-    id="chart-container"
-    :style="{ width: width + 'px', height: height + 'px' }"
-  ></div>
+  <div class="main-chart">
+    <div class="main-chart-header">89,564.00</div>
+    <div class="countdown">{{ nextClose }}</div>
+    <div class="main-chart-wrap">
+      <div
+        ref="chartContainer"
+        class="chart-container"
+        id="chart-container"
+        :style="{ width: width + 'px', height: height + 'px' }"
+      />
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -276,14 +281,38 @@ function calculateCountdown(nextClose, nowValue) {
 #chart-container {
   width: 100%;
   height: 100%;
+  background: var(--chart-background);
 }
 
 .countdown {
   position: fixed;
   height: 50px;
   width: 150px;
-  background: red;
-  left: 0;
+  right: 0;
   top: 0;
+}
+
+.main-chart {
+  height: 100%;
+  display: flex;
+  overflow: hidden;
+  flex-direction: column;
+   border-bottom: 1px solid var(--border-1);
+}
+
+.main-chart-header {
+  height: 3rem;
+  padding: 0 1rem;
+  display: flex;
+  font-weight: 700;
+  align-items: center;
+  color: var(--text-0);
+  font-size: var(--font-size-3);
+  border: 1px solid var(--border-1);
+  background: var(--chart-header-background);
+}
+
+.main-chart-wrap {
+  flex: 1;
 }
 </style>

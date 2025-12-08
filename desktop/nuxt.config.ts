@@ -3,23 +3,10 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
   css: [
-    "~/assets/css/styles.css",
-    "~/assets/css/primevue.css",
-    "primeicons/primeicons.css",
+    "~/assets/css/main.css",
   ],
   modules: [
-    ["@primevue/nuxt-module", {}],
     ["@pinia/nuxt", { autoImports: ["defineStore"] }],
-  ],
-
-  primevue: {
-    importTheme: { from: "~/themes/index.js" },
-    options: {
-      ripple: true,
-      inputStyle: "outlined",
-    },
-    components: {
-      include: ["Button", "Dialog"],
-    },
-  },
+    '@nuxt/ui'
+  ]
 });

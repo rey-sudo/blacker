@@ -1,7 +1,6 @@
 * {
   font-family: "Open Sans", monospace;
   font-optical-sizing: auto;
-  color: var(--text-0);
   font-style: normal;
 }
 
@@ -12,16 +11,15 @@ body {
   font-style: normal;
   padding: 0;
   margin: 0;
-  
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   overflow: hidden;
   height: 100%;
 }
-
 
 :root {
   --font-size-0: 0.694rem;
@@ -36,17 +34,19 @@ html, body {
 }
 
 :root {
-  --background-0: #0b0d14;
-  --background-1: #1c1f28;
+  --background-0: #000000;
+  --background-1: #181a20;
+  --background-2: #333b47;
 
   --text-0: #ffffff;
   --text-1: #6b7280;
 
-  --border-0: rgba(255, 255, 255, 0.2);
-  --border-1: rgba(255, 255, 255, 0.3);
+  --border-0: var(--background-0);
+  --border-1: rgba(255, 255, 255, 0.2);
+  --border-2: rgba(255, 255, 255, 0.3);
 
-  --primary-0: #00e0ff;
-  --primary-0-base: 56, 189, 248;
+  --primary-0: #00dc82;
+  --primary-0-base: 0, 220, 130;
 
   --radius-0: 4px;
   --radius-1: 8px;
@@ -55,11 +55,13 @@ html, body {
   --radius-4: 24px;
   --radius-5: 9999px;
 
-  --radius-0: 4px;
-  --radius-1: 8px;
-  --radius-2: 12px;
-  --radius-3: 16px;
-  --radius-4: 24px;
+  --radius-0: 3px;
+  --radius-1: 6px;
+  --radius-2: 9px;
+  --radius-3: 12px;
+  --radius-4: 16px;
+  --radius-5: 24px;
+  --radius-6: 32px;
   --radius-5: 999px;
 
   --shadow-a: 0 6px 20px rgba(0, 0, 0, 0.08);
@@ -72,6 +74,14 @@ html, body {
   --placeholder-opacity: 0.9;
 
   --gradient-a: linear-gradient(90deg, var(--primary-a), var(--primary-b));
+}
+
+:root {
+  --main-background: var(--background-0);
+  --chart-background: var(--background-0);
+  --chart-header-background: var(--background-1);
+  --nav-background: var(--background-1);
+  --tab-padding: 0.25rem;
 }
 
 :root {
@@ -111,11 +121,23 @@ html, body {
   --icon-radius: 8px;
 }
 
-body, h1, h2, h3, h4, h5, h6, p, span, div {
-    caret-color: transparent; 
-    user-select: text;        
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+div {
+  caret-color: transparent;
+  user-select: text;
 }
 
 body :not(input):not(textarea):not([contenteditable="true"]):focus {
-    outline: none;
+  outline: none;
 }

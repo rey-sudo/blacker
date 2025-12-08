@@ -4,10 +4,10 @@
 
     <div class="header-body">
       <div v-for="tab in tabsStore.tabs" :key="tab">
-        <SymbolSelector :tabId="String(tab.id)" />
+        <Tab :tabId="String(tab.id)" />
       </div>
 
-      <addTab />
+      <CreateTab />
     </div>
   </div>
 </template>
@@ -20,11 +20,11 @@ const tabsStore = useTabsStore();
 .header {
   gap: 1rem;
   height: 3rem;
-  padding: 0 1rem;
   display: flex;
+  padding: 0 1rem;
   align-items: center;
   box-sizing: border-box;
-  background: var(--background-1);
+  background: var(--nav-background);
   border-bottom: 1px solid var(--border-0);
 }
 

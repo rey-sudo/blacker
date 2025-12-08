@@ -1,7 +1,5 @@
 <template>
   <div class="tab">
-    <PadComp />
-
     <div class="chart" ref="chartDiv">
       <CandleChart :tabId="tabId" :width="chartWidth" :height="chartHeight" />
     </div>
@@ -11,7 +9,7 @@
         <IndicatorRSI
           :tabId="tabId"
           :width="chartWidth"
-          :height="chartHeight / 2"
+          :height="chartHeight / 1.5"
         />
       </div>
 
@@ -19,28 +17,28 @@
         <IndicatorADX
           :tabId="tabId"
           :width="chartWidth"
-          :height="chartHeight / 2"
+          :height="chartHeight / 1.5"
         />
       </div>
       <div class="indicator">
         <IndicatorMFI
           :tabId="tabId"
           :width="chartWidth"
-          :height="chartHeight / 2"
+          :height="chartHeight / 1.5"
         />
       </div>
       <div class="indicator">
         <IndicatorSqueeze
           :tabId="tabId"
           :width="chartWidth"
-          :height="chartHeight / 2"
+          :height="chartHeight / 1.5"
         />
       </div>
       <div class="indicator">
         <IndicatorHeikinAshi
           :tabId="tabId"
           :width="chartWidth"
-          :height="chartHeight / 2"
+          :height="chartHeight / 1.5"
         />
       </div>
     </div>
@@ -71,9 +69,11 @@ onMounted(async () => {
   await tabStore.start();
 
   chartObserver = new ResizeObserver(() => {
+    const chartHeaderHeight = 48;
+
     if (chartDiv.value) {
       chartWidth.value = chartDiv.value.clientWidth;
-      chartHeight.value = chartDiv.value.clientHeight;
+      chartHeight.value = chartDiv.value.clientHeight - chartHeaderHeight;
     }
   });
 
@@ -89,30 +89,29 @@ onBeforeUnmount(() => {
 .tab {
   display: grid;
   grid-template-rows: 3fr 1fr;
-  padding: 0.5rem;
-  background: black;
+  background: var(--main-background);
   box-sizing: border-box;
+  padding: var(--tab-padding);
   gap: 0.5rem;
   height: 100vh;
   overflow-y: scroll;
-  /* Firefox */
-  scrollbar-width: auto;
-  scrollbar-color: #555 #1a1a1a;
 }
 
 /* Chrome, Edge, Safari */
 .tab::-webkit-scrollbar {
-  width: 12px;
+  width: 0.75rem;
 }
 
 .tab::-webkit-scrollbar-track {
-  background: #1a1a1a;
+  background: transparent;
   border-radius: 12px;
 }
 
 .tab::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #888, #555);
-  border-radius: 12px;
+  border-radius: 0px;
+  width: 50;
+  cursor: grab;
 }
 
 .tab::-webkit-scrollbar-thumb:hover {
@@ -124,22 +123,20 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   justify-content: center;
   align-items: center;
-  min-height: 70vh;
-  max-width: calc(100vw - 1rem);
+  min-height: 80vh;
+  max-width: calc(100vw - (var(--tab-padding) * 2));
   overflow: hidden;
-  border: 1px solid var(--border-0);
 }
 
 .indicators {
   display: grid;
-  max-width: calc(100vw - 1rem);
+  max-width: calc(100vw - (var(--tab-padding) * 2));
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: repeat(1, 1fr);
   gap: 0.5rem;
 }
 
 .indicator {
-  border: 1px solid var(--border-0);
 }
 
 .footer {

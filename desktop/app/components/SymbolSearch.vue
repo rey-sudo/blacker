@@ -1,18 +1,16 @@
 <template>
   <div class="tray-container">
-  
     <div class="tray-header">
-
-      <InputText
-        type="text"
+      <UInput
+        icon="i-lucide-search"
+        size="md"
+        variant="outline"
+        placeholder="Search..."
         v-model="query"
         @keydown.down.prevent="focusNext"
         @keydown.up.prevent="focusPrev"
         @keydown.enter.prevent="selectFocused"
-        placeholder="Search"
         class="tray-input"
-        aria-label="Buscar símbolos"
-        fluid
       />
 
       <div class="tabs">
@@ -67,8 +65,6 @@
         </li>
       </ul>
     </div>
-
-
   </div>
 </template>
 
@@ -310,5 +306,4 @@ onMounted(() => searchInput.value?.focus());
   font-size: 12px;
   color: #aaa;
 }
-
 </style>
