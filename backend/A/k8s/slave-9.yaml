@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slave-9
+  labels:
+    role: slave-9
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: slave-9
+  template:
+    metadata:
+      labels:
+        role: slave-9
+    spec:
+      containers:
+        - name: service-slave
+          image: pairfy/service-slave
+          envFrom:
+            - configMapRef:
+                name: slave-config       
+            - configMapRef:
+                name: redis-config                     
+          env:
+            - name: NODE_ENV
+              value: "development"
+            - name: SLAVE_NAME
+              value: "slave-9"
+            - name: MARKET
+              value: "forex"              
+            - name: SYMBOL
+              value: "XAUUSD"
+            - name: INTERVAL
+              value: "1h"
+            - name: SIDE
+              value: "LONG"          
+            - name: ACCOUNT_BALANCE
+              value: "10000"               
+            - name: ACCOUNT_RISK
+              value: "0.5"                          
+            - name: STOP_LOSS
+              value: "1.1"
+            - name: TAKE_PROFIT
+              value: "6.9"              
+            - name: CONTRACT_SIZE
+              value: "100"
+            - name: PRECISION
+              value: "2"              
+            - name: SHOW_PLOTS
+              value: "false"              
+            - name: DESCRIPTION
+              value: "RSI,ADX,MFI"  
+            - name: MARKET_HOST
+              value: "http://service-market:8001"
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-password-secret
+                  key: password
+                                    
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "250m"
+              memory: "256Mi"
+          volumeMounts:
+            - name: slave-storage
+              mountPath: /app/output
+      volumes:
+        - name: slave-storage
+          persistentVolumeClaim:
+            claimName: pvc-slave-9
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-slave-9
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-slave-9
+spec:
+  selector:
+    role: slave-9
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8002
+      targetPort: 8002
