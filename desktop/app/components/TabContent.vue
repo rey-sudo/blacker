@@ -123,7 +123,7 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   justify-content: center;
   align-items: center;
-  min-height: 70vh;
+  min-height: 80vh;
   max-width: calc(100vw - (var(--tab-padding) * 2));
   overflow: hidden;
 }

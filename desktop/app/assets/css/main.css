@@ -35,10 +35,8 @@ body {
 
 :root {
   --background-0: #000000;
-  --background-1: #0d0d0d; /* 5% */
-  --background-2: #1a1a1a; /* 15% */
-  --background-3: #262626; /* 15% */
-  --background-4: #333333; /* 20% */
+  --background-1: #181a20;
+  --background-2: #333b47;
 
   --text-0: #ffffff;
   --text-1: #6b7280;
@@ -47,8 +45,8 @@ body {
   --border-1: rgba(255, 255, 255, 0.2);
   --border-2: rgba(255, 255, 255, 0.3);
 
-  --primary-0: #00e0ff;
-  --primary-0-base: 56, 189, 248;
+  --primary-0: #00dc82;
+  --primary-0-base: 0, 220, 130;
 
   --radius-0: 4px;
   --radius-1: 8px;
@@ -80,9 +78,9 @@ body {
 
 :root {
   --main-background: var(--background-0);
-  --chart-background: var(--background-1);
-  --chart-header-background: var(--background-2);
-  --nav-background: var(--background-4);
+  --chart-background: var(--background-0);
+  --chart-header-background: var(--background-1);
+  --nav-background: var(--background-1);
   --tab-padding: 0.5rem;
 }
 

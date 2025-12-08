@@ -25,11 +25,13 @@ const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
 
 <style lang="css" scoped>
 .symbol-selector {
-  border-left: 1px solid var(--border-0);
-  border-right: 1px solid var(--border-0);
+  border-left: 1px solid var(--border-1);
+  border-right: 1px solid var(--border-1);
+  border-bottom: 1px solid var(--primary-0);
   font-size: var(--font-size-1);
+  text-transform: uppercase;
   color: var(--text-0);
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 2rem;
   align-items: center;
   font-weight: 600;
   cursor: pointer;
