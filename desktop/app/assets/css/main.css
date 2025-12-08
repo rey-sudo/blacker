@@ -81,7 +81,7 @@ body {
   --chart-background: var(--background-0);
   --chart-header-background: var(--background-1);
   --nav-background: var(--background-1);
-  --tab-padding: 0.5rem;
+  --tab-padding: 0.25rem;
 }
 
 :root {
