@@ -1,7 +1,6 @@
 <template>
   <div class="symbol-selector">
     <div @click="visible = true">{{ tabName }}</div>
-    <i class="pi pi-times" />
   </div>
 </template>
 
@@ -30,8 +29,8 @@ const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
   border-bottom: 1px solid var(--primary-0);
   font-size: var(--font-size-1);
   text-transform: uppercase;
+  padding: 0.5rem 1.5rem;
   color: var(--text-0);
-  padding: 0.5rem 2rem;
   align-items: center;
   font-weight: 600;
   cursor: pointer;
