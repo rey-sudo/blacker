@@ -45,7 +45,7 @@ body {
   --border-1: rgba(255, 255, 255, 0.2);
   --border-2: rgba(255, 255, 255, 0.3);
 
-  --primary-0: #00dc82;
+  --primary-0: #665EFF;
   --primary-0-base: 0, 220, 130;
 
   --radius-0: 4px;
@@ -79,7 +79,7 @@ body {
 :root {
   --main-background: var(--background-0);
   --chart-background: var(--background-0);
-  --chart-header-background: var(--background-1);
+  --chart-header-background: var(--background-0);
   --nav-background: var(--background-1);
   --tab-padding: 0.25rem;
 }

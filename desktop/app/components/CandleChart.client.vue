@@ -131,7 +131,7 @@ const setupChart = () => {
     });
   });
 
-  const candleSeries = candleChart.addSeries(CandlestickSeries, {
+  const contrastTheme = {
     upColor: "transparent",
     borderUpColor: colors.green,
     wickUpColor: colors.green,
@@ -139,7 +139,19 @@ const setupChart = () => {
     borderDownColor: colors.green,
     wickDownColor: colors.green,
     borderVisible: true,
-  });
+  };
+
+  const defaultTheme = {
+    upColor: colors.candle.up,
+    borderUpColor: colors.candle.up,
+    wickUpColor: colors.candle.up,
+    downColor: colors.candle.down,
+    borderDownColor: colors.candle.down,
+    wickDownColor: colors.candle.down,
+    borderVisible: true,
+  };
+
+  const candleSeries = candleChart.addSeries(CandlestickSeries, defaultTheme);
 
   const ema55series = candleChart.addSeries(LineSeries, {
     color: colors.red,
@@ -297,7 +309,7 @@ function calculateCountdown(nextClose, nowValue) {
   display: flex;
   overflow: hidden;
   flex-direction: column;
-   border-bottom: 1px solid var(--border-1);
+  border-bottom: 1px solid var(--border-1);
 }
 
 .main-chart-header {
@@ -308,7 +320,7 @@ function calculateCountdown(nextClose, nowValue) {
   align-items: center;
   color: var(--text-0);
   font-size: var(--font-size-3);
-  border: 1px solid var(--border-1);
+  border-bottom: 2px solid var(--border-1);
   background: var(--chart-header-background);
 }
 
