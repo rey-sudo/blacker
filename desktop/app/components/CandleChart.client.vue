@@ -132,10 +132,10 @@ const setupChart = () => {
   });
 
   const candleSeries = candleChart.addSeries(CandlestickSeries, {
-    upColor: colors.white,
+    upColor: "transparent",
     borderUpColor: colors.green,
     wickUpColor: colors.green,
-    downColor: "rgba(0,0,0,0)",
+    downColor: colors.white,
     borderDownColor: colors.green,
     wickDownColor: colors.green,
     borderVisible: true,
