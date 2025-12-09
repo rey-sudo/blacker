@@ -110,3 +110,24 @@ spec:
                 name: service-slave-10
                 port:
                   number: 8002                                           
+          - path: /api/slave/slave-11/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-11
+                port:
+                  number: 8002                      
+          - path: /api/slave/slave-12/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-12
+                port:
+                  number: 8002        
+          - path: /api/slave/slave-13/?(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: service-slave-13
+                port:
+                  number: 8002                               
