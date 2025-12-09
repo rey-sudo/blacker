@@ -202,9 +202,9 @@ const setupChart = () => {
 
       data[penultima] = {
         ...data[penultima],
-        color: "yellow",
-        borderColor: "yellow",
-        wickColor: "yellow",
+       // color: "yellow",
+       // borderColor: "yellow",
+       // wickColor: "yellow",
       };
 
       candleSeries.setData(data);
