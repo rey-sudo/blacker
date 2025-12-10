@@ -1,7 +1,7 @@
 <template>
   <div class="main-chart">
     <div class="main-chart-header">
-      <div class="main-chart-price">89,564.00</div>
+      <PriceTicker :price="lastPrice" />
 
       <USeparator orientation="vertical" class="h-6 px-4" />
 
@@ -62,7 +62,10 @@ const colorMode = useColorMode();
 const chartTheme = computed(() => colors[colorMode.value]);
 
 const useTabStore = createTabStore(props.tabId);
+
 const tabStore = useTabStore();
+
+const lastPrice = computed(() => tabStore.candle?.close || 0);
 
 let countdownInterval = null;
 const timestamp = ref(getNow());
@@ -93,7 +96,7 @@ const setupChart = () => {
   candleChart = createChart(chartContainer.value, {
     layout: {
       background: { color: "transparent" },
-      textColor: colors.text.primary,
+      textColor: getCssVariable("--ui-text"),
     },
     rightPriceScale: {
       visible: true,
@@ -348,8 +351,5 @@ function calculateCountdown(nextClose, nowValue) {
 
 .main-chart-wrap {
   flex: 1;
-}
-
-.main-chart-price {
 }
 </style>
