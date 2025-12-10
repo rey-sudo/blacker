@@ -45,7 +45,7 @@ body {
   --border-1: rgba(255, 255, 255, 0.2);
   --border-2: rgba(255, 255, 255, 0.3);
 
-  --primary-0: #665EFF;
+  --primary-0: #665eff;
   --primary-0-base: 0, 220, 130;
 
   --radius-0: 4px;
@@ -123,6 +123,69 @@ body {
 
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+@theme static {
+  --color-brand-50: #f4f3ff;
+  --color-brand-100: #e6e4ff;
+  --color-brand-200: #ccc9ff;
+  --color-brand-300: #b0aaff;
+  --color-brand-400: #948bff;
+  --color-brand-500: #7a6eff;
+  --color-brand-600: #665eff;
+  --color-brand-700: #5149d6;
+  --color-brand-800: #3d36b0;
+  --color-brand-900: #2a248a;
+  --color-brand-950: #1b165f;
+}
+
+/* Light mode */
+:root {
+  --background-0: #ffffff;
+  --background-1: #181a20;
+  --background-2: #333b47;
+
+  --text-0: #111111;
+  --text-1: #4b5563;
+
+  --border-0: var(--background-0);
+  --border-1: rgba(0, 0, 0, 0.1);
+  --border-2: rgba(0, 0, 0, 0.2);
+  --border-3: rgba(0, 0, 0, 0.2);
+
+  --ui-primary: var(--ui-color-brand-600);
+  --ui-primary-hover: var(--color-brand-700);
+
+  --main-background: var(--background-0);
+  --chart-background: var(--background-0);
+  --chart-header-background: var(--background-0);
+  --chart-header-height: 3rem;
+
+  --nav-background: var(--background-0);
+  --tab-padding: 0.25rem;
+
+  --ui-text: #111111;
+  --ui-text-muted: #4b5563;
+}
+
+/* Dark mode */
+.dark {
+  --background-0: #000000;
+  --background-1: #181a20;
+  --background-2: #333b47;
+
+  --text-0: #ffffff;
+  --text-1: #6b7280;
+
+  --border-0: var(--background-0);
+  --border-1: rgba(255, 255, 255, 0.2);
+  --border-2: rgba(255, 255, 255, 0.3);
+  --border-3: rgba(255, 255, 255, 0.4);
+
+  --ui-primary: var(--ui-color-brand-300);
+
+  --ui-text: #ffffff;
+  --ui-text-muted: #4b5563;
+}
 
 body,
 h1,

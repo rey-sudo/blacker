@@ -40,6 +40,9 @@ const props = defineProps({
     required: true,
   },
 });
+const colorMode = useColorMode();
+
+const chartTheme = computed(() => colors[colorMode.value]);
 
 const useTabStore = createTabStore(props.tabId);
 const tabStore = useTabStore();
@@ -93,8 +96,8 @@ const setupChart = () => {
       secondsVisible: false,
     },
     grid: {
-      vertLines: { color: "transparent" },
-      horzLines: { color: "transparent" },
+      vertLines: { color: chartTheme.value.grid.axis },
+      horzLines: { color: chartTheme.value.grid.lines },
     },
     handleScroll: true,
     handleScale: true,
@@ -202,9 +205,9 @@ const setupChart = () => {
 
       data[penultima] = {
         ...data[penultima],
-       // color: "yellow",
-       // borderColor: "yellow",
-       // wickColor: "yellow",
+        // color: "yellow",
+        // borderColor: "yellow",
+        // wickColor: "yellow",
       };
 
       candleSeries.setData(data);
@@ -313,7 +316,7 @@ function calculateCountdown(nextClose, nowValue) {
 }
 
 .main-chart-header {
-  height: 3rem;
+  height: var(--chart-header-height);
   padding: 0 1rem;
   display: flex;
   font-weight: 700;

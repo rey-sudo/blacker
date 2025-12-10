@@ -63,10 +63,18 @@ export const colors = {
     highlight: "#FFEB3B",
   },
 
-  grid: {
-    lines: "rgba(255,255,255,0.1)",
-    axis: "rgba(255,255,255,0.1)",
+  light: {
+    grid: {
+      lines: "rgba(0,0,0,0.05)",
+      axis: "rgba(0,0,0,0.05)",
+    },
   },
 
+  dark: {
+    grid: {
+      lines: "rgba(255,255,255,0.1)",
+      axis: "rgba(255,255,255,0.1)",
+    },
+  },
   crosshair: "#FFEB3B",
 };

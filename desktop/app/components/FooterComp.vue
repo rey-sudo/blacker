@@ -6,8 +6,8 @@
 
 <style lang="css" scoped>
 .footer {
-  height: 2rem;
-  border-top: 1px solid var(--border-0);
+  height: 2.5rem;
+  border-top: 2px solid var(--border-2);
   position: fixed;
   background: var(--nav-background); 
   width: 100%;

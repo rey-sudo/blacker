@@ -9,6 +9,10 @@
 
       <CreateTab />
     </div>
+
+
+    <ColorModeButton />
+
   </div>
 </template>
 
@@ -25,7 +29,7 @@ const tabsStore = useTabsStore();
   align-items: center;
   box-sizing: border-box;
   background: var(--nav-background);
-  border-bottom: 1px solid var(--border-0);
+  border-bottom: 1px solid var(--border-1);
 }
 
 .header-body {
