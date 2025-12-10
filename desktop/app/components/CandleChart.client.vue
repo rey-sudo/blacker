@@ -340,7 +340,7 @@ function calculateCountdown(nextClose, nowValue) {
   font-weight: 600;
   align-items: center;
   color: var(--text-0);
-  font-size: var(--font-size-4);
+  font-size: var(--font-size-3);
   height: var(--chart-header-height);
   border-bottom: 2px solid var(--border-1);
   background: var(--chart-header-background);

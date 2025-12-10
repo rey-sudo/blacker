@@ -157,7 +157,9 @@ body {
   --main-background: var(--background-0);
   --chart-background: var(--background-0);
   --chart-header-background: var(--background-0);
-  --chart-header-height: 3rem;
+  --chart-header-height: calc(var(--header-height) / 1.25);
+
+  --footer-height: 3rem;
 
   --nav-background: var(--background-0);
   --tab-padding: 0.25rem;

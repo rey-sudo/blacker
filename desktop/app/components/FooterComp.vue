@@ -42,9 +42,9 @@
 
 <style lang="css" scoped>
 .footer {
-  height: 3rem;
   border-top: 2px solid var(--border-2);
   background: var(--nav-background);
+  height: var(--footer-height);
   position: fixed;
   padding: 0 1rem;
   width: 100%;
