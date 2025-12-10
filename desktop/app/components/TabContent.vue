@@ -104,13 +104,12 @@ onBeforeUnmount(() => {
 
 .tab::-webkit-scrollbar-track {
   background: transparent;
-  border-radius: 12px;
 }
 
 .tab::-webkit-scrollbar-thumb {
   background: var(--color-neutral-400);
   border-radius: var(--ui-radius);
-  border: 0px solid transparent;
+  border-right: 1px solid transparent;
   background-clip: content-box;
   cursor: grab;
 }
