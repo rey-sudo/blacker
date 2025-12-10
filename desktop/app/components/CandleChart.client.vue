@@ -1,13 +1,13 @@
 <template>
   <div class="main-chart">
     <div class="main-chart-header">
-      89,564.00
-
-      <UButton color="neutral" size="xs" variant="outline">15m</UButton>
-      <UButton color="neutral" size="xs" variant="outline">1h</UButton>
-      <UButton color="neutral" size="xs" variant="outline">4h</UButton>
-      <UButton color="neutral" size="xs" variant="outline">1d</UButton>
-    
+      <div class="main-chart-price">89,564.00</div>
+      <div class="flex justify-center gap-2">
+        <UButton color="neutral" size="xs" variant="outline">15m</UButton>
+        <UButton color="neutral" size="xs" variant="outline">1h</UButton>
+        <UButton color="neutral" size="xs" variant="outline">4h</UButton>
+        <UButton color="neutral" size="xs" variant="outline">1d</UButton>
+      </div>
     </div>
 
     <div class="countdown">{{ nextClose }}</div>
@@ -338,5 +338,9 @@ function calculateCountdown(nextClose, nowValue) {
 
 .main-chart-wrap {
   flex: 1;
+}
+
+.main-chart-price {
+  margin-right: 1rem;
 }
 </style>

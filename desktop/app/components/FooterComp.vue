@@ -1,35 +1,35 @@
 <template>
   <div class="footer">
-    <UButton
-      class="rounded-none"
-      icon="i-lucide-layers"
-      size="xs"
-      variant="ghost"
-      >Positions</UButton
-    >
-    <UBadge size="sm" color="neutral" variant="outline">0</UBadge>
+    <div class="flex justify-center gap-4">
+      <UButton color="neutral" size="xs" variant="soft"
+        >Positions
 
-    <UButton
-      class="rounded-none"
-      icon="i-lucide-history"
-      size="xs"
-      variant="ghost"
-      >Order History</UButton
-    >
+        <template #trailing>
+          <UBadge size="md" color="neutral" variant="outline">0</UBadge>
+        </template>
+      </UButton>
 
-    <UButton
-      class="rounded-none"
-      icon="i-lucide-chart-candlestick"
-      size="xs"
-      variant="ghost"
-      >Backtesting</UButton
-    >
-    <UBadge size="sm" color="neutral" variant="outline">0</UBadge>
-    <UButton class="rounded-none" icon="i-lucide-bot" size="xs" variant="soft"
-      >Bots</UButton
-    >
-    <UBadge size="sm" color="neutral" variant="outline">0</UBadge>
-    
+      <UButton icon="i-lucide-history" color="neutral" size="xs" variant="ghost"
+        >Order History</UButton
+      >
+
+      <UButton
+        icon="i-lucide-chart-candlestick"
+        color="neutral"
+        size="xs"
+        variant="ghost"
+        >Backtesting</UButton
+      >
+
+      <UButton color="neutral" icon="i-lucide-bot" size="xs" variant="ghost"
+        >Bots</UButton
+      >
+
+      <UButton color="neutral" icon="i-lucide-bell" size="xs" variant="ghost"
+        >Alerts</UButton
+      >
+    </div>
+
     <FooterBuySellButtons style="margin-left: auto" />
   </div>
 </template>
@@ -40,8 +40,9 @@
 .footer {
   height: 3rem;
   border-top: 2px solid var(--border-2);
-  position: fixed;
   background: var(--nav-background);
+  position: fixed;
+  padding: 0 1rem;
   width: 100%;
   bottom: 0;
   z-index: 100;
