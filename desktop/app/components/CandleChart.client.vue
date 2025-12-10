@@ -2,12 +2,12 @@
   <div class="main-chart">
     <div class="main-chart-header">
       <div class="main-chart-price">89,564.00</div>
-      <div class="flex justify-center gap-2">
-        <UButton color="neutral" size="xs" variant="outline">15m</UButton>
-        <UButton color="neutral" size="xs" variant="outline">1h</UButton>
-        <UButton color="neutral" size="xs" variant="outline">4h</UButton>
-        <UButton color="neutral" size="xs" variant="outline">1d</UButton>
-      </div>
+
+      <USeparator orientation="vertical" class="h-6 px-4" />
+
+      <TimeframeSelector />
+
+      <USeparator orientation="vertical" class="h-6 px-4" />
     </div>
 
     <div class="countdown">{{ nextClose }}</div>
@@ -168,11 +168,13 @@ const setupChart = () => {
   const ema55series = candleChart.addSeries(LineSeries, {
     color: colors.red,
     lineWidth: 2,
+    priceLineVisible: false,
   });
 
   const ema25series = candleChart.addSeries(LineSeries, {
     color: colors.yellow,
     lineWidth: 1,
+    priceLineVisible: false,
   });
 
   const calculateMa = (data) => {
@@ -341,6 +343,6 @@ function calculateCountdown(nextClose, nowValue) {
 }
 
 .main-chart-price {
-  margin-right: 1rem;
+
 }
 </style>

@@ -152,9 +152,6 @@ body {
   --border-2: rgba(0, 0, 0, 0.2);
   --border-3: rgba(0, 0, 0, 0.2);
 
-  --ui-primary: var(--color-brand-600);
-  --ui-primary-hover: var(--color-brand-700);
-
   --header-height: 3rem;
 
   --main-background: var(--background-0);
@@ -165,6 +162,9 @@ body {
   --nav-background: var(--background-0);
   --tab-padding: 0.25rem;
 
+  --ui-primary: var(--color-brand-600);
+  --ui-primary-hover: var(--color-brand-700);
+  --ui-border: var(--border-1);
   --ui-text: #111111;
   --ui-text-muted: #4b5563;
 }
@@ -184,7 +184,7 @@ body {
   --border-3: rgba(255, 255, 255, 0.4);
 
   --ui-primary: var(--color-brand-300);
-
+  --ui-border: var(--border-1);
   --ui-text: #ffffff;
   --ui-text-muted: #4b5563;
 }
