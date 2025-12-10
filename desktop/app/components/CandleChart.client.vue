@@ -8,6 +8,14 @@
       <TimeframeSelector />
 
       <USeparator orientation="vertical" class="h-6 px-4" />
+
+      <IndicatorsButton />
+
+      <USeparator orientation="vertical" class="h-6 px-4" />
+
+      <ToolsButton />
+
+      <USeparator orientation="vertical" class="h-6 px-4" />
     </div>
 
     <div class="countdown">{{ nextClose }}</div>
@@ -327,13 +335,13 @@ function calculateCountdown(nextClose, nowValue) {
 }
 
 .main-chart-header {
-  height: var(--chart-header-height);
   padding: 0 1rem;
   display: flex;
-  font-weight: 700;
+  font-weight: 600;
   align-items: center;
   color: var(--text-0);
-  font-size: var(--font-size-3);
+  font-size: var(--font-size-4);
+  height: var(--chart-header-height);
   border-bottom: 2px solid var(--border-1);
   background: var(--chart-header-background);
 }
@@ -343,6 +351,5 @@ function calculateCountdown(nextClose, nowValue) {
 }
 
 .main-chart-price {
-
 }
 </style>
