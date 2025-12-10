@@ -1,5 +1,5 @@
 <template>
-  <UButton color="neutral" size="md" variant="ghost" icon="i-lucide-ruler">Tools</UButton>
+  <UButton color="neutral" size="sm" variant="ghost" icon="i-lucide-ruler">Tools</UButton>
 </template>
 
 <script setup></script>
