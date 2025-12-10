@@ -1,0 +1,88 @@
+/* ============================================================
+   LIGHT THEME
+   ============================================================ */
+
+:root {
+  --color-brand-50: #f3f2ff;
+  --color-brand-100: #e7e5ff;
+  --color-brand-200: #d3d1ff;
+  --color-brand-300: #bcb9ff;
+  --color-brand-400: #9e97ff;
+  --color-brand-500: #665eff; /* color base */
+  --color-brand-600: #594fe0;
+  --color-brand-700: #4a41b7;
+  --color-brand-800: #3a3391;
+  --color-brand-900: #2a256b;
+  --color-brand-950: #1b1848;
+
+  /* NEUTRAL */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f4f4f5;
+  --color-neutral-200: #e4e4e7;
+  --color-neutral-300: #d4d4d8;
+  --color-neutral-400: #a1a1aa;
+  --color-neutral-500: #71717a;
+  --color-neutral-600: #52525b;
+  --color-neutral-700: #3f3f46;
+  --color-neutral-800: #27272a;
+  --color-neutral-900: #18181b;
+  --color-neutral-950: #0f0f11;
+}
+
+:root {
+  /* ===== SEMANTIC TOKENS ===== */
+  --ui-primary: var(--color-brand-500);
+
+  /* TEXT (light) */
+  --ui-text: var(--color-neutral-900);
+  --ui-text-muted: var(--color-neutral-600);
+  --ui-text-dimmed: var(--color-neutral-500);
+  --ui-text-highlighted: var(--color-brand-600);
+  --ui-text-inverted: #ffffff;
+
+  /* BACKGROUND (light) */
+  --ui-bg: var(--color-neutral-50);
+  --ui-bg-muted: var(--color-neutral-100);
+  --ui-bg-elevated: #ffffff;
+  --ui-bg-accented: var(--color-neutral-200);
+  --ui-bg-inverted: #000000;
+
+  /* BORDER (light) */
+  --ui-border: var(--color-neutral-200);
+  --ui-border-muted: var(--color-neutral-300);
+  --ui-border-accented: var(--color-brand-400);
+  --ui-border-inverted: #ffffff;
+
+  /* RADIUS & LAYOUT */
+  --ui-radius: 0.25rem;
+  --ui-container: 1280px;
+  --ui-header-height: 64px;
+}
+
+/* ============================================================
+   DARK THEME
+   ============================================================ */
+.dark {
+  /* TEXT (dark) */
+  --ui-text: var(--color-neutral-100);
+  --ui-text-muted: var(--color-neutral-400);
+  --ui-text-dimmed: var(--color-neutral-500);
+  --ui-text-highlighted: var(--color-brand-300);
+  --ui-text-inverted: #ffffff;
+
+  /* BACKGROUND (dark) */
+  --ui-bg: var(--color-neutral-900);
+  --ui-bg-muted: var(--color-neutral-800);
+  --ui-bg-elevated: var(--color-neutral-800);
+  --ui-bg-accented: var(--color-neutral-700);
+  --ui-bg-inverted: #000000;
+
+  /* BORDER (dark) */
+  --ui-border: var(--color-neutral-800);
+  --ui-border-muted: var(--color-neutral-700);
+  --ui-border-accented: var(--color-brand-400);
+  --ui-border-inverted: #ffffff;
+
+  /* PRIMARY en dark */
+  --ui-primary: var(--color-brand-400);
+}

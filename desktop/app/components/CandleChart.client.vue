@@ -339,10 +339,10 @@ function calculateCountdown(nextClose, nowValue) {
   display: flex;
   font-weight: 600;
   align-items: center;
-  color: var(--text-0);
+  color: var(--ui-text);
   font-size: var(--font-size-3);
   height: var(--chart-header-height);
-  border-bottom: 2px solid var(--border-1);
+  border-bottom: 2px solid var(--ui-border);
   background: var(--chart-header-background);
 }
 

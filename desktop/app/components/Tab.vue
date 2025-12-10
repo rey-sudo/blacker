@@ -24,9 +24,9 @@ const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
 
 <style lang="css" scoped>
 .symbol-selector {
-  border-left: 1px solid var(--border-1);
-  border-right: 1px solid var(--border-1);
-  border-bottom: 1px solid var(--primary-0);
+  border-left: 1px solid var(--ui-border);
+  border-right: 1px solid var(--ui-border);
+  border-bottom: 1px solid var(--ui-primary);
   font-size: var(--font-size-1);
   text-transform: uppercase;
   padding: 0.5rem 1.5rem;

@@ -90,8 +90,8 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-rows: 3fr 1fr;
   background: var(--main-background);
-  box-sizing: border-box;
   padding: var(--tab-padding);
+  box-sizing: border-box;
   gap: 0.5rem;
   height: 100vh;
   overflow-y: scroll;
@@ -108,14 +108,15 @@ onBeforeUnmount(() => {
 }
 
 .tab::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #888, #555);
-  border-radius: 0px;
-  width: 50;
+  background: var(--color-neutral-400);
+  border-radius: var(--ui-radius);
+  border: 0px solid transparent;
+  background-clip: content-box;
   cursor: grab;
 }
 
 .tab::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #aaa, #666);
+  background: var(--color-neutral-500);
 }
 
 .chart {
