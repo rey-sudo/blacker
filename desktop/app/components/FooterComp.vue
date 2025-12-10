@@ -25,8 +25,12 @@
         >Bots</UButton
       >
 
-      <UButton color="neutral" icon="i-lucide-bell" size="xs" variant="ghost"
-        >Alerts</UButton
+      <UButton color="neutral" icon="i-lucide-bell" size="xs" variant="ghost">
+        <template #trailing>
+          <UBadge size="md" color="neutral" variant="outline">0</UBadge>
+        </template>
+
+        Alerts</UButton
       >
     </div>
 
