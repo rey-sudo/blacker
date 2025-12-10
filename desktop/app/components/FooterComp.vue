@@ -2,16 +2,18 @@
   <div class="footer">
     <UButton
       class="rounded-none"
-      icon="i-lucide-list-checks"
+      icon="i-lucide-layers"
       size="xs"
-      variant="soft"
+      variant="ghost"
       >Positions</UButton
     >
+    <UBadge size="sm" color="neutral" variant="outline">0</UBadge>
+
     <UButton
       class="rounded-none"
       icon="i-lucide-history"
       size="xs"
-      variant="soft"
+      variant="ghost"
       >Order History</UButton
     >
 
@@ -19,20 +21,16 @@
       class="rounded-none"
       icon="i-lucide-chart-candlestick"
       size="xs"
-      variant="soft"
+      variant="ghost"
       >Backtesting</UButton
     >
-
+    <UBadge size="sm" color="neutral" variant="outline">0</UBadge>
     <UButton class="rounded-none" icon="i-lucide-bot" size="xs" variant="soft"
       >Bots</UButton
     >
-
-    <UButton class="font-bold rounded-none" size="lg" color="success" icon="i-lucide-arrow-up-right"
-      >Buy</UButton
-    >
-    <UButton class="font-bold rounded-none" size="lg" color="error" icon="i-lucide-arrow-down-left"
-      >Sell</UButton
-    >
+    <UBadge size="sm" color="neutral" variant="outline">0</UBadge>
+    
+    <FooterBuySellButtons style="margin-left: auto" />
   </div>
 </template>
 
