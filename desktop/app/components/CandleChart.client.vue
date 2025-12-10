@@ -1,6 +1,15 @@
 <template>
   <div class="main-chart">
-    <div class="main-chart-header">89,564.00</div>
+    <div class="main-chart-header">
+      89,564.00
+
+      <UButton color="neutral" size="xs" variant="outline">15m</UButton>
+      <UButton color="neutral" size="xs" variant="outline">1h</UButton>
+      <UButton color="neutral" size="xs" variant="outline">4h</UButton>
+      <UButton color="neutral" size="xs" variant="outline">1d</UButton>
+    
+    </div>
+
     <div class="countdown">{{ nextClose }}</div>
     <div class="main-chart-wrap">
       <div

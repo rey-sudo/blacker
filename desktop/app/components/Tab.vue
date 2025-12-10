@@ -35,7 +35,7 @@ const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
   font-weight: 600;
   cursor: pointer;
   display: flex;
-  height: 3rem;
+  height: inherit;
 }
 
 .symbol-selector i {

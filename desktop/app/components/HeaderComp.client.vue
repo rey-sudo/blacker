@@ -3,16 +3,12 @@
     <img class="logo" src="../assets/icons/logo.svg" alt="" />
 
     <div class="header-body">
-      <div v-for="tab in tabsStore.tabs" :key="tab">
-        <Tab :tabId="String(tab.id)" />
-      </div>
+      <Tab :tabId="String(tab.id)" v-for="tab in tabsStore.tabs" :key="tab" />
 
       <CreateTab />
     </div>
 
-
     <ColorModeButton />
-
   </div>
 </template>
 
@@ -23,7 +19,7 @@ const tabsStore = useTabsStore();
 <style lang="css" scoped>
 .header {
   gap: 1rem;
-  height: 3rem;
+  height: var(--header-height);
   display: flex;
   padding: 0 1rem;
   align-items: center;
@@ -36,5 +32,6 @@ const tabsStore = useTabsStore();
   gap: 1rem;
   display: flex;
   align-items: center;
+  height: inherit;
 }
 </style>
