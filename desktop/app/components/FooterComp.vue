@@ -1,6 +1,6 @@
 <template>
   <div class="footer">
-    <div class="flex justify-center gap-4">
+    <div class="flex justify-center gap-6">
       <UButton color="neutral" size="xs" variant="soft"
         >Positions
 
