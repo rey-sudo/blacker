@@ -3,6 +3,26 @@
    ============================================================ */
 
 :root {
+  --color-aqua: #00bcd4;
+  --color-black: #363a45;
+  --color-blue: #2196f3;
+  --color-fuchsia: #e040fb;
+  --color-gray: #787b86;
+  --color-green: #26a69a;
+  --color-lime: #00e676;
+  --color-maroon: #880e4f;
+  --color-navy: #311b92;
+  --color-olive: #808000;
+  --color-orange: #ff9800;
+  --color-purple: #9c27b0;
+  --color-red: #ef5350;
+  --color-silver: #b2b5be;
+  --color-teal: #00897b;
+  --color-white: #ffffff;
+  --color-yellow: #ffeb3b;
+}
+
+:root {
   --color-brand-50: #f1f7fb;
   --color-brand-100: #dce9f3;
   --color-brand-200: #b5d2e6;
@@ -85,4 +105,11 @@
 
   /* PRIMARY en dark */
   --ui-primary: var(--color-brand-400);
+}
+
+:root {
+  --default-ema-color-0: var(--color-red);
+  --default-ema-color-1: var(--color-yellow);
+  --default-up-color: var(--color-green);
+  --default-down-color: var(--color-red);
 }

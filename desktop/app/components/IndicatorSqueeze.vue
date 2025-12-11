@@ -66,7 +66,10 @@ onMounted(async () => {
         background: { color: "transparent" },
         textColor: colors.text.primary,
       },
-      rightPriceScale: { visible: true, minimumWidth: tabStore.defaultRightPriceWidth, },
+      rightPriceScale: {
+        visible: true,
+        minimumWidth: tabStore.defaultRightPriceWidth,
+      },
       timeScale: {
         visible: true,
         handleScroll: false,
@@ -105,7 +108,7 @@ onMounted(async () => {
         }
       }
     );
-    
+
     const histogramSeries = indicator.addSeries(HistogramSeries, {
       priceFormat: { type: "price", precision: 4 },
     });
@@ -321,4 +324,12 @@ function computeSQZMOM(candles) {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+#squeeze-container {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  background: var(--chart-background);
+  border-bottom: 1px solid var(--ui-border);
+}
+</style>

@@ -154,36 +154,26 @@ const setupChart = () => {
     });
   });
 
-  const contrastTheme = {
-    upColor: "transparent",
-    borderUpColor: colors.green,
-    wickUpColor: colors.green,
-    downColor: colors.white,
-    borderDownColor: colors.green,
-    wickDownColor: colors.green,
-    borderVisible: true,
-  };
-
   const defaultTheme = {
-    upColor: colors.candle.up,
-    borderUpColor: colors.candle.up,
-    wickUpColor: colors.candle.up,
-    downColor: colors.candle.down,
-    borderDownColor: colors.candle.down,
-    wickDownColor: colors.candle.down,
+    upColor: getCssVariable("--default-up-color"),
+    borderUpColor: getCssVariable("--default-up-color"),
+    wickUpColor: getCssVariable("--default-up-color"),
+    downColor: getCssVariable("--default-down-color"),
+    borderDownColor: getCssVariable("--default-down-color"),
+    wickDownColor: getCssVariable("--default-down-color"),
     borderVisible: true,
   };
 
   const candleSeries = candleChart.addSeries(CandlestickSeries, defaultTheme);
 
   const ema55series = candleChart.addSeries(LineSeries, {
-    color: colors.red,
+    color: getCssVariable("--default-ema-color-0"),
     lineWidth: 2,
     priceLineVisible: false,
   });
 
   const ema25series = candleChart.addSeries(LineSeries, {
-    color: colors.yellow,
+    color: getCssVariable("--default-ema-color-1"),
     lineWidth: 1,
     priceLineVisible: false,
   });
@@ -318,7 +308,9 @@ function calculateCountdown(nextClose, nowValue) {
 #chart-container {
   width: 100%;
   height: 100%;
+  min-height: 100%;
   background: var(--chart-background);
+  border-bottom: 1px solid var(--ui-border);
 }
 
 .countdown {
@@ -334,7 +326,6 @@ function calculateCountdown(nextClose, nowValue) {
   display: flex;
   overflow: hidden;
   flex-direction: column;
-  border-bottom: 1px solid var(--border-1);
 }
 
 .main-chart-header {

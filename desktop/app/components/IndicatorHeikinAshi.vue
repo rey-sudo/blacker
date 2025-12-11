@@ -1,7 +1,7 @@
 <template>
   <div
     ref="container"
-    id="heikin-ashi-container"
+    id="heikinAshi-container"
     :style="{
       width: width + 'px',
       height: height + 'px',
@@ -127,7 +127,6 @@ onMounted(async () => {
       }
     );
 
-
     watch(
       () => tabStore.candle,
       (candle) => {
@@ -148,7 +147,6 @@ onMounted(async () => {
           }));
 
           haSeries.setData(chartData);
-
         }
       }
     );
@@ -186,8 +184,6 @@ onBeforeUnmount(() => {
     chart.remove();
   }
 });
-
-
 
 class TechnicalAnalysis {
   static calculateEMA(series, length) {
@@ -269,4 +265,12 @@ function calculateHeikenAshiCustom(data, smoothingLength = 0) {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+#heikinAshi-container {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  background: var(--chart-background);
+  border-bottom: 1px solid var(--ui-border);
+}
+</style>

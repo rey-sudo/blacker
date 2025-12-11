@@ -62,11 +62,11 @@ const arrow = computed(() => {
 }
 
 .price-ticker.up {
-  color: var(--color-up, #00dc82);
+  color: var(--color-green, #00dc82);
 }
 
 .price-ticker.down {
-  color: var(--color-down, #ff4d4f);
+  color: var(--color-red, #ff4d4f);
 }
 
 .price-ticker.none {

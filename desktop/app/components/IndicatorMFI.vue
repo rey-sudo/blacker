@@ -1,7 +1,7 @@
 <template>
   <div
     ref="container"
-    id="mfi-ha-container"
+    id="mfi-container"
     :style="{
       width: width + 'px',
       height: height + 'px',
@@ -234,14 +234,12 @@ function calculateMFI(candles, length) {
 
   for (let i = 0; i < candles.length; i++) {
     if (i < length) {
-
       mfi[i] = 50;
       continue;
     }
 
     let positiveFlow = 0;
     let negativeFlow = 0;
-
 
     for (let j = i - length + 1; j <= i; j++) {
       if (typicalPrice[j] > typicalPrice[j - 1]) {
@@ -264,7 +262,6 @@ function calculateMFI(candles, length) {
   return mfi;
 }
 
-
 function calculateSMA(data, length) {
   if (!data || data.length < length) return [];
 
@@ -272,7 +269,6 @@ function calculateSMA(data, length) {
 
   for (let i = 0; i < data.length; i++) {
     if (i < length - 1) {
-
       sma[i] = data[i];
     } else {
       let sum = 0;
@@ -291,7 +287,6 @@ function calculateMFIHeikinAshi(candles, mfiLength, smaLength) {
     return null;
   }
 
-
   const mfi = calculateMFI(candles, mfiLength);
 
   const mfiSMA = calculateSMA(mfi, smaLength);
@@ -304,16 +299,13 @@ function calculateMFIHeikinAshi(candles, mfiLength, smaLength) {
     const mf = mfi[i];
     let ha_close;
 
-
     if (ha_open === null) {
       ha_open = mf;
       ha_close = mf;
     } else {
-
       ha_close = (mf + ha_open) / 2;
     }
 
- 
     const ha_high = Math.max(Math.max(ha_close, ha_open), mf);
     const ha_low = Math.min(Math.min(ha_close, ha_open), mf);
 
@@ -325,7 +317,6 @@ function calculateMFIHeikinAshi(candles, mfiLength, smaLength) {
       close: Number(ha_close.toFixed(2)),
     });
 
-
     if (prev_ha_close === null) {
       ha_open = mf;
     } else {
@@ -334,7 +325,6 @@ function calculateMFIHeikinAshi(candles, mfiLength, smaLength) {
 
     prev_ha_close = ha_close;
   }
-
 
   const smaData = mfiSMA.map((value, i) => ({
     time: candles[i].time,
@@ -345,4 +335,12 @@ function calculateMFIHeikinAshi(candles, mfiLength, smaLength) {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+#mfi-container {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  background: var(--chart-background);
+  border-bottom: 1px solid var(--ui-border);
+}
+</style>
