@@ -41,7 +41,7 @@ const priceClass = computed(() => ({
 const arrow = computed(() => {
   if (movement.value === "up") return "▲";
   if (movement.value === "down") return "▼";
-  return "•";
+  return "▼";
 });
 </script>
 
