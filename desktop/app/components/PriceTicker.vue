@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, computed } from "vue";
+import { ref, watch } from "vue";
 
 const props = defineProps({
   price: {
@@ -8,46 +8,25 @@ const props = defineProps({
   },
 });
 
-const previous = ref(props.price);
-const movement = ref("none"); // up | down | none
-const flash = ref(false);
+const color = ref("none"); // "up" | "down" | "none"
 
 watch(
   () => props.price,
   (newPrice, oldPrice) => {
-    if (oldPrice == null) {
-      previous.value = newPrice;
-      return;
-    }
+    if (oldPrice == null) return;
 
-    if (newPrice > oldPrice) movement.value = "up";
-    else if (newPrice < oldPrice) movement.value = "down";
-    else movement.value = "none";
+    if (newPrice > oldPrice) color.value = "up";
+    else if (newPrice < oldPrice) color.value = "down";
 
-    flash.value = true;
-    setTimeout(() => (flash.value = false), 120);
-
-    previous.value = newPrice;
+    setTimeout(() => (color.value = "none"), 250);
   }
 );
 
-const priceClass = computed(() => ({
-  up: movement.value === "up",
-  down: movement.value === "down",
-  none: movement.value === "none",
-  flash: flash.value,
-}));
-
-const arrow = computed(() => {
-  if (movement.value === "up") return "▲";
-  if (movement.value === "down") return "▼";
-  return "▼";
-});
+const formatPrice = (p) => p.toFixed(2);
 </script>
 
 <template>
-  <span class="price-ticker" :class="priceClass">
-    <span class="arrow">{{ arrow }}</span>
+  <span class="price-ticker" :class="color">
     {{ formatPrice(props.price) }}
   </span>
 </template>
@@ -57,9 +36,6 @@ const arrow = computed(() => {
   font-weight: 600;
   font-size: var(--font-size-4);
   transition: color 0.25s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .price-ticker.up {
@@ -72,10 +48,5 @@ const arrow = computed(() => {
 
 .price-ticker.none {
   color: var(--color-neutral-100, #ffffff);
-}
-
-.arrow {
-  font-size: var(--font-size-3);
-  color: inherit;
 }
 </style>
