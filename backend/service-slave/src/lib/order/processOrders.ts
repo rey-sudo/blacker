@@ -29,7 +29,7 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
   const rule2 = touches >= 3 || failedBreakouts >= 4;
 
   for (const order of this.orders) {
-    if (order.status !== "executed") continue;
+    if (order.status !== "created") continue;
 
     const isLong = order.side === "LONG";
     const isShort = order.side === "SHORT";

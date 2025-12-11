@@ -101,7 +101,7 @@ export async function executeOrder(this: SlaveBot, candles: Candle[]) {
 
     const orderParams: Order = {
       id: generateId(),
-      status: "executed"!,
+      status: "created"!,
       market: this.state.market,
       slave: this.state.id,
       symbol: this.state.symbol,
