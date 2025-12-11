@@ -22,7 +22,6 @@ watch(
   }
 );
 
-const formatPrice = (p) => p.toFixed(2);
 </script>
 
 <template>
