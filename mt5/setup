@@ -1,2 +1,4 @@
 pip install MetaTrader5
 
+npm install pm2 -g
+
