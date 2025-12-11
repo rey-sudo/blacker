@@ -48,7 +48,7 @@ const arrow = computed(() => {
 <template>
   <span class="price-ticker" :class="priceClass">
     <span class="arrow">{{ arrow }}</span>
-    {{ props.price }}
+    {{ formatPrice(props.price) }}
   </span>
 </template>
 

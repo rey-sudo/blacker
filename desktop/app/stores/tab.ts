@@ -11,7 +11,7 @@ export const createTabStore = (tabId: string) =>
 
     const candles: any = ref([]);
     const candle = ref(null);
-    const lastPrice = ref(null);
+    const lastPrice = ref(0);
 
     const fetching = ref(false);
     const fetchError = ref(null);
