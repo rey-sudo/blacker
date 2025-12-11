@@ -11,6 +11,7 @@ export const createTabStore = (tabId: string) =>
 
     const candles: any = ref([]);
     const candle = ref(null);
+    const lastPrice = ref(null);
 
     const fetching = ref(false);
     const fetchError = ref(null);
@@ -129,6 +130,8 @@ export const createTabStore = (tabId: string) =>
         console.log("22222222222222");
 
         candle.value = res.data;
+        lastPrice.value = res.data.close;
+
         return res.data;
       } catch (err: any) {
         console.error("Error en fetchCandle:", err);
@@ -140,6 +143,7 @@ export const createTabStore = (tabId: string) =>
     return {
       symbol,
       interval,
+      lastPrice,
       chartSettings,
       indicators,
       candles,

@@ -1,7 +1,7 @@
 <template>
   <div class="main-chart">
     <div class="main-chart-header">
-      <PriceTicker :price="lastPrice" />
+      <PriceTicker :price="tabStore.lastPrice" />
 
       <USeparator orientation="vertical" class="h-6 px-4" />
 
@@ -64,8 +64,6 @@ const chartTheme = computed(() => colors[colorMode.value]);
 const useTabStore = createTabStore(props.tabId);
 
 const tabStore = useTabStore();
-
-const lastPrice = computed(() => tabStore.candle?.close || 0);
 
 let countdownInterval = null;
 const timestamp = ref(getNow());
