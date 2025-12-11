@@ -75,6 +75,7 @@ const arrow = computed(() => {
 }
 
 .arrow {
+  font-size: var(--font-size-3);
   color: inherit;
 }
 </style>
