@@ -124,8 +124,6 @@ export async function executeOrder(this: SlaveBot, candles: Candle[]) {
     await this.save();
 
     logger.info("✅ OrderExecuted");
-    await this.sleep(86_400_000);
-    this.reset();
   } catch (err: any) {
     await conn?.rollback();
     throw err;
