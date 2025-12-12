@@ -22,9 +22,8 @@ logging.basicConfig(
 )
 
 wakesound = simpleaudio.WaveObject.from_wave_file(os.path.join(root, "./audio/wake_fixed.wav"))
-iterationSound = simpleaudio.WaveObject.from_wave_file(os.path.join(root, "./audio/iteration_fixed.wav"))
+clickSound = simpleaudio.WaveObject.from_wave_file(os.path.join(root, "./audio/click_fixed.wav"))
 orderSound = simpleaudio.WaveObject.from_wave_file(os.path.join(root, "./audio/buySound_fixed.wav"))
-
 
 acc = 0
 
@@ -33,11 +32,9 @@ while True:
         acc += 1
         logging.info(f"Iteration {acc}")
 
-        wakesound.play()
+        wakesound.play() 
         
-        iterationSound.play()
-       
-        process_orders(orderSound)
+        process_orders(clickSound, orderSound)
 
     except Exception as e:
         logging.error(f"Error in main loop: {e}", exc_info=True)

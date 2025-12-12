@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS orders_log (
         cursor.close()
 
 
-def process_orders(orderSound):
+def process_orders(clickSound, orderSound):
     conn = None
     cursor = None
 
@@ -93,6 +93,7 @@ def process_orders(orderSound):
 
                 conn.commit()
                 
+                clickSound.play()
                 orderSound.play()
                 print(f"Orden {order['id']} ejecutada y logueada.")
 
