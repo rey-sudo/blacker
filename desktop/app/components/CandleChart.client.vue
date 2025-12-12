@@ -1,6 +1,23 @@
 <template>
   <div class="main-chart">
-    <div class="main-chart-header">89,564.00</div>
+    <div class="main-chart-header">
+      <PriceTicker :price="tabStore.lastPrice" />
+
+      <USeparator orientation="vertical" class="h-6 px-4" />
+
+      <TimeframeSelector />
+
+      <USeparator orientation="vertical" class="h-6 px-4" />
+
+      <IndicatorsButton />
+
+      <USeparator orientation="vertical" class="h-6 px-4" />
+
+      <ToolsButton />
+
+      <USeparator orientation="vertical" class="h-6 px-4" />
+    </div>
+
     <div class="countdown">{{ nextClose }}</div>
     <div class="main-chart-wrap">
       <div
@@ -40,8 +57,12 @@ const props = defineProps({
     required: true,
   },
 });
+const colorMode = useColorMode();
+
+const chartTheme = computed(() => colors[colorMode.value]);
 
 const useTabStore = createTabStore(props.tabId);
+
 const tabStore = useTabStore();
 
 let countdownInterval = null;
@@ -73,7 +94,7 @@ const setupChart = () => {
   candleChart = createChart(chartContainer.value, {
     layout: {
       background: { color: "transparent" },
-      textColor: colors.text.primary,
+      textColor: getCssVariable("--ui-text"),
     },
     rightPriceScale: {
       visible: true,
@@ -93,8 +114,8 @@ const setupChart = () => {
       secondsVisible: false,
     },
     grid: {
-      vertLines: { color: "transparent" },
-      horzLines: { color: "transparent" },
+      vertLines: { color: chartTheme.value.grid.axis },
+      horzLines: { color: chartTheme.value.grid.lines },
     },
     handleScroll: true,
     handleScale: true,
@@ -131,24 +152,28 @@ const setupChart = () => {
     });
   });
 
-  const candleSeries = candleChart.addSeries(CandlestickSeries, {
-    upColor: colors.white,
-    borderUpColor: colors.green,
-    wickUpColor: colors.green,
-    downColor: "rgba(0,0,0,0)",
-    borderDownColor: colors.green,
-    wickDownColor: colors.green,
+  const defaultTheme = {
+    upColor: getCssVariable("--default-up-color"),
+    borderUpColor: getCssVariable("--default-up-color"),
+    wickUpColor: getCssVariable("--default-up-color"),
+    downColor: getCssVariable("--default-down-color"),
+    borderDownColor: getCssVariable("--default-down-color"),
+    wickDownColor: getCssVariable("--default-down-color"),
     borderVisible: true,
-  });
+  };
+
+  const candleSeries = candleChart.addSeries(CandlestickSeries, defaultTheme);
 
   const ema55series = candleChart.addSeries(LineSeries, {
-    color: colors.red,
+    color: getCssVariable("--default-ema-color-0"),
     lineWidth: 2,
+    priceLineVisible: false,
   });
 
   const ema25series = candleChart.addSeries(LineSeries, {
-    color: colors.yellow,
+    color: getCssVariable("--default-ema-color-1"),
     lineWidth: 1,
+    priceLineVisible: false,
   });
 
   const calculateMa = (data) => {
@@ -190,9 +215,9 @@ const setupChart = () => {
 
       data[penultima] = {
         ...data[penultima],
-        color: "yellow",
-        borderColor: "yellow",
-        wickColor: "yellow",
+        // color: "yellow",
+        // borderColor: "yellow",
+        // wickColor: "yellow",
       };
 
       candleSeries.setData(data);
@@ -281,7 +306,9 @@ function calculateCountdown(nextClose, nowValue) {
 #chart-container {
   width: 100%;
   height: 100%;
+  min-height: 100%;
   background: var(--chart-background);
+  border-bottom: 1px solid var(--ui-border);
 }
 
 .countdown {
@@ -297,18 +324,17 @@ function calculateCountdown(nextClose, nowValue) {
   display: flex;
   overflow: hidden;
   flex-direction: column;
-   border-bottom: 1px solid var(--border-1);
 }
 
 .main-chart-header {
-  height: 3rem;
   padding: 0 1rem;
   display: flex;
-  font-weight: 700;
+  font-weight: 600;
   align-items: center;
-  color: var(--text-0);
+  color: var(--ui-text);
   font-size: var(--font-size-3);
-  border: 1px solid var(--border-1);
+  height: var(--chart-header-height);
+  border-bottom: 2px solid var(--ui-border);
   background: var(--chart-header-background);
 }
 

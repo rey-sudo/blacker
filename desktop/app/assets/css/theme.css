@@ -1,0 +1,115 @@
+/* ============================================================
+   LIGHT THEME
+   ============================================================ */
+
+:root {
+  --color-aqua: #00bcd4;
+  --color-black: #363a45;
+  --color-blue: #2196f3;
+  --color-fuchsia: #e040fb;
+  --color-gray: #787b86;
+  --color-green: #26a69a;
+  --color-lime: #00e676;
+  --color-maroon: #880e4f;
+  --color-navy: #311b92;
+  --color-olive: #808000;
+  --color-orange: #ff9800;
+  --color-purple: #9c27b0;
+  --color-red: #ef5350;
+  --color-silver: #b2b5be;
+  --color-teal: #00897b;
+  --color-white: #ffffff;
+  --color-yellow: #ffeb3b;
+}
+
+:root {
+  --color-brand-50:  #f1fbfd;
+  --color-brand-100: #d5f3f8;
+  --color-brand-200: #a9e4ef;
+  --color-brand-300: #78d0e3;
+  --color-brand-400: #3fb6d2;
+  --color-brand-500: #1497b8; /* BASE */
+  --color-brand-600: #107b97;
+  --color-brand-700: #0d6177;
+  --color-brand-800: #0a4959;
+  --color-brand-900: #07323c;
+  --color-brand-950: #041f27;
+
+  --color-neutral-50:  #fafafa;
+  --color-neutral-100: #f0f1f2;
+  --color-neutral-200: #d8dadd;
+  --color-neutral-300: #b5b8bd;
+  --color-neutral-400: #8c9096;
+  --color-neutral-500: #676b71; /* BASE */
+  --color-neutral-600: #505359;
+  --color-neutral-700: #3a3d42;
+  --color-neutral-800: #26282b;
+  --color-neutral-900: #17181a;
+  --color-neutral-950: #0e0f10;
+}
+
+
+:root {
+  /* ===== SEMANTIC TOKENS ===== */
+  --ui-primary: var(--color-brand-500);
+
+  /* TEXT (light) */
+  --ui-text: var(--color-neutral-900);
+  --ui-text-muted: var(--color-neutral-600);
+  --ui-text-dimmed: var(--color-neutral-500);
+  --ui-text-highlighted: var(--color-brand-600);
+  --ui-text-inverted: #ffffff;
+
+  /* BACKGROUND (light) */
+  --ui-bg: var(--color-neutral-50);
+  --ui-bg-muted: var(--color-neutral-100);
+  --ui-bg-elevated: #ffffff;
+  --ui-bg-accented: var(--color-neutral-200);
+  --ui-bg-inverted: #000000;
+
+  /* BORDER (light) */
+  --ui-border: var(--color-neutral-200);
+  --ui-border-muted: var(--color-neutral-300);
+  --ui-border-accented: var(--color-brand-400);
+  --ui-border-inverted: #ffffff;
+
+  /* RADIUS & LAYOUT */
+  --ui-radius: 0.25rem;
+  --ui-container: 1280px;
+  --ui-header-height: 64px;
+}
+
+/* ============================================================
+   DARK THEME
+   ============================================================ */
+.dark {
+  /* TEXT (dark) */
+  --ui-text: var(--color-neutral-100);
+  --ui-text-muted: var(--color-neutral-400);
+  --ui-text-dimmed: var(--color-neutral-500);
+  --ui-text-highlighted: var(--color-brand-300);
+  --ui-text-inverted: #ffffff;
+
+  /* BACKGROUND (dark) */
+  --ui-bg: var(--color-neutral-900);
+  --ui-bg-muted: var(--color-neutral-800);
+  --ui-bg-elevated: var(--color-neutral-800);
+  --ui-bg-accented: var(--color-neutral-700);
+  --ui-bg-inverted: #000000;
+
+  /* BORDER (dark) */
+  --ui-border: var(--color-neutral-800);
+  --ui-border-muted: var(--color-neutral-700);
+  --ui-border-accented: var(--color-brand-400);
+  --ui-border-inverted: #ffffff;
+
+  /* PRIMARY en dark */
+  --ui-primary: var(--color-brand-400);
+}
+
+:root {
+  --default-ema-color-0: var(--color-red);
+  --default-ema-color-1: var(--color-yellow);
+  --default-up-color: var(--color-green);
+  --default-down-color: var(--color-red);
+}

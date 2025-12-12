@@ -49,26 +49,19 @@ def abrir_orden_market(symbol: str, volumen: float, sl: float, tp: float, tipo="
         "type_filling": mt5.ORDER_FILLING_FOK,
     }
 
-    print("Request:", request)
 
-    # ---- Enviar orden ----
     result = mt5.order_send(request)
 
-    print("Result:", result)
-    print("Last error:", mt5.last_error())
-
-    # ---- Validar resultado ----
     if result.retcode != mt5.TRADE_RETCODE_DONE:
         return {
             "ok": False,
-            "msg": f"Error en orden: {result.comment}",
-            "retcode": result.retcode,
-            "result": result
+            "message": f"Error en orden: {result.comment}",
+            "data": result,
+            "error": mt5.last_error()
         }
 
     return {
         "ok": True,
-        "msg": "Orden ejecutada correctamente",
-        "order": result.order,
-        "result": result
+        "message": "Orden ejecutada correctamente",
+        "data": result
     }

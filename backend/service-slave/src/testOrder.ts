@@ -70,7 +70,7 @@ async function main() {
 
     const orderParams: Order = {
       id: generateId(),
-      status: "executed",
+      status: "created",
       market: MARKET,
       slave: "slave-test",
       symbol: SYMBOL,

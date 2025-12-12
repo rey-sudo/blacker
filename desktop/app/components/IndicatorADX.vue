@@ -261,7 +261,6 @@ function calculateTR(candles) {
 
   tr[0] = candles[0].high - candles[0].low;
 
-
   for (let i = 1; i < candles.length; i++) {
     const hl = candles[i].high - candles[i].low;
     const hc = Math.abs(candles[i].high - candles[i - 1].close);
@@ -285,7 +284,6 @@ function dirmov(candles, length) {
     const up = candles[i].high - candles[i - 1].high;
     const down = candles[i - 1].low - candles[i].low;
 
-
     upMove[i] = up > down && up > 0 ? up : 0;
     downMove[i] = down > up && down > 0 ? down : 0;
   }
@@ -296,7 +294,6 @@ function dirmov(candles, length) {
 
   const smoothedUp = rma(upMove, length);
   const smoothedDown = rma(downMove, length);
-
 
   const plus = new Array(candles.length);
   const minus = new Array(candles.length);
@@ -337,10 +334,8 @@ function calculateADX(candles, diLength, adxLength) {
     }
   }
 
-
   const smoothedDX = rma(dx, adxLength);
-  const adx = smoothedDX.map(val => val * 100);
-
+  const adx = smoothedDX.map((val) => val * 100);
 
   const adxData = [];
   const plusDIData = [];
@@ -381,4 +376,12 @@ function calculateADX(candles, diLength, adxLength) {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+#adx-container {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  background: var(--chart-background);
+  border-bottom: 1px solid var(--ui-border);
+}
+</style>

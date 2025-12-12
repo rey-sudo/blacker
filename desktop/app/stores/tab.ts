@@ -2,15 +2,16 @@ import { defineStore } from "pinia";
 
 export const createTabStore = (tabId: string) =>
   defineStore(`tab-${tabId}`, () => {
-    const symbol = ref("EURUSD");
+    const symbol = ref("USDCHF");
     const market = ref("forex");
-    const interval = ref("h4");
+    const interval = ref("1h");
     const window = ref(500);
 
-    const slaveId = ref("slave-11");
+    const slaveId = ref(null);
 
     const candles: any = ref([]);
     const candle = ref(null);
+    const lastPrice = ref(0);
 
     const fetching = ref(false);
     const fetchError = ref(null);
@@ -61,7 +62,7 @@ export const createTabStore = (tabId: string) =>
             await fetchAll();
           }
         },
-        slaveId.value ? 60_000 : 1_000
+        slaveId.value ? 60_000 : 60_000
       );
 
       lastInterval.value = setInterval(() => fetchCandle(), 60_000);
@@ -129,6 +130,8 @@ export const createTabStore = (tabId: string) =>
         console.log("22222222222222");
 
         candle.value = res.data;
+        lastPrice.value = res.data.close;
+
         return res.data;
       } catch (err: any) {
         console.error("Error en fetchCandle:", err);
@@ -140,6 +143,7 @@ export const createTabStore = (tabId: string) =>
     return {
       symbol,
       interval,
+      lastPrice,
       chartSettings,
       indicators,
       candles,

@@ -1,48 +1,47 @@
 import time
-import datetime
-import winsound
-import random
+import simpleaudio
+import logging
 import os
+import sys
+from orders import process_orders
 from execute import abrir_orden_market
 
-LOG_FILE = "log_servicio.txt"
+root=os.path.dirname(os.path.abspath(__file__))
 
-sound1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "iteration.wav")
-sound2 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "execute.wav")
+sys.stdout.reconfigure(encoding='utf-8')
+sys.stderr.reconfigure(encoding='utf-8')
 
-def log(msg):
-    with open(LOG_FILE, "a", encoding="utf-8") as f:
-        f.write(f"[{datetime.datetime.now()}] {msg}\n")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(message)s",
+    encoding="utf-8",
+    handlers=[
+        logging.FileHandler("log.txt", encoding="utf-8"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
-log("El servicio inició.")
+wakesound = simpleaudio.WaveObject.from_wave_file(os.path.join(root, "./audio/wake_fixed.wav"))
+clickSound = simpleaudio.WaveObject.from_wave_file(os.path.join(root, "./audio/click_fixed.wav"))
+orderSound = simpleaudio.WaveObject.from_wave_file(os.path.join(root, "./audio/buySound_fixed.wav"))
 
-contador = 0
+acc = 0
 
 while True:
-    contador += 1
-    log(f"Iteración {contador}")
+    try:
+        acc += 1
+        logging.info(f"Iteration {acc}")
+
+        wakesound.play() 
+        
+        process_orders(clickSound, orderSound)
+
+    except Exception as e:
+        logging.error(f"Error in main loop: {e}", exc_info=True)
+
+    time.sleep(60)
 
 
 
-    winsound.PlaySound(sound1, winsound.SND_FILENAME)
 
-    winsound.PlaySound(sound2, winsound.SND_FILENAME)
-    
-    resp = abrir_orden_market(
-        symbol="BTCUSD",
-        volumen=0.01,
-        sl=93000.932238,
-        tp=95000.3238237,
-        tipo="BUY"
-    )
 
-    print(resp)
-
-    winsound.PlaySound(sound2, winsound.SND_FILENAME)
-
-    # Cada 10 iteraciones simula un crash
-    if contador % 10 == 0:
-        log("💥 Simulando crash...")
-        raise Exception("Crash intencional para prueba")
-
-    time.sleep(3000)

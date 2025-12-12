@@ -1,22 +1,25 @@
-export const colors = {
+const base = {
   aqua: "#00BCD4",
   black: "#363A45",
   blue: "#2196F3",
   fuchsia: "#E040FB",
   gray: "#787B86",
-  green: "#4CAF50",
+  green: "#26a69a",
   lime: "#00E676",
   maroon: "#880E4F",
   navy: "#311B92",
   olive: "#808000",
   orange: "#FF9800",
   purple: "#9C27B0",
-  red: "#FF5252",
+  red: "#ef5350",
   silver: "#B2B5BE",
   teal: "#00897B",
   white: "#FFFFFF",
   yellow: "#FFEB3B",
+};
 
+export const colors = {
+  ...base,
   background: {
     dark: "#363A45",
     panel: "#787B86",
@@ -24,8 +27,8 @@ export const colors = {
   },
 
   candle: {
-    up: "#4CAF50",
-    down: "#FF5252",
+    up: base.green,
+    down: base.red,
     neutral: "#FFEB3B",
     border: "#787B86",
   },
@@ -60,10 +63,18 @@ export const colors = {
     highlight: "#FFEB3B",
   },
 
-  grid: {
-    lines: "rgba(255,255,255,0.1)",
-    axis: "rgba(255,255,255,0.1)",
+  light: {
+    grid: {
+      lines: "rgba(0,0,0,0.05)",
+      axis: "rgba(0,0,0,0.05)",
+    },
   },
 
+  dark: {
+    grid: {
+      lines: "rgba(255,255,255,0.05)",
+      axis: "rgba(255,255,255,0.05)",
+    },
+  },
   crosshair: "#FFEB3B",
 };

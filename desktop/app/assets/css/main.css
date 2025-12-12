@@ -2,6 +2,7 @@
   font-family: "Open Sans", monospace;
   font-optical-sizing: auto;
   font-style: normal;
+  color: var(--ui-text);
 }
 
 body {
@@ -34,52 +35,9 @@ body {
 }
 
 :root {
-  --background-0: #000000;
-  --background-1: #181a20;
-  --background-2: #333b47;
-
-  --text-0: #ffffff;
-  --text-1: #6b7280;
-
-  --border-0: var(--background-0);
-  --border-1: rgba(255, 255, 255, 0.2);
-  --border-2: rgba(255, 255, 255, 0.3);
-
-  --primary-0: #00dc82;
-  --primary-0-base: 0, 220, 130;
-
-  --radius-0: 4px;
-  --radius-1: 8px;
-  --radius-2: 12px;
-  --radius-3: 16px;
-  --radius-4: 24px;
-  --radius-5: 9999px;
-
-  --radius-0: 3px;
-  --radius-1: 6px;
-  --radius-2: 9px;
-  --radius-3: 12px;
-  --radius-4: 16px;
-  --radius-5: 24px;
-  --radius-6: 32px;
-  --radius-5: 999px;
-
-  --shadow-a: 0 6px 20px rgba(0, 0, 0, 0.08);
-  --shadow-b: 0 1px 2px 0 rgba(0, 0, 0, 0.12);
-  --shadow-c: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --shadow-d: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
-  --shadow-e: 0 12px 24px rgba(0, 0, 0, 0.1);
-
-  --transition-0: 0.2s ease-in-out;
-  --placeholder-opacity: 0.9;
-
-  --gradient-a: linear-gradient(90deg, var(--primary-a), var(--primary-b));
-}
-
-:root {
   --main-background: var(--background-0);
   --chart-background: var(--background-0);
-  --chart-header-background: var(--background-1);
+  --chart-header-background: var(--background-0);
   --nav-background: var(--background-1);
   --tab-padding: 0.25rem;
 }
@@ -123,6 +81,24 @@ body {
 
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+:root {
+  --header-height: 3rem;
+  --main-background: var(--ui-bg-accented);
+
+  --chart-background: var(--ui-bg);
+  --chart-header-background: var(--ui-bg);
+  --chart-header-height: calc(var(--header-height) / 1.25);
+
+  --nav-background: var(--ui-bg);
+
+  --footer-height: 3rem;
+  --tab-padding: 0.25rem;
+}
+
+/* Dark mode */
+.dark {
+}
 
 body,
 h1,

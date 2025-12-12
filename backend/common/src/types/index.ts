@@ -30,7 +30,7 @@ export interface Order {
   updated_at: number;
 }
 
-export type OrderStatus = "executed";
+export type OrderStatus = "created" | "executed" | "finished";
 
 export type Side = "LONG" | "SHORT";
 
