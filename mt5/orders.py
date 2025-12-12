@@ -93,7 +93,7 @@ def process_orders(orderSound):
 
                 conn.commit()
                 
-                orderSound.play().wait_done()
+                orderSound.play()
                 print(f"Orden {order['id']} ejecutada y logueada.")
 
             except MySQLError as e:

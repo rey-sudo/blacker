@@ -34,8 +34,9 @@ while True:
         logging.info(f"Iteration {acc}")
 
         wakesound.play()
-        iterationSound.play().wait_done()
         
+        iterationSound.play()
+       
         process_orders(orderSound)
 
     except Exception as e:
