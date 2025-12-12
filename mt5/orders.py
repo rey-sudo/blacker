@@ -76,6 +76,17 @@ def process_orders(clickSound, orderSound):
             try:
                 conn.begin()
 
+                # 1. Marcar estado "executing" temporal (opcional pero recomendado)
+                pre_query = """
+                    UPDATE orders
+                    SET status = 'executing'
+                    WHERE id = %s
+                """
+                cursor.execute(pre_query, (order['id'],))
+
+
+                #MT5 EXECUTION with raise error
+
                 # Cambiar estado
                 update_query = """
                     UPDATE orders
