@@ -6122,3 +6122,87 @@
 2025-12-12 15:02:42,649 - Iteration 7
 2025-12-12 15:03:44,745 - Iteration 8
 2025-12-12 15:04:47,411 - Iteration 9
+2025-12-12 15:05:49,561 - Iteration 10
+2025-12-12 15:06:51,812 - Iteration 11
+2025-12-12 15:07:54,165 - Iteration 12
+2025-12-12 15:08:56,942 - Iteration 13
+2025-12-12 15:09:59,255 - Iteration 14
+2025-12-12 15:11:03,569 - Iteration 15
+2025-12-12 15:12:05,776 - Iteration 16
+2025-12-12 15:13:08,013 - Iteration 17
+2025-12-12 15:14:10,057 - Iteration 18
+2025-12-12 15:15:12,386 - Iteration 19
+2025-12-12 15:16:14,678 - Iteration 20
+2025-12-12 15:17:16,940 - Iteration 21
+2025-12-12 15:18:19,282 - Iteration 22
+2025-12-12 15:19:22,219 - Iteration 23
+2025-12-12 15:20:24,305 - Iteration 24
+2025-12-12 15:21:26,488 - Iteration 25
+2025-12-12 15:22:28,755 - Iteration 26
+2025-12-12 15:23:30,945 - Iteration 27
+2025-12-12 15:24:33,252 - Iteration 28
+2025-12-12 15:25:35,413 - Iteration 29
+2025-12-12 15:26:37,647 - Iteration 30
+2025-12-12 15:27:40,036 - Iteration 31
+2025-12-12 15:28:42,499 - Iteration 32
+2025-12-12 15:29:44,650 - Iteration 33
+2025-12-12 15:30:46,764 - Iteration 34
+2025-12-12 15:31:49,062 - Iteration 35
+2025-12-12 15:32:51,197 - Iteration 36
+2025-12-12 15:33:33,925 - Iteration 1
+2025-12-12 15:34:12,352 - Iteration 1
+2025-12-12 15:34:36,122 - Iteration 2
+2025-12-12 15:35:14,705 - Iteration 2
+2025-12-12 15:35:38,265 - Iteration 3
+2025-12-12 15:36:16,842 - Iteration 3
+2025-12-12 15:36:44,538 - Iteration 4
+2025-12-12 15:37:25,618 - Iteration 4
+2025-12-12 15:37:46,706 - Iteration 5
+2025-12-12 15:38:27,657 - Iteration 5
+2025-12-12 15:38:48,742 - Iteration 6
+2025-12-12 15:39:29,742 - Iteration 6
+2025-12-12 15:39:50,719 - Iteration 7
+2025-12-12 15:40:53,177 - Iteration 8
+2025-12-12 15:41:55,225 - Iteration 9
+2025-12-12 15:42:57,320 - Iteration 10
+2025-12-12 15:43:59,548 - Iteration 11
+2025-12-12 15:45:05,334 - Iteration 12
+2025-12-12 15:46:07,735 - Iteration 13
+2025-12-12 15:47:10,241 - Iteration 14
+2025-12-12 15:48:12,377 - Iteration 15
+2025-12-12 15:49:14,702 - Iteration 16
+2025-12-12 15:50:16,954 - Iteration 17
+2025-12-12 15:51:19,270 - Iteration 18
+2025-12-12 15:52:21,408 - Iteration 19
+2025-12-12 15:53:23,595 - Iteration 20
+2025-12-12 15:54:25,850 - Iteration 21
+2025-12-12 15:54:46,897 - Iteration 1
+2025-12-12 15:55:28,165 - Iteration 22
+2025-12-12 15:55:49,082 - Iteration 2
+2025-12-12 15:56:30,169 - Iteration 1
+2025-12-12 15:57:32,373 - Iteration 2
+2025-12-12 15:57:35,530 - Error in main loop: 'dict' object has no attribute 'ok'
+Traceback (most recent call last):
+  File "C:\Users\debian\Documents\GitHub\blacker\mt5\main.py", line 37, in <module>
+    process_orders(clickSound, orderSound)
+  File "C:\Users\debian\Documents\GitHub\blacker\mt5\orders.py", line 98, in process_orders
+    if result.ok is False:
+       ^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'ok'
+2025-12-12 16:00:30,790 - Iteration 1
+2025-12-12 16:00:34,133 - Error in main loop: 'dict' object has no attribute 'error'
+Traceback (most recent call last):
+  File "C:\Users\debian\Documents\GitHub\blacker\mt5\main.py", line 37, in <module>
+    process_orders(clickSound, orderSound)
+  File "C:\Users\debian\Documents\GitHub\blacker\mt5\orders.py", line 99, in process_orders
+    raise Exception(result.error)
+                    ^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'error'
+2025-12-12 16:00:57,633 - Iteration 1
+2025-12-12 16:01:01,317 - Error in main loop: (1, 'Success')
+Traceback (most recent call last):
+  File "C:\Users\debian\Documents\GitHub\blacker\mt5\main.py", line 37, in <module>
+    process_orders(clickSound, orderSound)
+  File "C:\Users\debian\Documents\GitHub\blacker\mt5\orders.py", line 99, in process_orders
+    raise Exception(result.get("error"))
+Exception: (1, 'Success')

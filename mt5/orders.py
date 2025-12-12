@@ -1,5 +1,6 @@
 import pymysql
 from pymysql.err import MySQLError
+from execute import abrir_orden_market
 
 def create_orders_log_table(conn):
     """Crea la tabla orders_log si no existe."""
@@ -84,8 +85,18 @@ def process_orders(clickSound, orderSound):
                 """
                 cursor.execute(pre_query, (order['id'],))
 
+                result = abrir_orden_market(
+                    symbol="USDJPY",
+                    volumen=0.05,
+                    sl=153.9113400,
+                    tp=155.9263497,
+                    tipo="BUY"
+                )
 
-                #MT5 EXECUTION with raise error
+                print(result)
+
+                if result.get("ok") is False:
+                    raise Exception(result.get("error"))
 
                 # Cambiar estado
                 update_query = """
@@ -124,19 +135,3 @@ def process_orders(clickSound, orderSound):
                 print("Conexión MySQL cerrada.")
         except:
             pass
-
-
-
-
-
-    """
-    resp = abrir_orden_market(
-        symbol="BTCUSD",
-        volumen=0.01,
-        sl=93000.932238,
-        tp=95000.3238237,
-        tipo="BUY"
-    )
-
-    print(resp)
-    """
