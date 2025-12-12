@@ -1,8 +1,5 @@
 import time
-import datetime
 import simpleaudio
-import random
-import threading
 import logging
 import os
 import sys
@@ -29,19 +26,13 @@ sound2 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "./audio/execu
 wakesound = simpleaudio.WaveObject.from_wave_file(sound0)
 iterationSound = simpleaudio.WaveObject.from_wave_file(sound1)
 
-def wake_worker():
-    while True:
-        wakesound.play() 
-        time.sleep(60)  
-
-threading.Thread(target=wake_worker, daemon=True).start()
-
 contador = 0
 
 while True:
     contador += 1
     logging.info(f"Iteración {contador}")
 
+    wakesound.play() 
     # ------ SIMPLEAUDIO -------
     try:
         play_obj = iterationSound.play()
