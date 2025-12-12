@@ -115,3 +115,16 @@ def process_orders():
 
 
 
+
+
+    """
+    resp = abrir_orden_market(
+        symbol="BTCUSD",
+        volumen=0.01,
+        sl=93000.932238,
+        tp=95000.3238237,
+        tipo="BUY"
+    )
+
+    print(resp)
+    """

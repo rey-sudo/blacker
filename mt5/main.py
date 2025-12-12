@@ -6,6 +6,8 @@ import sys
 from orders import process_orders
 from execute import abrir_orden_market
 
+root=os.path.dirname(os.path.abspath(__file__))
+
 sys.stdout.reconfigure(encoding='utf-8')
 sys.stderr.reconfigure(encoding='utf-8')
 
@@ -19,25 +21,18 @@ logging.basicConfig(
     ]
 )
 
-root=os.path.dirname(os.path.abspath(__file__))
-
 wakesound = simpleaudio.WaveObject.from_wave_file(os.path.join(root, "./audio/wake.wav"))
 iterationSound = simpleaudio.WaveObject.from_wave_file(os.path.join(root, "./audio/iteration_fixed.wav"))
 
-contador = 0
+acc = 0
 
 while True:
-    contador += 1
-    logging.info(f"Iteración {contador}")
+    acc += 1
+    logging.info(f"Iteration {acc}")
 
     wakesound.play() 
-    # ------ SIMPLEAUDIO -------
-    try:
-        play_obj = iterationSound.play()
-        play_obj.wait_done()  
-    except Exception as e:
-        logging.error(f"Error reproduciendo sonido: {e}")
-
+    iterationSound.play().wait_done() 
+    
     process_orders()
 
     time.sleep(60)
@@ -46,15 +41,3 @@ while True:
 
 
 
-
-    """
-    resp = abrir_orden_market(
-        symbol="BTCUSD",
-        volumen=0.01,
-        sl=93000.932238,
-        tp=95000.3238237,
-        tipo="BUY"
-    )
-
-    print(resp)
-    """
