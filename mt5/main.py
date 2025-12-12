@@ -13,7 +13,7 @@ logging.basicConfig(
     format="%(asctime)s - %(message)s",
     encoding="utf-8",
     handlers=[
-        logging.FileHandler("log.txt"),
+        logging.FileHandler("log.txt", encoding="utf-8"),
         logging.StreamHandler(sys.stdout)
     ]
 )
@@ -56,4 +56,4 @@ while True:
         logging.info("💥 Simulando crash...")
         raise Exception("Crash intencional para prueba")
 
-    time.sleep(3)
+    time.sleep(60)
