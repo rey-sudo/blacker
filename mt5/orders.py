@@ -1,7 +1,6 @@
 import pymysql
 from pymysql.err import MySQLError
 
-
 def create_orders_log_table(conn):
     """Crea la tabla orders_log si no existe."""
     try:
@@ -24,7 +23,7 @@ CREATE TABLE IF NOT EXISTS orders_log (
         cursor.close()
 
 
-def process_orders():
+def process_orders(orderSound):
     conn = None
     cursor = None
 
@@ -93,7 +92,8 @@ def process_orders():
                 cursor.execute(log_query, (order['id'],))
 
                 conn.commit()
-
+                
+                orderSound.play().wait_done()
                 print(f"Orden {order['id']} ejecutada y logueada.")
 
             except MySQLError as e:

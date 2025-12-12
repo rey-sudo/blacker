@@ -26,5 +26,5 @@ def reparar_wav(entrada, salida=None):
 
 # EJEMPLO:
 if __name__ == "__main__":
-    reparar_wav("iteration.wav")
-    reparar_wav("execute.wav")
+    reparar_wav("wake.wav")
+
