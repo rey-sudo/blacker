@@ -2,9 +2,9 @@ import { defineStore } from "pinia";
 
 export const createTabStore = (tabId: string) =>
   defineStore(`tab-${tabId}`, () => {
-    const symbol = ref("BTCUSDT");
-    const market = ref("crypto");
-    const interval = ref("4h");
+    const symbol = ref("USDCHF");
+    const market = ref("forex");
+    const interval = ref("1h");
     const window = ref(500);
 
     const slaveId = ref(null);
@@ -62,7 +62,7 @@ export const createTabStore = (tabId: string) =>
             await fetchAll();
           }
         },
-        slaveId.value ? 60_000 : 1_000
+        slaveId.value ? 60_000 : 60_000
       );
 
       lastInterval.value = setInterval(() => fetchCandle(), 60_000);

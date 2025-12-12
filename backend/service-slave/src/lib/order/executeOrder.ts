@@ -8,10 +8,7 @@ import {
   withRetry,
 } from "@whiterockdev/common";
 import { calculateTakeProfit } from "../../utils/takeProfit.js";
-import {
-  calcLotSizeCrypto,
-  calcLotSizeForex,
-} from "./lotSize.js";
+import { calcLotSizeCrypto, calcLotSizeForex } from "./lotSize.js";
 import { createOrder } from "./createOrder.js";
 import { SlaveBot } from "../../index.js";
 
@@ -20,7 +17,6 @@ export async function executeOrder(this: SlaveBot, candles: Candle[]) {
 
   if (isExecuted) {
     logger.info("✅ Already executed");
-    await this.sleep(86_400_000);
     return;
   }
 
