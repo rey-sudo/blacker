@@ -3,4 +3,5 @@ scoop install ffmpeg
 scoop install k9s
 scoop install kubectl
 npm install pm2 -g
-
+pip install pymysql
+pip install cryptography

@@ -3,6 +3,7 @@ import simpleaudio
 import logging
 import os
 import sys
+from orders import process_orders
 from execute import abrir_orden_market
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -37,6 +38,15 @@ while True:
     except Exception as e:
         logging.error(f"Error reproduciendo sonido: {e}")
 
+    process_orders()
+
+    time.sleep(60)
+
+
+
+
+
+
     """
     resp = abrir_orden_market(
         symbol="BTCUSD",
@@ -48,9 +58,3 @@ while True:
 
     print(resp)
     """
-
-    if contador % 10 == 0:
-        logging.info("💥 Simulando crash...")
-        raise Exception("Crash intencional para prueba")
-
-    time.sleep(60)
