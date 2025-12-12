@@ -18,13 +18,10 @@ logging.basicConfig(
     ]
 )
 
-sound0 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "./audio/wake.wav")
-sound1 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "./audio/iteration_fixed.wav")
-sound2 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "./audio/execute_fixed.wav")
+root=os.path.dirname(os.path.abspath(__file__))
 
-
-wakesound = simpleaudio.WaveObject.from_wave_file(sound0)
-iterationSound = simpleaudio.WaveObject.from_wave_file(sound1)
+wakesound = simpleaudio.WaveObject.from_wave_file(os.path.join(root, "./audio/wake.wav"))
+iterationSound = simpleaudio.WaveObject.from_wave_file(os.path.join(root, "./audio/iteration_fixed.wav"))
 
 contador = 0
 
