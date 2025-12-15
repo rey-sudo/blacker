@@ -24,6 +24,7 @@ import {
   Side,
   sleep,
 } from "@whiterockdev/common";
+import { CustomError } from "./common/error/customError.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -119,7 +120,12 @@ export class SlaveBot {
         await createSlave(conn, this.state);
       }
     } catch (err: any) {
-      throw err;
+      throw new CustomError({
+        message: "Error configuring the slave table",
+        error: err,
+        event: "error.slave",
+        context: { service: this.env.SLAVE_NAME, function: "initDatabase" },
+      });
     } finally {
       conn?.release();
     }
@@ -147,9 +153,14 @@ export class SlaveBot {
 
       logger.info("✅ State saved");
     } catch (err: any) {
-      logger.error(err);
       await conn?.rollback();
-      throw err;
+
+      throw new CustomError({
+        message: "Error saving state",
+        error: err,
+        event: "error.slave",
+        context: { service: this.env.SLAVE_NAME, function: "save" },
+      });
     } finally {
       conn?.release();
     }
@@ -221,7 +232,7 @@ export class SlaveBot {
       } catch (err: any) {
         logger.error(err);
         this.state.status = "error";
-        await this.sleep(60_000);
+        await this.sleep(300_000);
       }
     }
   }
@@ -234,12 +245,7 @@ async function main() {
     const botInstance = new SlaveBot(env);
     await botInstance.run();
   } catch (error: any) {
-    logger.error({
-      event: "error.slave",
-      service: process.env.SLAVE_NAME || "service-slave",
-      context: "Error in main function",
-      error,
-    });
+    logger.error(error);
   } finally {
     logger.info("🚨 LOOP EXIT 🚨");
   }
