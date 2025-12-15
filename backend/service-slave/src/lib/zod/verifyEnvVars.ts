@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export const envSchema = z.object({
   SLAVE_NAME: z.string().min(1, "SLAVE_NAME is required"),
-  MARKET: z.string().min(1, "MARKET is required"),
+  MARKET: z.enum(["crypto", "forex"], {
+    message: "MARKET must be crypto, forex",
+  }),
   SYMBOL: z.string().min(1, "SYMBOL is required"),
   INTERVAL: z.string().min(1, "INTERVAL is required"),
   SIDE: z.enum(["BUY", "SELL", "LONG", "SHORT"], {
@@ -37,7 +39,12 @@ export const envSchema = z.object({
       if (isNaN(num)) throw new Error("STOP_LOSS must be a number");
       return num;
     })
-    .pipe(z.number().positive("STOP_LOSS must be positive")),
+    .pipe(
+      z
+        .number()
+        .positive("STOP_LOSS must be positive")
+        .max(100, "STOP_LOSS cannot be greater than 100")
+    ),
   TAKE_PROFIT: z
     .string()
     .transform((val) => {
@@ -45,7 +52,12 @@ export const envSchema = z.object({
       if (isNaN(num)) throw new Error("TAKE_PROFIT must be a number");
       return num;
     })
-    .pipe(z.number().positive("TAKE_PROFIT must be positive")),
+    .pipe(
+      z
+        .number()
+        .positive("TAKE_PROFIT must be positive")
+        .max(100, "TAKE_PROFIT cannot be greater than 100")
+    ),
   CONTRACT_SIZE: z
     .string()
     .transform((val) => {
@@ -62,13 +74,13 @@ export const envSchema = z.object({
       if (isNaN(num)) throw new Error("PRECISION must be an integer number");
       return num;
     })
-    .pipe(z.number().nonnegative("PRECISION cannot be negative")),
+    .pipe(z.number().positive("PRECISION must be positive")),
   SHOW_PLOTS: z
     .string()
     .transform((val) => val === "true")
     .pipe(z.boolean()),
   DESCRIPTION: z.string().min(1, "DESCRIPTION is required"),
-  DATABASE_HOST: z.string().optional(),
+  DATABASE_HOST: z.string(),
   DATABASE_PORT: z
     .string()
     .transform((val) => {
