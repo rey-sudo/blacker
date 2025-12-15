@@ -122,8 +122,6 @@ export class SlaveBot {
 
       await conn.ping();
 
-      await conn.beginTransaction();
-
       const findSlave = await findSlaveById(conn, this.state.id);
 
       if (findSlave) {
@@ -133,10 +131,7 @@ export class SlaveBot {
         logger.info("⚠️ Slave not found, creating...");
         await createSlave(conn, this.state);
       }
-
-      await conn.commit();
     } catch (err: any) {
-      await conn?.rollback();
       throw err;
     } finally {
       conn?.release();
@@ -192,22 +187,21 @@ export class SlaveBot {
 
     await this.initDatabase();
 
-    const params = {
-      symbol: this.state.symbol,
-      market: this.state.market,
-      interval: this.state.interval_,
-      window: 500,
-    };
-
-    this.state.status = "running";
-
     while (true) {
       try {
+        this.state.status = "running";
         this.state.iteration++;
 
         await this.save();
 
-        const candles = await this.getCandles(params);
+        const getCandlesParams = {
+          symbol: this.state.symbol,
+          market: this.state.market,
+          interval: this.state.interval_,
+          window: 500,
+        };
+
+        const candles = await this.getCandles(getCandlesParams);
 
         this.dataset = candles;
 
@@ -276,8 +270,8 @@ async function main() {
       }
     }
 
-    const bot = new SlaveBot();
-    await bot.run();
+    const botInstance = new SlaveBot();
+    await botInstance.run();
   } catch (error: any) {
     logger.error({
       event: "error.slave",
