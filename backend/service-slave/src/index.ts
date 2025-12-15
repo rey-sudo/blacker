@@ -244,8 +244,8 @@ async function main() {
 
     const botInstance = new SlaveBot(env);
     await botInstance.run();
-  } catch (error: any) {
-    logger.error(error);
+  } catch (formatedErrors: any) {
+    logger.error(formatedErrors);
   } finally {
     logger.info("🚨 LOOP EXIT 🚨");
   }
