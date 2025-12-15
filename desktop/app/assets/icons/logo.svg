@@ -40,7 +40,7 @@
      id="layer1">
     <text
        xml:space="preserve"
-       style="font-weight:600;font-size:24px;line-height:0;font-family:Montserrat;-inkscape-font-specification:'Montserrat Semi-Bold';text-align:start;letter-spacing:-1px;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ff0000;stroke:none;stroke-width:0.5"
+       style="font-weight:600;font-size:24px;line-height:0;font-family:Montserrat;-inkscape-font-specification:'Montserrat Semi-Bold';text-align:start;letter-spacing:-1px;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#f9f9f9;stroke:none;stroke-width:0.5"
        x="-0.528"
        y="33.888"
        id="text1"><tspan
@@ -48,6 +48,6 @@
          id="tspan1"
          x="-0.528"
          y="33.888"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:24px;font-family:Montserrat;-inkscape-font-specification:'Montserrat Bold';fill:#cccccc">Blacker</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:24px;font-family:Montserrat;-inkscape-font-specification:'Montserrat Bold';fill:#f9f9f9">Blacker</tspan></text>
   </g>
 </svg>

@@ -1,5 +1,5 @@
 import API from "../../api/index.js";
-import { Candle } from "@whiterockdev/common";
+import { Candle, logger } from "@whiterockdev/common";
 
 export interface GetCandlesParams {
   symbol: string;
@@ -23,6 +23,7 @@ export async function fetchCandles(
 
     return response.data.data;
   } catch (err: any) {
+    logger.error(err)
     throw err;
   }
 }

@@ -37,34 +37,6 @@ export class SlaveBot {
   public dataset: Candle[];
 
   constructor() {
-    const requiredEnvVars = [
-      "NODE_ENV",
-      "SLAVE_NAME",
-      "MARKET",
-      "SYMBOL",
-      "SIDE",
-      "ACCOUNT_BALANCE",
-      "ACCOUNT_RISK",
-      "STOP_LOSS",
-      "TAKE_PROFIT",
-      "CONTRACT_SIZE",
-      "PRECISION",
-      "SHOW_PLOTS",
-      "DESCRIPTION",
-      "MARKET_HOST",
-      "DATABASE_HOST",
-      "DATABASE_PORT",
-      "DATABASE_USER",
-      "DATABASE_PASSWORD",
-      "DATABASE_NAME",
-    ];
-
-    for (const envName of requiredEnvVars) {
-      if (!process.env[envName]) {
-        throw new Error(`${envName} error`);
-      }
-    }
-
     ERROR_EVENTS.forEach((event: string) =>
       process.on(event, (err) => {
         logger.error(err);
@@ -140,19 +112,7 @@ export class SlaveBot {
     startHttpServer(this);
   }
 
-  private async setup() {
-    try {
-      logger.info("🚀 Starting slave...");
-
-      await this.database();
-    } catch (err: any) {
-      logger.error(err);
-      this.state.status = "error";
-      throw err;
-    }
-  }
-
-  private async database() {
+  private async initDatabase() {
     let conn = null;
 
     try {
@@ -175,8 +135,6 @@ export class SlaveBot {
       }
 
       await conn.commit();
-
-      this.state.status = "running";
     } catch (err: any) {
       await conn?.rollback();
       throw err;
@@ -207,6 +165,7 @@ export class SlaveBot {
 
       logger.info("✅ State saved");
     } catch (err: any) {
+      logger.error(err);
       await conn?.rollback();
       throw err;
     } finally {
@@ -225,10 +184,13 @@ export class SlaveBot {
 
   public reset() {
     this.state.rule_values = this.state.rule_values.map(() => false);
+    logger.info("🔄️ Reseted");
   }
 
   public async run() {
-    await this.setup();
+    logger.info("🚀 Starting slave...");
+
+    await this.initDatabase();
 
     const params = {
       symbol: this.state.symbol,
@@ -237,10 +199,12 @@ export class SlaveBot {
       window: 500,
     };
 
+    this.state.status = "running";
+
     while (true) {
       try {
         this.state.iteration++;
-        
+
         await this.save();
 
         const candles = await this.getCandles(params);
@@ -271,7 +235,7 @@ export class SlaveBot {
         }
 
         await executeOrder.call(this, candles);
-        
+
         await this.sleep(300_000);
       } catch (err: any) {
         logger.error(err);
@@ -283,9 +247,47 @@ export class SlaveBot {
 }
 
 async function main() {
-  const bot = new SlaveBot();
-  await bot.run();
-  logger.info("🚨 LOOP EXIT 🚨");
+  try {
+    const requiredEnvVars = [
+      "NODE_ENV",
+      "SLAVE_NAME",
+      "MARKET",
+      "SYMBOL",
+      "SIDE",
+      "ACCOUNT_BALANCE",
+      "ACCOUNT_RISK",
+      "STOP_LOSS",
+      "TAKE_PROFIT",
+      "CONTRACT_SIZE",
+      "PRECISION",
+      "SHOW_PLOTS",
+      "DESCRIPTION",
+      "MARKET_HOST",
+      "DATABASE_HOST",
+      "DATABASE_PORT",
+      "DATABASE_USER",
+      "DATABASE_PASSWORD",
+      "DATABASE_NAME",
+    ];
+
+    for (const envName of requiredEnvVars) {
+      if (!process.env[envName]) {
+        throw new Error(`${envName} error`);
+      }
+    }
+
+    const bot = new SlaveBot();
+    await bot.run();
+  } catch (error: any) {
+    logger.error({
+      event: "error.slave",
+      service: process.env.SLAVE_NAME,
+      context: "Error in main function",
+      error,
+    });
+  } finally {
+    logger.info("🚨 LOOP EXIT 🚨");
+  }
 }
 
 main();
