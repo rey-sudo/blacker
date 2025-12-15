@@ -23,6 +23,7 @@ import {
   Side,
   sleep,
 } from "@whiterockdev/common";
+import { validateEnv } from "./lib/zod/verifyEnvVars.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -242,33 +243,7 @@ export class SlaveBot {
 
 async function main() {
   try {
-    const requiredEnvVars = [
-      "NODE_ENV",
-      "SLAVE_NAME",
-      "MARKET",
-      "SYMBOL",
-      "SIDE",
-      "ACCOUNT_BALANCE",
-      "ACCOUNT_RISK",
-      "STOP_LOSS",
-      "TAKE_PROFIT",
-      "CONTRACT_SIZE",
-      "PRECISION",
-      "SHOW_PLOTS",
-      "DESCRIPTION",
-      "MARKET_HOST",
-      "DATABASE_HOST",
-      "DATABASE_PORT",
-      "DATABASE_USER",
-      "DATABASE_PASSWORD",
-      "DATABASE_NAME",
-    ];
-
-    for (const envName of requiredEnvVars) {
-      if (!process.env[envName]) {
-        throw new Error(`${envName} error`);
-      }
-    }
+    const env = validateEnv();
 
     const botInstance = new SlaveBot();
     await botInstance.run();

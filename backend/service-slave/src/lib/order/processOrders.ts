@@ -1,5 +1,5 @@
 import database from "../../database/client.js";
-import { countEMATouches } from "../../rules/mfiRule.js";
+import { countEMATouches } from "../rules/mfiRule.js";
 import { createAlert } from "../../common/lib/createAlert.js";
 import { SlaveBot } from "../../index.js";
 import {
