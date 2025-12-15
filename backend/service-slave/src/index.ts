@@ -6,10 +6,10 @@ import { processOrders } from "./lib/order/processOrders.js";
 import { executeOrder } from "./lib/order/executeOrder.js";
 import { createSlave } from "./lib/slave/createSlave.js";
 import { SlaveState, Interval } from "./types/index.js";
-import { detectorRule } from "./rules/detectorRule.js";
+import { detectorRule } from "./lib/rules/detectorRule.js";
 import { startHttpServer } from "./server/index.js";
-import { adxRule } from "./rules/adxRule.js";
-import { mfiRule } from "./rules/mfiRule.js";
+import { adxRule } from "./lib/rules/adxRule.js";
+import { mfiRule } from "./lib/rules/mfiRule.js";
 import { fileURLToPath } from "url";
 import {
   findSlaveById,

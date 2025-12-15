@@ -1,5 +1,5 @@
 import { calculateEMA, calculateMFI, Candle } from "@whiterockdev/common";
-import { SlaveBot } from "../index.js";
+import { SlaveBot } from "../../index.js";
 
 export async function mfiRule(
   this: SlaveBot,

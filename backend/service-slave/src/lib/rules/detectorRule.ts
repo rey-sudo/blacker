@@ -4,7 +4,7 @@ import {
   calculateEMA,
   logger,
 } from "@whiterockdev/common";
-import { SlaveBot } from "../index.js";
+import { SlaveBot } from "../../index.js";
 
 export async function detectorRule(
   this: SlaveBot,
