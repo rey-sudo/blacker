@@ -236,7 +236,7 @@ async function main() {
   } catch (error: any) {
     logger.error({
       event: "error.slave",
-      service: process.env.SLAVE_NAME,
+      service: process.env.SLAVE_NAME || "service-slave",
       context: "Error in main function",
       error,
     });
