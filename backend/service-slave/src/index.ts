@@ -2,6 +2,7 @@ import path from "path";
 import dotenv from "dotenv";
 import database from "./database/client.js";
 import { fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
+import { Env, validateEnv } from "./lib/zod/verifyEnvVars.js";
 import { processOrders } from "./lib/order/processOrders.js";
 import { executeOrder } from "./lib/order/executeOrder.js";
 import { createSlave } from "./lib/slave/createSlave.js";
@@ -23,7 +24,6 @@ import {
   Side,
   sleep,
 } from "@whiterockdev/common";
-import { validateEnv } from "./lib/zod/verifyEnvVars.js";
 
 dotenv.config({ path: ".env.development" });
 
@@ -32,12 +32,15 @@ export const __dirname = path.dirname(__filename);
 export const root = path.join(__dirname, "..");
 
 export class SlaveBot {
+  public env: Env;
   public state: SlaveState;
   public orders: Order[];
   private config: any;
   public dataset: Candle[];
 
-  constructor() {
+  constructor(env: Env) {
+    this.env = env;
+
     ERROR_EVENTS.forEach((event: string) =>
       process.on(event, (err) => {
         logger.error(err);
@@ -45,46 +48,29 @@ export class SlaveBot {
       })
     );
 
-    const SLAVE_NAME = process.env.SLAVE_NAME!;
-    const MARKET = process.env.MARKET!;
-    const SYMBOL = process.env.SYMBOL!;
-    const INTERVAL = process.env.INTERVAL!;
-    const SIDE = process.env.SIDE!;
-    const ACCOUNT_BALANCE = parseInt(process.env.ACCOUNT_BALANCE!, 10);
-    const ACCOUNT_RISK = parseFloat(process.env.ACCOUNT_RISK!);
-    const STOP_LOSS = parseFloat(process.env.STOP_LOSS!);
-    const TAKE_PROFIT = parseFloat(process.env.TAKE_PROFIT!);
-    const CONTRACT_SIZE = parseInt(process.env.CONTRACT_SIZE!, 10);
-    const PRECISION = parseInt(process.env.PRECISION!, 10);
-    const SHOW_PLOTS = process.env.SHOW_PLOTS === "true";
-    const DESCRIPTION = process.env.DESCRIPTION!;
-    const DATABASE_HOST = process.env.DATABASE_HOST;
-    const DATABASE_PORT = parseInt(process.env.DATABASE_PORT!);
-    const DATABASE_USER = process.env.DATABASE_USER;
-    const DATABASE_PASSWORD = process.env.DATABASE_PASSWORD;
-    const DATABASE_NAME = process.env.DATABASE_NAME;
-
     const RULES = ["rsi", "adx", "mfi"];
 
+    const timestamp = Date.now();
+
     this.state = {
-      id: SLAVE_NAME,
+      id: this.env.SLAVE_NAME,
       status: "started",
       iteration: 0,
-      market: MARKET as Market,
-      symbol: SYMBOL,
-      interval_: INTERVAL as Interval,
-      side: SIDE as Side,
-      account_balance: ACCOUNT_BALANCE,
-      account_risk: ACCOUNT_RISK,
-      stop_loss: STOP_LOSS,
-      take_profit: TAKE_PROFIT,
-      contract_size: CONTRACT_SIZE,
-      precision_: PRECISION,
-      description: DESCRIPTION,
+      market: this.env.MARKET as Market,
+      symbol: this.env.SYMBOL,
+      interval_: this.env.INTERVAL as Interval,
+      side: this.env.SIDE as Side,
+      account_balance: this.env.ACCOUNT_BALANCE,
+      account_risk: this.env.ACCOUNT_RISK,
+      stop_loss: this.env.STOP_LOSS,
+      take_profit: this.env.TAKE_PROFIT,
+      contract_size: this.env.CONTRACT_SIZE,
+      precision_: this.env.PRECISION,
+      description: this.env.DESCRIPTION,
       executed: false,
       finished: false,
-      created_at: Date.now(),
-      updated_at: Date.now(),
+      created_at: timestamp,
+      updated_at: timestamp,
       rule_labels: RULES,
       rule_values: RULES.map(() => false),
     };
@@ -92,17 +78,17 @@ export class SlaveBot {
     this.orders = [];
 
     this.config = {
-      show_plots: SHOW_PLOTS,
+      show_plots: this.env.SHOW_PLOTS,
     };
 
     this.dataset = [];
 
     database.connect({
-      host: DATABASE_HOST,
-      port: DATABASE_PORT,
-      user: DATABASE_USER,
-      password: DATABASE_PASSWORD,
-      database: DATABASE_NAME,
+      host: this.env.DATABASE_HOST,
+      port: this.env.DATABASE_PORT,
+      user: this.env.DATABASE_USER,
+      password: this.env.DATABASE_PASSWORD,
+      database: this.env.DATABASE_NAME,
       waitForConnections: true,
       connectionLimit: 3,
       enableKeepAlive: true,
@@ -245,7 +231,7 @@ async function main() {
   try {
     const env = validateEnv();
 
-    const botInstance = new SlaveBot();
+    const botInstance = new SlaveBot(env);
     await botInstance.run();
   } catch (error: any) {
     logger.error({
