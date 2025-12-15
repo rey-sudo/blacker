@@ -16,8 +16,8 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
   if (!lastCandle) return;
 
   const squeeze = calculateSqueeze(candles);
-  const lastSqueeze = squeeze.at(-1)?.color;
-  if (!lastSqueeze) return;
+  const lastSqueezeColor = squeeze.at(-1)?.color;
+  if (!lastSqueezeColor) return;
 
   const EMA25 = calculateEMA(candles, 25);
   const lastEma25 = EMA25.at(-1)?.value;
@@ -25,7 +25,7 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
 
   const { touches, failedBreakouts } = countEMATouches(candles, EMA25);
 
-  const rule1 = lastSqueeze === "blue";
+  const rule1 = lastSqueezeColor === "blue";
   const rule2 = touches >= 3 || failedBreakouts >= 4;
 
   for (const order of this.orders) {
@@ -34,16 +34,14 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
     const isLong = order.side === "LONG";
     const isShort = order.side === "SHORT";
 
-    let conn = null;
-
     if (isLong) {
       if (rule1 || rule2) {
+        let conn = null;
+
         try {
           conn = await database.client.getConnection();
-          
-          await conn.ping();
 
-          await conn.beginTransaction();
+          await conn.ping();
 
           const alertParams: Alert = {
             id: generateId(),
@@ -57,10 +55,18 @@ export async function processOrders(this: SlaveBot, candles: Candle[]) {
           };
 
           await createAlert(conn, alertParams);
-          await conn.commit();
         } catch (err: any) {
-          logger.error(err);
-          await conn?.rollback();
+          logger.error({
+            message: "Error processing order",
+            error: err,
+            event: "error.slave",
+            context: {
+              service: this.env.SLAVE_NAME,
+              function: "processOrders",
+              orderId: order.id,
+              orderSymbol: order.symbol,
+            },
+          });
         } finally {
           conn?.release();
         }

@@ -229,8 +229,8 @@ export class SlaveBot {
         await executeOrder.call(this, candles);
 
         await this.sleep(300_000);
-      } catch (err: any) {
-        logger.error(err);
+      } catch (formatedError: any) {
+        logger.error(formatedError);
         this.state.status = "error";
         await this.sleep(300_000);
       }
