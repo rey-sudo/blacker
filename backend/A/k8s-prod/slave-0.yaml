@@ -32,7 +32,7 @@ spec:
             - name: SYMBOL
               value: "BTCUSDT"
             - name: INTERVAL
-              value: "15m"
+              value: "30m"
             - name: SIDE
               value: "LONG"          
             - name: ACCOUNT_BALANCE
