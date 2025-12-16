@@ -14,7 +14,7 @@ export async function adxRule(
     const lastReversal = reversalPoints.at(-1);
 
     if (!lastReversal) {
-      throw new Error("lastReversal error");
+      return false;
     }
 
     const range = [
