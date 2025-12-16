@@ -95,10 +95,9 @@ async function downloadDukascopy(
   }
 }
 
-// --- EJEMPLO DE USO ---
 
 (async () => {
-  const symbol = "usa500idxusd";
+  const symbol = "eurusd";
 
-  await downloadDukascopy(symbol, "h1", 4, `${symbol}_1h_4y.csv`);
+  await downloadDukascopy(symbol, "m30", 4, `${symbol}_30m_2y.csv`);
 })();

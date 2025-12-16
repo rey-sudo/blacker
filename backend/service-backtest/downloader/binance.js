@@ -358,5 +358,5 @@ class BinanceKlinesDownloader {
 // new BinanceKlinesDownloader('BNBUSDT', '4h', 5)    // 5 años, 4 horas
 // new BinanceKlinesDownloader('SOLUSDT', '1d', 2)    // 2 años, diario
 
-const downloader = new BinanceKlinesDownloader('BTCUSDT', '15m', 2);
+const downloader = new BinanceKlinesDownloader('BTCUSDT', '30m', 2);
 downloader.run();
