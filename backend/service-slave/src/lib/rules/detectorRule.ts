@@ -1,9 +1,4 @@
-import {
-  calculateRSI,
-  Candle,
-  calculateEMA,
-  logger,
-} from "@whiterockdev/common";
+import { calculateRSI, Candle, logger } from "@whiterockdev/common";
 import { SlaveBot } from "../../index.js";
 
 export async function detectorRule(
@@ -16,34 +11,26 @@ export async function detectorRule(
 
     if (ruleValue === true) return ruleValue;
 
-    const lastCandle = candles.at(-1);
-
     const rsiData = calculateRSI(candles);
     const lastRsi = rsiData.at(-1)?.value;
-
-    const ema55Data = calculateEMA(candles, 55);
-    const lastEma55 = ema55Data.at(-1)?.value;
-
-    if (!lastCandle) {
-      throw new Error("lastCandle  error");
-    }
 
     if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) {
       throw new Error("lastRsi type error");
     }
 
-    if (typeof lastEma55 !== "number" || Number.isNaN(lastEma55)) {
-      throw new Error("lastEma55 type error");
-    }
-
     logger.info(`RSI:${lastRsi}`);
 
-    const rule1 = lastRsi <= 33;
+    const rules = {
+      0: lastRsi <= 33,
+    };
 
-    const result = rule1;
+    const result = Object.values(rules).every(Boolean);
 
     if (result === true) {
       this.state.rule_values[RULE] = result;
+      
+      await this.save();
+
       return result;
     }
 

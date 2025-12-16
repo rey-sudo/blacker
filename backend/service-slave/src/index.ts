@@ -151,7 +151,7 @@ export class SlaveBot {
 
       this.state.updated_at = Date.now();
 
-      logger.info("✅ State saved");
+      logger.info(`✅ State saved: ${this.state.rule_values}`);
     } catch (err: any) {
       await conn?.rollback();
 
@@ -166,7 +166,7 @@ export class SlaveBot {
     }
   }
 
-  private async getCandles(params: GetCandlesParams) {
+  private async getCandles(params: GetCandlesParams): Promise<Candle[]> {
     return withRetry(() => fetchCandles(process.env.MARKET_HOST!, params));
   }
 
@@ -201,6 +201,11 @@ export class SlaveBot {
 
         const candles = await this.getCandles(getCandlesParams);
 
+        if (!candles.length) {
+          logger.info("⚠️ Warning there are not enough candles");
+          continue
+        }
+
         this.dataset = candles;
 
         await processOrders.call(this, candles);
@@ -208,9 +213,8 @@ export class SlaveBot {
         const R0 = await detectorRule.call(this, 0, candles);
         if (!R0) continue;
 
-        const rule1 = await adxRule.call(this, 1, candles);
-
-        if (!rule1) {
+        const R1 = await adxRule.call(this, 1, candles);
+        if (!R1) {
           await this.sleep(300_000);
           continue;
         }
