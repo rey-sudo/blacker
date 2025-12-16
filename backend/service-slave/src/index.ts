@@ -205,12 +205,8 @@ export class SlaveBot {
 
         await processOrders.call(this, candles);
 
-        const rule0 = await detectorRule.call(this, 0, candles);
-
-        if (!rule0) {
-          await this.sleep(300_000);
-          continue;
-        }
+        const R0 = await detectorRule.call(this, 0, candles);
+        if (!R0) continue;
 
         const rule1 = await adxRule.call(this, 1, candles);
 

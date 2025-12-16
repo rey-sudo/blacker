@@ -11,7 +11,11 @@ export async function detectorRule(
   RULE: number,
   candles: Candle[]
 ): Promise<boolean> {
-  if (!this.state.rule_values[RULE]) {
+  try {
+    const ruleValue = this.state.rule_values[RULE];
+
+    if (ruleValue === true) return ruleValue;
+
     const lastCandle = candles.at(-1);
 
     const rsiData = calculateRSI(candles);
@@ -36,8 +40,17 @@ export async function detectorRule(
 
     const rule1 = lastRsi <= 33;
 
-    this.state.rule_values[RULE] = rule1;
-  }
+    const result = rule1;
 
-  return this.state.rule_values[RULE];
+    if (result === true) {
+      this.state.rule_values[RULE] = result;
+      return result;
+    }
+
+    await this.sleep(300_000);
+
+    return false;
+  } catch (err: any) {
+    return false;
+  }
 }
