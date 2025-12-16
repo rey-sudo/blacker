@@ -32,7 +32,7 @@ spec:
             - name: SYMBOL
               value: "EURJPY"
             - name: INTERVAL
-              value: "1h"
+              value: "15m"
             - name: SIDE
               value: "LONG"          
             - name: ACCOUNT_BALANCE

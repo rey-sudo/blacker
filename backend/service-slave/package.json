@@ -29,7 +29,8 @@
     "serve-index": "^1.9.1",
     "tail": "^2.2.6",
     "timeago.js": "^4.0.2",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@types/async-retry": "^1.4.9",
