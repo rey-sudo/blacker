@@ -35,3 +35,9 @@ bearColor = color.new(color.red, 0)
 // plotcandle EN UNA SOLA LÍNEA
 //---------------------------------------------
 plotcandle(open = haOpen, high = haHigh, low = haLow, close = haClose, color = (haClose >= haOpen ? bullColor : bearColor), wickcolor = color.white, bordercolor = na)
+
+ema25 = ta.ema(close, 25)
+ema55 = ta.ema(close, 55)
+
+plot(ema25, title = "EMA 25", color = color.red, linewidth = 2)
+plot(ema55, title = "EMA 55", color = color.red, linewidth = 3)

@@ -89,12 +89,12 @@ onBeforeUnmount(() => {
 .tab {
   display: grid;
   grid-template-rows: 3fr 1fr;
-  background: var(--main-background);
   padding: var(--tab-padding);
   box-sizing: border-box;
   gap: 0.5rem;
   height: 100vh;
   overflow-y: scroll;
+  background: var(--main-background);
 }
 
 /* Chrome, Edge, Safari */

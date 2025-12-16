@@ -5,7 +5,7 @@
 
       <USeparator orientation="vertical" class="h-6 px-4" />
 
-      <TimeframeSelector />
+      <ChartTimeframeSelector />
 
       <USeparator orientation="vertical" class="h-6 px-4" />
 

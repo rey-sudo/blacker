@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <img class="logo" src="../assets/icons/logo.svg" alt="" />
+    <img class="logo" src="../assets/icons/logo1.svg" alt="" />
 
     <div class="header-body">
       <Tab :tabId="String(tab.id)" v-for="tab in tabsStore.tabs" :key="tab" />
@@ -33,5 +33,9 @@ const tabsStore = useTabsStore();
   display: flex;
   align-items: center;
   height: inherit;
+}
+
+.logo{
+
 }
 </style>

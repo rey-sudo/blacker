@@ -1,6 +1,8 @@
 /* ============================================================
    LIGHT THEME
    ============================================================ */
+@import "tailwindcss";
+@import "@nuxt/ui";
 
 :root {
   --color-aqua: #00bcd4;
@@ -23,19 +25,19 @@
 }
 
 :root {
-  --color-brand-50:  #f1fbfd;
-  --color-brand-100: #d5f3f8;
-  --color-brand-200: #a9e4ef;
-  --color-brand-300: #78d0e3;
-  --color-brand-400: #3fb6d2;
-  --color-brand-500: #1497b8; /* BASE */
-  --color-brand-600: #107b97;
-  --color-brand-700: #0d6177;
-  --color-brand-800: #0a4959;
-  --color-brand-900: #07323c;
-  --color-brand-950: #041f27;
+  --color-brand-50: #f2f1ff;
+  --color-brand-100: #e0deff;
+  --color-brand-200: #c2beff;
+  --color-brand-300: #9a92ff;
+  --color-brand-400: #7a6bff;
+  --color-brand-500: #635bfd; /* BASE */
+  --color-brand-600: #5448e0;
+  --color-brand-700: #453bc0;
+  --color-brand-800: #352f94;
+  --color-brand-900: #262369;
+  --color-brand-950: #191742;
 
-  --color-neutral-50:  #fafafa;
+  --color-neutral-50: #fafafa;
   --color-neutral-100: #f0f1f2;
   --color-neutral-200: #d8dadd;
   --color-neutral-300: #b5b8bd;
@@ -47,7 +49,6 @@
   --color-neutral-900: #17181a;
   --color-neutral-950: #0e0f10;
 }
-
 
 :root {
   /* ===== SEMANTIC TOKENS ===== */
@@ -107,9 +108,5 @@
   --ui-primary: var(--color-brand-400);
 }
 
-:root {
-  --default-ema-color-0: var(--color-red);
-  --default-ema-color-1: var(--color-yellow);
-  --default-up-color: var(--color-green);
-  --default-down-color: var(--color-red);
-}
+
+

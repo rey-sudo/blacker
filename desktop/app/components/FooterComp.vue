@@ -1,7 +1,7 @@
 <template>
   <div class="footer">
     <div class="flex justify-center gap-6">
-      <UButton color="neutral" size="xs" variant="soft"
+      <UButton color="neutral" size="xs" variant="soft" icon="lucide:activity"
         >Positions
 
         <template #trailing>
@@ -21,7 +21,7 @@
         >Backtesting</UButton
       >
 
-      <UButton color="neutral" icon="i-lucide-bot" size="xs" variant="ghost"
+      <UButton color="neutral" icon="i-lucide-cpu" size="xs" variant="ghost"
         >Bots</UButton
       >
 
