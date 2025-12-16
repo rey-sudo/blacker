@@ -7,7 +7,7 @@ export const createTabStore = (tabId: string) =>
     const interval = ref("1h");
     const window = ref(500);
 
-    const slaveId = ref("");
+    const slaveId = ref("slave-5");
 
     const candles: any = ref([]);
     const candle = ref(null);
