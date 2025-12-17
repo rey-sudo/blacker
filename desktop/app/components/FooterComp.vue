@@ -1,7 +1,7 @@
 <template>
   <div class="footer">
     <div class="flex justify-center gap-6">
-      <UButton color="neutral" size="xs" variant="soft" icon="lucide:activity"
+      <UButton color="neutral" size="xs" variant="ghost" icon="lucide:activity"
         >Positions
 
         <template #trailing>

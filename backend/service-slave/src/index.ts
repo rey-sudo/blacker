@@ -203,7 +203,7 @@ export class SlaveBot {
 
         if (!candles.length) {
           logger.info("⚠️ Warning there are not enough candles");
-          continue
+          continue;
         }
 
         this.dataset = candles;
@@ -214,14 +214,11 @@ export class SlaveBot {
         if (!R0) continue;
 
         const R1 = await adxRule.call(this, 1, candles);
-        if (!R1) {
-          await this.sleep(300_000);
-          continue;
-        }
+        if (!R1) continue;
 
-        const rule2 = await mfiRule.call(this, 2, candles);
+        const R2 = await mfiRule.call(this, 2, candles);
 
-        if (!rule2) {
+        if (!R2) {
           await this.sleep(300_000);
           continue;
         }

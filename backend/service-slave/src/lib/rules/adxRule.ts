@@ -3,10 +3,14 @@ import { SlaveBot } from "../../index.js";
 
 export async function adxRule(
   this: SlaveBot,
-  RULE: number,
+  ruleIndex: number,
   candles: Candle[]
 ): Promise<boolean> {
-  if (!this.state.rule_values[RULE]) {
+  try {
+    const ruleValue = this.state.rule_values[ruleIndex];
+
+    if (ruleValue === true) return ruleValue;
+
     const keyLevel = 23;
 
     const { reversalPoints } = calculateADX(candles);
@@ -23,12 +27,25 @@ export async function adxRule(
       candles.at(-3)?.time,
     ];
 
-    const rule1 = range.includes(lastReversal.time);
+    const rules = {
+      0: range.includes(lastReversal.time),
+      1: lastReversal.value > keyLevel,
+    };
 
-    const rule2 = lastReversal.value > keyLevel;
+    const result = Object.values(rules).every(Boolean);
 
-    this.state.rule_values[RULE] = rule1 && rule2;
+    if (result === true) {
+      this.state.rule_values[ruleIndex] = result;
+
+      await this.save();
+
+      return result;
+    }
+
+    await this.sleep(300_000);
+
+    return false;
+  } catch (err: any) {
+    return false;
   }
-
-  return this.state.rule_values[RULE];
 }
