@@ -6,6 +6,9 @@
 
     <div class="indicators">
       <div class="indicator">
+        <ChartFootprint />
+      </div>
+      <div class="indicator">
         <IndicatorRSI
           :tabId="tabId"
           :width="chartWidth"
