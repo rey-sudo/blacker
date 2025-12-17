@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+//In development
 
 type FootprintLevel = {
   bid: number;
@@ -105,8 +106,8 @@ export const getFootprintHandler = async (req: Request, res: Response) => {
     };
 
     const intervalMs = intervalToMs(interval);
-    const candles = parseInt(length); // cantidad de velas
-    const tickSize = 0.5; // ejemplo BTC
+    const candles = parseInt(length); 
+    const tickSize = 0.5; 
     const now = Date.now();
 
     let windowStart = now - candles * intervalMs;
