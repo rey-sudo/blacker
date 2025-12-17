@@ -1,20 +1,47 @@
-import { Candle, TimeValue } from "../../types/index.js";
+import { Candle, CandleArraySchema, TimeValue } from "../../types/index.js";
 
 const adxLength = 14;
 const diLength = 14;
 const keyLevel = 23;
 
-export interface IndicatorOutput {
+export interface AverageDirectionalIndexOutput {
   adxData: TimeValue[];
   plusDIData: TimeValue[];
   minusDIData: TimeValue[];
   reversalPoints: TimeValue[];
 }
 
-export function calculateADX(allCandles: Candle[]): IndicatorOutput {
+/**
+ * Calculates the Average Directional Index (ADX) with +DI, -DI and reversal points.
+ * @param candles Array of Candle objects with time, high, low, close, volume.
+ * @returns AverageDirectionalIndexOutput containing adxData, plusDIData, minusDIData, reversalPoints.
+ */
+
+export function AverageDirectionalIndex(data: Candle[]): AverageDirectionalIndexOutput {
+  const verifyParams = CandleArraySchema.safeParse(data);
+
+  if (!verifyParams.success) {
+    throw new Error(
+      "Invalid Candle[]: " +
+        verifyParams.error.issues.map((i) => i.message).join(", ")
+    );
+  }
+
+  const allCandles = verifyParams.data;
+
+  const minCandles = Math.max(diLength, adxLength) + 100;
+
+  if (allCandles.length < minCandles) {
+    throw new Error(
+      `Not enough candles. At least ${minCandles} candles are required, but only ${
+        allCandles?.length || 0
+      } were provided.`
+    );
+  }
+
   const result = calculate(allCandles, diLength, adxLength);
 
-  const defaultResponse: IndicatorOutput = {
+  const defaultResponse: AverageDirectionalIndexOutput = {
     adxData: [],
     plusDIData: [],
     minusDIData: [],
@@ -104,7 +131,7 @@ export function calculate(
   candles: Candle[],
   diLength: number,
   adxLength: number
-): IndicatorOutput | null {
+): AverageDirectionalIndexOutput | null {
   if (!candles || candles.length < Math.max(diLength, adxLength) + 2) {
     return null;
   }
@@ -131,8 +158,14 @@ export function calculate(
 
   for (let i = 0; i < candles.length; i++) {
     adxData.push({ time: candles[i].time, value: Number(adx[i].toFixed(2)) });
-    plusDIData.push({ time: candles[i].time, value: Number(plus[i].toFixed(2)) });
-    minusDIData.push({ time: candles[i].time, value: Number(minus[i].toFixed(2)) });
+    plusDIData.push({
+      time: candles[i].time,
+      value: Number(plus[i].toFixed(2)),
+    });
+    minusDIData.push({
+      time: candles[i].time,
+      value: Number(minus[i].toFixed(2)),
+    });
 
     if (i >= 2) {
       const rule1 = adx[i] < adx[i - 1];

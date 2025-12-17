@@ -1,4 +1,4 @@
-import { Candle, calculateADX } from "@whiterockdev/common";
+import { Candle, AverageDirectionalIndex } from "@whiterockdev/common";
 import { SlaveBot } from "../../index.js";
 
 export async function adxRule(
@@ -13,9 +13,7 @@ export async function adxRule(
 
     const keyLevel = 23;
 
-    const { reversalPoints } = calculateADX(candles);
-
-    const lastReversal = reversalPoints.at(-1);
+    const lastReversal = AverageDirectionalIndex(candles)?.reversalPoints?.at(-1) ?? null;
 
     if (!lastReversal) {
       return false;
