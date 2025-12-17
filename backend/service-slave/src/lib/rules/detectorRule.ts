@@ -11,17 +11,12 @@ export async function detectorRule(
 
     if (ruleValue === true) return ruleValue;
 
-    const rsiData = calculateRSI(candles);
-    const lastRsi = rsiData.at(-1)?.value;
+    const { currentRsi } = calculateRSI(candles);
 
-    if (typeof lastRsi !== "number" || Number.isNaN(lastRsi)) {
-      throw new Error("lastRsi type error");
-    }
-
-    logger.info(`RSI:${lastRsi}`);
+    logger.info(`RSI:${currentRsi.value}`);
 
     const rules = {
-      0: lastRsi <= 33,
+      0: currentRsi.value <= 33,
     };
 
     const result = Object.values(rules).every(Boolean);
