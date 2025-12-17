@@ -3,11 +3,11 @@ import { SlaveBot } from "../../index.js";
 
 export async function detectorRule(
   this: SlaveBot,
-  RULE: number,
+  ruleIndex: number,
   candles: Candle[]
 ): Promise<boolean> {
   try {
-    const ruleValue = this.state.rule_values[RULE];
+    const ruleValue = this.state.rule_values[ruleIndex];
 
     if (ruleValue === true) return ruleValue;
 
@@ -22,7 +22,7 @@ export async function detectorRule(
     const result = Object.values(rules).every(Boolean);
 
     if (result === true) {
-      this.state.rule_values[RULE] = result;
+      this.state.rule_values[ruleIndex] = result;
       
       await this.save();
 

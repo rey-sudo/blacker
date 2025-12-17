@@ -1,12 +1,16 @@
 import { calculateEMA, calculateMFI, Candle } from "@whiterockdev/common";
 import { SlaveBot } from "../../index.js";
 
-export async function mfiRule(
+export async function triggerRule(
   this: SlaveBot,
-  RULE: number,
+  ruleIndex: number,
   candles: Candle[]
 ): Promise<boolean> {
-  if (!this.state.rule_values[RULE]) {
+  try {
+    const ruleValue = this.state.rule_values[ruleIndex];
+
+    if (ruleValue === true) return ruleValue;
+
     const { haCandles, smaData } = calculateMFI(candles);
 
     const lastHeikin = haCandles.at(-1);
@@ -23,23 +27,37 @@ export async function mfiRule(
     const EMA25 = calculateEMA(candles, 25);
     const { touches, failedBreakouts } = countEMATouches(candles, EMA25);
 
-    const rule1 = lastHeikin.close < 70;
-    const rule2 = lastHeikin.close > lastSma.value;
-    const rule3 = touches >= 3 || failedBreakouts >= 4;
+    const rules = {
+      0: lastHeikin.close < 70,
+      1: lastHeikin.close > lastSma.value,
+      2: touches >= 3 || failedBreakouts >= 4,
+    };
 
-    this.state.rule_values[RULE] = rule1 && rule2;
+    const result = Object.values(rules).every(Boolean);
 
-    if (!rule1) {
-      this.reset();
+    if (rules[0] === false) {
+      await this.reset();
     }
 
-    if (rule3) {
+    if (rules[2] === true) {
       console.log("⚠️⚠️⚠️⚠️⚠️EMA25 TOUCHES⚠️⚠️⚠️⚠️⚠️");
-      this.reset();
+      await this.reset();
     }
-  }
 
-  return this.state.rule_values[RULE];
+    if (result === true) {
+      this.state.rule_values[ruleIndex] = result;
+
+      await this.save();
+      
+      return result;
+    }
+
+    await this.sleep(300_000);
+
+    return false;
+  } catch (err: any) {
+    return false;
+  }
 }
 
 export function countEMATouches(

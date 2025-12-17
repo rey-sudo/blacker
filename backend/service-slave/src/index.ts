@@ -4,13 +4,13 @@ import database from "./database/client.js";
 import { fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
 import { Env, validateEnv } from "./lib/zod/verifyEnvVars.js";
 import { processOrders } from "./lib/order/processOrders.js";
+import { detectorRule } from "./lib/rules/detectorRule.js";
+import { triggerRule } from "./lib/rules/triggerRule.js";
 import { executeOrder } from "./lib/order/executeOrder.js";
 import { createSlave } from "./lib/slave/createSlave.js";
 import { SlaveState, Interval } from "./types/index.js";
-import { detectorRule } from "./lib/rules/detectorRule.js";
 import { startHttpServer } from "./server/index.js";
 import { adxRule } from "./lib/rules/adxRule.js";
-import { mfiRule } from "./lib/rules/mfiRule.js";
 import { fileURLToPath } from "url";
 import {
   findSlaveById,
@@ -175,8 +175,10 @@ export class SlaveBot {
     return await sleep(timeMs);
   }
 
-  public reset() {
+  public async reset() {
     this.state.rule_values = this.state.rule_values.map(() => false);
+
+    await this.save();
     logger.info("🔄️ Reseted");
   }
 
@@ -216,12 +218,8 @@ export class SlaveBot {
         const R1 = await adxRule.call(this, 1, candles);
         if (!R1) continue;
 
-        const R2 = await mfiRule.call(this, 2, candles);
-
-        if (!R2) {
-          await this.sleep(300_000);
-          continue;
-        }
+        const R2 = await triggerRule.call(this, 2, candles);
+        if (!R2) continue;
 
         await executeOrder.call(this, candles);
 
