@@ -6,6 +6,9 @@
 
     <div class="indicators">
       <div class="indicator">
+        <IndicatorFootprint :candle="fakeData1?.data" />
+      </div>
+      <div class="indicator">
         <IndicatorRSI
           :tabId="tabId"
           :width="chartWidth"
@@ -48,6 +51,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue";
+import { fakeData1 } from "./fakeData";
 
 const props = defineProps({
   tabId: {
