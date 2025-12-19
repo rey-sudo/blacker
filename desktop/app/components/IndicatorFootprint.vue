@@ -5,135 +5,133 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch, ref } from "vue";
+import { onMounted, watch, ref, reactive, computed } from 'vue'
+import { useFootprint } from '~/composable/get-footprint'
+
 
 /* ==========================
-   Props (backend contract)
+   Composable
+========================== */
+
+const { fetchFootprint, fetchError } = useFootprint()
+
+const symbol = ref('BTCUSDT')
+const market = ref('crypto')
+const interval = ref('30m')
+
+/* ==========================
+   Backend contracts
 ========================== */
 
 interface FootprintLevel {
-  price: number;
-  bid: number;
-  ask: number;
+  price: number
+  bid: number
+  ask: number
 }
 
 interface FootprintCandle {
-  high: number;
-  low: number;
-  tickSize: number;
-  levels: FootprintLevel[]; // ordered High -> Low
+  high: number
+  low: number
+  tickSize: number
+  levels: FootprintLevel[]
 }
 
-const props = defineProps<{
-  candle: FootprintCandle;
-}>();
+/* ==========================
+   Fake props (no tocar indicador)
+========================== */
+
+const props = reactive<{
+  candle: FootprintCandle
+}>({
+  candle: {
+    high: 0,
+    low: 0,
+    tickSize: 0,
+    levels: []
+  }
+})
+
+/* ==========================
+   Fetch data
+========================== */
+
+const loadFootprint = async () => {
+  const data = await fetchFootprint({
+    symbol: symbol.value,
+    market: market.value,
+    interval: interval.value
+  })
+
+  props.candle = data
+}
+
+await loadFootprint()
 
 /* ==========================
    Canvas config
 ========================== */
 
-const canvas = ref<HTMLCanvasElement | null>(null);
+const canvas = ref<HTMLCanvasElement | null>(null)
 
-const width = 500; // más ancho, menos alto visualmente // px
-const rowHeight = 12; // px per price level (más compacto) // px per price level
+const width = 500
+const rowHeight = 12
 
-const height = computed(() => props.candle.levels.length * rowHeight);
+const height = computed(() => props.candle.levels.length * rowHeight)
 
 /* ==========================
-   Drawing logic
+   Drawing logic (INTACTO)
 ========================== */
 
 function draw() {
-  if (!canvas.value) return;
-  const ctx = canvas.value.getContext("2d");
-  if (!ctx) return;
+  if (!canvas.value) return
+  const ctx = canvas.value.getContext('2d')
+  if (!ctx) return
 
-  ctx.clearRect(0, 0, width, height.value);
+  ctx.clearRect(0, 0, width, height.value)
 
-  const levels = props.candle.levels;
-  if (!levels || levels.length === 0) return;
+  const levels = props.candle.levels
+  if (!levels || levels.length === 0) return
 
-  const maxVol = Math.max(...levels.map((l) => Math.max(l.bid, l.ask)));
+  const maxVol = Math.max(...levels.map(l => Math.max(l.bid, l.ask)))
 
   levels.forEach((level, i) => {
-    const y = i * rowHeight;
+    const y = i * rowHeight
 
-    // Background grid
-    ctx.strokeStyle = "#1f2933";
-    ctx.strokeRect(0, y, width, rowHeight);
+    ctx.strokeStyle = '#1f2933'
+    ctx.strokeRect(0, y, width, rowHeight)
 
-    // Normalize volumes
-    const bidWidth = maxVol ? (level.bid / maxVol) * (width / 2 - 30) : 0;
-    const askWidth = maxVol ? (level.ask / maxVol) * (width / 2 - 30) : 0;
+    const bidWidth = maxVol ? (level.bid / maxVol) * (width / 2 - 30) : 0
+    const askWidth = maxVol ? (level.ask / maxVol) * (width / 2 - 30) : 0
 
-    // BID (left)
     if (level.bid > 0) {
-      ctx.fillStyle = "#7f1d1d";
-      ctx.fillRect(width / 2 - bidWidth - 30, y + 1, bidWidth, rowHeight - 2);
+      ctx.fillStyle = '#7f1d1d'
+      ctx.fillRect(width / 2 - bidWidth - 30, y + 1, bidWidth, rowHeight - 2)
     }
 
-    // ASK (right)
     if (level.ask > 0) {
-      ctx.fillStyle = "#14532d";
-      ctx.fillRect(width / 2, y + 1, askWidth, rowHeight - 2);
+      ctx.fillStyle = '#14532d'
+      ctx.fillRect(width / 2, y + 1, askWidth, rowHeight - 2)
     }
 
-    // Vol text center
-    ctx.fillStyle = "#e5e7eb";
-    ctx.font = "11px monospace";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    ctx.fillStyle = '#e5e7eb'
+    ctx.font = '11px monospace'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
 
     ctx.fillText(
       `${level.bid.toFixed(0)} | ${level.ask.toFixed(0)}`,
       width / 2,
       y + rowHeight / 2
-    );
+    )
 
-    // Price text (right)
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#9ca3af";
-    ctx.fillText(level.price.toFixed(2), width - 4, y + rowHeight / 2);
-  });
-  (level: any, i: any) => {
-    const y = i * rowHeight;
-
-    // Background grid
-    ctx.strokeStyle = "#1f2933";
-    ctx.strokeRect(0, y, width, rowHeight);
-
-    // Normalize volumes
-    const bidWidth = maxVol ? (level.bid / maxVol) * (width / 2) : 0;
-    const askWidth = maxVol ? (level.ask / maxVol) * (width / 2) : 0;
-
-    // BID (left)
-    if (level.bid > 0) {
-      ctx.fillStyle = "#7f1d1d"; // red
-      ctx.fillRect(width / 2 - bidWidth, y + 1, bidWidth, rowHeight - 2);
-    }
-
-    // ASK (right)
-    if (level.ask > 0) {
-      ctx.fillStyle = "#14532d"; // green
-      ctx.fillRect(width / 2, y + 1, askWidth, rowHeight - 2);
-    }
-
-    // Text
-    ctx.fillStyle = "#e5e7eb";
-    ctx.font = "11px monospace";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    ctx.fillText(
-      `${level.bid.toFixed(0)} | ${level.ask.toFixed(0)}`,
-      width / 2,
-      y + rowHeight / 2
-    );
-  };
+    ctx.textAlign = 'right'
+    ctx.fillStyle = '#9ca3af'
+    ctx.fillText(level.price.toFixed(2), width - 4, y + rowHeight / 2)
+  })
 }
 
-onMounted(draw);
-watch(() => props.candle, draw, { deep: true });
+onMounted(draw)
+watch(() => props.candle, draw, { deep: true })
 </script>
 
 <style scoped>
