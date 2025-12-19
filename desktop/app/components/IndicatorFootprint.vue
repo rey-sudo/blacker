@@ -1,25 +1,33 @@
 <template>
   <div class="footprint-wrapper">
-    <canvas ref="canvas" :width="width" :height="height"></canvas>
+    <canvas ref="canvas"></canvas>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, watch, ref, reactive, computed } from "vue";
+import {
+  ref,
+  shallowRef,
+  computed,
+  onMounted,
+  onUnmounted,
+  watch,
+  nextTick,
+} from "vue";
 import { useFootprint } from "~/composable/get-footprint";
 
 /* ==========================
    Composable
 ========================== */
 
-const { fetchFootprint, fetchError } = useFootprint();
+const { fetchFootprint } = useFootprint();
 
 const symbol = ref("BTCUSDT");
 const market = ref("crypto");
 const interval = ref("15m");
 
 /* ==========================
-   Backend contracts
+   Types
 ========================== */
 
 interface FootprintLevel {
@@ -36,26 +44,18 @@ interface FootprintCandle {
 }
 
 /* ==========================
-   Fake props (no tocar indicador)
+   State
 ========================== */
 
-const props = reactive<{
-  candle: FootprintCandle;
-}>({
-  candle: {
-    high: 0,
-    low: 0,
-    tickSize: 0,
-    levels: [],
-  },
-});
+const candle = shallowRef<FootprintCandle | null>(null);
 
 /* ==========================
-   Fetch data
+   Fetch
 ========================== */
+
 let isFetching = false;
 
-const loadFootprint = async () => {
+async function loadFootprint() {
   if (isFetching) return;
   isFetching = true;
 
@@ -66,13 +66,15 @@ const loadFootprint = async () => {
       interval: interval.value,
     });
 
-    props.candle = data;
+    // Clonado defensivo (evita bugs de referencia)
+    candle.value = {
+      ...data,
+      levels: data.levels.map((l:any) => ({ ...l })),
+    };
   } finally {
     isFetching = false;
   }
-};
-
-await loadFootprint();
+}
 
 /* ==========================
    Canvas config
@@ -80,44 +82,110 @@ await loadFootprint();
 
 const canvas = ref<HTMLCanvasElement | null>(null);
 
-const width = 500;
-const rowHeight = 10;
+const WIDTH = 500;
+const ROW_HEIGHT = 15;
 
-const height = computed(() => props.candle.levels.length * rowHeight);
+const canvasHeight = computed(() =>
+  candle.value ? candle.value.levels.length * ROW_HEIGHT : 0
+);
+
+function setupCanvas() {
+  if (!canvas.value) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  const el = canvas.value;
+
+  el.width = WIDTH * dpr;
+  el.height = canvasHeight.value * dpr;
+
+  el.style.width = `${WIDTH}px`;
+  el.style.height = `${canvasHeight.value}px`;
+
+  const ctx = el.getContext("2d");
+  if (!ctx) return;
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
 
 /* ==========================
-   Drawing logic (INTACTO)
+   Drawing
 ========================== */
 
 function draw() {
-  if (!canvas.value) return;
+  if (!canvas.value || !candle.value) return;
   const ctx = canvas.value.getContext("2d");
   if (!ctx) return;
 
-  ctx.clearRect(0, 0, width, height.value);
+  const levels = candle.value.levels;
+  if (!levels.length) return;
 
-  const levels = props.candle.levels;
-  if (!levels || levels.length === 0) return;
+  ctx.clearRect(0, 0, WIDTH, canvasHeight.value);
+
+  // Centro fijo, pixel-perfect
+  const centerX = Math.floor(WIDTH / 2) + 0.5;
+
+  // ==========================
+  // POC (bid + ask)
+  // ==========================
+  let pocIndex = 0;
+  let maxTotalVol = 0;
+
+  levels.forEach((l, i) => {
+    const total = l.bid + l.ask;
+    if (total > maxTotalVol) {
+      maxTotalVol = total;
+      pocIndex = i;
+    }
+  });
+
+  const pocY = pocIndex * ROW_HEIGHT + ROW_HEIGHT / 2 + 0.5;
 
   const maxVol = Math.max(...levels.map((l) => Math.max(l.bid, l.ask)));
 
+  // ==========================
+  // Línea vertical central (ÚNICA)
+  // ==========================
+  ctx.strokeStyle = "#475569";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(centerX, 0);
+  ctx.lineTo(centerX, canvasHeight.value);
+  ctx.stroke();
+
+  // ==========================
+  // Línea horizontal POC
+  // ==========================
+  ctx.strokeStyle = "#eab308";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, pocY);
+  ctx.lineTo(WIDTH, pocY);
+  ctx.stroke();
+
+  // ==========================
+  // Levels
+  // ==========================
   levels.forEach((level, i) => {
-    const y = i * rowHeight;
+    const y = i * ROW_HEIGHT;
 
     ctx.strokeStyle = "#1f2933";
-    ctx.strokeRect(0, y, width, rowHeight);
+    ctx.strokeRect(0, y, WIDTH, ROW_HEIGHT);
 
-    const bidWidth = maxVol ? (level.bid / maxVol) * (width / 2 - 30) : 0;
-    const askWidth = maxVol ? (level.ask / maxVol) * (width / 2 - 30) : 0;
+    const bidWidth = maxVol
+      ? (level.bid / maxVol) * (centerX - 30)
+      : 0;
+    const askWidth = maxVol
+      ? (level.ask / maxVol) * (centerX - 30)
+      : 0;
 
     if (level.bid > 0) {
       ctx.fillStyle = "#7f1d1d";
-      ctx.fillRect(width / 2 - bidWidth - 30, y + 1, bidWidth, rowHeight - 2);
+      ctx.fillRect(centerX - bidWidth, y + 1, bidWidth, ROW_HEIGHT - 2);
     }
 
     if (level.ask > 0) {
       ctx.fillStyle = "#14532d";
-      ctx.fillRect(width / 2, y + 1, askWidth, rowHeight - 2);
+      ctx.fillRect(centerX, y + 1, askWidth, ROW_HEIGHT - 2);
     }
 
     ctx.fillStyle = "#e5e7eb";
@@ -127,33 +195,40 @@ function draw() {
 
     ctx.fillText(
       `${level.bid.toFixed(0)} | ${level.ask.toFixed(0)}`,
-      width / 2,
-      y + rowHeight / 2
+      centerX,
+      y + ROW_HEIGHT / 2
     );
 
     ctx.textAlign = "right";
     ctx.fillStyle = "#9ca3af";
-    ctx.fillText(level.price.toFixed(2), width - 4, y + rowHeight / 2);
+    ctx.fillText(level.price.toFixed(2), WIDTH - 4, y + ROW_HEIGHT / 2);
   });
 }
 
+/* ==========================
+   Lifecycle
+========================== */
+
 let refreshTimer: ReturnType<typeof setInterval> | null = null;
 
-onMounted(() => {
+onMounted(async () => {
+  await loadFootprint();
+  await nextTick();
+  setupCanvas();
   draw();
 
-  refreshTimer = setInterval(() => {
-    loadFootprint();
-  }, 60_000);
+  refreshTimer = setInterval(loadFootprint, 60_000);
 });
 
 onUnmounted(() => {
-  if (refreshTimer) {
-    clearInterval(refreshTimer);
-  }
+  if (refreshTimer) clearInterval(refreshTimer);
 });
 
-watch(() => props.candle, draw, { deep: true });
+watch(candle, async () => {
+  await nextTick();
+  setupCanvas();
+  draw();
+});
 </script>
 
 <style scoped>
@@ -161,9 +236,10 @@ watch(() => props.candle, draw, { deep: true });
   display: inline-block;
   background: #020617;
   border: 1px solid #1e293b;
-  overflow: scroll;
+  overflow: auto;
   height: 500px;
 }
+
 canvas {
   display: block;
 }
