@@ -2,8 +2,8 @@ import { defineStore } from "pinia";
 
 export const createTabStore = (tabId: string) =>
   defineStore(`tab-${tabId}`, () => {
-    const symbol = ref("BTCUSDT");
-    const market = ref("crypto");
+    const symbol = ref("EURUSD");
+    const market = ref("forex");
     const interval = ref("15m");
     const window = ref(500);
 

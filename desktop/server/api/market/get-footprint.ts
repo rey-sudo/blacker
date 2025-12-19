@@ -1,15 +1,15 @@
 import { defineEventHandler, getQuery, createError } from "h3";
 
 export default defineEventHandler(async (event) => {
-  const { symbol, market, interval } = getQuery(event);
+  const { symbol, market, interval, source } = getQuery(event);
 
   try {
-    console.log(symbol, market, interval);
+    console.log(symbol, market, interval, source);
 
     const apiUrl = "http://localhost:8001/api/market/get-footprint";
     const res = await $fetch(apiUrl, {
       method: "GET",
-      params: { symbol, market, interval },
+      params: { symbol, market, interval, source },
     });
     return res;
   } catch (err: any) {

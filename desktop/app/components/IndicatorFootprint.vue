@@ -1,8 +1,6 @@
 <template>
   <div class="footprint-wrapper">
-    <div class="context-box">
-      {{ contextText }} {{ ago }}
-    </div>
+    <div class="context-box">{{ contextText }} {{ ago }}</div>
     <canvas ref="canvas"></canvas>
   </div>
 </template>
@@ -18,7 +16,7 @@ import {
   nextTick,
 } from "vue";
 import { useFootprint } from "~/composable/get-footprint";
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from "date-fns";
 
 /* ==========================
    Composable
@@ -26,8 +24,9 @@ import { formatDistanceToNow } from 'date-fns';
 
 const { fetchFootprint } = useFootprint();
 
-const symbol = ref("BTCUSDT");
-const market = ref("crypto");
+const symbol = ref("EURUSD");
+const market = ref("forex");
+const source = ref("dukascopy");
 const interval = ref("5m");
 
 /* ==========================
@@ -44,9 +43,12 @@ const contextText = ref("");
 const isFetching = ref(false);
 const lastFetchTime = ref(new Date());
 
-const ago = computed(() => formatDistanceToNow(lastFetchTime.value, { addSuffix: true }));
+const ago = computed(() =>
+  formatDistanceToNow(lastFetchTime.value, { addSuffix: true })
+);
 
 async function loadFootprint() {
+
   if (isFetching.value) return;
   isFetching.value = true;
 
@@ -55,6 +57,7 @@ async function loadFootprint() {
       symbol: symbol.value,
       market: market.value,
       interval: interval.value,
+      source: source.value,
     });
 
     candle.value = {

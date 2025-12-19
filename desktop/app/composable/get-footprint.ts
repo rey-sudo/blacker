@@ -4,7 +4,8 @@ export const useFootprint = () => {
   const fetchFootprint = async (params: {
     symbol: string
     market: string
-    interval: string
+    interval: string,
+    source: string
   }) => {
     try {
       fetchError.value = null
@@ -14,7 +15,8 @@ export const useFootprint = () => {
         query: {
           symbol: params.symbol,
           market: params.market,
-          interval: params.interval
+          interval: params.interval,
+          source: params.source
         }
       })
 
