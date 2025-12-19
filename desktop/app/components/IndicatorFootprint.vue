@@ -1,10 +1,13 @@
 <template>
   <div class="footprint-wrapper">
+    <div class="context-box">
+      {{ contextText }}
+    </div>
     <canvas ref="canvas"></canvas>
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   ref,
   shallowRef,
@@ -27,27 +30,11 @@ const market = ref("crypto");
 const interval = ref("15m");
 
 /* ==========================
-   Types
-========================== */
-
-interface FootprintLevel {
-  price: number;
-  bid: number;
-  ask: number;
-}
-
-interface FootprintCandle {
-  high: number;
-  low: number;
-  tickSize: number;
-  levels: FootprintLevel[];
-}
-
-/* ==========================
    State
 ========================== */
 
-const candle = shallowRef<FootprintCandle | null>(null);
+const candle = shallowRef(null);
+const contextText = ref("");
 
 /* ==========================
    Fetch
@@ -66,10 +53,9 @@ async function loadFootprint() {
       interval: interval.value,
     });
 
-    // Clonado defensivo (evita bugs de referencia)
     candle.value = {
       ...data,
-      levels: data.levels.map((l: any) => ({ ...l })),
+      levels: data.levels.map(l => ({ ...l })),
     };
   } finally {
     isFetching = false;
@@ -80,7 +66,7 @@ async function loadFootprint() {
    Canvas config
 ========================== */
 
-const canvas = ref<HTMLCanvasElement | null>(null);
+const canvas = ref(null);
 
 const WIDTH = 500;
 const ROW_HEIGHT = 15;
@@ -98,8 +84,8 @@ function setupCanvas() {
   el.width = WIDTH * dpr;
   el.height = canvasHeight.value * dpr;
 
-  el.style.width = `${WIDTH}px`;
-  el.style.height = `${canvasHeight.value}px`;
+  el.style.width = WIDTH + "px";
+  el.style.height = canvasHeight.value + "px";
 
   const ctx = el.getContext("2d");
   if (!ctx) return;
@@ -112,148 +98,147 @@ function setupCanvas() {
 ========================== */
 
 function draw() {
-  const canvasEl = canvas.value;
-  const candleData = candle.value;
+  if (!canvas.value || !candle.value) return;
 
-  if (!canvasEl || !candleData) return;
+  const ctx = canvas.value.getContext("2d");
+  if (!ctx) return;
 
-  const ctx = canvasEl.getContext("2d");
-  if (ctx === null) return;
-
-  const levels = candleData.levels;
+  const levels = candle.value.levels;
   if (!levels.length) return;
 
   ctx.clearRect(0, 0, WIDTH, canvasHeight.value);
 
-  const centerX = Math.round(WIDTH / 2) + 0.5;
+  const centerX = Math.floor(WIDTH / 2) + 0.5;
 
   /* ==========================
-     VOLUMEN / DELTA
+     Volume POC
   ========================== */
 
-  const totals = levels.map((l) => l.bid + l.ask);
-  const deltas = levels.map((l) => l.ask - l.bid);
+  let volPocIndex = 0;
+  let maxVol = 0;
 
-  const maxVol = Math.max(...levels.map((l) => Math.max(l.bid, l.ask)));
+  levels.forEach((l, i) => {
+    const total = l.bid + l.ask;
+    if (total > maxVol) {
+      maxVol = total;
+      volPocIndex = i;
+    }
+  });
+
+  /* ==========================
+     Delta POC
+  ========================== */
+
+  let deltaPocIndex = 0;
+  let maxDeltaAbs = 0;
+
+  levels.forEach((l, i) => {
+    const abs = Math.abs(l.ask - l.bid);
+    if (abs > maxDeltaAbs) {
+      maxDeltaAbs = abs;
+      deltaPocIndex = i;
+    }
+  });
+
+  /* ==========================
+     Value Area 70%
+  ========================== */
+
+  const totals = levels.map(l => l.bid + l.ask);
   const totalVolume = totals.reduce((a, b) => a + b, 0);
+  const targetVolume = totalVolume * 0.7;
 
-  /* ==========================
-     POC
-  ========================== */
+  let cumVol = totals[volPocIndex];
+  let vah = volPocIndex;
+  let val = volPocIndex;
 
-  const maxTotal = totals.length ? Math.max(...totals) : 0;
-  const pocIndex = totals.length ? totals.indexOf(maxTotal) : 0;
-  const pocY = pocIndex * ROW_HEIGHT + ROW_HEIGHT / 2 + 0.5;
+  while (cumVol < targetVolume) {
+    const up = vah + 1 < totals.length ? totals[vah + 1] : 0;
+    const down = val - 1 >= 0 ? totals[val - 1] : 0;
 
-  /* ==========================
-     VALUE AREA
-  ========================== */
-
-  let vaVolume = totals[pocIndex] ?? 0;
-  let vah = pocIndex;
-  let val = pocIndex;
-
-  while (vaVolume < totalVolume * 0.7) {
-    const up = totals[vah + 1] ?? 0;
-    const down = totals[val - 1] ?? 0;
-
-    if (up >= down) {
+    if (up >= down && vah + 1 < totals.length) {
       vah++;
-      vaVolume += up;
-    } else {
+      cumVol += up;
+    } else if (val - 1 >= 0) {
       val--;
-      vaVolume += down;
+      cumVol += down;
+    } else {
+      break;
     }
   }
 
   /* ==========================
-     DELTA POC
+     Context interpretation
   ========================== */
 
-  const maxDeltaAbs = Math.max(...deltas.map((d) => Math.abs(d)));
-  const deltaPocIndex = deltas.map((d) => Math.abs(d)).indexOf(maxDeltaAbs);
+  if (volPocIndex === deltaPocIndex) {
+    contextText.value =
+      "Alta convicción institucional (volumen y delta alineados)";
+  } else if (deltaPocIndex < val || deltaPocIndex > vah) {
+    contextText.value =
+      "Agresión fuera del valor → posible fake o absorción";
+  } else {
+    contextText.value =
+      "Mercado balanceado / rotación interna";
+  }
 
   /* ==========================
-     HELPERS (ctx seguro)
+     Lines
   ========================== */
 
-  const hLine = (y: number, color: string) => {
-    ctx.strokeStyle = color;
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(WIDTH, y);
-    ctx.stroke();
-  };
-
-  /* ==========================
-     LÍNEAS
-  ========================== */
-
+  // Vertical center
   ctx.strokeStyle = "#475569";
-  ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(centerX, 0);
   ctx.lineTo(centerX, canvasHeight.value);
   ctx.stroke();
 
-  hLine(pocY, "#eab308");
-  hLine(vah * ROW_HEIGHT + ROW_HEIGHT / 2 + 0.5, "#22c55e");
-  hLine(val * ROW_HEIGHT + ROW_HEIGHT / 2 + 0.5, "#22c55e");
-  hLine(deltaPocIndex * ROW_HEIGHT + ROW_HEIGHT / 2 + 0.5, "#38bdf8");
+  // Volume POC
+  const pocY = volPocIndex * ROW_HEIGHT + ROW_HEIGHT / 2 + 0.5;
+  ctx.strokeStyle = "#eab308";
+  ctx.beginPath();
+  ctx.moveTo(0, pocY);
+  ctx.lineTo(WIDTH, pocY);
+  ctx.stroke();
+
+  // Delta POC
+  const deltaY = deltaPocIndex * ROW_HEIGHT + ROW_HEIGHT / 2 + 0.5;
+  ctx.strokeStyle = "#38bdf8";
+  ctx.beginPath();
+  ctx.moveTo(0, deltaY);
+  ctx.lineTo(WIDTH, deltaY);
+  ctx.stroke();
 
   /* ==========================
-     LEVELS
+     Levels
   ========================== */
 
-  let stackedAsk = 0;
-  let stackedBid = 0;
+  const maxSideVol = Math.max(...levels.map(l => Math.max(l.bid, l.ask)));
 
   levels.forEach((level, i) => {
     const y = i * ROW_HEIGHT;
-    const delta = level.ask - level.bid;
 
-    const bidWidth = maxVol ? (level.bid / maxVol) * (centerX - 30) : 0;
-    const askWidth = maxVol ? (level.ask / maxVol) * (centerX - 30) : 0;
-
-    const askImbalance = level.ask >= level.bid * 3;
-    const bidImbalance = level.bid >= level.ask * 3;
-
-    stackedAsk = askImbalance ? stackedAsk + 1 : 0;
-    stackedBid = bidImbalance ? stackedBid + 1 : 0;
+    const bidWidth = maxSideVol
+      ? (level.bid / maxSideVol) * (centerX - 30)
+      : 0;
+    const askWidth = maxSideVol
+      ? (level.ask / maxSideVol) * (centerX - 30)
+      : 0;
 
     if (level.bid > 0) {
-      ctx.fillStyle = bidImbalance ? "#991b1b" : "#7f1d1d";
+      ctx.fillStyle = "#7f1d1d";
       ctx.fillRect(centerX - bidWidth, y + 1, bidWidth, ROW_HEIGHT - 2);
     }
 
     if (level.ask > 0) {
-      ctx.fillStyle = askImbalance ? "#166534" : "#14532d";
+      ctx.fillStyle = "#14532d";
       ctx.fillRect(centerX, y + 1, askWidth, ROW_HEIGHT - 2);
     }
 
-    if (stackedAsk >= 3) {
-      ctx.fillStyle = "#22c55e";
-      ctx.fillRect(WIDTH - 6, y + 2, 4, ROW_HEIGHT - 4);
-    }
-
-    if (stackedBid >= 3) {
-      ctx.fillStyle = "#ef4444";
-      ctx.fillRect(2, y + 2, 4, ROW_HEIGHT - 4);
-    }
-
+    ctx.fillStyle = "#e5e7eb";
     ctx.font = "11px monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-
-    ctx.fillStyle =
-      Math.abs(delta) === maxDeltaAbs
-        ? "#38bdf8"
-        : delta > 0
-        ? "#4ade80"
-        : delta < 0
-        ? "#f87171"
-        : "#e5e7eb";
-
     ctx.fillText(
       `${level.bid.toFixed(0)} | ${level.ask.toFixed(0)}`,
       centerX,
@@ -262,7 +247,7 @@ function draw() {
 
     ctx.textAlign = "right";
     ctx.fillStyle = "#9ca3af";
-    ctx.fillText(level.price.toFixed(2), WIDTH - 8, y + ROW_HEIGHT / 2);
+    ctx.fillText(level.price.toFixed(2), WIDTH - 4, y + ROW_HEIGHT / 2);
   });
 }
 
@@ -270,15 +255,14 @@ function draw() {
    Lifecycle
 ========================== */
 
-let refreshTimer: ReturnType<typeof setInterval> | null = null;
+let refreshTimer = null;
 
 onMounted(async () => {
   await loadFootprint();
   await nextTick();
   setupCanvas();
   draw();
-
-  refreshTimer = setInterval(loadFootprint, 30_000);
+  refreshTimer = setInterval(loadFootprint, 60_000);
 });
 
 onUnmounted(() => {
@@ -299,6 +283,15 @@ watch(candle, async () => {
   border: 1px solid #1e293b;
   overflow: auto;
   height: 500px;
+  font-family: monospace;
+}
+
+.context-box {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #e5e7eb;
+  border-bottom: 1px solid #1e293b;
+  background: #020617;
 }
 
 canvas {
