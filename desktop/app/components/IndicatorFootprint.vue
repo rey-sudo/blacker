@@ -48,7 +48,6 @@ const ago = computed(() =>
 );
 
 async function loadFootprint() {
-
   if (isFetching.value) return;
   isFetching.value = true;
 
@@ -174,56 +173,53 @@ function draw() {
   });
 
   /* ==========================
-     CAPA 2: LÍNEAS E INDICADORES (POC)
+      CAPA 2: LÍNEAS E INDICADORES (POC Y EJE CENTRAL)
   ========================== */
-  // Línea Central
-  ctx.strokeStyle = "#334155";
+  // 1. Línea Central Divisoria Amarilla (Sólida y fija)
+  ctx.strokeStyle = "#eab308";
+  ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(centerX, 0);
   ctx.lineTo(centerX, canvasHeight.value);
   ctx.stroke();
 
-  // Volume POC (Amarillo)
-  const pocY = volPocIndex * ROW_HEIGHT + ROW_HEIGHT / 2;
+  // 2. Volume POC (Recuadro Amarillo)
   ctx.strokeStyle = "#eab308";
   ctx.lineWidth = 1;
   ctx.strokeRect(2, volPocIndex * ROW_HEIGHT, WIDTH - 4, ROW_HEIGHT);
 
   /* ==========================
-     CAPA 3: TEXTO (NÚMEROS E IMBALANCES)
+      CAPA 3: TEXTO (NÚMEROS SEPARADOS)
   ========================== */
   levels.forEach((level, i) => {
     const y = i * ROW_HEIGHT;
+    const centerYPos = y + ROW_HEIGHT / 2;
 
     // Lógica de Imbalance
     const isBullish = level.ask > level.bid * 3 && level.ask > 10;
     const isBearish = level.bid > level.ask * 3 && level.bid > 10;
 
-    // Configurar pincel para el número central
-    if (isBullish) {
-      ctx.fillStyle = "#4ade80"; // Verde Neón
-      ctx.font = "bold 12px monospace";
-    } else if (isBearish) {
-      ctx.fillStyle = "#f87171"; // Rojo Neón
-      ctx.font = "bold 12px monospace";
-    } else {
-      ctx.fillStyle = "#cbd5e1"; // Blanco/Gris suave
-      ctx.font = "11px monospace";
-    }
-
-    ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(
-      `${level.bid.toFixed(0)} | ${level.ask.toFixed(0)}`,
-      centerX,
-      y + ROW_HEIGHT / 2
-    );
 
-    // Dibujar Precio (Resetear estilo)
+    // --- DIBUJAR BID (Alineado a la derecha del bloque izquierdo) ---
+    ctx.textAlign = "right";
+    ctx.font = isBearish ? "bold 12px monospace" : "11px monospace";
+    ctx.fillStyle = isBearish ? "#f87171" : "#cbd5e1";
+    // El margen de -12px lo separa de la línea amarilla
+    ctx.fillText(level.bid.toFixed(0), centerX - 12, centerYPos);
+
+    // --- DIBUJAR ASK (Alineado a la izquierda del bloque derecho) ---
+    ctx.textAlign = "left";
+    ctx.font = isBullish ? "bold 12px monospace" : "11px monospace";
+    ctx.fillStyle = isBullish ? "#4ade80" : "#cbd5e1";
+    // El margen de +12px lo separa de la línea amarilla
+    ctx.fillText(level.ask.toFixed(0), centerX + 12, centerYPos);
+
+    // --- DIBUJAR PRECIO (Extremo derecho) ---
     ctx.textAlign = "right";
     ctx.fillStyle = "#94a3b8";
     ctx.font = "10px monospace";
-    ctx.fillText(level.price.toFixed(2), WIDTH - 5, y + ROW_HEIGHT / 2);
+    ctx.fillText(level.price.toFixed(2), WIDTH - 5, centerYPos);
   });
 
   // Ejecutar señal inteligente
