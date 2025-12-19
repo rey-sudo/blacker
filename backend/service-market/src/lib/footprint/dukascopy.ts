@@ -148,7 +148,7 @@ async function fetchDukascopyTicks(
    Core Footprint Builder (HYBRID)
 ========================== */
 
-export async function buildFootprintCandle(
+export async function buildFootprintCandleDukascopy(
   instrument: string,
   interval: string,
   tickSize: number
