@@ -1,7 +1,7 @@
 <template>
   <div class="footprint-wrapper">
     <div class="context-box">
-      {{ contextText }}
+      {{ contextText }} {{ ago }}
     </div>
     <canvas ref="canvas"></canvas>
   </div>
@@ -18,6 +18,7 @@ import {
   nextTick,
 } from "vue";
 import { useFootprint } from "~/composable/get-footprint";
+import { formatDistanceToNow } from 'date-fns';
 
 /* ==========================
    Composable
@@ -40,11 +41,14 @@ const contextText = ref("");
    Fetch
 ========================== */
 
-let isFetching = false;
+const isFetching = ref(false);
+const lastFetchTime = ref(new Date());
+
+const ago = computed(() => formatDistanceToNow(lastFetchTime.value, { addSuffix: true }));
 
 async function loadFootprint() {
-  if (isFetching) return;
-  isFetching = true;
+  if (isFetching.value) return;
+  isFetching.value = true;
 
   try {
     const data = await fetchFootprint({
@@ -57,8 +61,10 @@ async function loadFootprint() {
       ...data,
       levels: data.levels.map((l) => ({ ...l })),
     };
+
+    lastFetchTime.value = new Date();
   } finally {
-    isFetching = false;
+    isFetching.value = false;
   }
 }
 
@@ -117,20 +123,29 @@ function draw() {
   let maxVol = 0;
   const totals = levels.map((l, i) => {
     const total = l.bid + l.ask;
-    if (total > maxVol) { maxVol = total; volPocIndex = i; }
+    if (total > maxVol) {
+      maxVol = total;
+      volPocIndex = i;
+    }
     return total;
   });
 
   const totalVolume = totals.reduce((a, b) => a + b, 0);
   const targetVolume = totalVolume * 0.7;
-  let cumVol = totals[volPocIndex], vah = volPocIndex, val = volPocIndex;
+  let cumVol = totals[volPocIndex],
+    vah = volPocIndex,
+    val = volPocIndex;
 
   while (cumVol < targetVolume) {
     const up = vah + 1 < totals.length ? totals[vah + 1] : 0;
     const down = val - 1 >= 0 ? totals[val - 1] : 0;
-    if (up >= down && vah + 1 < totals.length) { vah++; cumVol += up; }
-    else if (val - 1 >= 0) { val--; cumVol += down; }
-    else break;
+    if (up >= down && vah + 1 < totals.length) {
+      vah++;
+      cumVol += up;
+    } else if (val - 1 >= 0) {
+      val--;
+      cumVol += down;
+    } else break;
   }
 
   /* ==========================
@@ -145,12 +160,12 @@ function draw() {
 
     // Fondo Bid (Rojo oscuro)
     if (level.bid > 0) {
-      ctx.fillStyle = "#450a0a"; 
+      ctx.fillStyle = "#450a0a";
       ctx.fillRect(centerX - bidWidth, y + 1, bidWidth, ROW_HEIGHT - 2);
     }
     // Fondo Ask (Verde oscuro)
     if (level.ask > 0) {
-      ctx.fillStyle = "#064e3b"; 
+      ctx.fillStyle = "#064e3b";
       ctx.fillRect(centerX, y + 1, askWidth, ROW_HEIGHT - 2);
     }
   });
@@ -161,7 +176,8 @@ function draw() {
   // Línea Central
   ctx.strokeStyle = "#334155";
   ctx.beginPath();
-  ctx.moveTo(centerX, 0); ctx.lineTo(centerX, canvasHeight.value);
+  ctx.moveTo(centerX, 0);
+  ctx.lineTo(centerX, canvasHeight.value);
   ctx.stroke();
 
   // Volume POC (Amarillo)
@@ -208,7 +224,13 @@ function draw() {
   });
 
   // Ejecutar señal inteligente
-  contextText.value = getTradingSignal(levels, volPocIndex, vah, val, totalVolume);
+  contextText.value = getTradingSignal(
+    levels,
+    volPocIndex,
+    vah,
+    val,
+    totalVolume
+  );
 }
 
 /* ==========================
