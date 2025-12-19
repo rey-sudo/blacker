@@ -148,7 +148,7 @@ async function fetchDukascopyTicks(
    Core Footprint Builder (HYBRID)
 ========================== */
 
-export async function buildFootprintCandleDukascopy(
+export async function buildFootprintCandle(
   instrument: string,
   interval: string,
   tickSize: number
@@ -224,13 +224,15 @@ export async function buildFootprintCandleDukascopy(
     const currAskVol = currTick.askVolume || 0;
 
     // Delta de volumen (consumo de liquidez)
+    // IMPORTANTE: Solo contamos consumo real, no cambios de precio
     const bidConsumed = Math.max(0, prevBidVol - currBidVol);
     const askConsumed = Math.max(0, prevAskVol - currAskVol);
 
     /* --------------------------
        COMPRA AGRESIVA (hit the ask)
-       - Se consume volumen del ask
-       - Asignamos al nivel del askPrice como ASK
+       - Se consume volumen del ask (alguien compró al market)
+       - Asignamos al nivel del askPrice actual como ASK
+       - VALIDACIÓN: Solo si hay consumo significativo
     -------------------------- */
     if (askConsumed > 0) {
       const priceLevel = floorToTick(currTick.askPrice, tickSize);
@@ -243,8 +245,9 @@ export async function buildFootprintCandleDukascopy(
 
     /* --------------------------
        VENTA AGRESIVA (hit the bid)
-       - Se consume volumen del bid
-       - Asignamos al nivel del bidPrice como BID
+       - Se consume volumen del bid (alguien vendió al market)
+       - Asignamos al nivel del bidPrice actual como BID
+       - VALIDACIÓN: Solo si hay consumo significativo
     -------------------------- */
     if (bidConsumed > 0) {
       const priceLevel = floorToTick(currTick.bidPrice, tickSize);
