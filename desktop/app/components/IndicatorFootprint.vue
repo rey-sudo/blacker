@@ -17,7 +17,7 @@ const { fetchFootprint, fetchError } = useFootprint()
 
 const symbol = ref('BTCUSDT')
 const market = ref('crypto')
-const interval = ref('30m')
+const interval = ref('15m')
 
 /* ==========================
    Backend contracts
@@ -54,15 +54,23 @@ const props = reactive<{
 /* ==========================
    Fetch data
 ========================== */
+let isFetching = false
 
 const loadFootprint = async () => {
-  const data = await fetchFootprint({
-    symbol: symbol.value,
-    market: market.value,
-    interval: interval.value
-  })
+  if (isFetching) return
+  isFetching = true
 
-  props.candle = data
+  try {
+    const data = await fetchFootprint({
+      symbol: symbol.value,
+      market: market.value,
+      interval: interval.value
+    })
+
+    props.candle = data
+  } finally {
+    isFetching = false
+  }
 }
 
 await loadFootprint()
@@ -130,7 +138,26 @@ function draw() {
   })
 }
 
-onMounted(draw)
+
+let refreshTimer: ReturnType<typeof setInterval> | null = null
+
+onMounted(() => {
+  draw()
+
+  refreshTimer = setInterval(() => {
+    loadFootprint()
+  }, 60_000) 
+})
+
+onUnmounted(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+  }
+})
+
+
+
+
 watch(() => props.candle, draw, { deep: true })
 </script>
 

@@ -21,7 +21,7 @@ type FootprintCandle = {
   levels: FootprintLevel[];
 };
 
-const BINANCE_URL = "https://api.binance.com/api/v3/aggTrades";
+const BINANCE_URL = "https://fapi.binance.com/fapi/v1/aggTrades";
 
 /* ==========================
    Utils
