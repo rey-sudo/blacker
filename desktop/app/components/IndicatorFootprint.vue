@@ -69,7 +69,7 @@ async function loadFootprint() {
     // Clonado defensivo (evita bugs de referencia)
     candle.value = {
       ...data,
-      levels: data.levels.map((l:any) => ({ ...l })),
+      levels: data.levels.map((l: any) => ({ ...l })),
     };
   } finally {
     isFetching = false;
@@ -168,15 +168,19 @@ function draw() {
   levels.forEach((level, i) => {
     const y = i * ROW_HEIGHT;
 
-    ctx.strokeStyle = "#1f2933";
-    ctx.strokeRect(0, y, WIDTH, ROW_HEIGHT);
+    const centerX = Math.round(WIDTH / 2) + 0.5;
 
-    const bidWidth = maxVol
-      ? (level.bid / maxVol) * (centerX - 30)
-      : 0;
-    const askWidth = maxVol
-      ? (level.ask / maxVol) * (centerX - 30)
-      : 0;
+    ctx.save();
+    ctx.strokeStyle = "yellow";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(centerX, 0);
+    ctx.lineTo(centerX, canvasHeight.value);
+    ctx.stroke();
+    ctx.restore();
+
+    const bidWidth = maxVol ? (level.bid / maxVol) * (centerX - 30) : 0;
+    const askWidth = maxVol ? (level.ask / maxVol) * (centerX - 30) : 0;
 
     if (level.bid > 0) {
       ctx.fillStyle = "#7f1d1d";
