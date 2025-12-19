@@ -27,7 +27,7 @@ const { fetchFootprint } = useFootprint();
 
 const symbol = ref("BTCUSDT");
 const market = ref("crypto");
-const interval = ref("15m");
+const interval = ref("5m");
 
 /* ==========================
    State
@@ -55,7 +55,7 @@ async function loadFootprint() {
 
     candle.value = {
       ...data,
-      levels: data.levels.map(l => ({ ...l })),
+      levels: data.levels.map((l) => ({ ...l })),
     };
   } finally {
     isFetching = false;
@@ -103,140 +103,95 @@ function draw() {
   const ctx = canvas.value.getContext("2d");
   if (!ctx) return;
 
-  const levels = candle.value.levels;
+  // 1. Ordenar niveles por precio (Descendente: más caro arriba)
+  const levels = [...candle.value.levels].sort((a, b) => b.price - a.price);
   if (!levels.length) return;
 
   ctx.clearRect(0, 0, WIDTH, canvasHeight.value);
-
   const centerX = Math.floor(WIDTH / 2) + 0.5;
 
   /* ==========================
-     Volume POC
+     CÁLCULOS (POC, VA, TOTALS)
   ========================== */
-
   let volPocIndex = 0;
   let maxVol = 0;
-
-  levels.forEach((l, i) => {
+  const totals = levels.map((l, i) => {
     const total = l.bid + l.ask;
-    if (total > maxVol) {
-      maxVol = total;
-      volPocIndex = i;
-    }
+    if (total > maxVol) { maxVol = total; volPocIndex = i; }
+    return total;
   });
 
-  /* ==========================
-     Delta POC
-  ========================== */
-
-  let deltaPocIndex = 0;
-  let maxDeltaAbs = 0;
-
-  levels.forEach((l, i) => {
-    const abs = Math.abs(l.ask - l.bid);
-    if (abs > maxDeltaAbs) {
-      maxDeltaAbs = abs;
-      deltaPocIndex = i;
-    }
-  });
-
-  /* ==========================
-     Value Area 70%
-  ========================== */
-
-  const totals = levels.map(l => l.bid + l.ask);
   const totalVolume = totals.reduce((a, b) => a + b, 0);
   const targetVolume = totalVolume * 0.7;
-
-  let cumVol = totals[volPocIndex];
-  let vah = volPocIndex;
-  let val = volPocIndex;
+  let cumVol = totals[volPocIndex], vah = volPocIndex, val = volPocIndex;
 
   while (cumVol < targetVolume) {
     const up = vah + 1 < totals.length ? totals[vah + 1] : 0;
     const down = val - 1 >= 0 ? totals[val - 1] : 0;
-
-    if (up >= down && vah + 1 < totals.length) {
-      vah++;
-      cumVol += up;
-    } else if (val - 1 >= 0) {
-      val--;
-      cumVol += down;
-    } else {
-      break;
-    }
+    if (up >= down && vah + 1 < totals.length) { vah++; cumVol += up; }
+    else if (val - 1 >= 0) { val--; cumVol += down; }
+    else break;
   }
 
   /* ==========================
-     Context interpretation
+     CAPA 1: BARRAS DE VOLUMEN (FONDO)
   ========================== */
-
-  if (volPocIndex === deltaPocIndex) {
-    contextText.value =
-      "Alta convicción institucional (volumen y delta alineados)";
-  } else if (deltaPocIndex < val || deltaPocIndex > vah) {
-    contextText.value =
-      "Agresión fuera del valor → posible fake o absorción";
-  } else {
-    contextText.value =
-      "Mercado balanceado / rotación interna";
-  }
-
-  /* ==========================
-     Lines
-  ========================== */
-
-  // Vertical center
-  ctx.strokeStyle = "#475569";
-  ctx.beginPath();
-  ctx.moveTo(centerX, 0);
-  ctx.lineTo(centerX, canvasHeight.value);
-  ctx.stroke();
-
-  // Volume POC
-  const pocY = volPocIndex * ROW_HEIGHT + ROW_HEIGHT / 2 + 0.5;
-  ctx.strokeStyle = "#eab308";
-  ctx.beginPath();
-  ctx.moveTo(0, pocY);
-  ctx.lineTo(WIDTH, pocY);
-  ctx.stroke();
-
-  // Delta POC
-  const deltaY = deltaPocIndex * ROW_HEIGHT + ROW_HEIGHT / 2 + 0.5;
-  ctx.strokeStyle = "#38bdf8";
-  ctx.beginPath();
-  ctx.moveTo(0, deltaY);
-  ctx.lineTo(WIDTH, deltaY);
-  ctx.stroke();
-
-  /* ==========================
-     Levels
-  ========================== */
-
-  const maxSideVol = Math.max(...levels.map(l => Math.max(l.bid, l.ask)));
+  const maxSideVol = Math.max(...levels.map((l) => Math.max(l.bid, l.ask)));
 
   levels.forEach((level, i) => {
     const y = i * ROW_HEIGHT;
+    const bidWidth = maxSideVol ? (level.bid / maxSideVol) * (centerX - 35) : 0;
+    const askWidth = maxSideVol ? (level.ask / maxSideVol) * (centerX - 35) : 0;
 
-    const bidWidth = maxSideVol
-      ? (level.bid / maxSideVol) * (centerX - 30)
-      : 0;
-    const askWidth = maxSideVol
-      ? (level.ask / maxSideVol) * (centerX - 30)
-      : 0;
-
+    // Fondo Bid (Rojo oscuro)
     if (level.bid > 0) {
-      ctx.fillStyle = "#7f1d1d";
+      ctx.fillStyle = "#450a0a"; 
       ctx.fillRect(centerX - bidWidth, y + 1, bidWidth, ROW_HEIGHT - 2);
     }
-
+    // Fondo Ask (Verde oscuro)
     if (level.ask > 0) {
-      ctx.fillStyle = "#14532d";
+      ctx.fillStyle = "#064e3b"; 
       ctx.fillRect(centerX, y + 1, askWidth, ROW_HEIGHT - 2);
     }
+  });
 
-    ctx.fillStyle = "#e5e7eb";
-    ctx.font = "11px monospace";
+  /* ==========================
+     CAPA 2: LÍNEAS E INDICADORES (POC)
+  ========================== */
+  // Línea Central
+  ctx.strokeStyle = "#334155";
+  ctx.beginPath();
+  ctx.moveTo(centerX, 0); ctx.lineTo(centerX, canvasHeight.value);
+  ctx.stroke();
+
+  // Volume POC (Amarillo)
+  const pocY = volPocIndex * ROW_HEIGHT + ROW_HEIGHT / 2;
+  ctx.strokeStyle = "#eab308";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(2, volPocIndex * ROW_HEIGHT, WIDTH - 4, ROW_HEIGHT);
+
+  /* ==========================
+     CAPA 3: TEXTO (NÚMEROS E IMBALANCES)
+  ========================== */
+  levels.forEach((level, i) => {
+    const y = i * ROW_HEIGHT;
+
+    // Lógica de Imbalance
+    const isBullish = level.ask > level.bid * 3 && level.ask > 10;
+    const isBearish = level.bid > level.ask * 3 && level.bid > 10;
+
+    // Configurar pincel para el número central
+    if (isBullish) {
+      ctx.fillStyle = "#4ade80"; // Verde Neón
+      ctx.font = "bold 12px monospace";
+    } else if (isBearish) {
+      ctx.fillStyle = "#f87171"; // Rojo Neón
+      ctx.font = "bold 12px monospace";
+    } else {
+      ctx.fillStyle = "#cbd5e1"; // Blanco/Gris suave
+      ctx.font = "11px monospace";
+    }
+
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(
@@ -245,11 +200,74 @@ function draw() {
       y + ROW_HEIGHT / 2
     );
 
+    // Dibujar Precio (Resetear estilo)
     ctx.textAlign = "right";
-    ctx.fillStyle = "#9ca3af";
-    ctx.fillText(level.price.toFixed(2), WIDTH - 4, y + ROW_HEIGHT / 2);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "10px monospace";
+    ctx.fillText(level.price.toFixed(2), WIDTH - 5, y + ROW_HEIGHT / 2);
   });
+
+  // Ejecutar señal inteligente
+  contextText.value = getTradingSignal(levels, volPocIndex, vah, val, totalVolume);
 }
+
+/* ==========================
+   Logic: Intelligent Signal
+========================== */
+
+function getTradingSignal(levels, volPocIndex, vah, val, totalVolume) {
+  const totalBid = levels.reduce((acc, l) => acc + l.bid, 0);
+  const totalAsk = levels.reduce((acc, l) => acc + l.ask, 0);
+  const cumulativeDelta = totalAsk - totalBid;
+
+  // 1. Detectar Imbalances agresivos (donde Ask > Bid * 3 o viceversa)
+  let bullishImbalances = 0;
+  let bearishImbalances = 0;
+  levels.forEach((l) => {
+    if (l.ask > l.bid * 3 && l.ask > 10) bullishImbalances++;
+    if (l.bid > l.ask * 3 && l.bid > 10) bearishImbalances++;
+  });
+
+  // 2. Ubicación del POC (¿Está en el extremo superior o inferior?)
+  const isPocTop = volPocIndex > levels.length * 0.7; // Cerca del máximo
+  const isPocBottom = volPocIndex < levels.length * 0.3; // Cerca del mínimo
+
+  // 3. Lógica de Decisión
+  // COMPRA: Delta positivo fuerte + Imbalances alcistas + POC soportando el precio abajo
+  if (
+    cumulativeDelta > totalVolume * 0.05 &&
+    bullishImbalances > bearishImbalances
+  ) {
+    if (isPocBottom)
+      return "🟢 COMPRA: Absorción de ventas y fuerte iniciativa compradora.";
+    return "🌱 COMPRA LEVE: Iniciativa alcista en control.";
+  }
+
+  // VENTA: Delta negativo fuerte + Imbalances bajistas + POC presionando arriba
+  if (
+    cumulativeDelta < -totalVolume * 0.05 &&
+    bearishImbalances > bullishImbalances
+  ) {
+    if (isPocTop)
+      return "🔴 VENTA: Absorción de compras y fuerte presión vendedora.";
+    return "📉 VENTA LEVE: Iniciativa bajista en control.";
+  }
+
+  // DIVERGENCIAS O NEUTRALIDAD
+  if (Math.abs(cumulativeDelta) < totalVolume * 0.02) {
+    return "⚖️ NEUTRAL: Mercado en equilibrio / Acumulación.";
+  }
+
+  return "⚠️ PRECAUCIÓN: Flujo de órdenes mixto o divergente.";
+}
+
+/* ==========================
+   Dentro de la función draw()
+========================== */
+
+// ... (después de calcular VA y POC)
+
+// ... (resto del dibujo)
 
 /* ==========================
    Lifecycle
