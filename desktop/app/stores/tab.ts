@@ -4,7 +4,7 @@ export const createTabStore = (tabId: string) =>
   defineStore(`tab-${tabId}`, () => {
     const symbol = ref("BTCUSDT");
     const market = ref("crypto");
-    const interval = ref("1h");
+    const interval = ref("5m");
     const window = ref(500);
 
     const slaveId = ref("");

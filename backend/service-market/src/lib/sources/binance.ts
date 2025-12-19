@@ -10,7 +10,7 @@ export async function fetchCandlesBinance(
     const params: Record<string, any> = { symbol, interval, limit };
 
     const { data } = await API.get("/api/v3/klines", {
-      baseURL: "https://api.binance.us",
+      baseURL: "https://api.binance.com",
       params,
     });
 
