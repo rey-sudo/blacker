@@ -1,5 +1,5 @@
 <template>
-  <div class="symbol-selector">
+  <div class="tab">
     <div @click="visible = true">{{ tabName }}</div>
   </div>
 </template>
@@ -23,7 +23,7 @@ const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
 </script>
 
 <style lang="css" scoped>
-.symbol-selector {
+.tab {
   border-left: 1px solid var(--ui-border);
   border-right: 1px solid var(--ui-border);
   border-bottom: 1px solid var(--ui-primary);
@@ -38,10 +38,4 @@ const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
   height: inherit;
 }
 
-.symbol-selector i {
-  cursor: pointer;
-  margin-left: 0.5rem;
-  margin-top: 3px;
-  font-size: var(--font-size-0);
-}
 </style>

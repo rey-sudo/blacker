@@ -1,5 +1,5 @@
 <template>
-  <div class="main-chart">
+  <div class="main-chart" ref="chartDiv">
     <div class="main-chart-header">
       <PriceTicker :price="tabStore.lastPrice" />
 
@@ -19,6 +19,7 @@
     </div>
 
     <div class="countdown">{{ nextClose }}</div>
+
     <div class="main-chart-wrap">
       <div
         ref="chartContainer"
@@ -42,21 +43,15 @@ import {
 } from "lightweight-charts";
 
 const props = defineProps({
-  width: {
-    type: Number,
-    required: true,
-    default: 1000,
-  },
-  height: {
-    type: Number,
-    required: true,
-    default: 500,
-  },
   tabId: {
     type: String,
     required: true,
   },
 });
+
+const width = ref(null);
+const height = ref(null);
+
 const colorMode = useColorMode();
 
 const chartTheme = computed(() => colors[colorMode.value]);
@@ -126,7 +121,7 @@ const setupChart = () => {
   });
 
   watch(
-    () => [props.width, props.height],
+    () => [width.value, height.value],
     ([w, h]) => {
       if (candleChart) {
         candleChart.applyOptions({ width: w, height: h });
@@ -260,6 +255,10 @@ const startCountdown = () => {
   }, 1_000);
 };
 
+const chartDiv = ref(null);
+
+let chartObserver;
+
 onMounted(async () => {
   try {
     await nextTick();
@@ -268,6 +267,16 @@ onMounted(async () => {
       console.error("Los contenedores no están disponibles");
       return;
     }
+    chartObserver = new ResizeObserver(() => {
+      const chartHeaderHeight = 48;
+
+      if (chartDiv.value) {
+        width.value = chartDiv.value.clientWidth;
+        height.value = chartDiv.value.clientHeight - chartHeaderHeight;
+      }
+    });
+
+    chartObserver.observe(chartDiv.value);
 
     setupChart();
     startCountdown();
@@ -278,6 +287,8 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   tabStore.stop();
+
+  if (chartObserver) chartObserver.disconnect();
 
   if (candleChart) {
     candleChart.remove();
@@ -320,6 +331,7 @@ function calculateCountdown(nextClose, nowValue) {
 }
 
 .main-chart {
+  width: 100%;
   height: 100%;
   display: flex;
   overflow: hidden;
@@ -327,8 +339,8 @@ function calculateCountdown(nextClose, nowValue) {
 }
 
 .main-chart-header {
-  padding: 0 1rem;
   display: flex;
+  padding: 0 1rem;
   font-weight: 600;
   align-items: center;
   color: var(--ui-text);

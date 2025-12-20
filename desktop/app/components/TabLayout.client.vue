@@ -7,7 +7,7 @@
 </template>
 
 <script setup>
-import TabContent from "~/components/TabContent.vue";
+import TabContent from "~/components/TabContent.client.vue";
 import { ref, watch, markRaw } from "vue";
 
 const tabsStore = useTabsStore();

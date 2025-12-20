@@ -12,7 +12,6 @@
 
 <style scoped>
 .layout {
-  background: var(--background-0);
   box-sizing: border-box;
   height: 100vh;
   width: 100%;

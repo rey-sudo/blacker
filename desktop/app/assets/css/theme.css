@@ -25,17 +25,17 @@
 }
 
 :root {
-  --color-brand-50: #f2f1ff;
-  --color-brand-100: #e0deff;
-  --color-brand-200: #c2beff;
-  --color-brand-300: #9a92ff;
-  --color-brand-400: #7a6bff;
-  --color-brand-500: #635bfd; /* BASE */
-  --color-brand-600: #5448e0;
-  --color-brand-700: #453bc0;
-  --color-brand-800: #352f94;
-  --color-brand-900: #262369;
-  --color-brand-950: #191742;
+  --color-brand-50: #f0f6ff;
+  --color-brand-100: #dbe8ff;
+  --color-brand-200: #b6d2ff;
+  --color-brand-300: #84b3ff;
+  --color-brand-400: #4f8fff;
+  --color-brand-500: #2563eb; /* BASE */
+  --color-brand-600: #1f55cc;
+  --color-brand-700: #1b46aa;
+  --color-brand-800: #173a86;
+  --color-brand-900: #132f66;
+  --color-brand-950: #0c1f42;
 
   --color-neutral-50: #fafafa;
   --color-neutral-100: #f0f1f2;
@@ -107,6 +107,3 @@
   /* PRIMARY en dark */
   --ui-primary: var(--color-brand-400);
 }
-
-
-
