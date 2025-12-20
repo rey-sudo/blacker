@@ -6,7 +6,7 @@
 
 <style lang="css" scoped>
 .tab-indicators {
-  border-top: 0.25rem solid var(--ui-border);
+  border-top: 0.25rem solid var(--ui-bg-accented);
   background: var(--ui-bg);
   width: 100%;
   height: 100%;
