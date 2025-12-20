@@ -50,8 +50,7 @@ onBeforeUnmount(() => {
   display: grid;
   padding: var(--tab-padding);
   box-sizing: border-box;
-  row-gap: 0.25rem;
-  gap: 0.25rem;
+  gap: 0rem;
   height: 92vh;
   overflow: hidden;
   grid-template-rows: 70% 30%;
