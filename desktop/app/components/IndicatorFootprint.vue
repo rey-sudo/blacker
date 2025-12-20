@@ -24,9 +24,9 @@ import { formatDistanceToNow } from "date-fns";
 
 const { fetchFootprint } = useFootprint();
 
-const symbol = ref("EURUSD");
-const market = ref("forex");
-const source = ref("dukascopy");
+const symbol = ref("BTCUSDT");
+const market = ref("crypto");
+const source = ref("binance");
 const interval = ref("5m");
 
 /* ==========================
@@ -111,7 +111,6 @@ function draw() {
   const ctx = canvas.value.getContext("2d");
   if (!ctx) return;
 
-  // 1. Ordenar niveles por precio (Descendente: más caro arriba)
   const levels = [...candle.value.levels].sort((a, b) => b.price - a.price);
   if (!levels.length) return;
 
@@ -119,12 +118,17 @@ function draw() {
   const centerX = Math.floor(WIDTH / 2) + 0.5;
 
   /* ==========================
-     CÁLCULOS (POC, VA, TOTALS)
+     1. CÁLCULOS PREVIOS
   ========================== */
   let volPocIndex = 0;
   let maxVol = 0;
+  let totalBidVolume = 0;
+  let totalAskVolume = 0;
+
   const totals = levels.map((l, i) => {
     const total = l.bid + l.ask;
+    totalBidVolume += l.bid;
+    totalAskVolume += l.ask;
     if (total > maxVol) {
       maxVol = total;
       volPocIndex = i;
@@ -133,11 +137,13 @@ function draw() {
   });
 
   const totalVolume = totals.reduce((a, b) => a + b, 0);
+  const netDelta = totalAskVolume - totalBidVolume; // Delta Neto
+
+  // Cálculo de Value Area (VA)
   const targetVolume = totalVolume * 0.7;
   let cumVol = totals[volPocIndex],
     vah = volPocIndex,
     val = volPocIndex;
-
   while (cumVol < targetVolume) {
     const up = vah + 1 < totals.length ? totals[vah + 1] : 0;
     const down = val - 1 >= 0 ? totals[val - 1] : 0;
@@ -151,78 +157,125 @@ function draw() {
   }
 
   /* ==========================
-     CAPA 1: BARRAS DE VOLUMEN (FONDO)
+     2. BARRA DE DELTA (AL PRINCIPIO/ARRIBA)
   ========================== */
+  const barHeight = 12;
+  const barMargin = 30;
+  const barY = 25; // Posición superior
+  const barWidth = WIDTH - barMargin * 2;
+
+  const totalTrades = totalBidVolume + totalAskVolume;
+  if (totalTrades > 0) {
+    const bidPct = (totalBidVolume / totalTrades) * 100;
+    const askPct = (totalAskVolume / totalTrades) * 100;
+    const bidBarWidth = barWidth * (bidPct / 100);
+
+    // Fondo y Barras
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(barMargin, barY, barWidth, barHeight);
+    ctx.fillStyle = "#ef4444"; // Bid
+    ctx.fillRect(barMargin, barY, bidBarWidth, barHeight);
+    ctx.fillStyle = "#22c55e"; // Ask
+    ctx.fillRect(
+      barMargin + bidBarWidth,
+      barY,
+      barWidth - bidBarWidth,
+      barHeight
+    );
+
+    // Texto Porcentajes
+    ctx.font = "bold 10px monospace";
+    ctx.textBaseline = "bottom";
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#f87171";
+    ctx.fillText(`${bidPct.toFixed(1)}%`, barMargin, barY - 4);
+
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#4ade80";
+    ctx.fillText(`${askPct.toFixed(1)}%`, barMargin + barWidth, barY - 4);
+
+    // DELTA NETO (En el centro)
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 11px monospace";
+    const deltaSign = netDelta > 0 ? "+" : "";
+    ctx.fillText(
+      `DELTA: ${deltaSign}${netDelta}`,
+      barMargin + barWidth / 2,
+      barY - 4
+    );
+
+    // Línea de equilibrio (50%)
+    ctx.strokeStyle = "rgba(255,255,255,0.8)";
+    ctx.beginPath();
+    ctx.moveTo(barMargin + barWidth / 2, barY - 2);
+    ctx.lineTo(barMargin + barWidth / 2, barY + barHeight + 2);
+    ctx.stroke();
+  }
+
+  /* ==========================
+     3. DIBUJO DE NIVELES (OFFSET HACIA ABAJO)
+  ========================== */
+  // Añadimos un pequeño margen superior para que la barra no tape el primer nivel
+  const topOffset = 50;
+
+  // Capa 1: Fondos
   const maxSideVol = Math.max(...levels.map((l) => Math.max(l.bid, l.ask)));
-
   levels.forEach((level, i) => {
-    const y = i * ROW_HEIGHT;
-    const bidWidth = maxSideVol ? (level.bid / maxSideVol) * (centerX - 35) : 0;
-    const askWidth = maxSideVol ? (level.ask / maxSideVol) * (centerX - 35) : 0;
+    const y = i * ROW_HEIGHT + topOffset;
+    const bidWidth = maxSideVol ? (level.bid / maxSideVol) * (centerX - 40) : 0;
+    const askWidth = maxSideVol ? (level.ask / maxSideVol) * (centerX - 40) : 0;
 
-    // Fondo Bid (Rojo oscuro)
     if (level.bid > 0) {
       ctx.fillStyle = "#450a0a";
       ctx.fillRect(centerX - bidWidth, y + 1, bidWidth, ROW_HEIGHT - 2);
     }
-    // Fondo Ask (Verde oscuro)
     if (level.ask > 0) {
       ctx.fillStyle = "#064e3b";
       ctx.fillRect(centerX, y + 1, askWidth, ROW_HEIGHT - 2);
     }
   });
 
-  /* ==========================
-      CAPA 2: LÍNEAS E INDICADORES (POC Y EJE CENTRAL)
-  ========================== */
-  // 1. Línea Central Divisoria Amarilla (Sólida y fija)
+  // Capa 2: Eje Central y POC
   ctx.strokeStyle = "#eab308";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(centerX, 0);
-  ctx.lineTo(centerX, canvasHeight.value);
+  ctx.moveTo(centerX, topOffset);
+  ctx.lineTo(centerX, canvasHeight.value + topOffset);
   ctx.stroke();
 
-  // 2. Volume POC (Recuadro Amarillo)
-  ctx.strokeStyle = "#eab308";
   ctx.lineWidth = 1;
-  ctx.strokeRect(2, volPocIndex * ROW_HEIGHT, WIDTH - 4, ROW_HEIGHT);
+  ctx.strokeRect(
+    2,
+    volPocIndex * ROW_HEIGHT + topOffset,
+    WIDTH - 4,
+    ROW_HEIGHT
+  );
 
-  /* ==========================
-      CAPA 3: TEXTO (NÚMEROS SEPARADOS)
-  ========================== */
+  // Capa 3: Números
   levels.forEach((level, i) => {
-    const y = i * ROW_HEIGHT;
+    const y = i * ROW_HEIGHT + topOffset;
     const centerYPos = y + ROW_HEIGHT / 2;
-
-    // Lógica de Imbalance
     const isBullish = level.ask > level.bid * 3 && level.ask > 10;
     const isBearish = level.bid > level.ask * 3 && level.bid > 10;
 
     ctx.textBaseline = "middle";
-
-    // --- DIBUJAR BID (Alineado a la derecha del bloque izquierdo) ---
     ctx.textAlign = "right";
     ctx.font = isBearish ? "bold 12px monospace" : "11px monospace";
     ctx.fillStyle = isBearish ? "#f87171" : "#cbd5e1";
-    // El margen de -12px lo separa de la línea amarilla
     ctx.fillText(level.bid.toFixed(0), centerX - 12, centerYPos);
 
-    // --- DIBUJAR ASK (Alineado a la izquierda del bloque derecho) ---
     ctx.textAlign = "left";
     ctx.font = isBullish ? "bold 12px monospace" : "11px monospace";
     ctx.fillStyle = isBullish ? "#4ade80" : "#cbd5e1";
-    // El margen de +12px lo separa de la línea amarilla
     ctx.fillText(level.ask.toFixed(0), centerX + 12, centerYPos);
 
-    // --- DIBUJAR PRECIO (Extremo derecho) ---
     ctx.textAlign = "right";
     ctx.fillStyle = "#94a3b8";
     ctx.font = "10px monospace";
     ctx.fillText(level.price.toFixed(2), WIDTH - 5, centerYPos);
   });
 
-  // Ejecutar señal inteligente
   contextText.value = getTradingSignal(
     levels,
     volPocIndex,
