@@ -27,7 +27,7 @@ const { fetchFootprint } = useFootprint();
 const symbol = ref("BTCUSDT");
 const market = ref("crypto");
 const source = ref("binance");
-const interval = ref("5m");
+const interval = ref("15m");
 
 /* ==========================
    State
