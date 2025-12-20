@@ -107,7 +107,7 @@ onBeforeUnmount(() => {
 }
 
 .tab::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--ui-bg);
 }
 
 .tab::-webkit-scrollbar-thumb {
@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   justify-content: center;
   align-items: center;
-  min-height: 80vh;
+  min-height: 65vh;
   max-width: calc(100vw - (var(--tab-padding) * 2));
   overflow: hidden;
 }
