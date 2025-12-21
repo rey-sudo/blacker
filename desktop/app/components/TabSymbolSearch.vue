@@ -243,6 +243,7 @@ onMounted(() => searchInput.value?.focus());
 .tray-body {
   max-height: 56vh;
   overflow-y: auto;
+  margin-top: 0.5rem;
 }
 
 .no-results {
