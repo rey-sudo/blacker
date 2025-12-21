@@ -11,7 +11,7 @@ export default defineAppConfig({
           "bg-default divide-y divide-default flex flex-col focus:outline-none",
         header: "flex items-center gap-1.5 p-4 sm:px-6 min-h-16",
         wrapper: "",
-        body: "flex-1 p-4 sm:p-6",
+        body: "flex-1 p-4 sm:p-4",
         footer: "flex items-center gap-1.5 p-4 sm:px-6",
         title: "text-highlighted font-semibold",
         description: "mt-1 text-muted text-sm",

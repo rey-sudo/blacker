@@ -11,6 +11,7 @@
         @keydown.up.prevent="focusPrev"
         @keydown.enter.prevent="selectFocused"
         class="tab-symbol-input"
+        color="neutral"
       />
 
       <div class="tabs">
@@ -61,7 +62,6 @@
               <div class="symbol">{{ item.symbol }}</div>
               <div class="desc">{{ item.desc }}</div>
             </div>
-            <div class="row2">{{ item.subtitle }}</div>
           </div>
 
           <div class="item-right">
@@ -108,6 +108,33 @@ const defaultItems = [
   {
     id: 1,
     symbol: "BTCUSDT",
+    desc: "Bitcoin / TetherUS",
+    subtitle: "spot crypto",
+    exchange: "Binance",
+    marketType: "spot",
+    category: "crypto",
+  },
+  {
+    id: 2,
+    symbol: "LTCUSDT",
+    desc: "Bitcoin / TetherUS",
+    subtitle: "spot crypto",
+    exchange: "Binance",
+    marketType: "spot",
+    category: "crypto",
+  },
+  {
+    id: 3,
+    symbol: "LTCUSDT",
+    desc: "Bitcoin / TetherUS",
+    subtitle: "spot crypto",
+    exchange: "Binance",
+    marketType: "spot",
+    category: "crypto",
+  },
+  {
+    id: 3,
+    symbol: "ADAUSDT",
     desc: "Bitcoin / TetherUS",
     subtitle: "spot crypto",
     exchange: "Binance",
@@ -175,15 +202,16 @@ onMounted(() => searchInput.value?.focus());
   height: 500px;
   display: flex;
   overflow: hidden;
+
   flex-direction: column;
 }
 
 .tab-symbol-header {
   display: flex;
   align-items: center;
+  padding: 0.5rem;
   gap: 1rem;
   width: inherit;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
   flex-direction: column;
 }
 
@@ -215,7 +243,6 @@ onMounted(() => searchInput.value?.focus());
 .tray-body {
   max-height: 56vh;
   overflow-y: auto;
-  padding: 12px;
 }
 
 .no-results {
@@ -231,13 +258,13 @@ onMounted(() => searchInput.value?.focus());
 }
 
 .list-item {
+  gap: 1rem;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 0.5rem;
   cursor: pointer;
   transition: background 0.15s;
+  border-bottom: 1px solid var(--ui-border);
 }
 
 .list-item:hover {
@@ -246,7 +273,6 @@ onMounted(() => searchInput.value?.focus());
 
 .list-item.focused {
   background: rgba(255, 255, 255, 0.1);
-  outline: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .exchange-icon {
@@ -291,12 +317,6 @@ onMounted(() => searchInput.value?.focus());
 .desc {
   font-size: 12px;
   color: #bbb;
-}
-
-.row2 {
-  font-size: 11px;
-  color: #777;
-  margin-top: 4px;
 }
 
 .item-right {
