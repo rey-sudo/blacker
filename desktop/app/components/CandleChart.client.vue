@@ -7,7 +7,16 @@
 
       <ChartTimeframeSelector />
 
-      <USeparator orientation="vertical" class="h-6 px-4" />
+      <USeparator orientation="vertical" class="h-6 px-2" />
+
+      <UButton
+        color="neutral"
+        size="md"
+        variant="ghost"
+        icon="material-symbols:candlestick-chart-outline"
+      />
+
+      <USeparator orientation="vertical" class="h-6 px-2" />
 
       <IndicatorsButton />
 
@@ -346,7 +355,7 @@ function calculateCountdown(nextClose, nowValue) {
   color: var(--ui-text);
   font-size: var(--font-size-3);
   height: var(--chart-header-height);
-  border-bottom: 2px solid var(--ui-border);
+  border-bottom: 1px solid var(--ui-border);
   background: var(--chart-header-background);
 }
 

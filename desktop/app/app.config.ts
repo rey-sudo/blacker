@@ -32,7 +32,7 @@ export default defineAppConfig({
           },
           false: {
             content:
-              "w-[calc(100vw-2rem)] max-w-4xl rounded-lg shadow-lg ring ring-default",
+              "w-[calc(100vw-2rem)] max-w-4xl rounded-lg shadow-lg ring ring-transparent",
           },
         },
         overlay: {

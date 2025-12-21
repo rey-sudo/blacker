@@ -1,5 +1,5 @@
 <template>
-  <div class="tab-indicators">x</div>
+  <div class="tab-indicators"></div>
 </template>
 
 <script setup></script>
