@@ -268,7 +268,7 @@ onMounted(async () => {
       return;
     }
     chartObserver = new ResizeObserver(() => {
-      const chartHeaderHeight = 48;
+      const chartHeaderHeight = 35;
 
       if (chartDiv.value) {
         width.value = chartDiv.value.clientWidth;

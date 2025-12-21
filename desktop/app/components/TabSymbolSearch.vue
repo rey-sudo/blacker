@@ -21,7 +21,6 @@
           @click="activeTab = tab.key"
           :class="[
             'rounded-full',
-            'tab-btn',
             activeTab === tab.key ? 'active' : '',
           ]"
           size="xs"
@@ -225,25 +224,10 @@ onMounted(() => searchInput.value?.focus());
   gap: 0.5rem;
 }
 
-.tab-btn {
-  background: transparent;
-  color: #ccc;
-  padding: 6px 10px;
-  border-radius: 16px;
-  font-size: 12px;
-  border: none;
-  cursor: pointer;
-}
-
-.tab-btn.active {
-  background: rgba(255, 255, 255, 0.06);
-  color: white;
-}
-
 .tray-body {
   max-height: 56vh;
   overflow-y: auto;
-  margin-top: 0.5rem;
+  padding: 0.5rem;
 }
 
 .no-results {
@@ -282,7 +266,6 @@ onMounted(() => searchInput.value?.focus());
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.06);
   border-radius: 6px;
 }
 
