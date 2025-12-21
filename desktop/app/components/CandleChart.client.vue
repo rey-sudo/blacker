@@ -345,7 +345,6 @@ function calculateCountdown(nextClose, nowValue) {
 .main-chart-header {
   display: flex;
   padding: 0 1rem;
-  font-weight: 600;
   align-items: center;
   color: var(--ui-text);
   font-size: var(--font-size-3);

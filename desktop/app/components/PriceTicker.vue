@@ -32,7 +32,7 @@ watch(
 
 <style scoped>
 .price-ticker {
-  font-weight: 600;
+  font-weight: 500;
   font-size: var(--font-size-4);
   transition: color 0.25s ease;
 }
