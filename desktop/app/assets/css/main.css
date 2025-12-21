@@ -87,16 +87,16 @@ body {
 }
 
 :root {
-  --header-height: 4vh;
+  --header-height: 2.5rem;
   
   --chart-background: var(--ui-bg);
-  --chart-header-background: var(--ui-bg-elevated);
-  --chart-header-height: 4vh;
+  --chart-header-background: var(--ui-bg);
+  --chart-header-height: 2.5rem;
 
   --main-background: var(--ui-bg-accented);
   --nav-background: var(--color-neutral-950); 
 
-  --footer-height: 4vh;
+  --footer-height: 2.5rem;
   --tab-padding: 0.25rem;
 }
 

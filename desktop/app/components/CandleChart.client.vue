@@ -3,28 +3,23 @@
     <div class="main-chart-header">
       <PriceTicker :price="tabStore.lastPrice" />
 
-      <USeparator orientation="vertical" class="h-6 px-4" />
+      <USeparator orientation="vertical" class="h-6 px-2" />
 
       <ChartTimeframeSelector />
 
       <USeparator orientation="vertical" class="h-6 px-2" />
 
-      <UButton
-        color="neutral"
-        size="md"
-        variant="ghost"
-        icon="material-symbols:candlestick-chart-outline"
-      />
+      <TabChartTypeButton />
 
       <USeparator orientation="vertical" class="h-6 px-2" />
 
       <IndicatorsButton />
 
-      <USeparator orientation="vertical" class="h-6 px-4" />
+      <USeparator orientation="vertical" class="h-6 px-2" />
 
-      <ToolsButton />
+      <TabToolsButton />
 
-      <USeparator orientation="vertical" class="h-6 px-4" />
+      <USeparator orientation="vertical" class="h-6 px-2" />
     </div>
 
     <div class="countdown">{{ nextClose }}</div>

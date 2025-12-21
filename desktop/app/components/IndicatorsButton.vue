@@ -1,5 +1,5 @@
 <template>
-  <UButton color="neutral" size="sm" variant="ghost" icon="i-lucide-chart-no-axes-combined">Indicators</UButton>
+  <UButton color="neutral" size="sm" variant="ghost" icon="material-symbols:area-chart-outline">Indicators</UButton>
 </template>
 
 <script setup></script>
