@@ -69,12 +69,12 @@
   --ui-bg-inverted: #000000;
 
   /* BORDER (light) */
-  --ui-border: var(--color-neutral-200);
+  --ui-border: var(--color-neutral-100);
   --ui-border-muted: var(--color-neutral-300);
   --ui-border-accented: var(--color-brand-400);
   --ui-border-inverted: #ffffff;
 
-  
+
 
 
   /* RADIUS & LAYOUT */
