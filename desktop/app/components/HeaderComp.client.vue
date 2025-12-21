@@ -5,7 +5,7 @@
     <div class="header-body">
       <Tab :tabId="String(tab.id)" v-for="tab in tabsStore.tabs" :key="tab" />
 
-      <CreateTab />
+      <TabAdd />
     </div>
 
     <ColorModeButton />

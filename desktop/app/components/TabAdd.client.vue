@@ -8,11 +8,10 @@
 
   <UModal
     v-model:open="visible"
-    title="Search symbol"
-    :style="{ width: '60rem', height: '40rem' }"
+    title="Symbol Search"
   >
     <template #body>
-         <SymbolSearch @close="visible = false" @select="onSelect" />
+      <TabSymbolSearch @close="visible = false" @select="onSelect" />
     </template>
   </UModal>
 </template>

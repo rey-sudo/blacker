@@ -1,27 +1,33 @@
 <template>
-  <div class="tray-container">
-    <div class="tray-header">
+  <div class="tab-symbol-search">
+    <div class="tab-symbol-header">
       <UInput
         icon="i-lucide-search"
-        size="md"
+        size="lg"
         variant="outline"
         placeholder="Search..."
         v-model="query"
         @keydown.down.prevent="focusNext"
         @keydown.up.prevent="focusPrev"
         @keydown.enter.prevent="selectFocused"
-        class="tray-input"
+        class="tab-symbol-input"
       />
 
       <div class="tabs">
-        <button
+        <UButton
           v-for="tab in tabs"
           :key="tab.key"
           @click="activeTab = tab.key"
-          :class="['tab-btn', activeTab === tab.key ? 'active' : '']"
+          :class="[
+            'rounded-full',
+            'tab-btn',
+            activeTab === tab.key ? 'active' : '',
+          ]"
+          size="xs"
+          variant="soft"
         >
           {{ tab.label }}
-        </button>
+        </UButton>
       </div>
     </div>
 
@@ -164,26 +170,31 @@ onMounted(() => searchInput.value?.focus());
 </script>
 
 <style scoped>
-.tray-container {
+.tab-symbol-search {
   width: 100%;
   height: 500px;
-  border-radius: 12px;
-  overflow: hidden;
   display: flex;
+  overflow: hidden;
   flex-direction: column;
 }
 
-.tray-header {
+.tab-symbol-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
+  gap: 1rem;
+  width: inherit;
   border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  flex-direction: column;
+}
+
+.tab-symbol-input {
+  width: 100%;
 }
 
 .tabs {
   display: flex;
-  gap: 6px;
+  width: inherit;
+  gap: 0.5rem;
 }
 
 .tab-btn {
