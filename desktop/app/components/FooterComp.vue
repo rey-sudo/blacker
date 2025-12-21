@@ -45,10 +45,8 @@
   border-top: 1px solid var(--ui-border);
   background: var(--nav-background);
   height: var(--footer-height);
-  position: fixed;
   padding: 0 1rem;
   width: 100%;
-  bottom: 0;
   z-index: 100;
   display: flex;
   align-items: center;

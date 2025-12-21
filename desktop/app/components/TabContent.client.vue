@@ -1,5 +1,5 @@
 <template>
-  <div class="tab">
+  <div class="tab-content">
     <CandleChart :tabId="tabId" />
     <TabIndicators />
   </div>
@@ -46,27 +46,26 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="css" scoped>
-.tab {
+.tab-content {
   display: grid;
-  padding: var(--tab-padding);
-  box-sizing: border-box;
-  gap: 0rem;
-  height: 92vh;
+  gap: 0.25rem;
+  height: calc(100vh - (var(--header-height) + var(--footer-height)));
   overflow: hidden;
-  grid-template-rows: 70% 30%;
-  background: var(--main-background);
+  padding: var(--tab-padding);
+  grid-template-rows: 7fr 3fr;
+  box-sizing: border-box;
 }
 
 /* Chrome, Edge, Safari */
-.tab::-webkit-scrollbar {
+.tab-content::-webkit-scrollbar {
   width: 0.75rem;
 }
 
-.tab::-webkit-scrollbar-track {
+.tab-content::-webkit-scrollbar-track {
   background: var(--ui-bg);
 }
 
-.tab::-webkit-scrollbar-thumb {
+.tab-content::-webkit-scrollbar-thumb {
   background: var(--color-neutral-400);
   border-radius: var(--ui-radius);
   border-right: 1px solid transparent;
@@ -74,7 +73,7 @@ onBeforeUnmount(() => {
   cursor: grab;
 }
 
-.tab::-webkit-scrollbar-thumb:hover {
+.tab-content::-webkit-scrollbar-thumb:hover {
   background: var(--color-neutral-500);
 }
 </style>

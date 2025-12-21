@@ -12,13 +12,19 @@
 
 <style scoped>
 .layout {
-  box-sizing: border-box;
-  height: 100vh;
+  display: grid;
+  height: 100vh;          
   width: 100%;
-  padding: 0;
+  grid-template-rows: auto 1fr auto; 
+  background: var(--main-background);
+  box-sizing: border-box;
 }
 
 .content {
-  flex: 1;
+  min-height: 0;           
+  display: flex;
+  flex-direction: column;  
+  justify-content: center;
+  align-items: stretch;   
 }
 </style>

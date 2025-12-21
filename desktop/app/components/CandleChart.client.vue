@@ -1,6 +1,6 @@
 <template>
-  <div class="main-chart" ref="chartDiv">
-    <div class="main-chart-header">
+  <div class="candle-chart" ref="chartDiv">
+    <div class="candle-chart-header">
       <PriceTicker :price="tabStore.lastPrice" />
 
       <USeparator orientation="vertical" class="h-6 px-2" />
@@ -24,7 +24,7 @@
 
     <div class="countdown">{{ nextClose }}</div>
 
-    <div class="main-chart-wrap">
+    <div class="candle-chart-wrap">
       <div
         ref="chartContainer"
         class="chart-container"
@@ -334,7 +334,7 @@ function calculateCountdown(nextClose, nowValue) {
   top: 0;
 }
 
-.main-chart {
+.candle-chart {
   width: 100%;
   height: 100%;
   display: flex;
@@ -342,9 +342,8 @@ function calculateCountdown(nextClose, nowValue) {
   flex-direction: column;
 }
 
-.main-chart-header {
+.candle-chart-header {
   display: flex;
-  padding: 0 1rem;
   align-items: center;
   color: var(--ui-text);
   font-size: var(--font-size-3);
@@ -353,7 +352,7 @@ function calculateCountdown(nextClose, nowValue) {
   background: var(--chart-header-background);
 }
 
-.main-chart-wrap {
+.candle-chart-wrap {
   flex: 1;
 }
 </style>

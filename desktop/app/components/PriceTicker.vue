@@ -25,14 +25,14 @@ watch(
 </script>
 
 <template>
-  <span class="price-ticker" :class="color">
+  <span class="price-ticker px-2" :class="color">
     {{ formatPrice(props.price) }}
   </span>
 </template>
 
 <style scoped>
 .price-ticker {
-  font-weight: 500;
+  font-weight: 600;
   font-size: var(--font-size-4);
   transition: color 0.25s ease;
 }
