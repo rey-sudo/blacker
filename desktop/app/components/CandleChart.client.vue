@@ -13,7 +13,7 @@
 
       <USeparator orientation="vertical" class="h-6 px-2" />
 
-      <IndicatorsButton />
+      <TabIndicatorsButton />
 
       <USeparator orientation="vertical" class="h-6 px-2" />
 

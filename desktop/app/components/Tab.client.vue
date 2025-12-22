@@ -29,7 +29,7 @@ const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
   border-bottom: 1px solid var(--ui-primary);
   font-size: var(--font-size-1);
   text-transform: capitalize;
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem 1rem;
   color: var(--text-0);
   align-items: center;
   font-weight: 600;
