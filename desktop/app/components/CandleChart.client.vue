@@ -344,6 +344,7 @@ function calculateCountdown(nextClose, nowValue) {
 
 .candle-chart-header {
   display: flex;
+  padding: 0 0.5rem;
   align-items: center;
   color: var(--ui-text);
   font-size: var(--font-size-3);

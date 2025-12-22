@@ -12,6 +12,7 @@
         @keydown.enter.prevent="selectFocused"
         class="tab-symbol-input"
         color="neutral"
+        :highlight="false"
       />
 
       <div class="tabs">
@@ -19,10 +20,7 @@
           v-for="tab in tabs"
           :key="tab.key"
           @click="activeTab = tab.key"
-          :class="[
-            'rounded-full',
-            activeTab === tab.key ? 'active' : '',
-          ]"
+          :class="['rounded-full', activeTab === tab.key ? 'active' : '']"
           size="xs"
           variant="soft"
         >
