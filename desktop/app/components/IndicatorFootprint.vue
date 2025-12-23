@@ -24,9 +24,9 @@ import { formatDistanceToNow } from "date-fns";
 
 const { fetchFootprint } = useFootprint();
 
-const symbol = ref("BTCUSDT");
-const market = ref("crypto");
-const source = ref("binance");
+const symbol = ref("USDJPY");
+const market = ref("forex");
+const source = ref("dukascopy");
 const interval = ref("15m");
 
 /* ==========================

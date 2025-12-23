@@ -1,5 +1,8 @@
 * {
-  font-family: "Open Sans", monospace;
+  /*font-family: "Open Sans", monospace;
+  font-family: "Inter", sans-serif;
+  */
+  font-family: "IBM Plex Sans", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
   color: var(--ui-text);
@@ -35,7 +38,6 @@ body {
 }
 
 :root {
-
   --chart-background: var(--background-0);
   --chart-header-background: var(--background-0);
   --nav-background: var(--background-1);
@@ -88,19 +90,17 @@ body {
 
 :root {
   --header-height: 2.5rem;
-  
+
   --chart-background: var(--ui-bg);
   --chart-header-background: var(--ui-bg);
   --chart-header-height: 2.5rem;
 
   --main-background: var(--ui-bg-accented);
-  --nav-background: var(--color-neutral-950); 
+  --nav-background: var(--color-neutral-950);
 
   --footer-height: 2.5rem;
   --tab-padding: 0.25rem;
 }
-
-
 
 /* Dark mode */
 .dark {
