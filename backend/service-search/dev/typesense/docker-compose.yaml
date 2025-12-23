@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   typesense:
     image: typesense/typesense:29.0
@@ -15,3 +13,13 @@ services:
       --data-dir /data
       --api-key=${TYPESENSE_API_KEY}
       --enable-cors
+  typesense_dashboard:
+    image: ghcr.io/bfritscher/typesense-dashboard:2.4.3
+    container_name: typesense_dashboard
+    ports:
+      - "3005:80"
+    environment:
+      TYPESENSE_SERVER_URL: "http://typesense:8108"
+      TYPESENSE_API_KEY: "xyz"
+    depends_on:
+      - typesense
