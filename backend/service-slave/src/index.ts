@@ -4,13 +4,13 @@ import database from "./database/client.js";
 import { fetchCandles, GetCandlesParams } from "./lib/market/getCandles.js";
 import { Env, validateEnv } from "./lib/zod/verifyEnvVars.js";
 import { processOrders } from "./lib/order/processOrders.js";
+import { detectorRule } from "./lib/rules/detectorRule.js";
+import { triggerRule } from "./lib/rules/triggerRule.js";
 import { executeOrder } from "./lib/order/executeOrder.js";
 import { createSlave } from "./lib/slave/createSlave.js";
 import { SlaveState, Interval } from "./types/index.js";
-import { detectorRule } from "./lib/rules/detectorRule.js";
 import { startHttpServer } from "./server/index.js";
 import { adxRule } from "./lib/rules/adxRule.js";
-import { mfiRule } from "./lib/rules/mfiRule.js";
 import { fileURLToPath } from "url";
 import {
   findSlaveById,
@@ -151,7 +151,7 @@ export class SlaveBot {
 
       this.state.updated_at = Date.now();
 
-      logger.info("✅ State saved");
+      logger.info(`✅ State saved: ${this.state.rule_values}`);
     } catch (err: any) {
       await conn?.rollback();
 
@@ -166,7 +166,7 @@ export class SlaveBot {
     }
   }
 
-  private async getCandles(params: GetCandlesParams) {
+  private async getCandles(params: GetCandlesParams): Promise<Candle[]> {
     return withRetry(() => fetchCandles(process.env.MARKET_HOST!, params));
   }
 
@@ -175,8 +175,10 @@ export class SlaveBot {
     return await sleep(timeMs);
   }
 
-  public reset() {
+  public async reset() {
     this.state.rule_values = this.state.rule_values.map(() => false);
+
+    await this.save();
     logger.info("🔄️ Reseted");
   }
 
@@ -201,6 +203,11 @@ export class SlaveBot {
 
         const candles = await this.getCandles(getCandlesParams);
 
+        if (!candles.length) {
+          logger.info("⚠️ Warning there are not enough candles");
+          continue;
+        }
+
         this.dataset = candles;
 
         await processOrders.call(this, candles);
@@ -208,19 +215,11 @@ export class SlaveBot {
         const R0 = await detectorRule.call(this, 0, candles);
         if (!R0) continue;
 
-        const rule1 = await adxRule.call(this, 1, candles);
+        const R1 = await adxRule.call(this, 1, candles);
+        if (!R1) continue;
 
-        if (!rule1) {
-          await this.sleep(300_000);
-          continue;
-        }
-
-        const rule2 = await mfiRule.call(this, 2, candles);
-
-        if (!rule2) {
-          await this.sleep(300_000);
-          continue;
-        }
+        const R2 = await triggerRule.call(this, 2, candles);
+        if (!R2) continue;
 
         await executeOrder.call(this, candles);
 

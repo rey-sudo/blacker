@@ -1,6 +1,8 @@
 /* ============================================================
    LIGHT THEME
    ============================================================ */
+@import "tailwindcss";
+@import "@nuxt/ui";
 
 :root {
   --color-aqua: #00bcd4;
@@ -23,19 +25,19 @@
 }
 
 :root {
-  --color-brand-50:  #f1fbfd;
-  --color-brand-100: #d5f3f8;
-  --color-brand-200: #a9e4ef;
-  --color-brand-300: #78d0e3;
-  --color-brand-400: #3fb6d2;
-  --color-brand-500: #1497b8; /* BASE */
-  --color-brand-600: #107b97;
-  --color-brand-700: #0d6177;
-  --color-brand-800: #0a4959;
-  --color-brand-900: #07323c;
-  --color-brand-950: #041f27;
+  --color-brand-50: #fff7e6;
+  --color-brand-100: #ffebc2;
+  --color-brand-200: #ffd88a;
+  --color-brand-300: #ffc34d;
+  --color-brand-400: #ffb31a;
+  --color-brand-500: #f7a600; /* BASE */
+  --color-brand-600: #d18c00;
+  --color-brand-700: #a66f00;
+  --color-brand-800: #805600;
+  --color-brand-900: #5c3e00;
+  --color-brand-950: #3d2900;
 
-  --color-neutral-50:  #fafafa;
+  --color-neutral-50: #fafafa;
   --color-neutral-100: #f0f1f2;
   --color-neutral-200: #d8dadd;
   --color-neutral-300: #b5b8bd;
@@ -47,7 +49,6 @@
   --color-neutral-900: #17181a;
   --color-neutral-950: #0e0f10;
 }
-
 
 :root {
   /* ===== SEMANTIC TOKENS ===== */
@@ -68,7 +69,7 @@
   --ui-bg-inverted: #000000;
 
   /* BORDER (light) */
-  --ui-border: var(--color-neutral-200);
+  --ui-border: var(--color-neutral-100);
   --ui-border-muted: var(--color-neutral-300);
   --ui-border-accented: var(--color-brand-400);
   --ui-border-inverted: #ffffff;
@@ -98,18 +99,11 @@
   --ui-bg-inverted: #000000;
 
   /* BORDER (dark) */
-  --ui-border: var(--color-neutral-800);
-  --ui-border-muted: var(--color-neutral-700);
+  --ui-border: var(--color-neutral-700);
+  --ui-border-muted: var(--color-neutral-800);
   --ui-border-accented: var(--color-brand-400);
   --ui-border-inverted: #ffffff;
 
   /* PRIMARY en dark */
   --ui-primary: var(--color-brand-400);
-}
-
-:root {
-  --default-ema-color-0: var(--color-red);
-  --default-ema-color-1: var(--color-yellow);
-  --default-up-color: var(--color-green);
-  --default-down-color: var(--color-red);
 }

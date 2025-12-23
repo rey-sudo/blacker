@@ -1,25 +1,30 @@
 <template>
-  <div class="main-chart">
-    <div class="main-chart-header">
+  <div class="candle-chart" ref="chartDiv">
+    <div class="candle-chart-header">
       <PriceTicker :price="tabStore.lastPrice" />
 
-      <USeparator orientation="vertical" class="h-6 px-4" />
+      <USeparator orientation="vertical" class="h-6 px-2" />
 
-      <TimeframeSelector />
+      <ChartTimeframeSelector />
 
-      <USeparator orientation="vertical" class="h-6 px-4" />
+      <USeparator orientation="vertical" class="h-6 px-2" />
 
-      <IndicatorsButton />
+      <TabChartTypeButton />
 
-      <USeparator orientation="vertical" class="h-6 px-4" />
+      <USeparator orientation="vertical" class="h-6 px-2" />
 
-      <ToolsButton />
+      <TabIndicatorsButton />
 
-      <USeparator orientation="vertical" class="h-6 px-4" />
+      <USeparator orientation="vertical" class="h-6 px-2" />
+
+      <TabToolsButton />
+
+      <USeparator orientation="vertical" class="h-6 px-2" />
     </div>
 
     <div class="countdown">{{ nextClose }}</div>
-    <div class="main-chart-wrap">
+
+    <div class="candle-chart-wrap">
       <div
         ref="chartContainer"
         class="chart-container"
@@ -42,21 +47,15 @@ import {
 } from "lightweight-charts";
 
 const props = defineProps({
-  width: {
-    type: Number,
-    required: true,
-    default: 1000,
-  },
-  height: {
-    type: Number,
-    required: true,
-    default: 500,
-  },
   tabId: {
     type: String,
     required: true,
   },
 });
+
+const width = ref(null);
+const height = ref(null);
+
 const colorMode = useColorMode();
 
 const chartTheme = computed(() => colors[colorMode.value]);
@@ -126,7 +125,7 @@ const setupChart = () => {
   });
 
   watch(
-    () => [props.width, props.height],
+    () => [width.value, height.value],
     ([w, h]) => {
       if (candleChart) {
         candleChart.applyOptions({ width: w, height: h });
@@ -260,6 +259,10 @@ const startCountdown = () => {
   }, 1_000);
 };
 
+const chartDiv = ref(null);
+
+let chartObserver;
+
 onMounted(async () => {
   try {
     await nextTick();
@@ -268,6 +271,16 @@ onMounted(async () => {
       console.error("Los contenedores no están disponibles");
       return;
     }
+    chartObserver = new ResizeObserver(() => {
+      const chartHeaderHeight = 35;
+
+      if (chartDiv.value) {
+        width.value = chartDiv.value.clientWidth;
+        height.value = chartDiv.value.clientHeight - chartHeaderHeight;
+      }
+    });
+
+    chartObserver.observe(chartDiv.value);
 
     setupChart();
     startCountdown();
@@ -278,6 +291,8 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   tabStore.stop();
+
+  if (chartObserver) chartObserver.disconnect();
 
   if (candleChart) {
     candleChart.remove();
@@ -319,26 +334,26 @@ function calculateCountdown(nextClose, nowValue) {
   top: 0;
 }
 
-.main-chart {
+.candle-chart {
+  width: 100%;
   height: 100%;
   display: flex;
   overflow: hidden;
   flex-direction: column;
 }
 
-.main-chart-header {
-  padding: 0 1rem;
+.candle-chart-header {
   display: flex;
-  font-weight: 600;
+  padding: 0 0.5rem;
   align-items: center;
   color: var(--ui-text);
   font-size: var(--font-size-3);
   height: var(--chart-header-height);
-  border-bottom: 2px solid var(--ui-border);
+  border-bottom: 1px solid var(--ui-border);
   background: var(--chart-header-background);
 }
 
-.main-chart-wrap {
+.candle-chart-wrap {
   flex: 1;
 }
 </style>

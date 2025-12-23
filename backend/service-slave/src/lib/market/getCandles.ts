@@ -22,7 +22,9 @@ export async function fetchCandles(
       params,
     });
 
-    return response.data.data;
+    const { data } = response.data;
+
+    return data || [];
   } catch (err: any) {
     throw new CustomError({
       message: "Error fetching candles",

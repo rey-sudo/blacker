@@ -1,3 +1,5 @@
+import z from "zod";
+
 export interface Candle {
   time: number;
   open: number;
@@ -6,6 +8,17 @@ export interface Candle {
   close: number;
   volume: number;
 }
+
+export const CandleSchema = z.object({
+  time: z.number(),
+  open: z.number(),
+  high: z.number(),
+  low: z.number(),
+  close: z.number(),
+  volume: z.number(),
+});
+
+export const CandleArraySchema = z.array(CandleSchema);
 
 export interface TimeValue {
   time: number;
@@ -48,3 +61,5 @@ export interface Alert {
   created_at: number;
   updated_at: number;
 }
+
+

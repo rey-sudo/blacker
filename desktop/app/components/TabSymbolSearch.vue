@@ -1,27 +1,31 @@
 <template>
-  <div class="tray-container">
-    <div class="tray-header">
+  <div class="tab-symbol-search">
+    <div class="tab-symbol-header">
       <UInput
         icon="i-lucide-search"
-        size="md"
+        size="lg"
         variant="outline"
         placeholder="Search..."
         v-model="query"
         @keydown.down.prevent="focusNext"
         @keydown.up.prevent="focusPrev"
         @keydown.enter.prevent="selectFocused"
-        class="tray-input"
+        class="tab-symbol-input"
+        color="neutral"
+        :highlight="false"
       />
 
       <div class="tabs">
-        <button
+        <UButton
           v-for="tab in tabs"
           :key="tab.key"
           @click="activeTab = tab.key"
-          :class="['tab-btn', activeTab === tab.key ? 'active' : '']"
+          :class="['rounded-full', activeTab === tab.key ? 'active' : '']"
+          size="xs"
+          variant="soft"
         >
           {{ tab.label }}
-        </button>
+        </UButton>
       </div>
     </div>
 
@@ -55,7 +59,6 @@
               <div class="symbol">{{ item.symbol }}</div>
               <div class="desc">{{ item.desc }}</div>
             </div>
-            <div class="row2">{{ item.subtitle }}</div>
           </div>
 
           <div class="item-right">
@@ -102,6 +105,33 @@ const defaultItems = [
   {
     id: 1,
     symbol: "BTCUSDT",
+    desc: "Bitcoin / TetherUS",
+    subtitle: "spot crypto",
+    exchange: "Binance",
+    marketType: "spot",
+    category: "crypto",
+  },
+  {
+    id: 2,
+    symbol: "LTCUSDT",
+    desc: "Bitcoin / TetherUS",
+    subtitle: "spot crypto",
+    exchange: "Binance",
+    marketType: "spot",
+    category: "crypto",
+  },
+  {
+    id: 3,
+    symbol: "LTCUSDT",
+    desc: "Bitcoin / TetherUS",
+    subtitle: "spot crypto",
+    exchange: "Binance",
+    marketType: "spot",
+    category: "crypto",
+  },
+  {
+    id: 3,
+    symbol: "ADAUSDT",
     desc: "Bitcoin / TetherUS",
     subtitle: "spot crypto",
     exchange: "Binance",
@@ -164,47 +194,38 @@ onMounted(() => searchInput.value?.focus());
 </script>
 
 <style scoped>
-.tray-container {
+.tab-symbol-search {
   width: 100%;
   height: 500px;
-  border-radius: 12px;
-  overflow: hidden;
   display: flex;
+  overflow: hidden;
+
   flex-direction: column;
 }
 
-.tray-header {
+.tab-symbol-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  padding: 0.5rem;
+  gap: 1rem;
+  width: inherit;
+  flex-direction: column;
+}
+
+.tab-symbol-input {
+  width: 100%;
 }
 
 .tabs {
   display: flex;
-  gap: 6px;
-}
-
-.tab-btn {
-  background: transparent;
-  color: #ccc;
-  padding: 6px 10px;
-  border-radius: 16px;
-  font-size: 12px;
-  border: none;
-  cursor: pointer;
-}
-
-.tab-btn.active {
-  background: rgba(255, 255, 255, 0.06);
-  color: white;
+  width: inherit;
+  gap: 0.5rem;
 }
 
 .tray-body {
   max-height: 56vh;
   overflow-y: auto;
-  padding: 12px;
+  padding: 0.5rem;
 }
 
 .no-results {
@@ -220,13 +241,13 @@ onMounted(() => searchInput.value?.focus());
 }
 
 .list-item {
+  gap: 1rem;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 8px;
+  padding: 0.5rem;
   cursor: pointer;
   transition: background 0.15s;
+  border-bottom: 1px solid var(--ui-border-muted);
 }
 
 .list-item:hover {
@@ -235,7 +256,6 @@ onMounted(() => searchInput.value?.focus());
 
 .list-item.focused {
   background: rgba(255, 255, 255, 0.1);
-  outline: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .exchange-icon {
@@ -244,7 +264,6 @@ onMounted(() => searchInput.value?.focus());
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.06);
   border-radius: 6px;
 }
 
@@ -280,12 +299,6 @@ onMounted(() => searchInput.value?.focus());
 .desc {
   font-size: 12px;
   color: #bbb;
-}
-
-.row2 {
-  font-size: 11px;
-  color: #777;
-  margin-top: 4px;
 }
 
 .item-right {

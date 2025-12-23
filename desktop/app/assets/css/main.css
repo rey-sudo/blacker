@@ -1,5 +1,8 @@
 * {
-  font-family: "Open Sans", monospace;
+  /*font-family: "Open Sans", monospace;
+  font-family: "Inter", sans-serif;
+  */
+  font-family: "IBM Plex Sans", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
   color: var(--ui-text);
@@ -35,7 +38,6 @@ body {
 }
 
 :root {
-  --main-background: var(--background-0);
   --chart-background: var(--background-0);
   --chart-header-background: var(--background-0);
   --nav-background: var(--background-1);
@@ -79,20 +81,24 @@ body {
   --icon-radius: 8px;
 }
 
-@import "tailwindcss";
-@import "@nuxt/ui";
+:root {
+  --default-ema-color-0: var(--color-red);
+  --default-ema-color-1: var(--color-yellow);
+  --default-up-color: var(--color-green);
+  --default-down-color: var(--color-red);
+}
 
 :root {
-  --header-height: 3rem;
-  --main-background: var(--ui-bg-accented);
+  --header-height: 2.5rem;
 
   --chart-background: var(--ui-bg);
   --chart-header-background: var(--ui-bg);
-  --chart-header-height: calc(var(--header-height) / 1.25);
+  --chart-header-height: 2.5rem;
 
-  --nav-background: var(--ui-bg);
+  --main-background: var(--ui-bg-accented);
+  --nav-background: var(--color-neutral-950);
 
-  --footer-height: 3rem;
+  --footer-height: 2.5rem;
   --tab-padding: 0.25rem;
 }
 

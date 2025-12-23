@@ -1,11 +1,11 @@
 <template>
   <div class="footer">
     <div class="flex justify-center gap-6">
-      <UButton color="neutral" size="xs" variant="soft"
+      <UButton color="neutral" size="xs" variant="ghost" icon="lucide:activity"
         >Positions
 
         <template #trailing>
-          <UBadge size="md" color="neutral" variant="outline">0</UBadge>
+          <UBadge size="md" color="neutral" variant="soft">0</UBadge>
         </template>
       </UButton>
 
@@ -21,13 +21,13 @@
         >Backtesting</UButton
       >
 
-      <UButton color="neutral" icon="i-lucide-bot" size="xs" variant="ghost"
+      <UButton color="neutral" icon="i-lucide-cpu" size="xs" variant="ghost"
         >Bots</UButton
       >
 
       <UButton color="neutral" icon="i-lucide-bell" size="xs" variant="ghost">
         <template #trailing>
-          <UBadge size="md" color="neutral" variant="outline">0</UBadge>
+          <UBadge size="md" color="neutral" variant="soft">0</UBadge>
         </template>
 
         Alerts</UButton
@@ -42,13 +42,11 @@
 
 <style lang="css" scoped>
 .footer {
-  border-top: 2px solid var(--ui-border);
+  border-top: 1px solid var(--ui-border);
   background: var(--nav-background);
   height: var(--footer-height);
-  position: fixed;
   padding: 0 1rem;
   width: 100%;
-  bottom: 0;
   z-index: 100;
   display: flex;
   align-items: center;

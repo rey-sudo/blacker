@@ -25,7 +25,7 @@ watch(
 </script>
 
 <template>
-  <span class="price-ticker" :class="color">
+  <span class="price-ticker px-2" :class="color">
     {{ formatPrice(props.price) }}
   </span>
 </template>

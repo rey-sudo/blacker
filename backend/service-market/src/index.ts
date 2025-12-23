@@ -40,6 +40,14 @@ const main = async () => {
       route.getCandleHandler
     );
 
+    app.get(
+      "/api/market/get-footprint",
+
+      ...route.getFootprintMiddlewares,
+
+      route.getFootprintHandler
+    );
+
     app.get("/api/market/ping", (req: Request, res: Response) => {
       res.status(200).json({ success: true, data: { message: "Test OK" } });
     });
