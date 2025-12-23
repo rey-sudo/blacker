@@ -28,12 +28,26 @@ export const envSchema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((v) => v === "true"),
+
+  TYPESENSE_HOST: z.string().min(1, "TYPESENSE_HOST is required"),
+
+  TYPESENSE_PORT: z
+    .string()
+    .transform(Number)
+    .refine(
+      (port) => Number.isInteger(port) && port > 0 && port <= 65535,
+      "TYPESENSE_PORT must be a valid port number"
+    ),
+
+  TYPESENSE_PROTOCOL: z.enum(["http", "https"]),
+
+  TYPESENSE_API_KEY: z.string().min(1, "TYPESENSE_API_KEY is required"),
 });
 
 export type Env = z.infer<typeof envSchema>;
 
 export function validateEnv(): Env {
-  logger.info("📁 Parsing env variables")
+  logger.info("📁 Parsing env variables");
 
   const result = envSchema.safeParse(process.env);
 
@@ -47,4 +61,3 @@ export function validateEnv(): Env {
 
   return result.data;
 }
-
