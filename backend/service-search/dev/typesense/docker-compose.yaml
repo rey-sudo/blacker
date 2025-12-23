@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  typesense:
+    image: typesense/typesense:29.0
+    container_name: typesense-dev
+    restart: unless-stopped
+    ports:
+      - "8108:8108"
+    environment:
+      TYPESENSE_API_KEY: xyz
+    volumes:
+      - ./typesense-data:/data
+    command: >
+      --data-dir /data
+      --api-key=${TYPESENSE_API_KEY}
+      --enable-cors

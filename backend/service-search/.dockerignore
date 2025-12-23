@@ -4,3 +4,4 @@ dist
 /src/__mocks__
 /src/routes/__test__
 package-lock.json
+dev
