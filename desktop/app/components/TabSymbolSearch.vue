@@ -247,7 +247,7 @@ onMounted(() => searchInput.value?.focus());
   padding: 0.5rem;
   cursor: pointer;
   transition: background 0.15s;
-  border-bottom: 1px solid var(--ui-border);
+  border-bottom: 1px solid var(--ui-border-muted);
 }
 
 .list-item:hover {

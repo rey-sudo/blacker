@@ -100,7 +100,7 @@
 
   /* BORDER (dark) */
   --ui-border: var(--color-neutral-700);
-  --ui-border-muted: var(--color-neutral-700);
+  --ui-border-muted: var(--color-neutral-800);
   --ui-border-accented: var(--color-brand-400);
   --ui-border-inverted: #ffffff;
 
