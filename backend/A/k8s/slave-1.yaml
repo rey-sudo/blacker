@@ -32,7 +32,7 @@ spec:
             - name: SYMBOL
               value: "EURUSD"
             - name: INTERVAL
-              value: "30m"
+              value: "15m"
             - name: SIDE
               value: "LONG"          
             - name: ACCOUNT_BALANCE

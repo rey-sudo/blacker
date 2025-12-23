@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { buildFootprintCandle } from "../lib/footprint/binance";
+import { buildFootprintCandle } from "../lib/footprint/binance.js";
 import {
   buildFootprintCandleDukascopy,
   getTickSize,
