@@ -2,9 +2,10 @@ import { Instrument } from "./instruments";
 
 export const tradingSymbols: Instrument[] = [
   {
-    id: "postgress uuid",
+    id: "postgress-uuid",
     internalId: "binance-btc-usdt",
-
+    idempotentId: "binance-btc-usdt",
+    
     symbol: "BTCUSDT",
     symbolDisplay: "BTC/USDT",
     description: "Bitcoin / Tether USD",
@@ -12,13 +13,14 @@ export const tradingSymbols: Instrument[] = [
     base: "BTC",
     quote: "USDT",
 
-    exchange: "Binance",
+    exchange: "binance",
     exchangeCountry: "MT",
     market: "crypto",
     type: "spot",
 
-    externalId: "BTCUSDT",
-    feedProvider: "binance",
+    providerName: "binance",
+    providerId: "BTCUSDT",
+    providerSymbol: "BTCUSDT",
 
     status: "active",
     isHidden: false,
@@ -29,17 +31,18 @@ export const tradingSymbols: Instrument[] = [
     pricePrecision: 2,
     quantityPrecision: 4,
     minQuantity: 0.0001,
+    maxQuantity: 100,
+    lotSize: 0.1,
+    contractSize: 100,
     minOrderValue: 10,
+    maxOrderValue: 20,
     displayDecimals: 2,
 
-    lastPrice: 43250.25,
-    bidPrice: 43250.2,
-    askPrice: 43250.3,
-    highPrice24h: 44010.5,
-    lowPrice24h: 42500.1,
-    priceChange24h: -1.23,
-    volumeBase24h: 15432.12,
-    volumeQuote24h: 665000000,
+    leverage: 1,
+    leverageMax: 1,
+    marginType: ["isolated", "cross"],
+
+   
 
     isTradable: true,
     isMarginAllowed: true,
@@ -63,8 +66,6 @@ export const tradingSymbols: Instrument[] = [
 
     createdAt: "2025-01-01T00:00:00Z",
     updatedAt: "2025-01-01T00:00:00Z",
-    source: "binance",
-    currency: "USDT",
 
     orderBookEndpoint: "wss://stream.binance.com/ws/btcusdt@depth",
     tradesEndpoint: "wss://stream.binance.com/ws/btcusdt@trade",
