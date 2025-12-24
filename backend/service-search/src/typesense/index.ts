@@ -1,36 +1,7 @@
 import Typesense, { Client } from "typesense";
+import { Instrument } from "./collections/instruments.js";
 import { Env } from "../lib/env.js";
 
-export type Instrument = {
-  /** Typesense primary key */
-  id: string;
-
-  /** Internal business identifier */
-  internalId: string;
-
-  /** Trading symbol (eg BTCUSDT, AAPL) */
-  symbol: string;
-
-  description?: string;
-
-  /** Base asset */
-  base: string;
-
-  /** Quote asset */
-  quote: string;
-
-  /** Exchange name (Binance, NASDAQ, CME, etc) */
-  exchange: string;
-
-  /** Market type (crypto, stocks, forex, futures) */
-  market: string;
-
-  /** Instrument type */
-  type: "spot" | "futures" | "other";
-
-  isin?: string;
-  cusip?: string;
-};
 
 export type NewInstrument = Omit<Instrument, "id">;
 
