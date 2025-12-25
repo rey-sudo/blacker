@@ -32,24 +32,32 @@ export const BTCUSDT_SPOT: Instrument = {
   displayDecimals: 2,
   leverage: undefined,
   leverageMax: undefined,
-  supportedMarginTypes: [],
+  supportedMarginTypes: ["cross", "isolated"],
+
   feeTier: "standard",
   makerFee: 0.001,
   takerFee: 0.001,
   typicalSpread: 0.0002,
+
   timezone: "UTC",
   tags: ["crypto", "bitcoin", "spot"],
   priority: 1,
+
   iconUrl: "https://assets.exchange.com/icons/btc.svg",
   highlightColor: "#f7931a",
+
   symbol_aliases: ["XBTUSDT", "BTC-USDT"],
   fullTextSearch: "BTC BTCUSDT BTC/USDT Bitcoin Tether Binance",
+
+  createdAt: 1766633012791,
+  updatedAt: 1766633012791,
+
   symbol_lc: "btcusdt",
   search_terms: ["bitcoin", "btc", "usdt"],
-  createdAt: "2024-12-01T00:00:00Z",
-  updatedAt: "2024-12-01T00:00:00Z",
-  orderBookEndpoint: "wss://stream.binance.com/ws/btcusdt@depth",
-  tradesEndpoint: "wss://stream.binance.com/ws/btcusdt@trade",
+
+  supportedTimeframes: ["1h"],
+
+  supportsOHLCV: true,
 };
 
 export const tradingSymbols: Instrument[] = [BTCUSDT_SPOT];
