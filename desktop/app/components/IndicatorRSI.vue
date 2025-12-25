@@ -59,7 +59,7 @@ onMounted(async () => {
     indicator = createChart(container.value, {
       layout: {
         background: { color: "transparent" },
-        textColor: colors.text.primary,
+        textColor: getCssVariable("--ui-text-muted"),
       },
       rightPriceScale: {
         visible: true,

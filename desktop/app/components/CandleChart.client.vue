@@ -93,7 +93,7 @@ const setupChart = () => {
   candleChart = createChart(chartContainer.value, {
     layout: {
       background: { color: "transparent" },
-      textColor: getCssVariable("--ui-text"),
+      textColor: getCssVariable("--ui-text-muted"),
     },
     rightPriceScale: {
       visible: true,

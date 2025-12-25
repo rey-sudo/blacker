@@ -1,7 +1,7 @@
 <template>
   <div class="footer">
     <div class="flex items-center justify-center gap-1">
-      <UButton color="neutral" size="xs" variant="ghost" icon="lucide:activity"
+      <UButton color="neutral" size="xs" variant="ghost"
         >Positions
 
         <template #trailing>
@@ -11,23 +11,23 @@
 
       <USeparator orientation="vertical" class="h-6 px-1" />
 
-      <UButton icon="i-lucide-history" color="neutral" size="xs" variant="ghost"
+      <UButton  color="neutral" size="xs" variant="ghost"
         >Order History</UButton
       >
       <USeparator orientation="vertical" class="h-6 px-1" />
       <UButton
-        icon="i-lucide-chart-candlestick"
+
         color="neutral"
         size="xs"
         variant="ghost"
         >Backtesting</UButton
       >
       <USeparator orientation="vertical" class="h-6 px-1" />
-      <UButton color="neutral" icon="i-lucide-cpu" size="xs" variant="ghost"
+      <UButton color="neutral"  size="xs" variant="ghost"
         >Bots</UButton
       >
       <USeparator orientation="vertical" class="h-6 px-1" />
-      <UButton color="neutral" icon="i-lucide-bell" size="xs" variant="ghost">
+      <UButton color="neutral"  size="xs" variant="ghost">
         <template #trailing>
           <UBadge size="md" color="neutral" variant="soft">0</UBadge>
         </template>
