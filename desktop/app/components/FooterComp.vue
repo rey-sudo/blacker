@@ -1,6 +1,6 @@
 <template>
   <div class="footer">
-    <div class="flex justify-center gap-6">
+    <div class="flex items-center justify-center gap-1">
       <UButton color="neutral" size="xs" variant="ghost" icon="lucide:activity"
         >Positions
 
@@ -9,10 +9,12 @@
         </template>
       </UButton>
 
+      <USeparator orientation="vertical" class="h-6 px-1" />
+
       <UButton icon="i-lucide-history" color="neutral" size="xs" variant="ghost"
         >Order History</UButton
       >
-
+      <USeparator orientation="vertical" class="h-6 px-1" />
       <UButton
         icon="i-lucide-chart-candlestick"
         color="neutral"
@@ -20,11 +22,11 @@
         variant="ghost"
         >Backtesting</UButton
       >
-
+      <USeparator orientation="vertical" class="h-6 px-1" />
       <UButton color="neutral" icon="i-lucide-cpu" size="xs" variant="ghost"
         >Bots</UButton
       >
-
+      <USeparator orientation="vertical" class="h-6 px-1" />
       <UButton color="neutral" icon="i-lucide-bell" size="xs" variant="ghost">
         <template #trailing>
           <UBadge size="md" color="neutral" variant="soft">0</UBadge>
@@ -32,6 +34,7 @@
 
         Alerts</UButton
       >
+      <USeparator orientation="vertical" class="h-6 px-1" />
     </div>
 
     <FooterBuySellButtons style="margin-left: auto" />

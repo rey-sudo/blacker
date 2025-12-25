@@ -1,7 +1,7 @@
 <template>
   <UButton
     icon="i-lucide-plus"
-    size="md"
+    size="xs"
     @click="visible = true"
     variant="outline"
   />
