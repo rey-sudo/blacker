@@ -91,12 +91,13 @@ body {
 :root {
   --header-height: 2.5rem;
 
-  --chart-background: var(--ui-bg);
-  --chart-header-background: var(--ui-bg);
+  --chart-background: var(--color-neutral-975); 
+  --chart-header-background: var(--color-neutral-975); 
   --chart-header-height: 2.5rem;
 
   --main-background: var(--ui-bg-accented);
-  --nav-background: var(--color-neutral-950);
+
+  --nav-background: var(--ui-bg); 
 
   --footer-height: 2.5rem;
   --tab-padding: 0.25rem;

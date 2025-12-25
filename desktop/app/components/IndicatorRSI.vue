@@ -27,7 +27,7 @@ const props = defineProps({
   width: {
     type: Number,
     required: false,
-    default: 800,
+    default: 1500,
   },
   height: {
     type: Number,
@@ -107,7 +107,7 @@ onMounted(async () => {
 
     const rsiSeries = indicator.addSeries(LineSeries, {
       color: "purple",
-      lineWidth: 2,
+      lineWidth: 1,
     });
 
     watch(

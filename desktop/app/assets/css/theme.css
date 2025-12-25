@@ -48,6 +48,10 @@
   --color-neutral-800: #26282b;
   --color-neutral-900: #17181a;
   --color-neutral-950: #0e0f10;
+  --color-neutral-975: #090a0b;
+  --color-neutral-1000: #040506;
+  --color-neutral-1025: #020303;
+  --color-neutral-1050: #000000;
 }
 
 :root {
@@ -85,7 +89,7 @@
    ============================================================ */
 .dark {
   /* TEXT (dark) */
-  --ui-text: var(--color-neutral-100);
+  --ui-text: var(--color-neutral-200);
   --ui-text-muted: var(--color-neutral-400);
   --ui-text-dimmed: var(--color-neutral-500);
   --ui-text-highlighted: var(--color-brand-300);
