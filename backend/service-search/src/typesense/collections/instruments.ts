@@ -338,7 +338,7 @@ export type Instrument = {
   fullTextSearch?: string;
 
   /**
-   * Fee tier identifier (if applicable).
+   *  User Fee tier plan.
    */
   feeTier?: string;
 
@@ -355,6 +355,7 @@ export type Instrument = {
   /**
    * Typical bid-ask spread for informational purposes.
    * MUST NOT be used for execution.
+   * MAKER TAKER SPREAD 
    */
   typicalSpread?: number;
 
@@ -399,12 +400,12 @@ export type Instrument = {
   timezone: string;
 
   /**
-   * Creation UNIX timestamp.
+   * Creation UNIX ms timestamp.
    */
   createdAt: number;
 
   /**
-   * Last update UNIX timestamp.
+   * Last update UNIX ms timestamp.
    */
   updatedAt: number;
 
@@ -418,10 +419,10 @@ export type Instrument = {
    */
   search_terms?: string[];
 
-  /**Supported timeframes (1h, 4h, 1d, etc)*/
+  /**Supported timeframes (5m, 1h, 4h, 1d, etc)*/
   supportedTimeframes: string[];
 
-  /**OHLCV */
+  /** Supports OHLCV */
   supportsOHLCV: true;
 };
 
