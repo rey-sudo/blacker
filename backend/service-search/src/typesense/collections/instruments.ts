@@ -125,7 +125,7 @@ export type Instrument = {
   highlightColor: string;
 
   symbol_aliases: string[];
-  fullTextSearch?: string; // concatenación para búsqueda rápida
+  fullTextSearch?: string; // fullTextSearch = symbol + symbolDisplay + description + aliases
 
   feeTier?: string;
   makerFee?: number;
@@ -172,12 +172,50 @@ lotSize = 100
 200   (2 lots)
 300   (3 lots)
 
+If lotSize is defined:
+- quantityPrecision MUST NOT be defined
+- stepSize MUST NOT be defined
+- order quantities MUST be integer multiples of lotSize
+
+Exactly ONE quantity model must be defined:
+- lotSize
+- OR stepSize + quantityPrecision
+
 
 3. leverage only applies if leverageMax exists
 4. contractSize only for derivatives
 5. prices validated with tickSize
 6. notional = price * quantity
 7. tradingHours override 24/7
+
+
+minQuantity ≤ quantity ≤ maxQuantity
+
+minOrderValue ≤ price × quantity ≤ maxOrderValue
+
+Leverage rules apply ONLY if leverageMax exists
+
+If contractSize exists → instrument is derivative Quantity represents number of contracts
+
+If settlementType exists → settlementCurrency MUST exist
+
+(providerName, providerId) MUST be unique
+
+fullTextSearch = symbol + symbolDisplay + description + aliases
+
+makerFee and takerFee MUST be ≥ 0
+typicalSpread MUST NOT be used for execution
+
+
+RULES SUMMARY:
+
+- tickSize enforces price granularity
+- exactly one quantity model allowed
+- lot-based instruments do not support decimals
+- notional limits are mandatory
+- leverage applies only to derivatives
+- trading hours override 24/7 behavior
+- market data is not stored in Instrument
 
 
    */
