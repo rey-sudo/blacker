@@ -1,73 +1,102 @@
-import { Instrument } from "./instruments";
+import { Instrument, InstrumentMarket } from "./instruments";
 
-export const tradingSymbols: Instrument[] = [
-  {
-    id: "postgress-uuid",
-    internalId: "binance-btc-usdt",
-    idempotentId: "binance-btc-usdt",
-    
-    symbol: "BTCUSDT",
-    symbolDisplay: "BTC/USDT",
-    description: "Bitcoin / Tether USD",
+export const BTCUSDT_SPOT: Instrument = {
+  /** Database UUID v7 */
+  id: "018f5f3c-9c5a-7b92-bb2a-8c3a6f9e8d21",
 
-    base: "BTC",
-    quote: "USDT",
+  /** Stable internal business key */
+  internalId: "binance-btc-usdt-spot",
 
-    exchange: "binance",
-    exchangeCountry: "MT",
-    market: "crypto",
-    type: "spot",
+  /** Search engine primary key */
+  idempotentId: "binance:BTCUSDT:spot",
 
-    providerName: "binance",
-    providerId: "BTCUSDT",
-    providerSymbol: "BTCUSDT",
+  /** Trading symbol */
+  symbol: "BTCUSDT",
 
-    status: "active",
-    isHidden: false,
-    isSynthetic: false,
+  /** Display symbol */
+  symbolDisplay: "BTC/USDT",
 
-    tickSize: 0.01,
-    stepSize: 0.0001,
-    pricePrecision: 2,
-    quantityPrecision: 4,
-    minQuantity: 0.0001,
-    maxQuantity: 100,
-    minOrderValue: 10,
-    maxOrderValue: 20,    
-    lotSize: 0.1,
-    contractSize: 100,
-    displayDecimals: 2,
+  /** Human readable name */
+  description: "Bitcoin / Tether USD Spot Market",
 
-    leverage: 1,
-    leverageMax: 1,
-    supportedMarginTypes: ["isolated", "cross"],
+  /** Base & quote assets */
+  base: "BTC",
+  quote: "USDT",
 
-   
+  /** Exchange info */
+  exchange: "Binance",
+  exchangeCountry: "MT",
 
-    isTradable: true,
-    isMarginAllowed: true,
-    supportsStopLimit: true,
-    supportsMarginTrading: true,
-    supportsFutures: true,
-    requiresKYC: true,
+  /** Market classification */
+  market: InstrumentMarket.CRYPTO,
+  type: "spot",
 
-    tags: ["crypto", "btc", "major", "spot"],
-    priority: 1,
+  /** Data provider */
+  providerName: "Binance",
+  providerId: "BTCUSDT",
+  providerSymbol: "BTCUSDT",
 
-    iconUrl: "https://assets.exchange.com/icons/btc.svg",
-    highlightColor: "#F7931A",
+  /** Trading status */
+  status: "active",
+  isHidden: false,
+  isSynthetic: false,
 
-    symbol_aliases: ["BTC", "XBT"],
-    symbol_lc: "btcusdt",
-    search_terms: ["bitcoin", "btc", "tether", "usdt"],
-    fullTextSearch: "bitcoin btc usdt btcusdt binance",
+  /** Standard identifiers (not applicable for crypto) */
+  isin: undefined,
+  cusip: undefined,
 
-    timezone: "UTC",
+  /** Price rules */
+  tickSize: 0.01,
+  pricePrecision: 2,
 
-    createdAt: "2025-01-01T00:00:00Z",
-    updatedAt: "2025-01-01T00:00:00Z",
+  /** Quantity rules (step-based model) */
+  stepSize: 0.0001,
+  quantityPrecision: 4,
 
-    orderBookEndpoint: "wss://stream.binance.com/ws/btcusdt@depth",
-    tradesEndpoint: "wss://stream.binance.com/ws/btcusdt@trade",
-  },
-];
+  /** Quantity limits */
+  minQuantity: 0.0001,
+  maxQuantity: 1000,
+
+  /** Notional limits */
+  minOrderValue: 10,
+  maxOrderValue: 10_000_000,
+
+  /** UI display */
+  displayDecimals: 2,
+
+  /** Margin / leverage (spot → not applicable) */
+  leverage: undefined,
+  leverageMax: undefined,
+  supportedMarginTypes: [],
+
+  /** Fees */
+  feeTier: "standard",
+  makerFee: 0.001,
+  takerFee: 0.001,
+  typicalSpread: 0.0002,
+
+  /** Trading hours (24/7 crypto) */
+  timezone: "UTC",
+
+  /** UI metadata */
+  tags: ["crypto", "bitcoin", "spot"],
+  priority: 1,
+  iconUrl: "https://assets.exchange.com/icons/btc.svg",
+  highlightColor: "#f7931a",
+
+  /** Search optimization */
+  symbol_aliases: ["XBTUSDT", "BTC-USDT"],
+  fullTextSearch: "BTC BTCUSDT BTC/USDT Bitcoin Tether Binance",
+  symbol_lc: "btcusdt",
+  search_terms: ["bitcoin", "btc", "usdt"],
+
+  /** Metadata */
+  createdAt: "2024-12-01T00:00:00Z",
+  updatedAt: "2024-12-01T00:00:00Z",
+
+  /** Market data endpoints */
+  orderBookEndpoint: "wss://stream.binance.com/ws/btcusdt@depth",
+  tradesEndpoint: "wss://stream.binance.com/ws/btcusdt@trade",
+};
+
+export const tradingSymbols: Instrument[] = [BTCUSDT_SPOT];
