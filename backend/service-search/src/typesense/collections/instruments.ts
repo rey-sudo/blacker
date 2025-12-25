@@ -1,5 +1,17 @@
 export type InstrumentStatus = "active" | "inactive" | "delisted" | "halted";
 
+export enum InstrumentType {
+  SPOT = "spot",
+  FUTURES = "futures",
+  OPTIONS = "options",
+  OTHER = "other",
+}
+
+export enum InstrumentMarginType {
+  CROSS = "cross",
+  ISOLATED = "isolated",
+}
+
 export enum InstrumentMarket {
   /** Cryptocurrencies (spot, futures, options) */
   CRYPTO = "crypto",
@@ -119,7 +131,7 @@ export type Instrument = {
    * Instrument type.
    * Examples: "spot", "futures", "options", "other"
    */
-  type: string;
+  type: InstrumentType;
 
   /**
    * Name of the data or execution provider.
@@ -247,7 +259,7 @@ export type Instrument = {
    * Supported margin types for this instrument.
    * Examples: ["cross", "isolated"]
    */
-  supportedMarginTypes: string[];
+  supportedMarginTypes: InstrumentMarginType[];
 
   /**
    * Initial margin requirement (as a fraction).

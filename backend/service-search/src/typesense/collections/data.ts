@@ -1,4 +1,4 @@
-import { Instrument, InstrumentMarket } from "./instruments";
+import { Instrument, InstrumentMarginType, InstrumentMarket, InstrumentType } from "./instruments";
 
 export const BTCUSDT_SPOT: Instrument = {
   id: "018f5f3c-9c5a-7b92-bb2a-8c3a6f9e8d21",
@@ -9,10 +9,11 @@ export const BTCUSDT_SPOT: Instrument = {
   description: "Bitcoin / Tether USD Spot Market",
   base: "BTC",
   quote: "USDT",
+
   exchange: "Binance",
   exchangeCountry: "MT",
   market: InstrumentMarket.CRYPTO,
-  type: "spot",
+  type: InstrumentType.SPOT,
   providerName: "Binance",
   providerId: "BTCUSDT",
   providerSymbol: "BTCUSDT",
@@ -32,7 +33,7 @@ export const BTCUSDT_SPOT: Instrument = {
   displayDecimals: 2,
   leverage: undefined,
   leverageMax: undefined,
-  supportedMarginTypes: ["cross", "isolated"],
+  supportedMarginTypes: [InstrumentMarginType.CROSS, InstrumentMarginType.ISOLATED],
 
   feeTier: "standard",
   makerFee: 0.001,
