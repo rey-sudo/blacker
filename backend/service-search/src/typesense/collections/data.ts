@@ -40,7 +40,7 @@ export const tradingSymbols: Instrument[] = [
 
     leverage: 1,
     leverageMax: 1,
-    marginType: ["isolated", "cross"],
+    supportedMarginTypes: ["isolated", "cross"],
 
    
 

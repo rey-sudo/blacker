@@ -63,15 +63,20 @@ export type Instrument = {
 
   /** Minimum unit allowed to buy or sell the instrument.
   stepSize = 0.001,
+
   qty = 0.0015 ❌,
-  qty = 0.0020 ✅ */
-  stepSize: number;
+
+  qty = 0.0020 ✅.
+
+ ❌  Warning stepSize && lotSize
+  */
+  stepSize?: number;
 
   /** Maximum number of decimal places allowed in the price */
   pricePrecision: number;
 
   /** Maximum number of decimal places allowed in the amount/quantity */
-  quantityPrecision: number;
+  quantityPrecision?: number;
 
   /** Minimum order quantity allowed for this instrument */
   minQuantity: number;
@@ -85,26 +90,32 @@ export type Instrument = {
   /**Maximum notional value required to place an order.  notional = price × quantity*/
   maxOrderValue: number;
 
-  /** */
+  /** ❌ Warning stepSize && lotSize  */
   lotSize?: number;
-  contractSize: number;
+  contractSize?: number;
   displayDecimals: number; // decimales para UI
 
   /** Margin / leverage info for derivatives */
-  leverage: number;
-  leverageMax: number;
-  marginType: string[]; //"cross" | "isolated"
+  leverage?: number;
+  leverageMax?: number;
+  supportedMarginTypes: string[]; //"cross" | "isolated"
   initialMargin?: number;
   maintenanceMargin?: number;
 
   /** Expiry / settlement info for derivatives */
   expiryDate?: string;
   settlementType?: string; //"cash" | "physical"
+  settlementDelay?: "T+0" | "T+1" | "T+2";
+  priceMultiplier?: number;
+  pricingCurrency?: string;
   underlyingAsset?: string;
   settlementCurrency?: string;
 
-  candlestickInterval?: string; // e.g., "1m", "5m", "1h"
-  indicators?: Record<string, number>; // e.g., RSI, EMA, SMA
+  tradingHours?: {
+    open: string;
+    close: string;
+    days: number[];
+  };
 
   /** UI / display */
   tags: string[];
@@ -115,6 +126,12 @@ export type Instrument = {
 
   symbol_aliases: string[];
   fullTextSearch?: string; // concatenación para búsqueda rápida
+
+  feeTier?: string;
+  makerFee?: number;
+  takerFee?: number;
+
+  typicalSpread?: number;
 
   /** Security / regulation */
   isTradable?: boolean;
@@ -139,6 +156,31 @@ export type Instrument = {
   /** Optimización para búsqueda */
   symbol_lc?: string; // lowercase symbol para autocomplete
   search_terms?: string[]; // términos adicionales
+
+  /**
+   
+
+  RULES:
+
+1. stepSize XOR lotSize
+2. lotSize → quantityPrecision forbidden, 
+When an instrument is traded in fixed lots,
+the use of decimal quantity precision is not allowed.
+orders must be placed in whole multiples of the defined lot size.
+lotSize = 100
+100   (1 lot)
+200   (2 lots)
+300   (3 lots)
+
+
+3. leverage only applies if leverageMax exists
+4. contractSize only for derivatives
+5. prices validated with tickSize
+6. notional = price * quantity
+7. tradingHours override 24/7
+
+
+   */
 };
 
 const instrumentFields = [
