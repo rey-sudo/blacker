@@ -89,8 +89,8 @@
    ============================================================ */
 .dark {
   /* TEXT (dark) */
-  --ui-text: var(--color-neutral-200);
-  --ui-text-muted: var(--color-neutral-400);
+  --ui-text: var(--color-neutral-100);
+  --ui-text-muted: var(--color-neutral-300);
   --ui-text-dimmed: var(--color-neutral-500);
   --ui-text-highlighted: var(--color-brand-300);
   --ui-text-inverted: #ffffff;
