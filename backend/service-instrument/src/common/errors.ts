@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
-import { ZodError } from "zod";
 import { logger } from "./logger.js";
+import { ZodError } from "zod";
 
 export const ERROR_CODES = {
   BAD_REQUEST: "BAD_REQUEST",
@@ -25,6 +25,8 @@ export const ERROR_CODES = {
   UNVERIFIED_EMAIL: "UNVERIFIED_EMAIL",
   EMAIL_ALREADY_VERIFIED: "EMAIL_ALREADY_VERIFIED",
   BAD_USER_INPUT: "BAD_USER_INPUT",
+
+  ROUTE_NOT_FOUND: "ROUTE_NOT_FOUND",
 
   INTERNAL_ERROR: "INTERNAL_ERROR",
   SERVICE_UNAVAILABLE: "SERVICE_UNAVAILABLE",
@@ -54,56 +56,44 @@ export const ERROR_EVENTS = [
   "SIGCONT",
 ];
 
-export class ApiError extends Error {
-  public statusCode: number;
-  public code: string;
-  public details?: unknown;
-  public isOperational: boolean;
 
+export class ApiError extends Error {
   constructor(
-    statusCode: number,
+    public readonly statusCode: number,
     message: string,
-    options?: { code?: string; details?: unknown; isOperational?: boolean }
+    public readonly code: string,
+    public readonly details?: unknown,
+    public readonly isOperational: boolean = true
   ) {
     super(message);
-    this.name = new.target.name;
-    this.statusCode = statusCode;
-    this.code = options?.code || ERROR_CODES.INTERNAL_ERROR;
-    this.isOperational = options?.isOperational ?? true;
-
-    if (options?.code === ERROR_CODES.VALIDATION_ERROR) {
-      this.details = options.details;
-    }
-
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, new.target);
-    }
+    this.name = "ApiError";
+    Error.captureStackTrace?.(this, ApiError);
   }
 }
+
 
 const normalizeError = (err: unknown): ApiError => {
   if (err instanceof ApiError) return err;
 
   if (err instanceof ZodError) {
-    return new ApiError(400, "Validation error", {
-      code: ERROR_CODES.VALIDATION_ERROR,
-      details: err.flatten(),
-      isOperational: true,
-    });
+    return new ApiError(
+      400,
+      "Validation error",
+      ERROR_CODES.VALIDATION_ERROR,
+      err.flatten(),
+      true
+    );
   }
 
-  if (err instanceof Error) {
-    return new ApiError(500, "Internal server error", {
-      code: ERROR_CODES.INTERNAL_ERROR,
-      isOperational: false,
-    });
-  }
-
-  return new ApiError(500, "Unknown internal error", {
-    code: ERROR_CODES.INTERNAL_ERROR,
-    isOperational: false,
-  });
+  return new ApiError(
+    500,
+    "Internal server error",
+    ERROR_CODES.INTERNAL_ERROR,
+    undefined,
+    false
+  );
 };
+
 
 export const errorHandler: ErrorRequestHandler = (
   err: unknown,
@@ -111,25 +101,19 @@ export const errorHandler: ErrorRequestHandler = (
   res: Response,
   _next: NextFunction
 ) => {
-  logger.error(err);
-
   const normalized = normalizeError(err);
 
-  res.setHeader("Content-Type", "application/json");
+  logger.error(err);
 
-  const errorResponse = {
+  res.status(normalized.statusCode).json({
     status: normalized.statusCode,
+    code: normalized.code,
     message: normalized.isOperational
       ? normalized.message
       : "Internal server error",
-    code: normalized.code,
     details:
       normalized.code === ERROR_CODES.VALIDATION_ERROR
         ? normalized.details
-        : null,
-  };
-
-  logger.error(errorResponse);
-
-  res.status(normalized.statusCode).json(errorResponse);
+        : undefined,
+  });
 };

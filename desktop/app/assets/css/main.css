@@ -1,8 +1,9 @@
 * {
   /*font-family: "Open Sans", monospace;
-  font-family: "Inter", sans-serif;
-  */
   font-family: "IBM Plex Sans", sans-serif;
+  */
+
+  font-family: "Inter", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
   color: var(--ui-text);
@@ -91,13 +92,13 @@ body {
 :root {
   --header-height: 2.5rem;
 
-  --chart-background: var(--color-neutral-975); 
-  --chart-header-background: var(--color-neutral-975); 
+  --chart-background: var(--color-neutral-975);
+  --chart-header-background: var(--color-neutral-975);
   --chart-header-height: 2.5rem;
 
   --main-background: var(--ui-bg-accented);
 
-  --nav-background: var(--ui-bg); 
+  --nav-background: var(--ui-bg);
 
   --footer-height: 2.5rem;
   --tab-padding: 0.25rem;
