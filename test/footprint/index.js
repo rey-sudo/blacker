@@ -1,5 +1,5 @@
 // footprint-bookheatmap-resilient.js
-const WebSocket = require('ws');
+const WebSocket = require('./node_modules/ws');
 
 // -------------------------
 // CONFIG
