@@ -25,9 +25,9 @@ const main = async () => {
     });
 
     app.post(
-      "/api/user/login-user",
-      ...route.loginUserMiddlewares,
-      route.loginUserHandler
+      "/api/instrument/create-instrument",
+      ...route.createInstrumentMiddlewares,
+      route.createInstrumentHandler
     );
 
     app.get("/api/market/ping", (_req: Request, res: Response) => {
