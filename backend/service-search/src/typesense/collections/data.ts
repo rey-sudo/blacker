@@ -32,10 +32,10 @@ export const tradingSymbols: Instrument[] = [
     quantityPrecision: 4,
     minQuantity: 0.0001,
     maxQuantity: 100,
+    minOrderValue: 10,
+    maxOrderValue: 20,    
     lotSize: 0.1,
     contractSize: 100,
-    minOrderValue: 10,
-    maxOrderValue: 20,
     displayDecimals: 2,
 
     leverage: 1,

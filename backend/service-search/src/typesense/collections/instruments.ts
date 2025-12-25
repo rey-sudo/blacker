@@ -49,6 +49,7 @@ export type Instrument = {
   /** Visibility of the instrument for the search */
   isHidden: boolean;
 
+  /** Visibility of the instrument for the search */
   isSynthetic: boolean;
 
   /** Standard identifiers */
@@ -57,16 +58,35 @@ export type Instrument = {
   /** Standard identifiers */
   cusip?: string;
 
-  /** Trading precision and limits */
+  /** The minimum allowed increase in price */
   tickSize: number;
+
+  /** Minimum unit allowed to buy or sell the instrument.
+  stepSize = 0.001,
+  qty = 0.0015 ❌,
+  qty = 0.0020 ✅ */
   stepSize: number;
+
+  /** Maximum number of decimal places allowed in the price */
   pricePrecision: number;
-  quantityPrecision?: number;
+
+  /** Maximum number of decimal places allowed in the amount/quantity */
+  quantityPrecision: number;
+
+  /** Minimum order quantity allowed for this instrument */
   minQuantity: number;
+
+  /** Maximum order quantity allowed for this instrument */
   maxQuantity: number;
+
+  /**Minimum notional value required to place an order.  notional = price × quantity*/
   minOrderValue: number;
+
+  /**Maximum notional value required to place an order.  notional = price × quantity*/
   maxOrderValue: number;
-  lotSize: number;
+
+  /** */
+  lotSize?: number;
   contractSize: number;
   displayDecimals: number; // decimales para UI
 
