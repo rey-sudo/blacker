@@ -3,7 +3,9 @@
     <UInputNumber
       v-model="value"
       size="xs"
+      color="neutral"
       :step="0.01"
+      :highlight="false"
       :format-options="{
         style: 'decimal',
         minimumFractionDigits: 2,
