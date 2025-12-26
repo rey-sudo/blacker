@@ -5,7 +5,7 @@
         >Positions
 
         <template #trailing>
-          <UBadge size="sm" color="neutral" variant="soft">0</UBadge>
+          <UBadge size="sm" color="neutral" variant="outline">2</UBadge>
         </template>
       </UButton>
 
@@ -19,15 +19,15 @@
       <USeparator orientation="vertical" class="h-6 px-1" />
       <UButton color="neutral" size="xs" variant="ghost">
         <template #trailing>
-          <UBadge size="sm" color="neutral" variant="soft">0</UBadge>
+          <UBadge size="sm" color="neutral" variant="outline">1</UBadge>
         </template>
 
         Alerts</UButton
       >
-      <USeparator orientation="vertical" class="h-6 px-1" />
+      <USeparator orientation="vertical" class="h-6 px-4" />
+      <FooterBacktestBar />
     </div>
 
-    <FooterBacktestBar   style="margin-left: 300px"/>
     <FooterBuySellButtons style="margin-left: auto" />
   </div>
 </template>
