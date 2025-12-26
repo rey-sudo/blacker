@@ -1,6 +1,3 @@
-/* ============================================================
-   LIGHT THEME
-   ============================================================ */
 @import "tailwindcss";
 @import "@nuxt/ui";
 
@@ -8,106 +5,336 @@
   --color-aqua: #00bcd4;
   --color-black: #363a45;
   --color-blue: #2196f3;
+  --color-brown: #795548;
+  --color-coral: #ff7043;
+  --color-cyan: #00e5ff;
   --color-fuchsia: #e040fb;
+  --color-gold: #ffd700;
   --color-gray: #787b86;
   --color-green: #26a69a;
+  --color-indigo: #3f51b5;
   --color-lime: #00e676;
+  --color-magenta: #e91e63;
   --color-maroon: #880e4f;
+  --color-mint: #98ff98;
   --color-navy: #311b92;
   --color-olive: #808000;
   --color-orange: #ff9800;
+  --color-peach: #ffab91;
+  --color-pink: #f06292;
   --color-purple: #9c27b0;
   --color-red: #ef5350;
+  --color-rose: #ff4081;
   --color-silver: #b2b5be;
+  --color-sky: #81d4fa;
   --color-teal: #00897b;
+  --color-turquoise: #40e0d0;
+  --color-violet: #7c4dff;
   --color-white: #ffffff;
   --color-yellow: #ffeb3b;
 }
 
-:root {
+/* ===== TAILWIND THEME CONFIGURATION ===== */
+@theme {
+  /* BRAND COLORS (Gold/Amber for institutional premium feel) */
   --color-brand-50: #fff7e6;
   --color-brand-100: #ffebc2;
   --color-brand-200: #ffd88a;
   --color-brand-300: #ffc34d;
   --color-brand-400: #ffb31a;
-  --color-brand-500: #f7a600; /* BASE */
+  --color-brand-500: #f7a600;
   --color-brand-600: #d18c00;
   --color-brand-700: #a66f00;
   --color-brand-800: #805600;
   --color-brand-900: #5c3e00;
   --color-brand-950: #3d2900;
 
+  /* NEUTRAL COLORS (Extended grayscale for trading terminals) */
   --color-neutral-50: #fafafa;
   --color-neutral-100: #f0f1f2;
   --color-neutral-200: #d8dadd;
   --color-neutral-300: #b5b8bd;
   --color-neutral-400: #8c9096;
-  --color-neutral-500: #676b71; /* BASE */
+  --color-neutral-500: #676b71;
   --color-neutral-600: #505359;
   --color-neutral-700: #3a3d42;
   --color-neutral-800: #26282b;
+  --color-neutral-850: #1d1e20;
   --color-neutral-900: #17181a;
   --color-neutral-950: #0e0f10;
-  --color-neutral-975: #090a0b;
-  --color-neutral-1000: #040506;
-  --color-neutral-1025: #020303;
-  --color-neutral-1050: #000000;
+
+  /* TRADING SEMANTIC COLORS */
+  --color-success-50: #e8f9f0;
+  --color-success-100: #c2f0d8;
+  --color-success-200: #8ce5b8;
+  --color-success-300: #4dd896;
+  --color-success-400: #22c55e;
+  --color-success-500: #16a34a;
+  --color-success-600: #15803d;
+  --color-success-700: #166534;
+  --color-success-800: #14532d;
+  --color-success-900: #0f3a21;
+
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+
+  --color-warning-50: #fefce8;
+  --color-warning-100: #fef9c3;
+  --color-warning-200: #fef08a;
+  --color-warning-300: #fde047;
+  --color-warning-400: #facc15;
+  --color-warning-500: #eab308;
+  --color-warning-600: #ca8a04;
+  --color-warning-700: #a16207;
+  --color-warning-800: #854d0e;
+  --color-warning-900: #713f12;
+
+  --color-info-50: #eff6ff;
+  --color-info-100: #dbeafe;
+  --color-info-200: #bfdbfe;
+  --color-info-300: #93c5fd;
+  --color-info-400: #60a5fa;
+  --color-info-500: #3b82f6;
+  --color-info-600: #2563eb;
+  --color-info-700: #1d4ed8;
+  --color-info-800: #1e40af;
+  --color-info-900: #1e3a8a;
+
+  /* CHART COLORS for data visualization */
+  --color-chart-green: #22c55e;
+  --color-chart-red: #ef4444;
+  --color-chart-blue: #3b82f6;
+  --color-chart-purple: #a855f7;
+  --color-chart-orange: #f97316;
+  --color-chart-cyan: #06b6d4;
+  --color-chart-pink: #ec4899;
+  --color-chart-yellow: #eab308;
+
+  /* CUSTOM BREAKPOINTS for trading dashboards */
+  --breakpoint-3xl: 1920px;
+  --breakpoint-4xl: 2560px;
+
+  /* TYPOGRAPHY for financial data */
+  --font-sans: "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Monaco, "Cascadia Code", monospace;
 }
 
+/* ===== NUXT UI CSS VARIABLES - LIGHT MODE ===== */
 :root {
-  /* ===== SEMANTIC TOKENS ===== */
+  /* SEMANTIC COLORS */
   --ui-primary: var(--color-brand-500);
+  --ui-secondary: var(--color-neutral-500);
+  --ui-success: var(--color-success-500);
+  --ui-info: var(--color-info-500);
+  --ui-warning: var(--color-warning-500);
+  --ui-error: var(--color-error-500);
 
-  /* TEXT (light) */
-  --ui-text: var(--color-neutral-900);
-  --ui-text-muted: var(--color-neutral-600);
-  --ui-text-dimmed: var(--color-neutral-500);
-  --ui-text-highlighted: var(--color-brand-600);
-  --ui-text-inverted: #ffffff;
+  /* TEXT COLORS */
+  --ui-text-dimmed: var(--color-neutral-400);
+  --ui-text-muted: var(--color-neutral-500);
+  --ui-text-toned: var(--color-neutral-600);
+  --ui-text: var(--color-neutral-700);
+  --ui-text-highlighted: var(--color-neutral-900);
+  --ui-text-inverted: white;
 
-  /* BACKGROUND (light) */
-  --ui-bg: var(--color-neutral-50);
-  --ui-bg-muted: var(--color-neutral-100);
-  --ui-bg-elevated: #ffffff;
+  /* BACKGROUND COLORS */
+  --ui-bg: white;
+  --ui-bg-muted: var(--color-neutral-50);
+  --ui-bg-elevated: var(--color-neutral-100);
   --ui-bg-accented: var(--color-neutral-200);
-  --ui-bg-inverted: #000000;
+  --ui-bg-inverted: var(--color-neutral-900);
 
-  /* BORDER (light) */
-  --ui-border: var(--color-neutral-100);
-  --ui-border-muted: var(--color-neutral-300);
-  --ui-border-accented: var(--color-brand-400);
-  --ui-border-inverted: #ffffff;
+  /* BORDER COLORS */
+  --ui-border: var(--color-neutral-200);
+  --ui-border-muted: var(--color-neutral-200);
+  --ui-border-accented: var(--color-neutral-300);
+  --ui-border-inverted: var(--color-neutral-900);
 
-  /* RADIUS & LAYOUT */
-  --ui-radius: 0.25rem;
-  --ui-container: 1280px;
-  --ui-header-height: 64px;
+  /* LAYOUT */
+  --ui-radius: 0.25rem; /* 4px - subtle corners for professional look */
+  --ui-container: 80rem; /* 1280px */
+  --ui-header-height: --spacing(16); /* 64px */
+
+  /* CUSTOM TRADING VARIABLES */
+  --ui-sidebar-width: 280px;
+  --ui-sidebar-collapsed: 64px;
+  
+  /* Trading-specific backgrounds */
+  --ui-bg-chart: var(--color-neutral-950);
+  --ui-bg-buy: var(--color-success-50);
+  --ui-bg-sell: var(--color-error-50);
+  --ui-bg-pending: var(--color-warning-50);
+  
+  /* Price indicators */
+  --ui-price-up: var(--color-success-600);
+  --ui-price-down: var(--color-error-600);
+  --ui-price-neutral: var(--color-neutral-500);
+  
+  /* Order states */
+  --ui-order-buy: var(--color-success-500);
+  --ui-order-sell: var(--color-error-500);
+  --ui-order-pending: var(--color-warning-500);
+  --ui-order-filled: var(--color-info-500);
+  --ui-order-cancelled: var(--color-neutral-400);
+  
+  /* Volume indicators */
+  --ui-volume-high: var(--color-info-600);
+  --ui-volume-low: var(--color-info-200);
+  
+  /* Shadows */
+  --ui-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --ui-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  --ui-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  --ui-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  --ui-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+  --ui-shadow-glow: 0 0 15px rgb(247 166 0 / 0.3);
 }
 
-/* ============================================================
-   DARK THEME
-   ============================================================ */
+/* ===== NUXT UI CSS VARIABLES - DARK MODE ===== */
 .dark {
-  /* TEXT (dark) */
-  --ui-text: var(--color-neutral-100);
-  --ui-text-muted: var(--color-neutral-300);
-  --ui-text-dimmed: var(--color-neutral-500);
-  --ui-text-highlighted: var(--color-brand-300);
-  --ui-text-inverted: #ffffff;
-
-  /* BACKGROUND (dark) */
-  --ui-bg: var(--color-neutral-900);
-  --ui-bg-muted: var(--color-neutral-800);
-  --ui-bg-elevated: var(--color-neutral-800);
-  --ui-bg-accented: var(--color-neutral-700);
-  --ui-bg-inverted: #000000;
-
-  /* BORDER (dark) */
-  --ui-border: var(--color-neutral-700);
-  --ui-border-muted: var(--color-neutral-800);
-  --ui-border-accented: var(--color-brand-400);
-  --ui-border-inverted: #ffffff;
-
-  /* PRIMARY en dark */
+  /* SEMANTIC COLORS (adjusted for dark mode visibility) */
   --ui-primary: var(--color-brand-400);
+  --ui-secondary: var(--color-neutral-400);
+  --ui-success: var(--color-success-400);
+  --ui-info: var(--color-info-400);
+  --ui-warning: var(--color-warning-400);
+  --ui-error: var(--color-error-400);
+
+  /* TEXT COLORS (enhanced contrast) */
+  --ui-text-dimmed: var(--color-neutral-500);
+  --ui-text-muted: var(--color-neutral-400);
+  --ui-text-toned: var(--color-neutral-300);
+  --ui-text: var(--color-neutral-200);
+  --ui-text-highlighted: white;
+  --ui-text-inverted: var(--color-neutral-900);
+
+  /* BACKGROUND COLORS (deep blacks for trading terminals) */
+  --ui-bg: #0a0a0b; /* Deeper than neutral-900 */
+  --ui-bg-muted: var(--color-neutral-950);
+  --ui-bg-elevated: var(--color-neutral-900);
+  --ui-bg-accented: var(--color-neutral-800);
+  --ui-bg-inverted: white;
+
+  /* BORDER COLORS (subtle separation) */
+  --ui-border: var(--color-neutral-800);
+  --ui-border-muted: var(--color-neutral-700);
+  --ui-border-accented: var(--color-neutral-700);
+  --ui-border-inverted: white;
+
+  /* CUSTOM TRADING VARIABLES (dark mode) */
+  --ui-bg-chart: #000000; /* Pure black for charts */
+  --ui-bg-buy: rgb(34 197 94 / 0.1);
+  --ui-bg-sell: rgb(239 68 68 / 0.1);
+  --ui-bg-pending: rgb(234 179 8 / 0.1);
+  
+  /* Price indicators (more vibrant in dark) */
+  --ui-price-up: var(--color-success-400);
+  --ui-price-down: var(--color-error-400);
+  --ui-price-neutral: var(--color-neutral-400);
+  
+  /* Order states (brighter for visibility) */
+  --ui-order-buy: var(--color-success-500);
+  --ui-order-sell: var(--color-error-500);
+  --ui-order-pending: var(--color-warning-500);
+  --ui-order-filled: var(--color-info-500);
+  --ui-order-cancelled: var(--color-neutral-600);
+  
+  /* Volume indicators */
+  --ui-volume-high: var(--color-info-400);
+  --ui-volume-low: var(--color-info-700);
+  
+  /* Shadows (more dramatic in dark) */
+  --ui-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --ui-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4);
+  --ui-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+  --ui-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+  --ui-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6);
+  --ui-shadow-glow: 0 0 20px rgb(247 166 0 / 0.5);
+}
+
+/* ===== CUSTOM UTILITY CLASSES ===== */
+
+/* Scrollbar styling for trading terminals */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ui-bg-muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-600);
+  border-radius: var(--ui-radius);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-500);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-700);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-600);
+}
+
+/* Trading-specific utility classes */
+.text-price-up {
+  color: var(--ui-price-up);
+}
+
+.text-price-down {
+  color: var(--ui-price-down);
+}
+
+.bg-order-buy {
+  background-color: var(--ui-bg-buy);
+}
+
+.bg-order-sell {
+  background-color: var(--ui-bg-sell);
+}
+
+.border-order-buy {
+  border-color: var(--ui-order-buy);
+}
+
+.border-order-sell {
+  border-color: var(--ui-order-sell);
+}
+
+/* Monospace for financial data */
+.font-mono-trading {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Smooth transitions (respecting reduced motion) */
+@media (prefers-reduced-motion: no-preference) {
+  * {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Disable transitions for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

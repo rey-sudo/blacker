@@ -8,7 +8,6 @@
 
 <style lang="css" scoped>
 .tab-indicators {
-  background: var(--ui-bg);
   width: 100%;
   height: 100%;
 }

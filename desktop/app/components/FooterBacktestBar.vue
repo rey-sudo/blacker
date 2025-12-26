@@ -6,9 +6,9 @@
       size="xs"
       icon="i-lucide-step-back"
       color="neutral"
-      variant="soft"
+      variant="outline"
     />
-    <UButton size="xs" icon="i-lucide-play" color="neutral" variant="soft" />
+    <UButton size="xs" icon="i-lucide-play" color="neutral" variant="outline" />
     <UButton
       size="xs"
       icon="i-lucide-step-forward"
@@ -24,7 +24,6 @@
 .footer-backtest-bar {
   width: 300px; 
   display: flex;
-
   gap: 1rem;
 }
 </style>
