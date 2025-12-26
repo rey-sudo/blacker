@@ -24,7 +24,7 @@
 
         Alerts</UButton
       >
-      <USeparator orientation="vertical" class="h-6 px-4" />
+      <USeparator orientation="vertical" class="h-6 pl-1 pr-4" />
       <FooterBacktestBar />
       <USeparator orientation="vertical" class="h-6 px-4" />
     </div>
