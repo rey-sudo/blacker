@@ -13,8 +13,12 @@
       size="xs"
       icon="i-lucide-clock"
       granularity="second"
-      :hour-cycle="24" 
-    />
+      :hour-cycle="24"
+    >
+      <template #trailing>
+        <span>UTC</span> 
+      </template>
+    </UInputTime>
 
     <USlider size="xs" :default-value="0" style="width: 150px" />
 
