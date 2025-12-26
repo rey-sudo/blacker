@@ -1,0 +1,82 @@
+1️⃣ Resumen de la arquitectura
+
+Worker por símbolo (1 min)
+
+Recibe ticks en tiempo real desde WebSocket.
+
+Construye velas de 1 min en memoria o Redis.
+
+Mantiene la vela actual en construcción.
+
+Redis / cache
+
+Almacena histórico reciente de velas de 1 min para acceso rápido.
+
+Permite reconstruir cualquier intervalo menor a largo plazo de forma eficiente.
+
+Servicio feed multi-timeframe
+
+Reconstruye intervalos cortos (5 min, 15 min, 1 h, 4 h) desde velas de 1 min en memoria.
+
+Entrega candlestick histórico + vela actual en tiempo real al usuario.
+
+Calcula footprint / heatmap a partir de la información de cada vela 1 min o de intervalos mayores.
+
+Velas largas (daily, weekly, monthly)
+
+Pre-agregadas al cierre del periodo.
+
+Guardadas en DB/Redis para acceso rápido.
+
+Solo la vela actual del periodo se construye en tiempo real.
+
+Ventaja principal
+
+Flexibilidad: cualquier timeframe solicitado por el usuario.
+
+Escalabilidad: un worker central por símbolo + un servicio feed centralizado.
+
+Latencia baja y consistencia de datos.
+
+2️⃣ Diagrama de flujo en texto
+                   ┌───────────────┐
+                   │ WebSocket Tick│
+                   └───────┬───────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │ Worker 1m   │
+                    │ - Recibe ticks
+                    │ - Construye vela 1m actual
+                    │ - Guarda en Redis / memoria
+                    └─────┬───────┘
+                           │
+        ┌──────────────────┼─────────────────────┐
+        ▼                  ▼                     ▼
+┌──────────────┐  ┌─────────────────┐  ┌───────────────────┐
+│ Servicio feed│  │ Reconstrucción  │  │ Intervalos largos │
+│ (usuario)    │  │ intervalos cortos│  │ (daily, weekly,   │
+│ - solicita   │  │ (5m,15m,1h,4h) │  │  monthly) pre-agreg│
+│ timeframe)   │  │ desde 1m        │  │ - velo actual si  │
+└──────┬───────┘  └──────┬──────────┘  │   en construcción │
+       │                  │             └─────────┬─────────┘
+       ▼                  ▼                       │
+   ┌──────────┐       ┌──────────┐                 │
+   │ Candlestick │     │ Footprint│                 │
+   │ histórico + │     │ / Heatmap│                 │
+   │ vela actual │     │          │                 │
+   └─────┬──────┘       └──────────┘                │
+         │                                           │
+         └───────────────────────────────> Usuario visualiza chart en tiempo real
+
+3️⃣ Claves operativas
+
+Vela actual: siempre en construcción con los ticks que llegan.
+
+Intervalos cortos: reconstruidos dinámicamente desde 1 min.
+
+Intervalos largos: pre-agregados, solo actualiza la vela actual.
+
+Footprint/heatmap: calculable a partir de la info de 1 min para cualquier timeframe.
+
+Redis: almacena histórico reciente para reconstrucción rápida, evita consultas DB masivas.
