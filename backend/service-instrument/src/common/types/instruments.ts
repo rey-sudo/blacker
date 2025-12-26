@@ -52,6 +52,35 @@ export const TradingHoursSchema = z.object({
 
 export type TradingHours = z.infer<typeof TradingHoursSchema>;
 
+export const CircuitBreakerSchema = z.object({
+  /** Maximum allowed price increase percentage from reference price */
+  upperLimit: z.number().positive(),
+  /** Maximum allowed price decrease percentage from reference price */
+  lowerLimit: z.number().negative(),
+  /** Trading pause duration in minutes when limits are hit */
+  duration: z.number().int().positive(),
+});
+
+export type CircuitBreaker = z.infer<typeof CircuitBreakerSchema>;
+
+export const ExtendedHoursSchema = z.object({
+  /** Pre-market trading hours */
+  preMarket: TradingHoursSchema,
+  /** After-hours trading hours */
+  afterHours: TradingHoursSchema,
+});
+
+export type ExtendedHours = z.infer<typeof ExtendedHoursSchema>;
+
+export const OrderTypeSchema = z.enum([
+  "market",
+  "limit",
+  "stop",
+  "stop_limit",
+]);
+
+export type OrderType = z.infer<typeof OrderTypeSchema>;
+
 // ============================================
 // INSTRUMENT SCHEMA
 // ============================================
@@ -316,6 +345,21 @@ export const InstrumentSchema = z
     tradingHours: TradingHoursSchema.optional(),
 
     /**
+     * Extended trading hours (pre-market and after-hours).
+     */
+    extendedHours: ExtendedHoursSchema.optional(),
+
+    /**
+     * Circuit breaker configuration to prevent extreme price movements.
+     */
+    circuitBreaker: CircuitBreakerSchema,   
+
+    /**
+     * Supported order types for this instrument.
+     */
+    supportedOrderTypes: z.array(OrderTypeSchema),    
+
+    /**
      * Tags for categorization and filtering.
      */
     tags: z.array(z.string()),
@@ -462,7 +506,9 @@ export const InstrumentSchema = z
     /**
      * Supports OHLCV
      */
-    supportsOHLCV: z.literal(true),
+    supportsOHLCV: z.boolean(),
+
+    restrictedCountries: z.array(z.string()),
   })
   .refine(
     (data) => {
