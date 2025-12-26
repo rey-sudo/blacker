@@ -352,12 +352,12 @@ export const InstrumentSchema = z
     /**
      * Circuit breaker configuration to prevent extreme price movements.
      */
-    circuitBreaker: CircuitBreakerSchema,   
+    circuitBreaker: CircuitBreakerSchema.optional(),
 
     /**
      * Supported order types for this instrument.
      */
-    supportedOrderTypes: z.array(OrderTypeSchema),    
+    supportedOrderTypes: z.array(OrderTypeSchema),
 
     /**
      * Tags for categorization and filtering.
@@ -574,5 +574,18 @@ export const InstrumentSchema = z
       message:
         "pricePrecision must match the number of decimal places in tickSize",
       path: ["pricePrecision"],
+    }
+  )
+  .refine(
+    (data) => {
+      const validCountryCodes = /^[A-Z]{2}$/;
+      return data.restrictedCountries.every((code) =>
+        validCountryCodes.test(code)
+      );
+    },
+    {
+      message:
+        "restrictedCountries must contain valid ISO 3166-1 alpha-2 codes",
+      path: ["restrictedCountries"],
     }
   );
