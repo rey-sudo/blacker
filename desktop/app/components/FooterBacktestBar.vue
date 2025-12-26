@@ -16,11 +16,9 @@
       :hour-cycle="24"
     >
       <template #trailing>
-        <span>UTC</span> 
+        <span>UTC</span>
       </template>
     </UInputTime>
-
-    <USlider size="xs" :default-value="0" style="width: 150px" />
 
     <UButton
       size="xs"
@@ -31,7 +29,7 @@
     <UButton
       size="xs"
       icon="i-lucide-square"
-      color="primary"
+      color="neutral"
       variant="outline"
     />
     <UButton size="xs" icon="i-lucide-play" color="neutral" variant="outline" />
@@ -41,6 +39,8 @@
       color="neutral"
       variant="outline"
     />
+
+    <USlider size="xs" :default-value="0" style="width: 10rem" />
   </div>
 </template>
 

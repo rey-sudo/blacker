@@ -26,6 +26,7 @@
       >
       <USeparator orientation="vertical" class="h-6 px-4" />
       <FooterBacktestBar />
+      <USeparator orientation="vertical" class="h-6 px-4" />
     </div>
 
     <FooterBuySellButtons style="margin-left: auto" />
