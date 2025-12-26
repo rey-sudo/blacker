@@ -8,6 +8,10 @@ export const createInstrumentHandler = async (req: Request, res: Response) => {
   try {
     console.log(req.body);
 
+
+
+    
+
     res.status(200).send({ success: true, data: {} });
   } catch (err: any) {
     throw err;
