@@ -11,23 +11,13 @@
 
       <USeparator orientation="vertical" class="h-6 px-1" />
 
-      <UButton  color="neutral" size="xs" variant="ghost"
-        >Order History</UButton
-      >
+      <UButton color="neutral" size="xs" variant="ghost">Order History</UButton>
       <USeparator orientation="vertical" class="h-6 px-1" />
-      <UButton
-
-        color="neutral"
-        size="xs"
-        variant="ghost"
-        >Backtesting</UButton
-      >
+      <UButton color="neutral" size="xs" variant="ghost">Backtesting</UButton>
       <USeparator orientation="vertical" class="h-6 px-1" />
-      <UButton color="neutral"  size="xs" variant="ghost"
-        >Bots</UButton
-      >
+      <UButton color="neutral" size="xs" variant="ghost">Bots</UButton>
       <USeparator orientation="vertical" class="h-6 px-1" />
-      <UButton color="neutral"  size="xs" variant="ghost">
+      <UButton color="neutral" size="xs" variant="ghost">
         <template #trailing>
           <UBadge size="sm" color="neutral" variant="soft">0</UBadge>
         </template>
@@ -37,6 +27,7 @@
       <USeparator orientation="vertical" class="h-6 px-1" />
     </div>
 
+    <FooterBacktestBar   style="margin-left: 300px"/>
     <FooterBuySellButtons style="margin-left: auto" />
   </div>
 </template>

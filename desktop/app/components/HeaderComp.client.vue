@@ -9,6 +9,7 @@
     </div>
 
     <ColorModeButton />
+    <HeaderSettingsButton style="margin-left: auto;"/>
   </div>
 </template>
 
@@ -35,7 +36,6 @@ const tabsStore = useTabsStore();
   height: inherit;
 }
 
-.logo{
-
+.logo {
 }
 </style>

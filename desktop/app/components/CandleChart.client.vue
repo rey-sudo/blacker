@@ -330,7 +330,7 @@ function calculateCountdown(nextClose, nowValue) {
   position: fixed;
   height: 50px;
   width: 150px;
-  right: 0;
+  right: 300px;
   top: 0;
 }
 
