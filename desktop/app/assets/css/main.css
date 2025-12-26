@@ -99,7 +99,7 @@ body {
 
   --main-background: var(--ui-bg-accented);
 
-  --nav-background: var(--ui-bg);
+  --nav-background: var(--color-neutral-900);
 
   --footer-height: 2.5rem;
   --tab-padding: 0.25rem;

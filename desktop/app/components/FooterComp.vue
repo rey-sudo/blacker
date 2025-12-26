@@ -5,7 +5,7 @@
         >Positions
 
         <template #trailing>
-          <UBadge size="md" color="neutral" variant="soft">0</UBadge>
+          <UBadge size="sm" color="neutral" variant="soft">0</UBadge>
         </template>
       </UButton>
 
@@ -29,7 +29,7 @@
       <USeparator orientation="vertical" class="h-6 px-1" />
       <UButton color="neutral"  size="xs" variant="ghost">
         <template #trailing>
-          <UBadge size="md" color="neutral" variant="soft">0</UBadge>
+          <UBadge size="sm" color="neutral" variant="soft">0</UBadge>
         </template>
 
         Alerts</UButton
