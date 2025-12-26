@@ -2,7 +2,7 @@ import { z } from "zod";
 import { CustomError } from "../common/customError";
 
 const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "production", "test"]),
+  NODE_ENV: z.enum(["development", "production", "local"]),
   DATABASE_HOST: z.string().min(1),
   DATABASE_PORT: z
     .string()

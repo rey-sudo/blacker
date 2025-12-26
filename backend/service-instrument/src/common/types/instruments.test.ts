@@ -7,10 +7,6 @@ import { InstrumentSchema } from "./instruments.js";
 
 export type Instrument = z.infer<typeof InstrumentSchema>;
 
-// ============================================
-// DATOS DE PRUEBA VÁLIDOS
-// ============================================
-
 const validInstrument: Partial<Instrument> = {
   id: "01234567-89ab-cdef-0123-456789abcdef",
   internalId: "binance-btc-usdt",

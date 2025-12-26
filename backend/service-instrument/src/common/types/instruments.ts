@@ -70,57 +70,57 @@ export const InstrumentSchema = z
      * Stable across systems (DB, search, cache, logs).
      * Example: "binance-btc-usdt"
      */
-    internalId: z.string(),
+    internalId: z.string().min(1),
 
     /**
      * Idempotent identifier used by search engines (Typesense, Meilisearch).
      * Must be deterministic and unique.
      */
-    idempotentId: z.string(),
+    idempotentId: z.string().min(1),
 
     /**
      * Trading symbol as defined by the venue or market.
      * Examples: "BTCUSDT", "AAPL", "EURUSD"
      */
-    symbol: z.string(),
+    symbol: z.string().min(1),
 
     /**
      * Human-friendly symbol for UI display.
      * Example: "BTC/USDT"
      */
-    symbolDisplay: z.string(),
+    symbolDisplay: z.string().min(1),
 
     /**
      * Descriptive instrument name.
      * Example: "Bitcoin / Tether USD"
      */
-    description: z.string(),
+    description: z.string().min(1),
 
     /**
      * Base asset of the instrument.
      * What is being bought or sold.
      * Example: "BTC"
      */
-    base: z.string(),
+    base: z.string().min(1),
 
     /**
      * Quote asset of the instrument.
      * What the price is denominated in.
      * Example: "USDT"
      */
-    quote: z.string(),
+    quote: z.string().min(1),
 
     /**
      * Exchange, broker, or venue name.
      * Example: "Binance", "NASDAQ", "CME"
      */
-    exchange: z.string(),
+    exchange: z.string().min(1),
 
     /**
      * Country or jurisdiction where the exchange operates.
      * Example: "US", "JP", "SG"
      */
-    exchangeCountry: z.string(),
+    exchangeCountry: z.string().min(1),
 
     /**
      * Market category.
@@ -138,18 +138,18 @@ export const InstrumentSchema = z
      * Name of the data or execution provider.
      * Example: "Binance", "Bloomberg", "InteractiveBrokers"
      */
-    providerName: z.string(),
+    providerName: z.string().min(1),
 
     /**
      * Provider-specific instrument identifier.
      * Unique within the provider.
      */
-    providerId: z.string(),
+    providerId: z.string().min(1),
 
     /**
      * Provider-specific trading symbol.
      */
-    providerSymbol: z.string(),
+    providerSymbol: z.string().min(1),
 
     /**
      * Instrument lifecycle status.

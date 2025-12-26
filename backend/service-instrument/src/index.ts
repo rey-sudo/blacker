@@ -37,9 +37,9 @@ const main = async () => {
     app.all("*", (req, _res, next) => {
       next(
         new ApiError(
-          404,
+          ERROR_CODES.ROUTE_NOT_FOUND.http,
           `Route not found: ${req.method} ${req.originalUrl}`,
-          ERROR_CODES.ROUTE_NOT_FOUND
+          ERROR_CODES.ROUTE_NOT_FOUND.code
         )
       );
     });
