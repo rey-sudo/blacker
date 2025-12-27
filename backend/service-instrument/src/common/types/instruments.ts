@@ -85,11 +85,11 @@ export const OrderTypeSchema = z.enum([
 
 export type OrderType = z.infer<typeof OrderTypeSchema>;
 
-export const DecimalSchema = z.string()
+export const DecimalSchema = z
+  .string()
   .or(z.number())
   .transform((val) => new Decimal(val))
   .refine((val) => !val.isNaN(), { message: "Invalid decimal value" });
-
 
 // ============================================
 // INSTRUMENT SCHEMA
@@ -230,7 +230,7 @@ export const InstrumentSchema = z
      * Defines the minimum increment for quantity.
      * Mutually exclusive with lotSize.
      */
-    stepSize: z.number().positive().optional(),
+    stepSize: DecimalSchema.optional(),
 
     /**
      * Maximum number of decimal places allowed in price.
@@ -249,12 +249,12 @@ export const InstrumentSchema = z
     /**
      * Minimum quantity allowed per order.
      */
-    minQuantity: z.number().nonnegative(),
+    minQuantity: DecimalSchema,
 
     /**
      * Maximum quantity allowed per order.
      */
-    maxQuantity: z.number().positive(),
+    maxQuantity: DecimalSchema,
 
     /**
      * Minimum notional value required to place an order.
@@ -564,28 +564,6 @@ export const InstrumentSchema = z
     {
       message: "leverage cannot exceed leverageMax",
       path: ["leverage"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Validar consistencia entre tickSize y pricePrecision
-      // pricePrecision debe ser igual al número de decimales de tickSize
-      const tickSizeStr = data.tickSize.toString();
-      const decimalPart = tickSizeStr.split(".")[1];
-      const expectedPrecision = decimalPart ? decimalPart.length : 0;
-
-      // Si tickSize es 0.01, pricePrecision debe ser 2
-      // Si tickSize es 0.001, pricePrecision debe ser 3
-      // Si tickSize es 1, pricePrecision debe ser 0
-      if (data.pricePrecision !== expectedPrecision) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message:
-        "pricePrecision must match the number of decimal places in tickSize",
-      path: ["pricePrecision"],
     }
   )
   .refine(
