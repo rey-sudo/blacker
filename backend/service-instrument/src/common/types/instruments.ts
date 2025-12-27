@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Decimal } from "decimal.js";
 
 export const InstrumentStatusSchema = z.enum([
   "active",
@@ -42,10 +43,13 @@ export type InstrumentMarket = z.infer<typeof InstrumentMarketSchema>;
 export type SettlementDelay = z.infer<typeof SettlementDelaySchema>;
 
 export const TradingHoursSchema = z.object({
-  /** HH:mm format */
-  open: z.string().regex(/^\d{2}:\d{2}$/, "Must be in HH:mm format"),
-  /** HH:mm format */
-  close: z.string().regex(/^\d{2}:\d{2}$/, "Must be in HH:mm format"),
+  /** Format HH:mm strict (00:00 to 23:59) */
+  open: z
+    .string()
+    .regex(/^([0-1]\d|2[0-3]):[0-5]\d$/, "Invalid time format (HH:mm)"),
+  close: z
+    .string()
+    .regex(/^([0-1]\d|2[0-3]):[0-5]\d$/, "Invalid time format (HH:mm)"),
   /** 0 (Sunday) - 6 (Saturday) */
   days: z.array(z.number().int().min(0).max(6)),
 });
@@ -80,6 +84,12 @@ export const OrderTypeSchema = z.enum([
 ]);
 
 export type OrderType = z.infer<typeof OrderTypeSchema>;
+
+export const DecimalSchema = z.string()
+  .or(z.number())
+  .transform((val) => new Decimal(val))
+  .refine((val) => !val.isNaN(), { message: "Invalid decimal value" });
+
 
 // ============================================
 // INSTRUMENT SCHEMA
@@ -149,7 +159,9 @@ export const InstrumentSchema = z
      * Country or jurisdiction where the exchange operates.
      * Example: "US", "JP", "SG"
      */
-    exchangeCountry: z.string().min(1),
+    exchangeCountry: z
+      .string()
+      .length(2, "Must be a 2-character ISO country code"),
 
     /**
      * Market category.
@@ -211,7 +223,7 @@ export const InstrumentSchema = z
      * Minimum allowed price increment.
      * Prices must be multiples of this value.
      */
-    tickSize: z.number().positive(),
+    tickSize: DecimalSchema,
 
     /**
      * Quantity step size.
@@ -419,7 +431,7 @@ export const InstrumentSchema = z
     /**
      * Indicates whether the instrument is tradable.
      */
-    isTradable: z.boolean().optional(),
+    isTradable: z.boolean(),
 
     /**
      * Indicates whether margin trading is allowed.
@@ -429,7 +441,7 @@ export const InstrumentSchema = z
     /**
      * Indicates whether KYC is required to trade.
      */
-    requiresKYC: z.boolean().optional(),
+    requiresKYC: z.boolean(),
 
     /**
      * Indicates support for stop-limit orders.
@@ -491,7 +503,7 @@ export const InstrumentSchema = z
     /**
      * Lowercase symbol optimized for autocomplete.
      */
-    symbol_lc: z.string().optional(),
+    symbol_lc: z.string().regex(/^[a-z]+$/, "Must be lowercase"),
 
     /**
      * Additional search terms for discovery.
@@ -587,5 +599,15 @@ export const InstrumentSchema = z
       message:
         "restrictedCountries must contain valid ISO 3166-1 alpha-2 codes",
       path: ["restrictedCountries"],
+    }
+  )
+
+  .refine(
+    (data) => {
+      return data.pricePrecision === data.tickSize.decimalPlaces();
+    },
+    {
+      message: "pricePrecision must match the tickSize decimal places",
+      path: ["pricePrecision"],
     }
   );
