@@ -3,10 +3,9 @@ import { Decimal } from "decimal.js";
 import { areIntervalsOverlapping, parse, addDays, isEqual } from "date-fns";
 
 export const DecimalSchema = z
-  .string()
-  .or(z.number())
+  .union([z.string().trim().min(1), z.number().finite()])
   .transform((val) => new Decimal(val))
-  .refine((val) => !val.isNaN(), { message: "Invalid decimal value" });
+  .refine((val) => val.isFinite(), { message: "Invalid decimal value" });
 
 export const PositiveDecimal = DecimalSchema.refine((v) => v.gt(0), {
   message: "Must be greater than 0",
@@ -665,8 +664,8 @@ export const InstrumentSchema = z
 
     if (increment) {
       const checkMultiple = (value: Decimal) => {
-        if (data.lotSize && allowFractionalLot) return true; 
-        return value.mod(increment!).eq(0); 
+        if (data.lotSize && allowFractionalLot) return true;
+        return value.div(increment!).mod(1).eq(0); // más robusto para decimales
       };
 
       if (!checkMultiple(data.minQuantity)) {
@@ -704,26 +703,58 @@ export const InstrumentSchema = z
       });
     }
 
-    if (
-      data.leverageMax !== undefined &&
-      (data.leverageMax <= 0 || data.leverageMax > 1000)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "leverageMax must be > 0 and <= 1000",
-        path: ["leverageMax"],
-      });
-    }
+    /* ==================================================
+     * LEVERAGE & MARGIN
+     * ================================================== */
+    if (data.leverageMax !== undefined) {
+      if (data.leverageMax < 1 || data.leverageMax > 1000) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "leverageMax must be between 1 and 1000",
+          path: ["leverageMax"],
+        });
+      }
 
-    if (
-      data.leverage !== undefined &&
-      (data.leverage <= 0 || data.leverage > data.leverageMax!)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "leverage must be > 0 and <= leverageMax",
-        path: ["leverage"],
-      });
+      if (data.leverage !== undefined) {
+        if (data.leverage < 1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "leverage must be at least 1",
+            path: ["leverage"],
+          });
+        }
+        if (data.leverage > data.leverageMax) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "leverage must be less than or equal to leverageMax",
+            path: ["leverage"],
+          });
+        }
+      }
+
+      if (data.supportedMarginTypes?.length && data.leverageMax === undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "supportedMarginTypes require leverageMax",
+          path: ["leverageMax"],
+        });
+      }
+    } else {
+      if (data.leverage !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "leverage requires leverageMax to be defined",
+          path: ["leverageMax"],
+        });
+      }
+
+      if (data.supportedMarginTypes?.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "supportedMarginTypes require leverageMax",
+          path: ["leverageMax"],
+        });
+      }
     }
 
     const minIncrement = new Decimal("0.00000001"); // ejemplo
@@ -752,7 +783,8 @@ export const InstrumentSchema = z
     }
 
     if (data.expiryDate && ["futures", "options"].includes(data.market)) {
-      if (data.expiryDate <= new Date()) {
+      const expiry = new Date(data.expiryDate);
+      if (expiry <= new Date()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: "expiryDate must be in the future",
