@@ -1,6 +1,20 @@
 import { z } from "zod";
 import { Decimal } from "decimal.js";
 
+export const DecimalSchema = z
+  .string()
+  .or(z.number())
+  .transform((val) => new Decimal(val))
+  .refine((val) => !val.isNaN(), { message: "Invalid decimal value" });
+
+export const PositiveDecimal = DecimalSchema.refine((v) => v.gt(0), {
+  message: "Must be greater than 0",
+});
+
+export const NonNegativeDecimal = DecimalSchema.refine((v) => v.gte(0), {
+  message: "Must be greater than or equal to 0",
+});
+
 export const InstrumentStatusSchema = z.enum([
   "active",
   "inactive",
@@ -34,6 +48,8 @@ export const InstrumentMarketSchema = z.enum([
   "other",
 ]);
 
+const ISO_3166_1_ALPHA_2 = /^[A-Z]{2}$/;
+
 export const SettlementDelaySchema = z.enum(["T+0", "T+1", "T+2"]);
 
 export type InstrumentStatus = z.infer<typeof InstrumentStatusSchema>;
@@ -42,26 +58,25 @@ export type InstrumentMarginType = z.infer<typeof InstrumentMarginTypeSchema>;
 export type InstrumentMarket = z.infer<typeof InstrumentMarketSchema>;
 export type SettlementDelay = z.infer<typeof SettlementDelaySchema>;
 
+// Supports split-day trading (e.g., 09:00-12:00 and 13:00-16:00)
 export const TradingHoursSchema = z.object({
-  /** Format HH:mm strict (00:00 to 23:59) */
-  open: z
-    .string()
-    .regex(/^([0-1]\d|2[0-3]):[0-5]\d$/, "Invalid time format (HH:mm)"),
-  close: z
-    .string()
-    .regex(/^([0-1]\d|2[0-3]):[0-5]\d$/, "Invalid time format (HH:mm)"),
-  /** 0 (Sunday) - 6 (Saturday) */
   days: z.array(z.number().int().min(0).max(6)),
+  sessions: z
+    .array(
+      z.object({
+        open: z.string().regex(/^([0-1]\d|2[0-3]):[0-5]\d$/),
+        close: z.string().regex(/^([0-1]\d|2[0-3]):[0-5]\d$/),
+      })
+    )
+    .min(1),
 });
 
 export type TradingHours = z.infer<typeof TradingHoursSchema>;
 
+// Prevents floating-point drift in price limit calculations
 export const CircuitBreakerSchema = z.object({
-  /** Maximum allowed price increase percentage from reference price */
-  upperLimit: z.number().positive(),
-  /** Maximum allowed price decrease percentage from reference price */
-  lowerLimit: z.number().negative(),
-  /** Trading pause duration in minutes when limits are hit */
+  upperLimit: PositiveDecimal,
+  lowerLimit: DecimalSchema.refine((v) => v.lt(0)),
   duration: z.number().int().positive(),
 });
 
@@ -84,20 +99,6 @@ export const OrderTypeSchema = z.enum([
 ]);
 
 export type OrderType = z.infer<typeof OrderTypeSchema>;
-
-export const DecimalSchema = z
-  .string()
-  .or(z.number())
-  .transform((val) => new Decimal(val))
-  .refine((val) => !val.isNaN(), { message: "Invalid decimal value" });
-
-export const PositiveDecimal = DecimalSchema.refine((v) => v.gt(0), {
-  message: "Must be greater than 0",
-});
-
-export const NonNegativeDecimal = DecimalSchema.refine((v) => v.gte(0), {
-  message: "Must be greater than or equal to 0",
-});
 
 // ============================================
 // INSTRUMENT SCHEMA
@@ -167,9 +168,7 @@ export const InstrumentSchema = z
      * Country or jurisdiction where the exchange operates.
      * Example: "US", "JP", "SG"
      */
-    exchangeCountry: z
-      .string()
-      .length(2, "Must be a 2-character ISO country code"),
+    exchangeCountry: z.string().regex(ISO_3166_1_ALPHA_2),
 
     /**
      * Market category.
@@ -516,7 +515,7 @@ export const InstrumentSchema = z
      */
     supportsOHLCV: z.boolean(),
 
-    restrictedCountries: z.array(z.string()),
+    restrictedCountries: z.array(z.string().regex(ISO_3166_1_ALPHA_2)),
   })
   .refine(
     (data) => {
@@ -576,162 +575,141 @@ export const InstrumentSchema = z
     path: ["minOrderValue"],
   })
   .superRefine((data, ctx) => {
-    const hasStep = data.stepSize !== undefined;
-    const hasLot = data.lotSize !== undefined;
-    const hasQtyPrecision = data.quantityPrecision !== undefined;
-
-    const { minQuantity, maxQuantity, stepSize, lotSize } = data;
-
-    /* =====================================================
-     * Quantity model exclusivity
-     * ===================================================== */
-
-    if (hasStep && hasLot) {
+    // 1. Leverage Consistency
+    if (data.leverage !== undefined && data.leverageMax === undefined) {
       ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "leverageMax required if leverage is set",
+        path: ["leverage"],
+      });
+    }
+    if (data.leverage && data.leverageMax && data.leverage > data.leverageMax) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "leverage > leverageMax",
+        path: ["leverage"],
+      });
+    }
+
+    // 2. Timezone Dependency
+    if (data.tradingHours && !data.timezone) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "timezone required for tradingHours",
+        path: ["timezone"],
+      });
+    }
+
+    // 3. Price Validation
+    if (data.pricePrecision !== data.tickSize.decimalPlaces()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "pricePrecision must match tickSize decimals",
+        path: ["pricePrecision"],
+      });
+    }
+
+    // 4. Quantity Model (Step vs Lot)
+    const { stepSize, lotSize, quantityPrecision, minQuantity, maxQuantity } =
+      data;
+    if (stepSize && lotSize) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Cannot use both stepSize and lotSize",
         path: ["stepSize"],
-        message: "stepSize and lotSize cannot be used together",
-        code: z.ZodIssueCode.custom,
-      });
-
-      ctx.addIssue({
-        path: ["lotSize"],
-        message: "stepSize and lotSize cannot be used together",
-        code: z.ZodIssueCode.custom,
       });
     }
 
-    /* =====================================================
-     * Quantity precision ↔ stepSize equivalence
-     * ===================================================== */
-
-    if (hasStep !== hasQtyPrecision) {
-      ctx.addIssue({
-        path: ["quantityPrecision"],
-        message:
-          "quantityPrecision must be defined if and only if stepSize is defined",
-        code: z.ZodIssueCode.custom,
-      });
-    }
-
-    if (hasLot && hasQtyPrecision) {
-      ctx.addIssue({
-        path: ["quantityPrecision"],
-        message: "quantityPrecision is not allowed when lotSize is defined",
-        code: z.ZodIssueCode.custom,
-      });
-    }
-
-    if (hasStep && hasQtyPrecision && stepSize !== undefined) {
-      const stepDecimals = stepSize.decimalPlaces();
-
-      if (data.quantityPrecision !== stepDecimals) {
+    // Continuous Model Check
+    if (stepSize) {
+      if (quantityPrecision === undefined) {
         ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "quantityPrecision required with stepSize",
           path: ["quantityPrecision"],
-          message: "quantityPrecision must match stepSize decimal places",
+        });
+      } else if (quantityPrecision !== stepSize.decimalPlaces()) {
+        ctx.addIssue({
           code: z.ZodIssueCode.custom,
+          message: "quantityPrecision mismatch with stepSize",
+          path: ["quantityPrecision"],
         });
       }
+      if (!minQuantity.mod(stepSize).isZero())
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "minQuantity not multiple of stepSize",
+          path: ["minQuantity"],
+        });
     }
 
-    /* =====================================================
-     * 2. minQuantity / maxQuantity consistency
-     * ===================================================== */
+    // Discrete Model Check
+    if (lotSize) {
+      if (quantityPrecision !== undefined)
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "lotSize cannot have quantityPrecision",
+          path: ["quantityPrecision"],
+        });
+      if (!minQuantity.mod(lotSize).isZero())
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "minQuantity not multiple of lotSize",
+          path: ["minQuantity"],
+        });
+    }
 
-    // Universal rule
-    if (minQuantity.gt(maxQuantity)) {
+    // Order Value Check
+    if (data.minOrderValue.gt(data.maxOrderValue)) {
       ctx.addIssue({
-        path: ["minQuantity"],
-        message: "minQuantity must be less than or equal to maxQuantity",
         code: z.ZodIssueCode.custom,
+        message: "minOrderValue > maxOrderValue",
+        path: ["minOrderValue"],
       });
-    }
-
-    // Validate against stepSize if present
-    if (stepSize !== undefined) {
-      if (!minQuantity.mod(stepSize).isZero()) {
-        ctx.addIssue({
-          path: ["minQuantity"],
-          message: "minQuantity must be a multiple of stepSize",
-          code: z.ZodIssueCode.custom,
-        });
-      }
-
-      if (!maxQuantity.mod(stepSize).isZero()) {
-        ctx.addIssue({
-          path: ["maxQuantity"],
-          message: "maxQuantity must be a multiple of stepSize",
-          code: z.ZodIssueCode.custom,
-        });
-      }
-    }
-
-    // Validate against lotSize if present
-    if (lotSize !== undefined) {
-      const lot = lotSize;
-
-      if (!minQuantity.mod(lot).isZero()) {
-        ctx.addIssue({
-          path: ["minQuantity"],
-          message: "minQuantity must be a multiple of lotSize",
-          code: z.ZodIssueCode.custom,
-        });
-      }
-
-      if (!maxQuantity.mod(lot).isZero()) {
-        ctx.addIssue({
-          path: ["maxQuantity"],
-          message: "maxQuantity must be a multiple of lotSize",
-          code: z.ZodIssueCode.custom,
-        });
-      }
     }
   });
 
 /**
  * ============================================================
- * Quantity Model — Logical Matrix (FINAL)
+ * QUANTITY MODEL — LOGICAL MATRIX (FINAL)
  * ============================================================
  *
- * | stepSize | lotSize | quantityPrecision | Model / Validity                       |
- * |--------- |-------- |------------------ |----------------------------------------|
- * | defined  | none    | defined           | Continuous (decimal trading)           |
- * | defined  | none    | none              | INVALID – precision required           |
- * | none     | defined | none              | Discrete (lot-based trading)           |
- * | none     | defined | defined           | INVALID – lots have no precision       |
- * | defined  | defined | any               | INVALID – stepSize and lotSize clash   |
- * | none     | none    | none              | Provider / venue controlled            |
- * | none     | none    | defined           | INVALID – precision without stepSize  |
+ * This matrix defines the EXECUTION-VALID states for the instrument.
+ * Any violation of these states is caught by the superRefine block.
+ *
+ * | stepSize | lotSize | qtyPrecision | Model / Validity                     |
+ * |--------- |-------- |------------- |--------------------------------------|
+ * | defined  | none    | defined      | Continuous (e.g. Crypto, Forex)      |
+ * | defined  | none    | none         | INVALID – precision required         |
+ * | none     | defined | none         | Discrete (e.g. Stocks, Options)     |
+ * | none     | defined | defined      | INVALID – lots are discrete          |
+ * | defined  | defined | any          | INVALID – stepSize vs lotSize clash  |
+ * | none     | none    | none         | Provider / Venue controlled          |
+ * | none     | none    | defined      | INVALID – precision needs stepSize   |
  *
  * ------------------------------------------------------------
- * HARD INVARIANTS (ENFORCED)
+ * HARD INVARIANTS (ENFORCED BY SCHEMA)
  * ------------------------------------------------------------
  *
- * 1. stepSize XOR lotSize
- *    - Both cannot exist at the same time
+ * 1. Mutual Exclusivity: (stepSize XOR lotSize)
+ * - An instrument cannot be both continuous and discrete.
  *
- * 2. stepSize <==> quantityPrecision
- *    - quantityPrecision MUST exist if and only if stepSize exists
+ * 2. Precision Symmetry: (stepSize <==> quantityPrecision)
+ * - quantityPrecision MUST exist if and only if stepSize exists.
  *
- * 3. lotSize => no quantityPrecision
- *    - Lot-based instruments are discrete
+ * 3. Mathematical Consistency:
+ * - quantityPrecision === decimals(stepSize)
+ * - This ensures valid arithmetic for order rounding.
  *
- * 4. quantityPrecision === decimals(stepSize)
- *    - Mathematical consistency (Decimal-safe)
- *
- * 5. minQuantity <= maxQuantity
- *
- * 6. minQuantity / maxQuantity MUST align with stepSize OR lotSize
- *    - min % stepSize == 0  (if stepSize)
- *    - min % lotSize  == 0  (if lotSize)
+ * 4. Incremental Alignment:
+ * - minQuantity % increment == 0 (where increment is stepSize OR lotSize)
+ * - maxQuantity % increment == 0
  *
  * ------------------------------------------------------------
- * DOMAIN NOTES
+ * DOMAIN EXAMPLES
  * ------------------------------------------------------------
- *
- * - Continuous model → crypto spot, forex, fractional equities
- * - Discrete model   → stocks, futures, options, contracts
- * - Undefined model  → venue-controlled (some OTC or legacy markets)
- *
- * This matrix defines EXECUTION-VALID states only.
- * Any violation must be rejected at validation time.
+ * - Continuous: BTC/USDT (stepSize: 0.00001, precision: 5)
+ * - Discrete:   AAPL Equity (lotSize: 1, precision: undefined)
+ * - Derivative: SPY Option  (lotSize: 100, precision: undefined)
+ * ============================================================
  */
