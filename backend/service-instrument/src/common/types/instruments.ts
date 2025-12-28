@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Decimal } from "decimal.js";
+import { areIntervalsOverlapping, parse, addDays, isEqual } from "date-fns";
 
 export const DecimalSchema = z
   .string()
@@ -13,6 +14,10 @@ export const PositiveDecimal = DecimalSchema.refine((v) => v.gt(0), {
 
 export const NonNegativeDecimal = DecimalSchema.refine((v) => v.gte(0), {
   message: "Must be greater than or equal to 0",
+});
+
+export const NegativeDecimal = DecimalSchema.refine((v) => v.lt(0), {
+  message: "Must be less than 0",
 });
 
 export const InstrumentStatusSchema = z.enum([
@@ -60,7 +65,12 @@ export type SettlementDelay = z.infer<typeof SettlementDelaySchema>;
 
 // Supports split-day trading (e.g., 09:00-12:00 and 13:00-16:00)
 export const TradingHoursSchema = z.object({
-  days: z.array(z.number().int().min(0).max(6)),
+  days: z
+    .array(z.number().int().min(0).max(6))
+    .min(1)
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Days cannot contain duplicates",
+    }),
   sessions: z
     .array(
       z.object({
@@ -73,11 +83,25 @@ export const TradingHoursSchema = z.object({
 
 export type TradingHours = z.infer<typeof TradingHoursSchema>;
 
-// Prevents floating-point drift in price limit calculations
+/**
+ * Circuit Breaker using percentage-based limits
+ * Example: upperLimitPercent: 0.10 means +10% from reference price
+ *          lowerLimitPercent: -0.10 means -10% from reference price
+ */
 export const CircuitBreakerSchema = z.object({
-  upperLimit: PositiveDecimal,
-  lowerLimit: DecimalSchema.refine((v) => v.lt(0)),
-  duration: z.number().int().positive(),
+  upperLimitPercent: z
+    .number()
+    .positive()
+    .max(1, "Upper limit cannot exceed 100%"),
+  lowerLimitPercent: z
+    .number()
+    .negative()
+    .min(-1, "Lower limit cannot be less than -100%"),
+  duration: z
+    .number()
+    .int()
+    .positive()
+    .max(86400, "Duration cannot exceed 24 hours (86400 seconds)"),
 });
 
 export type CircuitBreaker = z.infer<typeof CircuitBreakerSchema>;
@@ -267,15 +291,17 @@ export const InstrumentSchema = z
      * Minimum notional value required to place an order.
      * HARD CONSTRAINT — orders below this value MUST be rejected.
      * notional = price × quantity
+     * Must be greater than 0.
      */
-    minOrderValue: NonNegativeDecimal,
+    minOrderValue: PositiveDecimal,
 
     /**
      * Maximum notional value allowed per order.
      * HARD CONSTRAINT — orders above this value MUST be rejected.
      * notional = price × quantity
+     * Must be greater than 0.
      */
-    maxOrderValue: NonNegativeDecimal,
+    maxOrderValue: PositiveDecimal,
 
     /**
      * Fixed lot size for instruments traded in whole lots.
@@ -290,6 +316,12 @@ export const InstrumentSchema = z
     contractSize: z.number().positive().optional(),
 
     /**
+     * Contract size unit (e.g., "shares", "barrels", "ounces").
+     * Required if contractSize is specified.
+     */
+    contractSizeUnit: z.string().optional(),
+
+    /**
      * Number of decimals used for UI display only.
      * Does NOT affect order validation.
      */
@@ -298,14 +330,19 @@ export const InstrumentSchema = z
     /**
      * Default leverage shown in UI.
      * Only valid if leverageMax exists.
+     * Must be >= 1.0 (cannot be less than 1x leverage).
      */
-    leverage: z.number().positive().optional(),
+    leverage: z.number().min(1, "Leverage must be at least 1x").optional(),
 
     /**
      * Maximum leverage allowed by the venue.
      * If undefined, leverage is not supported.
+     * Must be >= 1.0.
      */
-    leverageMax: z.number().positive().optional(),
+    leverageMax: z
+      .number()
+      .min(1, "Max leverage must be at least 1x")
+      .optional(),
 
     /**
      * Supported margin types for this instrument.
@@ -314,14 +351,24 @@ export const InstrumentSchema = z
     supportedMarginTypes: z.array(InstrumentMarginTypeSchema).min(1),
 
     /**
-     * Initial margin requirement (as a fraction).
+     * Initial margin requirement (as a fraction, e.g., 0.10 = 10%).
+     * Must be between 0 and 1.
      */
-    initialMargin: z.number().nonnegative().optional(),
+    initialMargin: z
+      .number()
+      .nonnegative()
+      .max(1, "Initial margin cannot exceed 100%")
+      .optional(),
 
     /**
-     * Maintenance margin requirement (as a fraction).
+     * Maintenance margin requirement (as a fraction, e.g., 0.05 = 5%).
+     * Must be between 0 and 1.
      */
-    maintenanceMargin: z.number().nonnegative().optional(),
+    maintenanceMargin: z
+      .number()
+      .nonnegative()
+      .max(1, "Maintenance margin cannot exceed 100%")
+      .optional(),
 
     /**
      * Expiration date for expiring derivatives.
@@ -379,7 +426,7 @@ export const InstrumentSchema = z
     /**
      * Supported order types for this instrument.
      */
-    supportedOrderTypes: z.array(OrderTypeSchema),
+    supportedOrderTypes: z.array(OrderTypeSchema).min(1),
 
     /**
      * Tags for categorization and filtering.
@@ -388,8 +435,9 @@ export const InstrumentSchema = z
 
     /**
      * Priority for UI ranking and sorting.
+     * Should be between 0 and 1000 for reasonable UI sorting.
      */
-    priority: z.number().optional(),
+    priority: z.number().int().min(0).max(1000).optional(),
 
     /**
      * Icon URL used in UI.
@@ -414,8 +462,9 @@ export const InstrumentSchema = z
     /**
      * Precomputed full-text search string.
      * symbol + symbolDisplay + description + aliases
+     * Required for search functionality.
      */
-    fullTextSearch: z.string().optional(),
+    fullTextSearch: z.string().min(1),
 
     /**
      * User Fee tier plan.
@@ -423,14 +472,20 @@ export const InstrumentSchema = z
     feeTier: z.string().optional(),
 
     /**
-     * Maker fee percentage.
+     * Maker fee percentage (as decimal, e.g., 0.001 = 0.1%).
+     * Cannot exceed 100% (1.0).
      */
-    makerFee: NonNegativeDecimal,
+    makerFee: NonNegativeDecimal.refine((v) => v.lte(1), {
+      message: "Maker fee cannot exceed 100%",
+    }),
 
     /**
-     * Taker fee percentage.
+     * Taker fee percentage (as decimal, e.g., 0.001 = 0.1%).
+     * Cannot exceed 100% (1.0).
      */
-    takerFee: NonNegativeDecimal,
+    takerFee: NonNegativeDecimal.refine((v) => v.lte(1), {
+      message: "Taker fee cannot exceed 100%",
+    }),
 
     /**
      * Typical bid-ask spread for informational purposes.
@@ -460,19 +515,11 @@ export const InstrumentSchema = z
 
     /**
      * Timezone used for trading hours and sessions.
+     * Must be a valid IANA timezone.
      */
     timezone: z.string().refine(
       (tz) => {
         try {
-          // Permitir UTC explícitamente (caso especial pero crítico)
-          if (tz === "UTC") {
-            return true;
-          }
-          // Validar que sea un timezone IANA válido
-          // Excluir abreviaciones como PST, EST, etc.
-          if (tz.length <= 3 || !tz.includes("/")) {
-            return false;
-          }
           Intl.DateTimeFormat(undefined, { timeZone: tz });
           return true;
         } catch {
@@ -497,8 +544,9 @@ export const InstrumentSchema = z
 
     /**
      * Lowercase symbol optimized for autocomplete.
+     * Automatically derived from symbol.
      */
-    symbol_lc: z.string().transform((value) => value.toLowerCase()),
+    symbol_lc: z.string(),
 
     /**
      * Additional search terms for discovery.
@@ -508,74 +556,23 @@ export const InstrumentSchema = z
     /**
      * Supported timeframes (5m, 1h, 4h, 1d, etc)
      */
-    supportedTimeframes: z.array(z.string()),
+    supportedTimeframes: z.array(z.string()).min(1),
 
     /**
      * Supports OHLCV
      */
     supportsOHLCV: z.boolean(),
 
+    /**
+     * Countries where this instrument cannot be traded.
+     * Must be valid ISO 3166-1 alpha-2 codes.
+     */
     restrictedCountries: z.array(z.string().regex(ISO_3166_1_ALPHA_2)),
   })
-  .refine(
-    (data) => {
-      // Validar que leverage solo exista si leverageMax existe
-      if (data.leverage !== undefined && data.leverageMax === undefined) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "leverage can only be set if leverageMax is defined",
-      path: ["leverage"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Validar que leverageMax sea mayor o igual que leverage
-      if (
-        data.leverage !== undefined &&
-        data.leverageMax !== undefined &&
-        data.leverage > data.leverageMax
-      ) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "leverage cannot exceed leverageMax",
-      path: ["leverage"],
-    }
-  )
-  .refine(
-    (data) => {
-      const validCountryCodes = /^[A-Z]{2}$/;
-      return data.restrictedCountries.every((code) =>
-        validCountryCodes.test(code)
-      );
-    },
-    {
-      message:
-        "restrictedCountries must contain valid ISO 3166-1 alpha-2 codes",
-      path: ["restrictedCountries"],
-    }
-  )
-
-  .refine(
-    (data) => {
-      return data.pricePrecision === data.tickSize.decimalPlaces();
-    },
-    {
-      message: "pricePrecision must match the tickSize decimal places",
-      path: ["pricePrecision"],
-    }
-  )
-  .refine((data) => data.minOrderValue.lte(data.maxOrderValue), {
-    message: "minOrderValue must be less than or equal to maxOrderValue",
-    path: ["minOrderValue"],
-  })
   .superRefine((data, ctx) => {
-    // 1. Leverage Consistency
+    // ============================================
+    // 1. LEVERAGE CONSISTENCY
+    // ============================================
     if (data.leverage !== undefined && data.leverageMax === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -586,62 +583,102 @@ export const InstrumentSchema = z
     if (data.leverage && data.leverageMax && data.leverage > data.leverageMax) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "leverage > leverageMax",
+        message: "leverage cannot exceed leverageMax",
         path: ["leverage"],
       });
     }
 
-    // 2. Timezone Dependency
-    if (data.tradingHours && !data.timezone) {
+    // ============================================
+    // 2. MARGIN CONSISTENCY
+    // ============================================
+    if (
+      data.initialMargin !== undefined &&
+      data.maintenanceMargin !== undefined &&
+      data.initialMargin < data.maintenanceMargin
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "timezone required for tradingHours",
+        message: "initialMargin must be >= maintenanceMargin",
+        path: ["initialMargin"],
+      });
+    }
+
+    // ============================================
+    // 3. TIMEZONE DEPENDENCY
+    // ============================================
+    if ((data.tradingHours || data.extendedHours) && !data.timezone) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "timezone required when tradingHours or extendedHours is set",
         path: ["timezone"],
       });
     }
 
-    // 3. Price Validation
+    if (data.displayDecimals < data.pricePrecision) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "displayDecimals should be >= pricePrecision for accurate display",
+        path: ["displayDecimals"],
+      });
+    }
+
+    // ============================================
+    // 4. PRICE PRECISION VALIDATION
+    // ============================================
     if (data.pricePrecision !== data.tickSize.decimalPlaces()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "pricePrecision must match tickSize decimals",
+        message: "pricePrecision must match tickSize decimal places",
         path: ["pricePrecision"],
       });
     }
 
-    // 4. Quantity Model (Step vs Lot)
+    if (data.minQuantity.gte(data.maxQuantity)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "minQuantity must be < maxQuantity",
+        path: ["minQuantity"],
+      });
+    }
+
+    // ============================================
+    // 5. QUANTITY MODEL (STEP VS LOT)
+    // ============================================
     const { stepSize, lotSize, quantityPrecision, minQuantity, maxQuantity } =
       data;
+
+    // Mutual exclusivity
     if (stepSize && lotSize) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Cannot use both stepSize and lotSize",
+        message: "Cannot use both stepSize and lotSize (mutually exclusive)",
         path: ["stepSize"],
       });
     }
 
-    // Continuous Model Check
+    // CONTINUOUS MODEL (stepSize)
     if (stepSize) {
       if (quantityPrecision === undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "quantityPrecision required with stepSize",
+          message: "quantityPrecision required when stepSize is set",
           path: ["quantityPrecision"],
         });
       } else if (quantityPrecision !== stepSize.decimalPlaces()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "quantityPrecision mismatch with stepSize",
+          message: "quantityPrecision must match stepSize decimal places",
           path: ["quantityPrecision"],
         });
       }
-      if (!minQuantity.mod(stepSize).isZero())
+      if (!minQuantity.mod(stepSize).isZero()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "minQuantity not multiple of stepSize",
+          message: "minQuantity must be a multiple of stepSize",
           path: ["minQuantity"],
         });
-
+      }
       if (!maxQuantity.mod(stepSize).isZero()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -651,21 +688,22 @@ export const InstrumentSchema = z
       }
     }
 
-    // Discrete Model Check
+    // DISCRETE MODEL (lotSize)
     if (lotSize) {
-      if (quantityPrecision !== undefined)
+      if (quantityPrecision !== undefined) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "lotSize cannot have quantityPrecision",
+          message: "quantityPrecision cannot be set when using lotSize",
           path: ["quantityPrecision"],
         });
-      if (!minQuantity.mod(lotSize).isZero())
+      }
+      if (!minQuantity.mod(lotSize).isZero()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "minQuantity not multiple of lotSize",
+          message: "minQuantity must be a multiple of lotSize",
           path: ["minQuantity"],
         });
-
+      }
       if (!maxQuantity.mod(lotSize).isZero()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -675,38 +713,72 @@ export const InstrumentSchema = z
       }
     }
 
-    // Order Value Check
-    if (data.minOrderValue.gt(data.maxOrderValue)) {
+    // ORPHANED quantityPrecision (neither stepSize nor lotSize)
+    // FIXED: Only stepSize allows quantityPrecision
+    if (!stepSize && !lotSize && quantityPrecision !== undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "minOrderValue > maxOrderValue",
+        message: "quantityPrecision requires stepSize to be defined",
+        path: ["quantityPrecision"],
+      });
+    }
+
+    // ============================================
+    // 6. ORDER VALUE VALIDATION
+    // ============================================
+    if (data.minOrderValue.gte(data.maxOrderValue)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "minOrderValue must be < maxOrderValue",
         path: ["minOrderValue"],
       });
     }
 
+    // ============================================
+    // 7. CONTRACT SIZE UNIT VALIDATION
+    // ============================================
+    if (data.contractSize && !data.contractSizeUnit) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "contractSizeUnit required when contractSize is specified",
+        path: ["contractSizeUnit"],
+      });
+    }
+
+    // ============================================
+    // 8. TRADING HOURS SESSION VALIDATION
+    // ============================================
     if (data.tradingHours) {
-      data.tradingHours.sessions.forEach((session, index) => {
-        const [openH, openM] = session.open.split(":").map(Number);
-        const [closeH, closeM] = session.close.split(":").map(Number);
+      const sessionErrors = validateTradingSessions(data.tradingHours.sessions);
+      sessionErrors.forEach((error) => {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: error.message,
+          path: error.index !== undefined 
+            ? ["tradingHours", "sessions", error.index]
+            : ["tradingHours", "sessions"],
+        });
+      });
+    }
 
-        const openTotalMinutes = openH * 60 + openM;
-        const closeTotalMinutes = closeH * 60 + closeM;
-
-        if (closeTotalMinutes <= openTotalMinutes) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Session ${index}: Close time (${session.close}) must be after open time (${session.open})`,
-            path: ["tradingHours", "sessions", index],
-          });
-        }
+    // ============================================
+    // 9. SYMBOL_LC VALIDATION
+    // ============================================
+    if (data.symbol_lc !== data.symbol.toLowerCase()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "symbol_lc must be the lowercase version of symbol",
+        path: ["symbol_lc"],
       });
     }
   })
   .readonly();
 
+export type Instrument = z.infer<typeof InstrumentSchema>;
+
 /**
  * ============================================================
- * QUANTITY MODEL — LOGICAL MATRIX (FINAL)
+ * QUANTITY MODEL — LOGICAL MATRIX (UPDATED)
  * ============================================================
  *
  * This matrix defines the EXECUTION-VALID states for the instrument.
@@ -714,13 +786,13 @@ export const InstrumentSchema = z
  *
  * | stepSize | lotSize | qtyPrecision | Model / Validity                     |
  * |--------- |-------- |------------- |--------------------------------------|
- * | defined  | none    | defined      | Continuous (e.g. Crypto, Forex)      |
- * | defined  | none    | none         | INVALID – precision required         |
- * | none     | defined | none         | Discrete (e.g. Stocks, Options)     |
- * | none     | defined | defined      | INVALID – lots are discrete          |
- * | defined  | defined | any          | INVALID – stepSize vs lotSize clash  |
- * | none     | none    | none         | Provider / Venue controlled          |
- * | none     | none    | defined      | INVALID – precision needs stepSize   |
+ * | defined  | none    | defined      | ✅ Continuous (e.g. Crypto, Forex)   |
+ * | defined  | none    | none         | ❌ INVALID – precision required      |
+ * | none     | defined | none         | ✅ Discrete (e.g. Stocks, Options)   |
+ * | none     | defined | defined      | ❌ INVALID – lots are discrete       |
+ * | defined  | defined | any          | ❌ INVALID – mutually exclusive      |
+ * | none     | none    | none         | ✅ Provider controlled (no validation)|
+ * | none     | none    | defined      | ❌ INVALID – precision needs stepSize|
  *
  * ------------------------------------------------------------
  * HARD INVARIANTS (ENFORCED BY SCHEMA)
@@ -740,11 +812,99 @@ export const InstrumentSchema = z
  * - minQuantity % increment == 0 (where increment is stepSize OR lotSize)
  * - maxQuantity % increment == 0
  *
+ * 5. Margin Requirements:
+ * - initialMargin >= maintenanceMargin (universal margin rule)
+ *
+ * 6. Leverage Consistency:
+ * - leverage requires leverageMax to be defined
+ * - leverage <= leverageMax
+ * - Both must be >= 1.0 (minimum 1x leverage)
+ *
+ * 7. Fee Limits:
+ * - makerFee and takerFee cannot exceed 100% (1.0)
+ *
+ * 8. Order Value Bounds:
+ * - minOrderValue > 0 (cannot be zero)
+ * - maxOrderValue > 0 (cannot be zero)
+ * - minOrderValue < maxOrderValue (strict inequality)
+ *
+ * 9. Trading Hours:
+ * - Close time cannot equal open time (zero-duration sessions not allowed)
+ * - Sessions cannot overlap with each other
+ * - Days cannot contain duplicates
+ * - Requires timezone when tradingHours or extendedHours is set
+ *
+ * 10. Circuit Breaker:
+ * - Uses percentage-based limits (not absolute values)
+ * - upperLimitPercent: positive (e.g., 0.10 = +10%)
+ * - lowerLimitPercent: negative (e.g., -0.10 = -10%)
+ * - duration: maximum 24 hours (86400 seconds)
+ *
+ * 11. Contract Size:
+ * - contractSizeUnit required when contractSize is specified
+ *
+ * 12. Timezone:
+ * - Must be a valid IANA timezone identifier
+ * - Validated using Intl.DateTimeFormat
+ *
  * ------------------------------------------------------------
  * DOMAIN EXAMPLES
  * ------------------------------------------------------------
  * - Continuous: BTC/USDT (stepSize: 0.00001, precision: 5)
  * - Discrete:   AAPL Equity (lotSize: 1, precision: undefined)
  * - Derivative: SPY Option  (lotSize: 100, precision: undefined)
+ * - Provider:   Custom Instrument (no stepSize/lotSize)
  * ============================================================
  */
+
+
+
+
+
+function validateTradingSessions(
+  sessions: Array<{ open: string; close: string }>
+): Array<{ index?: number; message: string }> {
+  const errors: Array<{ index?: number; message: string }> = [];
+  const baseDate = new Date(2000, 0, 1);
+
+  // Parsear y validar cada sesión
+  const intervals = sessions.map((session, i) => {
+    const start = parse(session.open, "HH:mm", baseDate);
+    let end = parse(session.close, "HH:mm", baseDate);
+
+    // ✅ CRÍTICO: Validar duración cero PRIMERO (antes de addDays)
+    if (isEqual(start, end)) {
+      errors.push({
+        index: i,
+        message: `Session ${i}: Close time cannot equal open time (${session.open})`
+      });
+    }
+
+    // ✅ Usar < en vez de <= para overnight sessions
+    // Esto previene que sesiones con duración cero se traten como overnight
+    if (end < start) {
+      end = addDays(end, 1);
+    }
+
+    return { start, end, index: i, session };
+  });
+
+  // Detectar overlaps usando areIntervalsOverlapping de date-fns
+  for (let i = 0; i < intervals.length; i++) {
+    for (let j = i + 1; j < intervals.length; j++) {
+      const hasOverlap = areIntervalsOverlapping(
+        { start: intervals[i].start, end: intervals[i].end },
+        { start: intervals[j].start, end: intervals[j].end },
+        { inclusive: false }
+      );
+
+      if (hasOverlap) {
+        errors.push({
+          message: `Sessions ${i} and ${j} overlap: [${intervals[i].session.open}-${intervals[i].session.close}] overlaps with [${intervals[j].session.open}-${intervals[j].session.close}]`
+        });
+      }
+    }
+  }
+
+  return errors;
+}
