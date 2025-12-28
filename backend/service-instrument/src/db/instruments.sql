@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS instruments (
     restricted_countries TEXT[],
 
     created_at BIGINT NOT NULL,
-    updated_at BIGINT NOT NULL,
+    updated_at BIGINT,
     deleted_at BIGINT,
 
     version BIGINT NOT NULL DEFAULT 0
