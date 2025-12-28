@@ -641,6 +641,14 @@ export const InstrumentSchema = z
           message: "minQuantity not multiple of stepSize",
           path: ["minQuantity"],
         });
+
+      if (!maxQuantity.mod(stepSize).isZero()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "maxQuantity must be a multiple of stepSize",
+          path: ["maxQuantity"],
+        });
+      }
     }
 
     // Discrete Model Check
@@ -657,6 +665,14 @@ export const InstrumentSchema = z
           message: "minQuantity not multiple of lotSize",
           path: ["minQuantity"],
         });
+
+      if (!maxQuantity.mod(lotSize).isZero()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "maxQuantity must be a multiple of lotSize",
+          path: ["maxQuantity"],
+        });
+      }
     }
 
     // Order Value Check
@@ -667,7 +683,26 @@ export const InstrumentSchema = z
         path: ["minOrderValue"],
       });
     }
-  });
+
+    if (data.tradingHours) {
+      data.tradingHours.sessions.forEach((session, index) => {
+        const [openH, openM] = session.open.split(":").map(Number);
+        const [closeH, closeM] = session.close.split(":").map(Number);
+
+        const openTotalMinutes = openH * 60 + openM;
+        const closeTotalMinutes = closeH * 60 + closeM;
+
+        if (closeTotalMinutes <= openTotalMinutes) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Session ${index}: Close time (${session.close}) must be after open time (${session.open})`,
+            path: ["tradingHours", "sessions", index],
+          });
+        }
+      });
+    }
+  })
+  .readonly();
 
 /**
  * ============================================================
