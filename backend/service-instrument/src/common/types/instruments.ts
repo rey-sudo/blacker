@@ -665,10 +665,8 @@ export const InstrumentSchema = z
 
     if (increment) {
       const checkMultiple = (value: Decimal) => {
-        // Si es lotSize y fracciones permitidas, siempre pasa
-        if (data.lotSize && allowFractionalLot) return true;
-        // Si es stepSize, múltiplo exacto obligatorio
-        return value.mod(increment).eq(0);
+        if (data.lotSize && allowFractionalLot) return true; 
+        return value.mod(increment!).eq(0); 
       };
 
       if (!checkMultiple(data.minQuantity)) {
@@ -688,6 +686,104 @@ export const InstrumentSchema = z
           path: ["maxQuantity"],
         });
       }
+    }
+
+    if (increment && data.minQuantity.lt(increment)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "minQuantity must be >= stepSize or lotSize",
+        path: ["minQuantity"],
+      });
+    }
+
+    if (increment && data.maxQuantity.lt(increment)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "maxQuantity must be >= stepSize or lotSize",
+        path: ["maxQuantity"],
+      });
+    }
+
+    if (
+      data.leverageMax !== undefined &&
+      (data.leverageMax <= 0 || data.leverageMax > 1000)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "leverageMax must be > 0 and <= 1000",
+        path: ["leverageMax"],
+      });
+    }
+
+    if (
+      data.leverage !== undefined &&
+      (data.leverage <= 0 || data.leverage > data.leverageMax!)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "leverage must be > 0 and <= leverageMax",
+        path: ["leverage"],
+      });
+    }
+
+    const minIncrement = new Decimal("0.00000001"); // ejemplo
+    if (increment && increment.lt(minIncrement)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "stepSize or lotSize is too small",
+        path: hasStep ? ["stepSize"] : ["lotSize"],
+      });
+    }
+
+    if (data.minOrderValue.lte(0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "minOrderValue must be greater than 0",
+        path: ["minOrderValue"],
+      });
+    }
+
+    if (data.maxOrderValue.lte(0)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "maxOrderValue must be greater than 0",
+        path: ["maxOrderValue"],
+      });
+    }
+
+    if (data.expiryDate && ["futures", "options"].includes(data.market)) {
+      if (data.expiryDate <= new Date()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "expiryDate must be in the future",
+          path: ["expiryDate"],
+        });
+      }
+    }
+
+    const maxDecimals = 12;
+    if (data.tickSize.decimalPlaces() > maxDecimals) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `tickSize cannot have more than ${maxDecimals} decimals`,
+        path: ["tickSize"],
+      });
+    }
+
+    if (hasStep && data.stepSize!.decimalPlaces() > maxDecimals) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `stepSize cannot have more than ${maxDecimals} decimals`,
+        path: ["stepSize"],
+      });
+    }
+
+    if (hasLot && data.lotSize!.decimalPlaces() > maxDecimals) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `lotSize cannot have more than ${maxDecimals} decimals`,
+        path: ["lotSize"],
+      });
     }
 
     /* ==================================================
