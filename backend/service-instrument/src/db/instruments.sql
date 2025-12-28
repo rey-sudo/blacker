@@ -96,4 +96,5 @@ CREATE INDEX idx_instruments_created_at ON instruments(created_at);
 
 CREATE INDEX idx_instruments_updated_at ON instruments(updated_at);
 
-CREATE INDEX idx_instruments_version ON instruments(version);
+CREATE INDEX idx_instruments_id_version ON instruments (id, version);
+
