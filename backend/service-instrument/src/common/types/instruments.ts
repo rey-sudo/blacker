@@ -348,7 +348,7 @@ export const InstrumentSchema = z
      * Supported margin types for this instrument.
      * Examples: ["cross", "isolated"]
      */
-    supportedMarginTypes: z.array(InstrumentMarginTypeSchema).min(1),
+    supportedMarginTypes: z.array(InstrumentMarginTypeSchema).optional(),
 
     /**
      * Initial margin requirement (as a fraction, e.g., 0.10 = 10%).
@@ -504,11 +504,6 @@ export const InstrumentSchema = z
     requiresKYC: z.boolean(),
 
     /**
-     * Indicates support for futures trading.
-     */
-    supportsFutures: z.boolean().optional(),
-
-    /**
      * Regulatory framework applicable to the instrument.
      */
     regulation: z.string().optional(),
@@ -517,20 +512,23 @@ export const InstrumentSchema = z
      * Timezone used for trading hours and sessions.
      * Must be a valid IANA timezone.
      */
-    timezone: z.string().refine(
-      (tz) => {
-        try {
-          Intl.DateTimeFormat(undefined, { timeZone: tz });
-          return true;
-        } catch {
-          return false;
+    timezone: z
+      .string()
+      .refine(
+        (tz) => {
+          try {
+            Intl.DateTimeFormat(undefined, { timeZone: tz });
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        {
+          message:
+            "Must be a valid IANA timezone (e.g., 'America/New_York', 'UTC', 'Europe/London')",
         }
-      },
-      {
-        message:
-          "Must be a valid IANA timezone (e.g., 'America/New_York', 'UTC', 'Europe/London')",
-      }
-    ),
+      )
+      .optional(),
 
     /**
      * Creation UNIX ms timestamp.
@@ -546,7 +544,7 @@ export const InstrumentSchema = z
      * Lowercase symbol optimized for autocomplete.
      * Automatically derived from symbol.
      */
-    symbol_lc: z.string(),
+    symbolLc: z.string(),
 
     /**
      * Additional search terms for discovery.
@@ -569,28 +567,157 @@ export const InstrumentSchema = z
      */
     restrictedCountries: z.array(z.string().regex(ISO_3166_1_ALPHA_2)),
   })
+
   .superRefine((data, ctx) => {
-    // ============================================
-    // 1. LEVERAGE CONSISTENCY
-    // ============================================
-    if (data.leverage !== undefined && data.leverageMax === undefined) {
+    /* ==================================================
+     * PRICE PRECISION
+     * ================================================== */
+
+    const tickDecimals = data.tickSize.decimalPlaces();
+
+    if (data.pricePrecision !== tickDecimals) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "leverageMax required if leverage is set",
-        path: ["leverage"],
-      });
-    }
-    if (data.leverage && data.leverageMax && data.leverage > data.leverageMax) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "leverage cannot exceed leverageMax",
-        path: ["leverage"],
+        message: "pricePrecision must equal tickSize decimal places",
+        path: ["pricePrecision"],
       });
     }
 
-    // ============================================
-    // 2. MARGIN CONSISTENCY
-    // ============================================
+    /* ==================================================
+     * QUANTITY MODEL (stepSize / lotSize)
+     * ================================================== */
+
+    const hasStep = !!data.stepSize;
+    const hasLot = !!data.lotSize;
+    const hasQtyPrecision = data.quantityPrecision !== undefined;
+
+    // Mutual exclusivity
+    if (hasStep && hasLot) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Define either stepSize or lotSize, not both",
+        path: ["stepSize"],
+      });
+    }
+
+    // Precision symmetry
+    if (hasStep && !hasQtyPrecision) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "quantityPrecision is required when stepSize is defined",
+        path: ["quantityPrecision"],
+      });
+    }
+
+    if (!hasStep && hasQtyPrecision) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "quantityPrecision requires stepSize",
+        path: ["quantityPrecision"],
+      });
+    }
+
+    if (hasLot && hasQtyPrecision) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "quantityPrecision is invalid when lotSize is used",
+        path: ["quantityPrecision"],
+      });
+    }
+
+    // Precision math
+    if (
+      hasStep &&
+      hasQtyPrecision &&
+      data.quantityPrecision !== data.stepSize!.decimalPlaces()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "quantityPrecision must equal stepSize decimal places",
+        path: ["quantityPrecision"],
+      });
+    }
+
+    /* ==================================================
+     * MIN / MAX QUANTITY
+     * ================================================== */
+
+    if (data.minQuantity.gt(data.maxQuantity)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "minQuantity must be <= maxQuantity",
+        path: ["minQuantity"],
+      });
+    }
+
+    const increment = data.stepSize ?? data.lotSize;
+
+    if (increment) {
+      if (!data.minQuantity.mod(increment).eq(0)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "minQuantity must be a multiple of stepSize or lotSize",
+          path: ["minQuantity"],
+        });
+      }
+
+      if (!data.maxQuantity.mod(increment).eq(0)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "maxQuantity must be a multiple of stepSize or lotSize",
+          path: ["maxQuantity"],
+        });
+      }
+    }
+
+    /* ==================================================
+     * ORDER VALUE BOUNDS
+     * ================================================== */
+
+    if (data.minOrderValue.gte(data.maxOrderValue)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "minOrderValue must be < maxOrderValue",
+        path: ["minOrderValue"],
+      });
+    }
+
+    /* ==================================================
+     * TIMEZONE & TRADING HOURS
+     * ================================================== */
+
+    if ((data.tradingHours || data.extendedHours) && !data.timezone) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "timezone is required when tradingHours or extendedHours are defined",
+        path: ["timezone"],
+      });
+    }
+
+    if (data.tradingHours && data.extendedHours) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Use either tradingHours or extendedHours, not both",
+        path: ["tradingHours"],
+      });
+    }
+
+    if (data.tradingHours) {
+      const errors = validateTradingSessions(data.tradingHours.sessions);
+      errors.forEach((err) => {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: err.message,
+          path: ["tradingHours", "sessions", err.index ?? 0],
+        });
+      });
+    }
+
+    /* ==================================================
+     * MARGIN & LEVERAGE
+     * ================================================== */
+
     if (
       data.initialMargin !== undefined &&
       data.maintenanceMargin !== undefined &&
@@ -603,176 +730,134 @@ export const InstrumentSchema = z
       });
     }
 
-    // ============================================
-    // 3. TIMEZONE DEPENDENCY
-    // ============================================
-    if ((data.tradingHours || data.extendedHours) && !data.timezone) {
+    if (data.leverage !== undefined && data.leverageMax === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "timezone required when tradingHours or extendedHours is set",
-        path: ["timezone"],
+        message: "leverage requires leverageMax to be defined",
+        path: ["leverageMax"],
       });
     }
 
-    if (data.displayDecimals < data.pricePrecision) {
+    if (
+      data.leverage !== undefined &&
+      data.leverageMax !== undefined &&
+      data.leverage > data.leverageMax
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message:
-          "displayDecimals should be >= pricePrecision for accurate display",
-        path: ["displayDecimals"],
+        message: "leverage must be <= leverageMax",
+        path: ["leverage"],
       });
     }
 
-    // ============================================
-    // 4. PRICE PRECISION VALIDATION
-    // ============================================
-    if (data.pricePrecision !== data.tickSize.decimalPlaces()) {
+    if (data.supportedMarginTypes?.length && data.leverageMax === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "pricePrecision must match tickSize decimal places",
-        path: ["pricePrecision"],
+        message: "supportedMarginTypes require leverageMax",
+        path: ["leverageMax"],
       });
     }
 
-    if (data.minQuantity.gte(data.maxQuantity)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "minQuantity must be < maxQuantity",
-        path: ["minQuantity"],
-      });
-    }
+    /* ==================================================
+     * CONTRACT SIZE
+     * ================================================== */
 
-    // ============================================
-    // 5. QUANTITY MODEL (STEP VS LOT)
-    // ============================================
-    const { stepSize, lotSize, quantityPrecision, minQuantity, maxQuantity } =
-      data;
-
-    // Mutual exclusivity
-    if (stepSize && lotSize) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Cannot use both stepSize and lotSize (mutually exclusive)",
-        path: ["stepSize"],
-      });
-    }
-
-    // CONTINUOUS MODEL (stepSize)
-    if (stepSize) {
-      if (quantityPrecision === undefined) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "quantityPrecision required when stepSize is set",
-          path: ["quantityPrecision"],
-        });
-      } else if (quantityPrecision !== stepSize.decimalPlaces()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "quantityPrecision must match stepSize decimal places",
-          path: ["quantityPrecision"],
-        });
-      }
-      if (!minQuantity.mod(stepSize).isZero()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "minQuantity must be a multiple of stepSize",
-          path: ["minQuantity"],
-        });
-      }
-      if (!maxQuantity.mod(stepSize).isZero()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "maxQuantity must be a multiple of stepSize",
-          path: ["maxQuantity"],
-        });
-      }
-    }
-
-    // DISCRETE MODEL (lotSize)
-    if (lotSize) {
-      if (quantityPrecision !== undefined) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "quantityPrecision cannot be set when using lotSize",
-          path: ["quantityPrecision"],
-        });
-      }
-      if (!minQuantity.mod(lotSize).isZero()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "minQuantity must be a multiple of lotSize",
-          path: ["minQuantity"],
-        });
-      }
-      if (!maxQuantity.mod(lotSize).isZero()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "maxQuantity must be a multiple of lotSize",
-          path: ["maxQuantity"],
-        });
-      }
-    }
-
-    // ORPHANED quantityPrecision (neither stepSize nor lotSize)
-    // FIXED: Only stepSize allows quantityPrecision
-    if (!stepSize && !lotSize && quantityPrecision !== undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "quantityPrecision requires stepSize to be defined",
-        path: ["quantityPrecision"],
-      });
-    }
-
-    // ============================================
-    // 6. ORDER VALUE VALIDATION
-    // ============================================
-    if (data.minOrderValue.gte(data.maxOrderValue)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "minOrderValue must be < maxOrderValue",
-        path: ["minOrderValue"],
-      });
-    }
-
-    // ============================================
-    // 7. CONTRACT SIZE UNIT VALIDATION
-    // ============================================
     if (data.contractSize && !data.contractSizeUnit) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "contractSizeUnit required when contractSize is specified",
+        message: "contractSizeUnit is required when contractSize is defined",
         path: ["contractSizeUnit"],
       });
     }
 
-    // ============================================
-    // 8. TRADING HOURS SESSION VALIDATION
-    // ============================================
-    if (data.tradingHours) {
-      const sessionErrors = validateTradingSessions(data.tradingHours.sessions);
-      sessionErrors.forEach((error) => {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: error.message,
-          path: error.index !== undefined 
-            ? ["tradingHours", "sessions", error.index]
-            : ["tradingHours", "sessions"],
-        });
+    /* ==================================================
+     * EXPIRY LOGIC
+     * ================================================== */
+
+    if (data.expiryDate && !["futures", "options"].includes(data.market)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "expiryDate is only valid for futures or options",
+        path: ["expiryDate"],
       });
     }
 
-    // ============================================
-    // 9. SYMBOL_LC VALIDATION
-    // ============================================
-    if (data.symbol_lc !== data.symbol.toLowerCase()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "symbol_lc must be the lowercase version of symbol",
-        path: ["symbol_lc"],
-      });
+    /* ==================================================
+     * MARKET-SPECIFIC RULES
+     * ================================================== */
+
+    switch (data.market) {
+      case "crypto": {
+        if (data.tradingHours || data.extendedHours) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "Crypto markets trade 24/7 and must not define tradingHours",
+            path: ["tradingHours"],
+          });
+        }
+
+        if (data.timezone) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Crypto instruments must not define timezone",
+            path: ["timezone"],
+          });
+        }
+        break;
+      }
+
+      case "forex": {
+        if (data.leverageMax === undefined) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Forex instruments require leverage support",
+            path: ["leverageMax"],
+          });
+        }
+
+        if (!data.tradingHours) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Forex instruments require tradingHours (typically 24/5)",
+            path: ["tradingHours"],
+          });
+        }
+        break;
+      }
+
+      case "stocks": {
+        if (hasStep) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Stocks must not define stepSize",
+            path: ["stepSize"],
+          });
+        }
+
+        if (!hasLot) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Stocks require lotSize",
+            path: ["lotSize"],
+          });
+        }
+        break;
+      }
+
+      case "futures":
+      case "options": {
+        if (!data.expiryDate) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `${data.market} instruments require expiryDate`,
+            path: ["expiryDate"],
+          });
+        }
+        break;
+      }
     }
-  })
-  .readonly();
+  });
 
 export type Instrument = z.infer<typeof InstrumentSchema>;
 
@@ -857,10 +942,6 @@ export type Instrument = z.infer<typeof InstrumentSchema>;
  * ============================================================
  */
 
-
-
-
-
 function validateTradingSessions(
   sessions: Array<{ open: string; close: string }>
 ): Array<{ index?: number; message: string }> {
@@ -876,7 +957,7 @@ function validateTradingSessions(
     if (isEqual(start, end)) {
       errors.push({
         index: i,
-        message: `Session ${i}: Close time cannot equal open time (${session.open})`
+        message: `Session ${i}: Close time cannot equal open time (${session.open})`,
       });
     }
 
@@ -900,7 +981,7 @@ function validateTradingSessions(
 
       if (hasOverlap) {
         errors.push({
-          message: `Sessions ${i} and ${j} overlap: [${intervals[i].session.open}-${intervals[i].session.close}] overlaps with [${intervals[j].session.open}-${intervals[j].session.close}]`
+          message: `Sessions ${i} and ${j} overlap: [${intervals[i].session.open}-${intervals[i].session.close}] overlaps with [${intervals[j].session.open}-${intervals[j].session.close}]`,
         });
       }
     }
