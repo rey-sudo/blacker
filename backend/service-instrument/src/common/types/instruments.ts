@@ -566,6 +566,8 @@ export const InstrumentSchema = z
      * Must be valid ISO 3166-1 alpha-2 codes.
      */
     restrictedCountries: z.array(z.string().regex(ISO_3166_1_ALPHA_2)),
+
+    allowFractionalLot: z.boolean(),
   })
 
   .superRefine((data, ctx) => {
@@ -642,29 +644,47 @@ export const InstrumentSchema = z
      * MIN / MAX QUANTITY
      * ================================================== */
 
-    if (data.minQuantity.gt(data.maxQuantity)) {
+    if (data.minQuantity.gte(data.maxQuantity)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "minQuantity must be <= maxQuantity",
+        message: "minQuantity must be less than maxQuantity",
         path: ["minQuantity"],
       });
     }
 
+    if (data.leverageMax !== undefined && data.leverageMax <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "leverageMax must be greater than 0",
+        path: ["leverageMax"],
+      });
+    }
+
     const increment = data.stepSize ?? data.lotSize;
+    const allowFractionalLot = data.allowFractionalLot;
 
     if (increment) {
-      if (!data.minQuantity.mod(increment).eq(0)) {
+      const checkMultiple = (value: Decimal) => {
+        // Si es lotSize y fracciones permitidas, siempre pasa
+        if (data.lotSize && allowFractionalLot) return true;
+        // Si es stepSize, múltiplo exacto obligatorio
+        return value.mod(increment).eq(0);
+      };
+
+      if (!checkMultiple(data.minQuantity)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "minQuantity must be a multiple of stepSize or lotSize",
+          message:
+            "minQuantity must be a multiple of stepSize or lotSize (unless fractional lot allowed)",
           path: ["minQuantity"],
         });
       }
 
-      if (!data.maxQuantity.mod(increment).eq(0)) {
+      if (!checkMultiple(data.maxQuantity)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "maxQuantity must be a multiple of stepSize or lotSize",
+          message:
+            "maxQuantity must be a multiple of stepSize or lotSize (unless fractional lot allowed)",
           path: ["maxQuantity"],
         });
       }
