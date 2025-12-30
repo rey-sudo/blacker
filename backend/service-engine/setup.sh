@@ -1,4 +1,6 @@
-python3 -m venv nautilus-env
+pyenv local 3.11.9
+
+python -m venv nautilus-env
 source nautilus-env/bin/activate
 
 pip install --upgrade pip
