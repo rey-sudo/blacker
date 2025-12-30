@@ -1,20 +1,17 @@
 import { Request, Response } from "express";
-import { InstrumentSchema } from "../common/types/instruments.js";
 import { ApiError, ERROR_CODES } from "../common/errors.js";
+import {
+  CreateInstrumentSchema,
+  InstrumentCryptoSpotSchema,
+} from "../common/types/instruments/index.js";
 
 export const createInstrumentMiddlewares: any = [];
 
 export const createInstrumentHandler = async (req: Request, res: Response) => {
-  let connection = null;
-
   try {
-    const result = InstrumentSchema.safeParse(req.body);
+    const result = CreateInstrumentSchema.safeParse(req.body);
 
-    if (result.success) {
-      console.log("Valid params:", result.data);
-    } else {
-      console.log("Validation error:");
-
+    if (!result.success) {
       throw new ApiError(
         ERROR_CODES.BAD_USER_INPUT.http,
         "Invalid instrument params",
@@ -23,6 +20,27 @@ export const createInstrumentHandler = async (req: Request, res: Response) => {
         true,
         true
       );
+    }
+
+    const instrumentData = result.data;
+
+    switch (instrumentData.type) {
+      case "crypto-spot":
+        const instrument = InstrumentCryptoSpotSchema.parse(instrumentData);
+
+        console.log(instrument);
+
+        break;
+
+      default:
+        throw new ApiError(
+          ERROR_CODES.BAD_USER_INPUT.http,
+          "Invalid instrument params. Invalid type.",
+          ERROR_CODES.BAD_USER_INPUT.code,
+          undefined,
+          true,
+          true
+        );
     }
 
     res.status(200).send({ success: true, data: result.data });
