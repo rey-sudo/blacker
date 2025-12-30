@@ -1,34 +1,44 @@
 # node.py
-from nautilus_trader.config import (
-    TradingNodeConfig,
-    CacheConfig,
-    MessageBusConfig,
-    PortfolioConfig,
-    DatabaseConfig,
-    LiveDataEngineConfig,
-    LiveRiskEngineConfig,
-    LiveExecEngineConfig,
+from nautilus_trader.config import TradingNodeConfig
+from nautilus_trader.live.config import (
+    LiveDataClientConfig,
+    LiveExecClientConfig,
+    RoutingConfig,
 )
-
 from nautilus_trader.live.node import TradingNode
 
 
 def create_trading_node() -> TradingNode:
+    """
+    Crea un TradingNode listo para una PROP FIRM (CFD / Live / Paper)
+    """
+
     config = TradingNodeConfig(
         trader_id="PROP-FIRM-001",
 
-        cache=CacheConfig(
-            database=DatabaseConfig(timeout=2.0),
-        ),
+        # ----------------------------
+        # DATA CLIENT (market data)
+        # ----------------------------
+        data_clients={
+            "PROP_DATA": LiveDataClientConfig(
+                routing=RoutingConfig(
+                    venues={"PROP"},   # 👈 venue implícito
+                    default=True,
+                )
+            )
+        },
 
-        message_bus=MessageBusConfig(
-            database=DatabaseConfig(timeout=2.0),
-        ),
-
-        data_engine=LiveDataEngineConfig(),
-        risk_engine=LiveRiskEngineConfig(),
-        exec_engine=LiveExecEngineConfig(),
-        portfolio=PortfolioConfig(),
+        # ----------------------------
+        # EXEC CLIENT (ordenes)
+        # ----------------------------
+        exec_clients={
+            "PROP_EXEC": LiveExecClientConfig(
+                routing=RoutingConfig(
+                    venues={"PROP"},   # 👈 mismo venue
+                    default=True,
+                )
+            )
+        },
     )
 
     node = TradingNode(config=config)
