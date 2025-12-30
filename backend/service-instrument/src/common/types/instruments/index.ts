@@ -1,6 +1,6 @@
 import { z } from "zod";
 import Decimal from "decimal.js";
-export * from "./instrument-crypto-schema.js";
+export * from "./instrument-crypto-cfd-schema.js";
 
 export const DecimalSchema = z
   .union([
@@ -30,7 +30,7 @@ export const DecimalNonNegativeSchema = DecimalSchema.refine((v) => v.gte(0), {
 export const InstrumentTypeSchema = z.enum([
   "forex-spot",
   "forex-cfd",
-  "crypto-spot",
+  "crypto-cfd",
 ]);
 
 export const CreateInstrumentSchema = z

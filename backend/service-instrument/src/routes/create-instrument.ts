@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { ApiError, ERROR_CODES } from "../common/errors.js";
 import {
   CreateInstrumentSchema,
-  InstrumentCryptoSpotSchema,
+  InstrumentCryptoCFDSchema,
 } from "../common/types/instruments/index.js";
 
 export const createInstrumentMiddlewares: any = [];
@@ -25,8 +25,8 @@ export const createInstrumentHandler = async (req: Request, res: Response) => {
     const instrumentData = result.data;
 
     switch (instrumentData.type) {
-      case "crypto-spot":
-        const instrument = InstrumentCryptoSpotSchema.parse(instrumentData);
+      case "crypto-cfd":
+        const instrument = InstrumentCryptoCFDSchema.parse(instrumentData);
 
         console.log(instrument);
 
