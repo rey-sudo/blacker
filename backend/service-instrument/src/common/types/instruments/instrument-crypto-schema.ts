@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { DecimalSchema, InstrumentMarginTypeSchema, InstrumentOrderTypeSchema, InstrumentStatusSchema, InstrumentTypeSchema } from "./index.js";
+import {
+  DecimalSchema,
+  InstrumentMarginTypeSchema,
+  InstrumentMarketSchema,
+  InstrumentOrderTypeSchema,
+  InstrumentStatusSchema,
+  InstrumentTypeSchema,
+} from "./index.js";
 
 /* ──────────────────────────────────────────────────────────
  * InstrumentCryptoSpotSchema
@@ -27,6 +34,12 @@ export const InstrumentCryptoSpotSchema = z
     idempotentId: z.string().min(1),
 
     type: InstrumentTypeSchema,
+
+    /**
+     * Market category.
+     * Examples: "crypto", "stocks", "forex", "futures"
+     */
+    market: InstrumentMarketSchema,
 
     symbol: z.string().transform((v) => v.toUpperCase()),
 
@@ -76,6 +89,44 @@ export const InstrumentCryptoSpotSchema = z
     }),
 
     /**
+     * Minimum price increment (tick size) for the instrument.
+     * All prices must be multiples of this value.
+     * Example: 0.01 USDT for BTC/USDT.
+     */
+    tickSize: z.number().positive(),
+
+    /**
+     * Maximum number of decimal places allowed in price.
+     * Must match the number of decimals in tickSize.
+     * Example: tickSize 0.01 → pricePrecision 2
+     */
+    pricePrecision: z.number().int().nonnegative(),
+
+    /**
+     * Minimum quantity increment per order.
+     * Mutually exclusive with lotSize.
+     */
+    stepSize: z.number().positive().optional(),
+
+    /**
+     * Maximum number of decimal places allowed in quantity.
+     * Only relevant if stepSize is used.
+     */
+    quantityPrecision: z.number().int().nonnegative().optional(),
+
+    /**
+     * Fixed lot size for contracts.
+     * Mutually exclusive with stepSize.
+     */
+    lotSize: z.number().positive().optional(),
+
+    /**
+     * Contract size for derivatives.
+     * Determines how much underlying one CFD contract controls.
+     */
+    contractSize: z.number().positive().optional(),
+
+    /**
      * Name of the data or execution provider.
      * Example: "Binance", "Bloomberg", "InteractiveBrokers"
      */
@@ -123,6 +174,20 @@ export const InstrumentCryptoSpotSchema = z
     supportedOrderTypes: z.array(InstrumentOrderTypeSchema),
 
     /**
+     * Initial margin requirement as a fraction of the position notional.
+     * Example: 0.1 → 10% of the position value must be deposited to open the trade.
+     * Only relevant for leveraged instruments (CFD, futures).
+     */
+    initialMargin: z.number().nonnegative().optional(),
+
+    /**
+     * Maintenance margin requirement as a fraction of the position notional.
+     * Example: 0.05 → 5% of the position value must remain as collateral to avoid liquidation.
+     * Only relevant for leveraged instruments (CFD, futures).
+     */
+    maintenanceMargin: z.number().nonnegative().optional(),
+
+    /**
      * Tags for categorization and filtering.
      */
     tags: z.array(z.string()),
@@ -150,8 +215,87 @@ export const InstrumentCryptoSpotSchema = z
 
     supportsOHLCV: z.boolean(),
 
+    /**
+     * Blockchain network where the token resides.
+     * Examples: "Ethereum", "Binance Smart Chain", "Solana".
+     * Critical for deposits, withdrawals, and transaction routing.
+     */
+    network: z.string(),
+
+    /**
+     * Smart contract address for token instruments (ERC-20, BEP-20, etc.).
+     * Optional for native coins like BTC or ETH.
+     */
+    contractAddress: z.string().optional(),
+
+    /**
+     * Number of decimal places used by the token.
+     * Determines precision for trading, balances, and UI display.
+     */
+    decimals: z.number().int().nonnegative(),
+
+    /**
+     * Indicates if the token is a stablecoin.
+     * Useful for pricing logic, margin calculations, and risk rules.
+     */
+    isStablecoin: z.boolean().optional(),
+
+    /**
+     * Minimum trade amount expressed in USD equivalent.
+     * Ensures trades comply with platform and risk constraints.
+     */
+    minTradeAmountUSD: z.number().nonnegative().optional(),
+
+    /**
+     * Maximum trade amount expressed in USD equivalent.
+     * Limits exposure per order for risk management.
+     */
+    maxTradeAmountUSD: z.number().nonnegative().optional(),
+
+    /**
+     * Indicates if withdrawals are currently allowed for this instrument.
+     * Useful during maintenance or network congestion.
+     */
+    withdrawalEnabled: z.boolean().optional(),
+
+    /**
+     * Indicates if deposits are currently allowed for this instrument.
+     * Useful during maintenance or network congestion.
+     */
+    depositEnabled: z.boolean().optional(),
+
+    /**
+     * Type of wallet used for this instrument in the exchange.
+     * "hot" for online wallets, "cold" for offline storage.
+     */
+    walletType: z.enum(["hot", "cold"]).optional(),
+
+    /**
+     * Name of the external price feed provider.
+     * Important for derivatives, funding rate calculations, and UI display.
+     */
+    priceFeedProvider: z.string().optional(),
+
+    /**
+     * Periodic funding rate for perpetual futures or margin products.
+     * Expressed as a fraction (e.g., 0.0001 = 0.01%).
+     */
+    fundingRate: z.number().optional(),
+
+    /**
+     * Unix timestamp (ms) for the next funding event.
+     * Relevant for perpetual futures with recurring funding payments.
+     */
+    nextFundingTime: z.number().int().nonnegative().optional(),
+
+    /**
+     * Indicates if derivatives (futures, options) can be created on this instrument.
+     * Useful for risk engine, product offerings, and UI logic.
+     */
+    isDerivable: z.boolean().optional(),
+
     createdAt: z.number(),
-    
+
     updatedAt: z.number().optional(),
   })
   .superRefine((data, ctx) => {

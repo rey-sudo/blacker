@@ -13,6 +13,20 @@ export const DecimalSchema = z
     message: "Decimal inválido",
   });
 
+/**
+ * Decimal positivo: > 0
+ */
+export const DecimalPositiveSchema = DecimalSchema.refine((v) => v.gt(0), {
+  message: "Decimal debe ser mayor que 0",
+});
+
+/**
+ * Decimal no negativo: ≥ 0
+ */
+export const DecimalNonNegativeSchema = DecimalSchema.refine((v) => v.gte(0), {
+  message: "Decimal no puede ser negativo",
+});
+
 export const InstrumentTypeSchema = z.enum([
   "forex-spot",
   "forex-cfd",
@@ -41,4 +55,21 @@ export const InstrumentOrderTypeSchema = z.enum([
   "limit",
   "stop",
   "stop_limit",
+]);
+
+export const InstrumentMarketSchema = z.enum([
+  "crypto",
+  "stocks",
+  "forex",
+  "futures",
+  "options",
+  "indices",
+  "commodities",
+  "bonds",
+  "etfs",
+  "cfds",
+  "funds",
+  "rates",
+  "synthetic",
+  "other",
 ]);
