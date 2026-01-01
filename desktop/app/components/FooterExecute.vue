@@ -1,5 +1,6 @@
 <template>
   <div class="footer-execute">
+<!--
     <UInputNumber
       v-model="value"
       size="xs"
@@ -11,7 +12,8 @@
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }"
-    />
+    />    
+-->
 
     <UButton
       class="font-bold"

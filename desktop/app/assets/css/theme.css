@@ -224,7 +224,7 @@
   --ui-bg-inverted: white;
 
   /* BORDER COLORS (subtle separation) */
-  --ui-border: var(--color-neutral-800);
+  --ui-border: var(--color-neutral-700);
   --ui-border-muted: var(--color-neutral-700);
   --ui-border-accented: var(--color-neutral-700);
   --ui-border-inverted: white;
