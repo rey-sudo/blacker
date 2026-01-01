@@ -1,5 +1,7 @@
 from node import create_trading_node
 from instruments.btcusd import btc_usd_cfd
+from strategy.users import StrategyManager
+from api import start_server
 
 def main():
     node = create_trading_node()
@@ -8,7 +10,10 @@ def main():
 
     node.cache.add_instrument(btc_usd_cfd)
 
+    strategy_manager = StrategyManager(node.trader)
+    
     try:
+        start_server(strategy_manager)
         node.run()
     except KeyboardInterrupt:
         pass
