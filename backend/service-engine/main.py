@@ -13,7 +13,7 @@ def main():
     strategy_manager = StrategyManager(node.trader)
     
     try:
-        start_server(strategy_manager)
+        start_server(strategy_manager)  #change to gRPC
         node.run()
     except KeyboardInterrupt:
         pass
