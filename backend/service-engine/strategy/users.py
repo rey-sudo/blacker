@@ -16,8 +16,17 @@ from nautilus_trader.model.orders import MarketOrder
 from nautilus_trader.model import CustomData
 from nautilus_trader.common.component import LiveClock
 from nautilus_trader.common.component import Logger
+from nautilus_trader.core import Data
+from nautilus_trader.core.message import Event
 
 
+
+class Each10thBarEvent(Event):
+    TOPIC = "each_10th_bar"  # Topic name
+    def __init__(self, bar):
+        self.bar = bar
+        
+        
 class UserStrategyConfig(StrategyConfig):
     user_id: str
     instrument_ids: List[InstrumentId]
@@ -34,12 +43,13 @@ class UserStrategy(Strategy):
         self.instruments = {}
         
     def on_start(self) -> None:
-             
-        self.log.info(
-            f"UserStrategy starting | user={self.config.user_id} | "
-            f"instruments={list(self.instruments.keys())}"
-        )
-  
+            
+        self.log.info(f"UserStrategy starting | user={self.config.user_id}")
+        
+        self.msgbus.subscribe(Each10thBarEvent.TOPIC, self.on_each_10th_bar)
+        
+        self.log.info("Subscribed to custom event")
+    
         for instrument_id in self.config.instrument_ids:
             
             instrument = self.cache.instrument(InstrumentId.from_str(instrument_id))
@@ -56,7 +66,11 @@ class UserStrategy(Strategy):
             f"instruments={list(self.instruments.keys())}"
         )
 
-    def on_signal(self, signal) -> None:
+    def on_each_10th_bar(self, event: Each10thBarEvent):
+        self.log.info(f"Received 10th bar: {event.bar}")
+
+
+    def on_signal(self, signal: Data) -> None:
         self.log.info(
             f"Signal received | signal={signal}"
         )
@@ -98,6 +112,8 @@ class UserStrategy(Strategy):
         )
         self.submit_order(order)
         
+        
+        
 
 
 class StrategyManager:
@@ -131,19 +147,19 @@ class StrategyManager:
     def send_order(self, user_id: str, action: str, instrument_id: str, quantity=None):
         if user_id not in self.strategies:
             raise ValueError(f"User {user_id} not found")
-
+        
         strategy = self.strategies[user_id]
-
+        
         payload = {
             "action": action,
             "quantity": quantity,
             "instrument_id": instrument_id
         }
 
-        strategy.publish_signal(
-          name="user.order",
-          value=json.dumps(payload)
-        )
+
+        event = Each10thBarEvent("example@@@@@@@")
+        
+        strategy.msgbus.publish(Each10thBarEvent.TOPIC, event)
         
         self.log.info(
             f"Signal published | user={user_id} | instrument_id={instrument_id}"
