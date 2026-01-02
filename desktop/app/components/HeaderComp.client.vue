@@ -19,12 +19,14 @@ const tabsStore = useTabsStore();
 .header {
   gap: 1rem;
   display: flex;
-  padding: 0 1rem;
   align-items: center;
   box-sizing: border-box;
   height: var(--header-height);
   background: var(--nav-background);
+  padding: var(--tab-content-padding);
   border-bottom: 1px solid var(--ui-border);
+  padding-top: initial;
+  padding-bottom: initial;
 }
 
 .header-body {
