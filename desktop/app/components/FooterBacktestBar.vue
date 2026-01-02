@@ -1,6 +1,6 @@
 <template>
   <div class="footer-backtest-bar">
-    <UInputDate v-model="value" granularity="second" size="xs" range />
+    <UInputDate v-model="value" granularity="second" size="xs" range separator-icon="lucide:dot" />
 
     <UInputTime
       v-model="time"
@@ -16,14 +16,14 @@
 
     <UButton
       size="xs"
-      icon="i-lucide-step-back"
+      icon="material-symbols:skip-previous"
       color="neutral"
       variant="outline"
     />
-    <UButton size="xs" icon="i-lucide-play" color="neutral" variant="outline" />
+    <UButton size="xs" icon="material-symbols:play-arrow-rounded" color="neutral" variant="outline" />
     <UButton
       size="xs"
-      icon="i-lucide-step-forward"
+      icon="material-symbols:skip-next"
       color="neutral"
       variant="outline"
     />
