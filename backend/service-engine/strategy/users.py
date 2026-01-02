@@ -4,7 +4,7 @@
 # ============================================
 
 from decimal import Decimal
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from nautilus_trader.config import StrategyConfig
 from nautilus_trader.trading.strategy import Strategy
@@ -12,7 +12,8 @@ from nautilus_trader.core import Data
 from nautilus_trader.model import InstrumentId
 from nautilus_trader.model.enums import OrderSide
 from nautilus_trader.model.orders import MarketOrder
-
+from nautilus_trader.model import CustomData
+from nautilus_trader.common.component import LiveClock
 
 # =====================================================
 # STRATEGY CONFIG (1 config = 1 user)
@@ -25,104 +26,108 @@ class UserStrategyConfig(StrategyConfig):
     order_id_tag: str   # MUST be unique per user
 
 
-# =====================================================
-# STRATEGY IMPLEMENTATION
-# =====================================================
+
+
+
+class UserSignal(CustomData):
+    def __init__(self, action: str, quantity: Optional[Decimal] = None):
+        super().__init__("USER_SIGNAL") 
+        self.action = action
+        self.quantity = quantity
+
+
+
 
 class UserStrategy(Strategy):
-    """
-    Stateless, horizontally scalable strategy.
-    Orders can arrive to ANY pod.
-    """
-
-    def __init__(self, config: UserStrategyConfig) -> None:
-        super().__init__(config)
-        self.instrument = None
-
-    # -------------------------------------------------
-    # LIFECYCLE
-    # -------------------------------------------------
 
     def on_start(self) -> None:
         self.instrument = self.cache.instrument(self.config.instrument_id)
-
-        if self.instrument is None:
-            self.log.error(f"Instrument not found: {self.config.instrument_id}")
+        
+        if not self.instrument:
+            self.log.error("Instrument not found")
             self.stop()
             return
+
+        self.subscribe_signal("user.order")
 
         self.log.info(
             f"Strategy started | user={self.config.user_id} | "
             f"instrument={self.config.instrument_id}"
         )
 
-    # -------------------------------------------------
-    # EXTERNAL SIGNAL ENTRY POINT
-    # -------------------------------------------------
-    # API / Kafka / Redis → Signal → ANY POD
-    # -------------------------------------------------
 
-    def on_signal(self, signal: Data) -> None:
+    def on_signal(self, signal) -> None:
         """
-        Expected payload:
+        signal.value expected:
         {
-            "action": "BUY" | "SELL",
-            "quantity": optional Decimal
+          "action": "BUY" | "SELL",
+          "quantity": optional
         }
         """
-
-        payload: Dict[str, Any] = signal.payload
-
-        action = payload.get("action")
+        payload = signal.value
+        action = payload["action"]
         quantity = payload.get("quantity", self.config.trade_size)
 
         if action == "BUY":
             self._buy(quantity)
-
         elif action == "SELL":
             self._sell(quantity)
-
         else:
-            self.log.warning(f"Unknown action: {action}")
+            self.log.warning(f"Unknown action {action}")
 
-    # -------------------------------------------------
-    # ORDER COMMANDS
-    # -------------------------------------------------
-
-    def _buy(self, quantity: Decimal) -> None:
-        order: MarketOrder = self.order_factory.market(
+    def _buy(self, quantity):
+        order = self.order_factory.market(
             instrument_id=self.config.instrument_id,
             order_side=OrderSide.BUY,
             quantity=self.instrument.make_qty(quantity),
         )
         self.submit_order(order)
 
-    def _sell(self, quantity: Decimal) -> None:
-        order: MarketOrder = self.order_factory.market(
+    def _sell(self, quantity):
+        order = self.order_factory.market(
             instrument_id=self.config.instrument_id,
             order_side=OrderSide.SELL,
             quantity=self.instrument.make_qty(quantity),
         )
         self.submit_order(order)
-
+        
 
 
 class StrategyManager:
     def __init__(self, trader):
         self.trader = trader
-        self.strategies = {}
+        self.strategies: dict[str, UserStrategy] = {}
 
-    def add_user(self, user_id: str, instruments: list[str]):
+    def add_user(self, user_id: str, instruments: list[str], trade_size=0.01):
+        if user_id in self.strategies:
+            return  # idempotente
+
         config = UserStrategyConfig(
             user_id=user_id,
-            instrument_ids=instruments,
-            order_id_tag=user_id,
+            instrument_id=instruments, 
+            trade_size=trade_size,
+            order_id_tag=user_id
         )
 
         strategy = UserStrategy(config)
         self.trader.add_strategy(strategy)
-
         self.strategies[user_id] = strategy
+
+    def send_order(self, user_id: str, action: str, quantity=None):
+        if user_id not in self.strategies:
+            raise ValueError(f"User {user_id} not found")
+
+        strategy = self.strategies[user_id]
+
+        payload = {
+            "action": action,
+            "quantity": quantity,
+        }
+
+        strategy.publish_signal(
+            name="user.order",
+            value=payload,
+        )
 
 
 

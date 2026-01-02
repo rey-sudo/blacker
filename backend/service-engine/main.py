@@ -1,7 +1,8 @@
 from node import create_trading_node
 from instruments.btcusd import btc_usd_cfd
 from strategy.users import StrategyManager
-from api import start_server
+from api import create_app
+import uvicorn
 
 def main():
     node = create_trading_node()
@@ -12,8 +13,11 @@ def main():
 
     strategy_manager = StrategyManager(node.trader)
     
+    app = create_app(strategy_manager)
+    
     try:
-        start_server(strategy_manager)  #change to gRPC
+        uvicorn.run(app, host="0.0.0.0", port=8011)
+        
         node.run()
     except KeyboardInterrupt:
         pass

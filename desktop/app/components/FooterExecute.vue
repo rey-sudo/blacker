@@ -17,14 +17,14 @@
 
     <UButton
       class="font-bold"
-      size="lg"
+      size="sm"
       color="success"
       icon="i-lucide-arrow-up-right"
       >Buy</UButton
     >
     <UButton
       class="font-bold"
-      size="lg"
+      size="sm"
       color="error"
       icon="i-lucide-arrow-down-left"
       >Sell</UButton
