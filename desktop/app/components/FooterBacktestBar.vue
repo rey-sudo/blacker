@@ -1,6 +1,12 @@
 <template>
   <div class="footer-backtest-bar">
-    <UInputDate v-model="value" granularity="second" size="xs" range separator-icon="lucide:dot" />
+    <UInputDate
+      v-model="value"
+      granularity="second"
+      size="xs"
+      range
+      separator-icon="lucide:dot"
+    />
 
     <UInputTime
       v-model="time"
@@ -14,19 +20,30 @@
       </template>
     </UInputTime>
 
-    <UButton
-      size="xs"
-      icon="material-symbols:skip-previous"
-      color="neutral"
-      variant="outline"
-    />
-    <UButton size="xs" icon="material-symbols:play-arrow-rounded" color="neutral" variant="outline" />
-    <UButton
-      size="xs"
-      icon="material-symbols:skip-next"
-      color="neutral"
-      variant="outline"
-    />
+    <UTooltip :delay-duration="0" text="Previous candle" arrow>
+      <UButton
+        size="xs"
+        icon="material-symbols:skip-previous"
+        color="neutral"
+        variant="outline"
+      />
+    </UTooltip>
+    <UTooltip :delay-duration="0" text="Play" arrow>
+      <UButton
+        size="xs"
+        icon="material-symbols:play-arrow"
+        color="neutral"
+        variant="outline"
+      />
+    </UTooltip>
+    <UTooltip :delay-duration="0" text="Next candle" arrow>
+      <UButton
+        size="xs"
+        icon="material-symbols:skip-next"
+        color="neutral"
+        variant="outline"
+      />
+    </UTooltip>
 
     <USlider size="xs" :default-value="0" style="width: 10rem" />
     <UButton size="xs" label="x1" color="neutral" variant="outline" />

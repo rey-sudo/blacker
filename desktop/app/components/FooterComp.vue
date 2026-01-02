@@ -10,13 +10,6 @@
       </UButton>
 
       <USeparator orientation="vertical" class="h-6 px-1" />
-
-      <UButton color="neutral" size="xs" variant="ghost">Order History</UButton>
-      <USeparator orientation="vertical" class="h-6 px-1" />
-      <UButton color="neutral" size="xs" variant="ghost">Backtesting</UButton>
-      <USeparator orientation="vertical" class="h-6 px-1" />
-      <UButton color="neutral" size="xs" variant="ghost">Bots</UButton>
-      <USeparator orientation="vertical" class="h-6 px-1" />
       <UButton color="neutral" size="xs" variant="ghost">
         <template #trailing>
           <UBadge size="sm" color="neutral" variant="outline">1</UBadge>
@@ -24,6 +17,12 @@
 
         Alerts</UButton
       >
+      <USeparator orientation="vertical" class="h-6 px-1" />
+      <UButton color="neutral" size="xs" variant="ghost">Order History</UButton>
+      <USeparator orientation="vertical" class="h-6 px-1" />
+      <UButton color="neutral" size="xs" variant="ghost">Backtesting</UButton>
+      <USeparator orientation="vertical" class="h-6 px-1" />
+      <UButton color="neutral" size="xs" variant="ghost">Algorithmic</UButton>
       <USeparator orientation="vertical" class="h-6 pl-1 pr-4" />
       <FooterBacktestBar />
       <USeparator orientation="vertical" class="h-6 px-4" />
