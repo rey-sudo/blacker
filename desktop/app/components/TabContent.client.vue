@@ -48,7 +48,7 @@ onBeforeUnmount(() => {
 <style lang="css" scoped>
 .tab-content {
   display: grid;
-  gap: 0.1rem;
+  gap: 0.25rem;
   height: calc(100vh - (var(--header-height) + var(--footer-height)));
   overflow: hidden;
   padding: var(--tab-content-padding);
