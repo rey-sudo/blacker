@@ -95,7 +95,7 @@ body {
 
   --chart-background: var(--color-neutral-900);
   --chart-header-background: var(--color-neutral-900);
-  --chart-header-height: 3rem;
+  --chart-header-height: 2.5rem;
 
   --main-background: var(--ui-bg-accented);
 
