@@ -26,7 +26,7 @@ const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
 .tab {
   border-left: 1px solid var(--ui-border);
   border-right: 1px solid var(--ui-border);
-  border-bottom: 1px solid var(--ui-primary);
+  border-bottom: 0.5px solid color-mix(in oklab, var(--ui-primary) 65%, transparent);
   font-size: var(--font-size-1);
   text-transform: capitalize;
   padding: 0.5rem 1rem;
