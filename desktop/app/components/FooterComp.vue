@@ -9,6 +9,21 @@
         </template>
       </UButton>
 
+      <UButton color="neutral" size="xs" variant="ghost" icon="lucide:history"
+        >Order History</UButton
+      >
+
+      <UButton
+        color="neutral"
+        size="xs"
+        variant="ghost"
+        icon="lucide:line-chart"
+        >Backtesting</UButton
+      >
+
+      <UButton color="neutral" size="xs" variant="ghost" icon="lucide:code"
+        >Algorithmic</UButton
+      >
 
       <UButton color="neutral" size="xs" variant="ghost" icon="lucide:bell">
         <template #trailing>
@@ -17,12 +32,6 @@
 
         Alerts</UButton
       >
-
-      <UButton color="neutral" size="xs" variant="ghost" icon="lucide:history">Order History</UButton>
-
-      <UButton color="neutral" size="xs" variant="ghost" icon="lucide:line-chart">Backtesting</UButton>
-
-      <UButton color="neutral" size="xs" variant="ghost" icon="lucide:code">Algorithmic</UButton>
 
       <USeparator orientation="vertical" class="h-6 pl-2 pr-4" />
       <FooterBacktestBar />
