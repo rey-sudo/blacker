@@ -1,6 +1,6 @@
 <template>
   <div class="footer">
-    <div class="flex items-center justify-center gap-1">
+    <div class="flex items-center justify-center gap-2">
       <UButton color="neutral" size="xs" variant="ghost"
         >Positions
 
@@ -9,7 +9,7 @@
         </template>
       </UButton>
 
-      <USeparator orientation="vertical" class="h-6 px-1" />
+
       <UButton color="neutral" size="xs" variant="ghost">
         <template #trailing>
           <UBadge size="sm" color="neutral" variant="outline">1</UBadge>
@@ -17,13 +17,14 @@
 
         Alerts</UButton
       >
-      <USeparator orientation="vertical" class="h-6 px-1" />
+
       <UButton color="neutral" size="xs" variant="ghost">Order History</UButton>
-      <USeparator orientation="vertical" class="h-6 px-1" />
+
       <UButton color="neutral" size="xs" variant="ghost">Backtesting</UButton>
-      <USeparator orientation="vertical" class="h-6 px-1" />
+
       <UButton color="neutral" size="xs" variant="ghost">Algorithmic</UButton>
-      <USeparator orientation="vertical" class="h-6 pl-1 pr-4" />
+
+      <USeparator orientation="vertical" class="h-6 pl-2 pr-4" />
       <FooterBacktestBar />
       <USeparator orientation="vertical" class="h-6 px-4" />
     </div>
