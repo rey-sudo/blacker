@@ -49,6 +49,10 @@ class UserStrategy(Strategy):
         self.msgbus.subscribe(Each10thBarEvent.TOPIC, self.on_each_10th_bar)
         
         self.log.info("Subscribed to custom event")
+        
+        event = Each10thBarEvent("@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq")
+        
+        self.msgbus.publish(Each10thBarEvent.TOPIC, event)
     
         for instrument_id in self.config.instrument_ids:
             
