@@ -122,6 +122,14 @@ class StrategyManager:
         self.strategies: dict[str, UserStrategy] = {}
         self.log = Logger(name="StrategyManager")
 
+
+    def _find_user_strategy(self, user_id: str) -> UserStrategy:
+        for strategy in self.trader.strategies():
+            if strategy.order_id_tag == user_id:
+                return strategy
+        raise ValueError(f"Strategy for user {user_id} not found")
+
+
     def add_user(self, user_id: str, instrument_ids: set[str], trade_size=0.01):
         if user_id in self.strategies:
             return  
@@ -145,24 +153,24 @@ class StrategyManager:
         self.log.info(f"User added | user={user_id} | instruments={instrument_ids}")
 
     def send_order(self, user_id: str, action: str, instrument_id: str, quantity=None):
-        if user_id not in self.strategies:
-            raise ValueError(f"User {user_id} not found")
-        
-        strategy = self.strategies[user_id]
-        
-        payload = {
-            "action": action,
-            "quantity": quantity,
-            "instrument_id": instrument_id
-        }
 
+        def _dispatch():
+            strategy = self._find_user_strategy(user_id)
 
-        event = Each10thBarEvent("example@@@@@@@")
+            payload = {
+               "action": action,
+               "instrument_id": instrument_id,
+                "quantity": quantity,
+            }
+
+            event = Each10thBarEvent(payload)
+            
+            strategy.msgbus.publish(Each10thBarEvent.TOPIC, event)
+
+            self.log.info(f"Order dispatched | user={user_id}")
         
-        strategy.msgbus.publish(Each10thBarEvent.TOPIC, event)
         
-        self.log.info(
-            f"Signal published | user={user_id} | instrument_id={instrument_id}"
-        )
+        _dispatch()
+             
 
 
