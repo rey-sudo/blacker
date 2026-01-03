@@ -13,12 +13,10 @@ def main():
 
     strategy_manager = StrategyManager(node.trader)
     
-    app = create_app(strategy_manager)
+    app = create_app(strategy_manager, node)
     
     try:
         uvicorn.run(app, host="0.0.0.0", port=8011)
-        
-        node.run()
     except KeyboardInterrupt:
         pass
     finally:

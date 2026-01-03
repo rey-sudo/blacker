@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
+import threading
 
 from strategy.users import StrategyManager
 from nautilus_trader.core import Data
@@ -20,10 +21,13 @@ class SendOrderRequest(BaseModel):
     instrument_id: str       
     quantity: Optional[float] = None
 
+
+
+node_thread = None
 # -------------------------------
 # FastAPI app
 # -------------------------------
-def create_app(strategy_manager: StrategyManager):
+def create_app(strategy_manager: StrategyManager, node):
     app = FastAPI(title="Prop Firm API")
 
     @app.post("/api/engine/create-user")
@@ -53,4 +57,28 @@ def create_app(strategy_manager: StrategyManager):
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
+    
+    @app.post("/api/engine/run-node")
+    def run_node():
+        global node_thread
+
+        if node_thread and node_thread.is_alive():
+            return {
+                "status": "ok",
+                "message": "Node already running"
+            }
+
+        node_thread = threading.Thread(
+            target=node.run,
+            daemon=True
+        )
+        
+        node_thread.start()
+
+        return {
+            "status": "ok",
+            "message": "Node started"
+        }
+     
+    
     return app

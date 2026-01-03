@@ -18,15 +18,42 @@ from nautilus_trader.common.component import LiveClock
 from nautilus_trader.common.component import Logger
 from nautilus_trader.core import Data
 from nautilus_trader.core.message import Event
+from nautilus_trader.common.actor import Actor
+from nautilus_trader.config import ActorConfig
+
+from dataclasses import dataclass
+from collections import deque
 
 
 
-class Each10thBarEvent(Event):
-    TOPIC = "each_10th_bar"  # Topic name
-    def __init__(self, bar):
-        self.bar = bar
         
+class ApiGatewayConfig(ActorConfig):
+    name: str = "api-gateway"
+
+
+class ApiGatewayActor(Actor):
+    def __init__(self, config: ApiGatewayConfig):
+        super().__init__(config)
+
+    def on_start(self):
+        self.log.info("API Gateway Actor started")
+
+    def publish_order(self, event):
+        self.log.info("publishing event")
         
+        self.msgbus.publish(event.TOPIC, event)
+
+
+@dataclass
+class UserOrderEvent(Event):
+    user_id: str
+    instrument_id: InstrumentId
+    action: str
+    quantity: Optional[Decimal] = None
+
+    TOPIC: str = "user.order"
+        
+                    
 class UserStrategyConfig(StrategyConfig):
     user_id: str
     instrument_ids: List[InstrumentId]
@@ -46,13 +73,8 @@ class UserStrategy(Strategy):
             
         self.log.info(f"UserStrategy starting | user={self.config.user_id}")
         
-        self.msgbus.subscribe(Each10thBarEvent.TOPIC, self.on_each_10th_bar)
-        
-        self.log.info("Subscribed to custom event")
-        
-        event = Each10thBarEvent("@@@@@@@@@@@@@@@@@@@@@@@@@@@@qq")
-        
-        self.msgbus.publish(Each10thBarEvent.TOPIC, event)
+        self.msgbus.subscribe(UserOrderEvent.TOPIC, self.on_user_order)
+        self.log.info("Subscribed to UserOrderEvent")
     
         for instrument_id in self.config.instrument_ids:
             
@@ -70,8 +92,27 @@ class UserStrategy(Strategy):
             f"instruments={list(self.instruments.keys())}"
         )
 
-    def on_each_10th_bar(self, event: Each10thBarEvent):
-        self.log.info(f"Received 10th bar: {event.bar}")
+    def on_user_order(self, event: UserOrderEvent):
+        self.log.info("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+        
+        self.log.info(
+            f"User order | user={event.user_id} | "
+            f"{event.action} {event.quantity} {event.instrument_id}"
+        )
+
+        instrument = self.instruments.get(event.instrument_id.value)
+        if instrument is None:
+            self.log.warning("Instrument not allowed")
+            return
+
+        qty = event.quantity or self.config.trade_size
+        
+        self.log.info(f"Submmiting order {instrument.id}")
+
+        if event.action == "BUY":
+            self._buy(instrument, qty)
+        elif event.action == "SELL":
+            self._sell(instrument, qty)
 
 
     def on_signal(self, signal: Data) -> None:
@@ -79,42 +120,26 @@ class UserStrategy(Strategy):
             f"Signal received | signal={signal}"
         )
                 
-        payload = json.loads(signal.value)
-         
-        instrument_id = payload["instrument_id"] 
-        action = payload["action"]
-        quantity = payload.get("quantity", self.config.trade_size)
-
-        if instrument_id not in self.config.instrument_ids:
-            self.log.warning(
-                f"User {self.config.user_id} not allowed to trade {instrument_id}"
-            )
-            return
-        
-        instrument = self.instruments[instrument_id]
-        
-        if action == "BUY":
-            self._buy(instrument, quantity)
-        elif action == "SELL":
-            self._sell(instrument, quantity)
-        else:
-            self.log.warning(f"Unknown action {action}")
 
     def _buy(self, instrument, quantity):
         order = self.order_factory.market(
-            instrument_id=instrument.id(),
+            instrument_id=instrument.id,
             order_side=OrderSide.BUY,
             quantity=instrument.make_qty(quantity),
         )
+        
         self.submit_order(order)
-
+        self.log.info("Buy order submitted")
+ 
     def _sell(self, instrument, quantity):
         order = self.order_factory.market(
-            instrument_id=instrument.id(),
+            instrument_id=instrument.id,
             order_side=OrderSide.SELL,
             quantity=instrument.make_qty(quantity),
         )
+        
         self.submit_order(order)
+        self.log.info("Sell order submitted")
         
         
         
@@ -150,31 +175,35 @@ class StrategyManager:
         )
 
         strategy = UserStrategy(config)
+    
         self.trader.add_strategy(strategy)
-        
         self.strategies[user_id] = strategy
+        
+        
+        gateway_config = ApiGatewayConfig()
+        gateway = ApiGatewayActor(gateway_config)
+    
+        self.trader.add_actor(gateway)
         
         self.log.info(f"User added | user={user_id} | instruments={instrument_ids}")
 
     def send_order(self, user_id: str, action: str, instrument_id: str, quantity=None):
 
-        def _dispatch():
-            strategy = self._find_user_strategy(user_id)
+       
+        strategy = self._find_user_strategy(user_id)
 
-            payload = {
-               "action": action,
-               "instrument_id": instrument_id,
-                "quantity": quantity,
-            }
-
-            event = Each10thBarEvent(payload)
-            
-            strategy.msgbus.publish(Each10thBarEvent.TOPIC, event)
-
-            self.log.info(f"Order dispatched | user={user_id}")
+        event = UserOrderEvent(
+            user_id=user_id,
+            instrument_id=InstrumentId.from_str(instrument_id),
+            action=action,
+            quantity=quantity,
+        )
         
+        actor = self.trader.actors()[0]
         
-        _dispatch()
-             
+        actor.publish_order(event)
+
+        self.log.info(f"Order dispatched | user={user_id}")
+        
 
 
