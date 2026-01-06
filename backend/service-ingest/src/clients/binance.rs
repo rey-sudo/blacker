@@ -1,9 +1,11 @@
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use futures_util::StreamExt;
 use serde::Deserialize;
 use std::time::Duration;
 use tokio_tungstenite::connect_async;
 use tracing::{error, info};
+
+use crate::common::tick::{Tick, Exchange, Side};
 
 /// =======================
 /// CONSTANTES BINANCE
@@ -33,8 +35,44 @@ struct BinanceAggTrade {
     M: bool,   // best price match
 }
 
+/// =======================
+/// NORMALIZACIÓN → TICK
+/// =======================
 
+impl TryFrom<BinanceAggTrade> for Tick {
+    type Error = anyhow::Error;
 
+    fn try_from(agg: BinanceAggTrade) -> Result<Self> {
+        let price = agg
+            .p
+            .parse::<f64>()
+            .map_err(|e| anyhow!("invalid price '{}': {}", agg.p, e))?;
+
+        let quantity = agg
+            .q
+            .parse::<f64>()
+            .map_err(|e| anyhow!("invalid quantity '{}': {}", agg.q, e))?;
+
+        let side = if agg.m {
+            Side::Sell
+        } else {
+            Side::Buy
+        };
+
+        Ok(Tick {
+            exchange: Exchange::Binance,
+            symbol: agg.s,
+            price,
+            quantity,
+            side,
+            ts: agg.T,
+        })
+    }
+}
+
+/// =======================
+/// CLIENTE BINANCE WS
+/// =======================
 
 pub async fn run(symbol: &str) -> Result<()> {
     let symbol = symbol.to_lowercase();
@@ -59,19 +97,35 @@ pub async fn run(symbol: &str) -> Result<()> {
 
                             match serde_json::from_str::<BinanceAggTrade>(&text) {
                                 Ok(agg) => {
-                                    // 👉 AQUÍ EMPIEZA TU PIPELINE REAL
-                                    // Por ahora solo logueamos
-                                    info!(
-                                        "aggTrade | {} | price={} qty={} maker={}",
-                                        agg.s, agg.p, agg.q, agg.m
-                                    );
+                                    match Tick::try_from(agg) {
+                                        Ok(tick) => {
+                                            info!(
+                                                "TICK | {:?} | {} | price={} qty={} side={:?}",
+                                                tick.exchange,
+                                                tick.symbol,
+                                                tick.price,
+                                                tick.quantity,
+                                                tick.side
+                                            );
+
+                                            // 👉 AQUÍ VA:
+                                            // - Redis Streams
+                                            // - tokio::mpsc::Sender<Tick>
+                                            // - métricas
+                                        }
+                                        Err(e) => {
+                                            error!("Tick conversion error: {}", e);
+                                        }
+                                    }
                                 }
                                 Err(e) => {
                                     error!("Parse error: {} | raw={}", e, text);
                                 }
                             }
                         }
-                        Ok(_) => {} // ping/pong u otros frames
+                        Ok(_) => {
+                            // ping / pong / binary frames
+                        }
                         Err(e) => {
                             error!("WebSocket read error: {}", e);
                             break;
@@ -89,8 +143,9 @@ pub async fn run(symbol: &str) -> Result<()> {
     }
 }
 
-
-
+/// =======================
+/// BACKOFF SIMPLE
+/// =======================
 
 async fn backoff(attempt: u32) {
     let secs = std::cmp::min(attempt as u64 * 2, MAX_BACKOFF_SECS);

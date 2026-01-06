@@ -19,6 +19,7 @@
  
 mod config;
 mod clients;
+mod common;
 
 use anyhow::{anyhow, Result};
 use config::Config;
