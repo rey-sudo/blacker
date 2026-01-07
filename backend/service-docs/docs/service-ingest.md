@@ -8,6 +8,7 @@ A microservice that queries the market data provider, normalizes the data, and a
 
 
 
+![Ingest](./assets/service-ingest.png)
 
 
 

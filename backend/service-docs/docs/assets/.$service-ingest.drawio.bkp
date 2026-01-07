@@ -1,0 +1,70 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.2.9 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.2.9">
+  <diagram name="Page-1" id="QFabanG9jx5By6VoUWPH">
+    <mxGraphModel dx="1188" dy="729" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="OR-PRIydTape9QMa9i-I-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="Data provider" vertex="1">
+          <mxGeometry height="40" width="120" x="120" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-3" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#FFFFFF;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.globe;fontFamily=Courier New;" value="" vertex="1">
+          <mxGeometry height="50" width="50" x="155" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-6" edge="1" parent="1" source="OR-PRIydTape9QMa9i-I-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;fontFamily=Courier New;fontSize=12;" target="OR-PRIydTape9QMa9i-I-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-19" edge="1" parent="1" source="OR-PRIydTape9QMa9i-I-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Courier New;fontSize=12;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="380" y="745" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="&lt;b&gt;service-ingest&lt;/b&gt;" vertex="1">
+          <mxGeometry height="40" width="120" x="320" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-10" parent="1" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/Cache_Redis_Product.svg;fontFamily=Courier New;" value="" vertex="1">
+          <mxGeometry height="35" width="41.67" x="540" y="802.5" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-20" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Courier New;fontSize=12;" value="wss://" vertex="1">
+          <mxGeometry height="30" width="60" x="251" y="701" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-23" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="data" vertex="1">
+          <mxGeometry height="120" width="120" x="320" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-28" edge="1" parent="OR-PRIydTape9QMa9i-I-23" source="OR-PRIydTape9QMa9i-I-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=12;fontFamily=Courier New;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="45" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-24" parent="OR-PRIydTape9QMa9i-I-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="Ticks" vertex="1">
+          <mxGeometry height="30" width="120" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-29" edge="1" parent="OR-PRIydTape9QMa9i-I-23" source="OR-PRIydTape9QMa9i-I-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;fontSize=12;fontFamily=Courier New;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="75" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-25" parent="OR-PRIydTape9QMa9i-I-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="Market By Price" vertex="1">
+          <mxGeometry height="30" width="120" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-30" parent="OR-PRIydTape9QMa9i-I-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="Historical Data" vertex="1">
+          <mxGeometry height="30" width="120" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-31" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="Redis streams" vertex="1">
+          <mxGeometry height="120" width="200" x="600" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-32" parent="OR-PRIydTape9QMa9i-I-31" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="N0:symbol:ticks" vertex="1">
+          <mxGeometry height="30" width="200" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-33" parent="OR-PRIydTape9QMa9i-I-31" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="N0:symbol:ohlcv" vertex="1">
+          <mxGeometry height="30" width="200" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="OR-PRIydTape9QMa9i-I-34" parent="OR-PRIydTape9QMa9i-I-31" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="N0:symbol:mbp" vertex="1">
+          <mxGeometry height="30" width="200" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="ir3yasLNcYmxdokZ5Xlc-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;dashPattern=1 4;" value="N°0" vertex="1">
+          <mxGeometry height="30" width="120" x="320" y="630" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
