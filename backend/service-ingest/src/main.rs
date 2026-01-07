@@ -28,6 +28,8 @@ use tokio::task::JoinHandle;
 use tracing::info;
 use rustls::crypto::ring;
 
+use pulsar::{Pulsar, TokioExecutor};
+
 #[tokio::main]
 async fn main() -> Result<()> {
     from_filename(".env.local").ok();
@@ -44,6 +46,20 @@ async fn main() -> Result<()> {
     info!("Client: {}", config.client_id);
     info!("Symbols: {:?}", config.symbols);
 
+    let pulsar: Pulsar<_> =
+        Pulsar::builder(&config.pulsar_url, TokioExecutor)
+            .build()
+            .await?;
+
+
+    let producer = pulsar
+        .producer()
+        .with_topic("persistent://public/market-data/ticks")
+        .with_name("service-ingest")
+        .build()
+        .await?;
+
+
     let mut handles: Vec<JoinHandle<Result<()>>> = Vec::new();
 
     match config.client_id.as_str() {
@@ -51,9 +67,11 @@ async fn main() -> Result<()> {
             for symbol in &config.symbols {
                 let s = symbol.clone();
 
-                handles.push(tokio::spawn(async move {
+                let handler = tokio::spawn(async move {
                     clients::binance::run(&s).await
-                }));
+                }); 
+                
+                handles.push(handler);
             }
         }
         other => {

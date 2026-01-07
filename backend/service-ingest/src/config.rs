@@ -1,17 +1,21 @@
-
 #[derive(Debug, Clone)]
 pub struct Config {
     pub client_id: String,
     pub symbols: Vec<String>,
+    pub pulsar_url: String,
 }
 
 impl Config {
     pub fn from_env() -> anyhow::Result<Self> {
-        let client_id = std::env::var("CLIENT_ID")
-            .map_err(|_| anyhow::anyhow!("CLIENT_ID is not set"))?;
+        let client_id =
+            std::env::var("CLIENT_ID").map_err(|_| anyhow::anyhow!("CLIENT_ID is not set"))?;
 
-        let symbols_raw = std::env::var("SYMBOLS")
-            .map_err(|_| anyhow::anyhow!("SYMBOLS is not set"))?;
+        let symbols_raw =
+            std::env::var("SYMBOLS").map_err(|_| anyhow::anyhow!("SYMBOLS is not set"))?;
+        
+        let pulsar_url =
+            std::env::var("PULSAR_URL").unwrap_or_else(|_| "pulsar://127.0.0.1:6650".to_string());
+
 
         let symbols: Vec<String> = symbols_raw
             .split(',')
@@ -23,9 +27,7 @@ impl Config {
             return Err(anyhow::anyhow!("SYMBOLS cannot be empty"));
         }
 
-        Ok(Self {
-            client_id,
-            symbols,
-        })
+
+        Ok(Self { client_id, symbols, pulsar_url })
     }
 }
