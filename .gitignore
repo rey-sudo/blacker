@@ -10,3 +10,4 @@ __pycache__
 kubectl
 skaffold
 .sha256
+backend/z/pulsar/data
