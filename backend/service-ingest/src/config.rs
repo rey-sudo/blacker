@@ -1,4 +1,3 @@
-use std::env;
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -7,19 +6,26 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn from_env() -> Self {
-        let client_id = env::var("CLIENT_ID")
-            .unwrap_or_else(|_| "binance".to_string());
+    pub fn from_env() -> anyhow::Result<Self> {
+        let client_id = std::env::var("CLIENT_ID")
+            .map_err(|_| anyhow::anyhow!("CLIENT_ID is not set"))?;
 
-        let symbols = env::var("SYMBOLS")
-            .unwrap_or_else(|_| "BTCUSDT".to_string())
+        let symbols_raw = std::env::var("SYMBOLS")
+            .map_err(|_| anyhow::anyhow!("SYMBOLS is not set"))?;
+
+        let symbols: Vec<String> = symbols_raw
             .split(',')
             .map(|s| s.trim().to_uppercase())
+            .filter(|s| !s.is_empty())
             .collect();
 
-        Self {
+        if symbols.is_empty() {
+            return Err(anyhow::anyhow!("SYMBOLS cannot be empty"));
+        }
+
+        Ok(Self {
             client_id,
             symbols,
-        }
+        })
     }
 }

@@ -30,15 +30,15 @@ use rustls::crypto::ring;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    from_filename(".env.local").ok();
+
     ring::default_provider()
         .install_default()
         .expect("failed to install rustls crypto provider");
 
-    from_filename(".env.local").ok();
-
     tracing_subscriber::fmt::init();
 
-    let config = Config::from_env();
+    let config:Config = Config::from_env()?;
 
     info!("Starting ingest service");
     info!("Client: {}", config.client_id);
