@@ -5,7 +5,7 @@ use std::time::Duration;
 use tokio_tungstenite::connect_async;
 use tracing::{error, info};
 
-use crate::common::tick::{Tick, Exchange, Side};
+use crate::common::tick::{Exchange, Side, Tick};
 
 /// =======================
 /// CONSTANTES BINANCE
@@ -15,7 +15,7 @@ const BINANCE_WS_BASE: &str = "wss://stream.binance.com:9443/ws";
 const MAX_BACKOFF_SECS: u64 = 30;
 
 /// =======================
-/// MODELO STREAM @aggTrade
+/// STREAM @aggTrade
 /// =======================
 
 #[derive(Debug, Deserialize)]
@@ -35,29 +35,21 @@ struct BinanceAggTrade {
     M: bool,   // best price match
 }
 
-/// =======================
-/// NORMALIZACIÓN → TICK
-/// =======================
-
 impl TryFrom<BinanceAggTrade> for Tick {
     type Error = anyhow::Error;
 
     fn try_from(agg: BinanceAggTrade) -> Result<Self> {
-        let price = agg
+        let price: f64 = agg
             .p
             .parse::<f64>()
             .map_err(|e| anyhow!("invalid price '{}': {}", agg.p, e))?;
 
-        let quantity = agg
+        let quantity: f64 = agg
             .q
             .parse::<f64>()
             .map_err(|e| anyhow!("invalid quantity '{}': {}", agg.q, e))?;
 
-        let side = if agg.m {
-            Side::Sell
-        } else {
-            Side::Buy
-        };
+        let side: Side = if agg.m { Side::Sell } else { Side::Buy };
 
         Ok(Tick {
             exchange: Exchange::Binance,
