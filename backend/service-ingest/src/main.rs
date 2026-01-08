@@ -29,8 +29,7 @@ use tracing::info;
 
 use pulsar::{Pulsar, TokioExecutor};
 
-use crate::common::event::OutEvent;
-
+use crate::{clients::models::Clients, common::event::OutEvent};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -45,7 +44,7 @@ async fn main() -> Result<()> {
     let config: Config = Config::from_env()?;
 
     info!("Starting ingest service");
-    info!("Client: {}", config.client_id);
+    info!("Client: {:?}", config.client_id);
     info!("Symbols: {:?}", config.symbols);
 
     let pulsar: Pulsar<_> = Pulsar::builder(&config.pulsar_url, TokioExecutor)
@@ -63,37 +62,43 @@ async fn main() -> Result<()> {
 
     let writer: JoinHandle<std::result::Result<(), anyhow::Error>> = tokio::spawn(async move {
         while let Some(event) = rx.recv().await {
-            info!("Sending tick to Pulsar: {:?}", event.symbol);
+            info!("Sending tick: {:?}", event.symbol);
 
-            producer
+            let send_future = producer
                 .send_non_blocking(event)
-                .await?
                 .await
-                .map_err(|e| anyhow!("Pulsar send failed: {:?}", e))?;
+                .map_err(|e| anyhow!("Failed to create send future: {:?}", e))?;
+            let msg_id = send_future
+                .await
+                .map_err(|e| anyhow!("Failed to send tick to Pulsar: {:?}", e))?;
+
+            info!("Tick sent to Pulsar with id {:?}", msg_id);
         }
+
         Ok::<(), anyhow::Error>(())
     });
 
     //--------------------------------------------------------------------------------------------
-    
+
     let mut handles: Vec<JoinHandle<std::result::Result<(), anyhow::Error>>> = Vec::new();
 
-    match config.client_id.as_str() {
-        "binance" => {
+    match config.client_id {
+        Clients::Binance => {
             for symbol in &config.symbols {
                 let sym: String = symbol.clone();
-                let tx_clone = tx.clone(); 
+                let tx_clone = tx.clone();
 
-                let handler = tokio::spawn(async move { clients::binance::run(&sym, tx_clone).await });
+                let handler =
+                    tokio::spawn(async move { clients::binance::run(&sym, tx_clone).await });
 
                 handles.push(handler);
             }
         }
 
-        "databento" => {}
+        Clients::Databento => {}
 
-        other => {
-            return Err(anyhow!("Unknown CLIENT_ID '{}'. Supported: binance", other));
+        _ => {
+            return Err(anyhow!("Unknown CLIENT_ID"));
         }
     }
 

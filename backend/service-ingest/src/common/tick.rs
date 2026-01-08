@@ -1,10 +1,11 @@
 use serde::{Deserialize, Serialize};
 
+use crate::{clients::models::Clients };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tick {
     /// Exchange de origen
-    pub exchange: Exchange,
+    pub exchange: Clients,
 
     /// Símbolo normalizado (ej: BTCUSDT)
     pub symbol: String,
@@ -22,20 +23,6 @@ pub struct Tick {
     pub ts: i64,
 }
 
-/// =======================
-/// EXCHANGE
-/// =======================
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub enum Exchange {
-    Binance,
-    Kraken,
-    Coinbase,
-}
-
-/// =======================
-/// SIDE
-/// =======================
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Side {
