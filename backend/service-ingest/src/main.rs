@@ -74,6 +74,9 @@ async fn main() -> Result<()> {
                 handles.push(handler);
             }
         }
+
+        "databento" => {},
+        
         other => {
             return Err(anyhow!(
                 "Unknown CLIENT_ID '{}'. Supported: binance",

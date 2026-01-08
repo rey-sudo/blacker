@@ -24,19 +24,19 @@
         <mxCell id="OR-PRIydTape9QMa9i-I-20" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontFamily=Courier New;fontSize=12;" value="wss://" vertex="1">
           <mxGeometry height="30" width="60" x="249" y="701" as="geometry" />
         </mxCell>
-        <mxCell id="OR-PRIydTape9QMa9i-I-23" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="data" vertex="1">
+        <mxCell id="OR-PRIydTape9QMa9i-I-23" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;verticalAlign=middle;" value="data" vertex="1">
           <mxGeometry height="120" width="120" x="320" y="760" as="geometry" />
         </mxCell>
-        <mxCell id="OR-PRIydTape9QMa9i-I-24" parent="OR-PRIydTape9QMa9i-I-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="Ticks" vertex="1">
+        <mxCell id="OR-PRIydTape9QMa9i-I-24" parent="OR-PRIydTape9QMa9i-I-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="Ticks" vertex="1">
           <mxGeometry height="30" width="120" y="30" as="geometry" />
         </mxCell>
-        <mxCell id="OR-PRIydTape9QMa9i-I-25" parent="OR-PRIydTape9QMa9i-I-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="Market By Price" vertex="1">
+        <mxCell id="OR-PRIydTape9QMa9i-I-25" parent="OR-PRIydTape9QMa9i-I-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="Market By Price" vertex="1">
           <mxGeometry height="30" width="120" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="OR-PRIydTape9QMa9i-I-30" parent="OR-PRIydTape9QMa9i-I-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="Historical Data" vertex="1">
+        <mxCell id="OR-PRIydTape9QMa9i-I-30" parent="OR-PRIydTape9QMa9i-I-23" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontFamily=Courier New;fontSize=12;" value="Historical Data" vertex="1">
           <mxGeometry height="30" width="120" y="90" as="geometry" />
         </mxCell>
-        <mxCell id="OR-PRIydTape9QMa9i-I-31" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;verticalAlign=top;" value="Apache Pulsar Streams" vertex="1">
+        <mxCell id="OR-PRIydTape9QMa9i-I-31" parent="1" style="swimlane;fontStyle=0;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;verticalAlign=middle;" value="Apache Pulsar Streams" vertex="1">
           <mxGeometry height="120" width="230" x="530" y="760" as="geometry" />
         </mxCell>
         <mxCell id="OR-PRIydTape9QMa9i-I-32" parent="OR-PRIydTape9QMa9i-I-31" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rotatable=0;whiteSpace=wrap;html=1;fontSize=12;fontFamily=Courier New;" value="&lt;div&gt;persistent://market-data/ticks&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
