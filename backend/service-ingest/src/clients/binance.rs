@@ -2,9 +2,11 @@ use anyhow::{Result, anyhow};
 use futures_util::StreamExt;
 use serde::Deserialize;
 use std::time::Duration;
+use tokio::sync::mpsc::Sender;
 use tokio_tungstenite::connect_async;
 use tracing::{error, info};
 
+use crate::common::event::OutEvent;
 use crate::common::tick::{Exchange, Side, Tick};
 
 /// =======================
@@ -41,15 +43,15 @@ impl TryFrom<BinanceAggTrade> for Tick {
     fn try_from(agg: BinanceAggTrade) -> Result<Self> {
         let price: f64 = agg
             .p
-            .parse::<f64>()
+            .parse()
             .map_err(|e| anyhow!("invalid price '{}': {}", agg.p, e))?;
 
         let quantity: f64 = agg
             .q
-            .parse::<f64>()
+            .parse()
             .map_err(|e| anyhow!("invalid quantity '{}': {}", agg.q, e))?;
 
-        let side: Side = if agg.m { Side::Sell } else { Side::Buy };
+        let side = if agg.m { Side::Sell } else { Side::Buy };
 
         Ok(Tick {
             exchange: Exchange::Binance,
@@ -66,7 +68,7 @@ impl TryFrom<BinanceAggTrade> for Tick {
 /// CLIENTE BINANCE WS
 /// =======================
 
-pub async fn run(symbol: &str) -> Result<()> {
+pub async fn run(symbol: &str, tx: Sender<OutEvent>) -> Result<()> {
     let symbol = symbol.to_lowercase();
     let url = format!("{}/{}@aggTrade", BINANCE_WS_BASE, symbol);
 
@@ -77,7 +79,7 @@ pub async fn run(symbol: &str) -> Result<()> {
 
         match connect_async(&url).await {
             Ok((ws_stream, _)) => {
-                info!("Connected to Binance");
+                info!("Connected to Binance [{}]", symbol);
                 attempt = 0;
 
                 let (_, mut read) = ws_stream.split();
@@ -85,39 +87,60 @@ pub async fn run(symbol: &str) -> Result<()> {
                 while let Some(msg) = read.next().await {
                     match msg {
                         Ok(msg) if msg.is_text() => {
-                            let text = msg.into_text()?;
-
-                            match serde_json::from_str::<BinanceAggTrade>(&text) {
-                                Ok(agg) => {
-                                    match Tick::try_from(agg) {
-                                        Ok(tick) => {
-                                            info!(
-                                                "TICK | {:?} | {} | price={} qty={} side={:?}",
-                                                tick.exchange,
-                                                tick.symbol,
-                                                tick.price,
-                                                tick.quantity,
-                                                tick.side
-                                            );
-
-                                            // 👉 AQUÍ VA:
-                                            // - Redis Streams
-                                            // - tokio::mpsc::Sender<Tick>
-                                            // - métricas
-                                        }
-                                        Err(e) => {
-                                            error!("Tick conversion error: {}", e);
-                                        }
-                                    }
+                            let text = match msg.into_text() {
+                                Ok(t) => t,
+                                Err(e) => {
+                                    error!("WS text error: {}", e);
+                                    continue;
                                 }
+                            };
+
+                            let agg = match serde_json::from_str::<BinanceAggTrade>(&text) {
+                                Ok(a) => a,
                                 Err(e) => {
                                     error!("Parse error: {} | raw={}", e, text);
+                                    continue;
                                 }
+                            };
+
+                            let tick = match Tick::try_from(agg) {
+                                Ok(t) => t,
+                                Err(e) => {
+                                    error!("Tick conversion error: {}", e);
+                                    continue;
+                                }
+                            };
+
+                            info!(
+                                "TICK | {:?} | {} | price={} qty={} side={:?}",
+                                tick.exchange, tick.symbol, tick.price, tick.quantity, tick.side
+                            );
+
+                            // 🔑 Convertir Tick → OutEvent
+                            let payload = match serde_json::to_vec(&tick) {
+                                Ok(p) => p,
+                                Err(e) => {
+                                    error!("Failed to serialize tick: {}", e);
+                                    continue;
+                                }
+                            };
+
+                            let event = OutEvent {
+                                symbol: tick.symbol.clone(),
+                                payload,
+                                event_time: tick.ts,
+                            };
+
+                            if let Err(e) = tx.send(event).await {
+                                error!("Channel closed, stopping Binance client: {}", e);
+                                return Ok(());
                             }
                         }
+
                         Ok(_) => {
-                            // ping / pong / binary frames
+                            // ping / pong / binary frames ignorados
                         }
+
                         Err(e) => {
                             error!("WebSocket read error: {}", e);
                             break;
@@ -125,6 +148,7 @@ pub async fn run(symbol: &str) -> Result<()> {
                     }
                 }
             }
+
             Err(e) => {
                 error!("Failed to connect to Binance: {}", e);
             }

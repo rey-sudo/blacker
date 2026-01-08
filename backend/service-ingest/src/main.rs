@@ -16,19 +16,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
- 
-mod config;
 mod clients;
 mod common;
+mod config;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use config::Config;
 use dotenvy::from_filename;
+use rustls::crypto::ring;
 use tokio::task::JoinHandle;
 use tracing::info;
-use rustls::crypto::ring;
 
 use pulsar::{Pulsar, TokioExecutor};
+
+use crate::common::event::OutEvent;
+
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -40,55 +42,68 @@ async fn main() -> Result<()> {
 
     tracing_subscriber::fmt::init();
 
-    let config:Config = Config::from_env()?;
+    let config: Config = Config::from_env()?;
 
     info!("Starting ingest service");
     info!("Client: {}", config.client_id);
     info!("Symbols: {:?}", config.symbols);
 
-    let pulsar: Pulsar<_> =
-        Pulsar::builder(&config.pulsar_url, TokioExecutor)
-            .build()
-            .await?;
+    let pulsar: Pulsar<_> = Pulsar::builder(&config.pulsar_url, TokioExecutor)
+        .build()
+        .await?;
 
-
-    let producer = pulsar
+    let mut producer = pulsar
         .producer()
         .with_topic("persistent://public/market-data/ticks")
         .with_name("service-ingest")
         .build()
         .await?;
 
+    let (tx, mut rx) = tokio::sync::mpsc::channel::<OutEvent>(100_000);
 
-    let mut handles: Vec<JoinHandle<Result<()>>> = Vec::new();
+    let writer: JoinHandle<std::result::Result<(), anyhow::Error>> = tokio::spawn(async move {
+        while let Some(event) = rx.recv().await {
+            info!("Sending tick to Pulsar: {:?}", event.symbol);
+
+            producer
+                .send_non_blocking(event)
+                .await?
+                .await
+                .map_err(|e| anyhow!("Pulsar send failed: {:?}", e))?;
+        }
+        Ok::<(), anyhow::Error>(())
+    });
+
+    //--------------------------------------------------------------------------------------------
+    
+    let mut handles: Vec<JoinHandle<std::result::Result<(), anyhow::Error>>> = Vec::new();
 
     match config.client_id.as_str() {
         "binance" => {
             for symbol in &config.symbols {
-                let s = symbol.clone();
+                let sym: String = symbol.clone();
+                let tx_clone = tx.clone(); 
 
-                let handler = tokio::spawn(async move {
-                    clients::binance::run(&s).await
-                }); 
-                
+                let handler = tokio::spawn(async move { clients::binance::run(&sym, tx_clone).await });
+
                 handles.push(handler);
             }
         }
 
-        "databento" => {},
-        
+        "databento" => {}
+
         other => {
-            return Err(anyhow!(
-                "Unknown CLIENT_ID '{}'. Supported: binance",
-                other
-            ));
+            return Err(anyhow!("Unknown CLIENT_ID '{}'. Supported: binance", other));
         }
     }
 
+    drop(tx);
 
-    for handle in handles {
-        handle.await??;
+    for h in handles {
+        h.await??;
     }
+
+    writer.await??;
 
     Ok(())
 }
