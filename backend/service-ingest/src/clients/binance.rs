@@ -69,7 +69,7 @@ impl TryFrom<BinanceAggTrade> for Tick {
 /// CLIENTE BINANCE WS
 /// =======================
 
-pub async fn run(symbol: &str, tx: Sender<OutEvent>) -> Result<()> {
+pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
     let symbol = symbol.to_lowercase();
     let url = format!("{}/{}@aggTrade", BINANCE_WS_BASE, symbol);
 

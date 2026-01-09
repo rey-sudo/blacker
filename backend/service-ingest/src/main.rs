@@ -110,7 +110,7 @@ async fn main() -> Result<()> {
                 .await
                 .map_err(|e| anyhow!("Failed to create send future: {:?}", e))?;
 
-            let msg_id = send_future
+            let msg_id: pulsar::CommandSendReceipt = send_future
                 .await
                 .map_err(|e| anyhow!("Failed to send tick to Pulsar: {:?}", e))?;
 
@@ -127,11 +127,12 @@ async fn main() -> Result<()> {
     match config.client_id {
         Client::Binance => {
             for symbol in &config.symbols {
+                
                 let sym: String = symbol.clone();
                 let tx_clone: tokio::sync::mpsc::Sender<OutEvent> = tx.clone();
 
                 let handler: JoinHandle<std::result::Result<(), anyhow::Error>> =
-                    tokio::spawn(async move { clients::binance::run(&sym, tx_clone).await });
+                    tokio::spawn(async move { clients::binance::run(sym, tx_clone).await });
 
                 handles.push(handler);
             }
