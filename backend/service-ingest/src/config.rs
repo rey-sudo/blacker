@@ -1,4 +1,4 @@
-use crate::clients::models::Clients;
+use crate::clients::client::Client;
 
 /// Microservice configuration struct
 /// ```
@@ -6,7 +6,7 @@ use crate::clients::models::Clients;
 /// ```
 #[derive(Debug, Clone)]
 pub struct Config {
-    pub client_id: Clients,
+    pub client_id: Client,
     pub symbols: Vec<String>,
     pub pulsar_url: String,
 }
@@ -24,7 +24,7 @@ impl Config {
 
         //-----------------------------------------------------------------------------------------
 
-        let client_id: Clients = client_id_raw.parse()?;
+        let client_id: Client = client_id_raw.parse()?;
 
         let symbols: Vec<String> = symbols_raw
             .split(',')

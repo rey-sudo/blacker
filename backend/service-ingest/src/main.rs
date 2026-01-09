@@ -28,7 +28,7 @@ use tokio::task::JoinHandle;
 use tracing::info;
 use pulsar::{Pulsar, TokioExecutor};
 
-use crate::{clients::models::Clients, common::event::OutEvent};
+use crate::{clients::client::Client, common::event::OutEvent};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -87,7 +87,7 @@ async fn main() -> Result<()> {
     let mut handles: Vec<JoinHandle<std::result::Result<(), anyhow::Error>>> = Vec::new();
 
     match config.client_id {
-        Clients::Binance => {
+        Client::Binance => {
             for symbol in &config.symbols {
                 let sym: String = symbol.clone();
                 let tx_clone = tx.clone();
@@ -99,11 +99,7 @@ async fn main() -> Result<()> {
             }
         }
 
-        Clients::Databento => {}
-
-        _ => {
-            return Err(anyhow!("Unknown CLIENT_ID"));
-        }
+        Client::Databento => {}
     }
 
     drop(tx);

@@ -6,7 +6,7 @@ use tokio::sync::mpsc::Sender;
 use tokio_tungstenite::connect_async;
 use tracing::{error, info};
 
-use crate::clients::models::Clients;
+use crate::clients::client::Client;
 use crate::common::event::OutEvent;
 use crate::common::tick::{Side, Tick};
 
@@ -55,7 +55,7 @@ impl TryFrom<BinanceAggTrade> for Tick {
         let side = if agg.m { Side::Sell } else { Side::Buy };
 
         Ok(Tick {
-            exchange: Clients::Binance,
+            exchange: Client::Binance,
             symbol: agg.s,
             price,
             quantity,

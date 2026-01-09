@@ -1,25 +1,25 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{clients::models::Clients };
+use crate::{clients::client::Client };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tick {
-    /// Exchange de origen
-    pub exchange: Clients,
 
-    /// Símbolo normalizado (ej: BTCUSDT)
+    pub exchange: Client,
+
+
     pub symbol: String,
 
-    /// Precio de ejecución
+
     pub price: f64,
 
-    /// Cantidad ejecutada
+
     pub quantity: f64,
 
-    /// Lado de la ejecución
+
     pub side: Side,
 
-    /// Timestamp en Unix millis
+    /// Timestamp Unix millis
     pub ts: i64,
 }
 

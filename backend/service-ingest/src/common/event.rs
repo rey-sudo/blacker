@@ -3,6 +3,7 @@ use pulsar::{Error as PulsarError, SerializeMessage, producer};
 pub struct OutEvent {
     pub symbol: String,
     pub payload: Vec<u8>,
+    #[allow(dead_code)]
     pub event_time: i64,
 }
 
