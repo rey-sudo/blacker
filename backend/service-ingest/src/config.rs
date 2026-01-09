@@ -13,13 +13,13 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> anyhow::Result<Self> {
-        let client_id_raw =
+        let client_id_raw: String =
             std::env::var("CLIENT_ID").map_err(|_| anyhow::anyhow!("CLIENT_ID is not set"))?;
 
-        let symbols_raw =
+        let symbols_raw: String =
             std::env::var("SYMBOLS").map_err(|_| anyhow::anyhow!("SYMBOLS is not set"))?;
 
-        let pulsar_url =
+        let pulsar_url: String =
             std::env::var("PULSAR_URL").map_err(|_| anyhow::anyhow!("PULSAR_URL is not set"))?;
 
         //-----------------------------------------------------------------------------------------

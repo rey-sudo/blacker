@@ -23,10 +23,10 @@ mod config;
 use anyhow::{Result, anyhow};
 use config::Config;
 use dotenvy::from_filename;
+use pulsar::{Pulsar, TokioExecutor};
 use rustls::crypto::ring;
 use tokio::task::JoinHandle;
 use tracing::info;
-use pulsar::{Pulsar, TokioExecutor};
 
 use crate::{clients::client::Client, common::event::OutEvent};
 
@@ -51,17 +51,31 @@ async fn main() -> Result<()> {
     info!("Client: {:?}", config.client_id);
     info!("Symbols: {:?}", config.symbols);
 
+    // Initializes the Apache Pulsar client using the Tokio runtime.
+    // - Uses the builder pattern to configure the broker URL and async executor
+    // - Establishes the connection asynchronously
+    // - Fails fast if the connection to the broker cannot be established
     let pulsar: Pulsar<_> = Pulsar::builder(&config.pulsar_url, TokioExecutor)
         .build()
         .await?;
 
-    let mut producer = pulsar
+    // Creates a Pulsar producer responsible for publishing market data events.
+    // - Binds the producer to the `persistent://public/market-data/ticks` topic
+    // - Assigns a logical producer name for observability and debugging
+    // - Builds the producer asynchronously using the existing Pulsar client
+    // - Fails fast if the producer cannot be created
+    let mut producer: pulsar::Producer<TokioExecutor> = pulsar
         .producer()
         .with_topic("persistent://public/market-data/ticks")
         .with_name("service-ingest")
         .build()
         .await?;
 
+    // Creates an in-memory asynchronous channel to decouple data ingestion from Pulsar publishing.
+    // - `tx` is cloned and shared across producer tasks (one per data source / symbol)
+    // - `rx` is owned by a single writer task that serializes events into Pulsar
+    // - The bounded capacity (100_000) provides backpressure if Pulsar becomes slow
+    // - Prevents WebSocket clients from blocking on I/O to the message broker
     let (tx, mut rx) = tokio::sync::mpsc::channel::<OutEvent>(100_000);
 
     let writer: JoinHandle<std::result::Result<(), anyhow::Error>> = tokio::spawn(async move {
