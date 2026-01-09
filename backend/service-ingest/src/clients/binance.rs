@@ -7,8 +7,9 @@ use tokio_tungstenite::connect_async;
 use tracing::{error, info};
 
 use crate::clients::client::Client;
-use crate::common::event::OutEvent;
+use crate::common::event::{EventType, OutEvent};
 use crate::common::tick::{Side, Tick};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 const BINANCE_WS_BASE: &str = "wss://stream.binance.com:9443/ws";
 const MAX_BACKOFF_SECS: u64 = 30;
@@ -84,6 +85,9 @@ pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
                 while let Some(msg) = read.next().await {
                     match msg {
                         Ok(msg) if msg.is_text() => {
+                            
+                            let now: i64 = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis() as i64;
+
                             let text = match msg.into_text() {
                                 Ok(t) => t,
                                 Err(e) => {
@@ -122,10 +126,12 @@ pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
                                 }
                             };
 
-                            let event = OutEvent {
+                            let event: OutEvent = OutEvent {
                                 symbol: tick.symbol.clone(),
                                 payload,
                                 event_time: tick.ts,
+                                event_type: EventType::Tick,
+                                received_at: now
                             };
 
                             if let Err(e) = tx.send(event).await {

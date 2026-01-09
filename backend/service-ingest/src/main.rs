@@ -28,7 +28,10 @@ use rustls::crypto::ring;
 use tokio::task::JoinHandle;
 use tracing::info;
 
-use crate::{clients::client::Client, common::event::OutEvent};
+use crate::{
+    clients::client::Client,
+    common::event::{EventType, OutEvent},
+};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -103,18 +106,27 @@ async fn main() -> Result<()> {
     // - rx.recv() returns None
     let writer: JoinHandle<std::result::Result<(), anyhow::Error>> = tokio::spawn(async move {
         while let Some(event) = rx.recv().await {
-            info!("Sending tick: {:?}", event.symbol);
+            match event.event_type {
+                EventType::Tick => {
+                    info!("Sending tick: {:?}", event.symbol);
 
-            let send_future: pulsar::producer::SendFuture = producer_ticks
-                .send_non_blocking(event)
-                .await
-                .map_err(|e| anyhow!("Failed to create send future: {:?}", e))?;
+                    let send_future: pulsar::producer::SendFuture = producer_ticks
+                        .send_non_blocking(event)
+                        .await
+                        .map_err(|e| anyhow!("Failed to create send future: {:?}", e))?;
 
-            let msg_id: pulsar::CommandSendReceipt = send_future
-                .await
-                .map_err(|e| anyhow!("Failed to send tick to Pulsar: {:?}", e))?;
+                    let msg_id: pulsar::CommandSendReceipt = send_future
+                        .await
+                        .map_err(|e| anyhow!("Failed to send tick to Pulsar: {:?}", e))?;
 
-            info!("Tick sent to Pulsar with id {:?}", msg_id);
+                    info!("Tick sent to Pulsar with id {:?}", msg_id);
+                }
+
+                EventType::MBP => {
+                    
+
+                }
+            }
         }
 
         Ok::<(), anyhow::Error>(())

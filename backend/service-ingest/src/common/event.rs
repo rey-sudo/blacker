@@ -1,10 +1,18 @@
 use pulsar::{Error as PulsarError, SerializeMessage, producer};
 
+pub enum EventType {
+    Tick,
+    MBP,
+}
+
+#[allow(dead_code)]
 pub struct OutEvent {
     pub symbol: String,
     pub payload: Vec<u8>,
-    #[allow(dead_code)]
+
     pub event_time: i64,
+    pub event_type: EventType,
+    pub received_at: i64,
 }
 
 impl SerializeMessage for OutEvent {
