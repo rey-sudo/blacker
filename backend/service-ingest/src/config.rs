@@ -1,5 +1,9 @@
 use crate::clients::models::Clients;
 
+/// Microservice configuration struct
+/// ```
+/// let config: Config = Config::from_env()?;
+/// ```
 #[derive(Debug, Clone)]
 pub struct Config {
     pub client_id: Clients,
@@ -16,7 +20,9 @@ impl Config {
             std::env::var("SYMBOLS").map_err(|_| anyhow::anyhow!("SYMBOLS is not set"))?;
 
         let pulsar_url =
-            std::env::var("PULSAR_URL").unwrap_or_else(|_| "pulsar://127.0.0.1:6650".to_string());
+            std::env::var("PULSAR_URL").map_err(|_| anyhow::anyhow!("PULSAR_URL is not set"))?;
+
+        //-----------------------------------------------------------------------------------------
 
         let client_id: Clients = client_id_raw.parse()?;
 

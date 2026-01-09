@@ -26,7 +26,6 @@ use dotenvy::from_filename;
 use rustls::crypto::ring;
 use tokio::task::JoinHandle;
 use tracing::info;
-
 use pulsar::{Pulsar, TokioExecutor};
 
 use crate::{clients::models::Clients, common::event::OutEvent};
@@ -35,12 +34,17 @@ use crate::{clients::models::Clients, common::event::OutEvent};
 async fn main() -> Result<()> {
     from_filename(".env.local").ok();
 
+    // Initialize rustls crypto backend (ring).
+    // Required for all TLS connections (WebSockets, HTTPS, Pulsar).
     ring::default_provider()
         .install_default()
         .expect("failed to install rustls crypto provider");
 
+    // Initialize tracing subscriber for structured, async-safe logging.
+    // Enables info!, warn!, error! logs across the entire service.
     tracing_subscriber::fmt::init();
 
+    //Env vars Config instance
     let config: Config = Config::from_env()?;
 
     info!("Starting ingest service");
