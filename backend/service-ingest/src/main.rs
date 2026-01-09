@@ -120,14 +120,15 @@ async fn main() -> Result<()> {
         Ok::<(), anyhow::Error>(())
     });
 
-    //-----------------------------------------------------------------------------------------------
-
+    // Creates a vector to hold all spawned Tokio tasks (JoinHandles) for concurrent clients.
+    // - Each handle represents an asynchronous task running a client connection (e.g., Binance).
+    // - The task returns a `Result<(), anyhow::Error>`, allowing errors to propagate to the main task.
+    // - Collecting handles enables awaiting all client tasks before exiting the program.
     let mut handles: Vec<JoinHandle<std::result::Result<(), anyhow::Error>>> = Vec::new();
 
     match config.client_id {
         Client::Binance => {
             for symbol in &config.symbols {
-                
                 let sym: String = symbol.clone();
                 let tx_clone: tokio::sync::mpsc::Sender<OutEvent> = tx.clone();
 
@@ -142,7 +143,12 @@ async fn main() -> Result<()> {
     }
 
     drop(tx);
-
+    
+    // Await all spawned client tasks stored in `handles`.
+    // - `h.await` waits for the Tokio task to finish (JoinHandle).
+    // - The first `?` propagates any panic or task-level error from the spawned task.
+    // - The second `?` propagates the actual `Result` returned by the client (`Ok(())` or `Err(anyhow::Error)`).
+    // - Ensures that `main` only exits after all client tasks have completed successfully or returned an error.
     for h in handles {
         h.await??;
     }

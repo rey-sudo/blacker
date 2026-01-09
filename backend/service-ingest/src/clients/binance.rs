@@ -10,10 +10,6 @@ use crate::clients::client::Client;
 use crate::common::event::OutEvent;
 use crate::common::tick::{Side, Tick};
 
-/// =======================
-/// CONSTANTES BINANCE
-/// =======================
-
 const BINANCE_WS_BASE: &str = "wss://stream.binance.com:9443/ws";
 const MAX_BACKOFF_SECS: u64 = 30;
 
@@ -70,8 +66,8 @@ impl TryFrom<BinanceAggTrade> for Tick {
 /// =======================
 
 pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
-    let symbol = symbol.to_lowercase();
-    let url = format!("{}/{}@aggTrade", BINANCE_WS_BASE, symbol);
+    let symbol: String = symbol.to_lowercase();
+    let url: String = format!("{}/{}@aggTrade", BINANCE_WS_BASE, symbol);
 
     let mut attempt: u32 = 0;
 
