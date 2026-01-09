@@ -64,7 +64,7 @@ async fn main() -> Result<()> {
     // - Assigns a logical producer name for observability and debugging
     // - Builds the producer asynchronously using the existing Pulsar client
     // - Fails fast if the producer cannot be created
-    let mut producer: pulsar::Producer<TokioExecutor> = pulsar
+    let mut producer_ticks: pulsar::Producer<TokioExecutor> = pulsar
         .producer()
         .with_topic("persistent://public/market-data/ticks")
         .with_name("service-ingest")
@@ -105,7 +105,7 @@ async fn main() -> Result<()> {
         while let Some(event) = rx.recv().await {
             info!("Sending tick: {:?}", event.symbol);
 
-            let send_future: pulsar::producer::SendFuture = producer
+            let send_future: pulsar::producer::SendFuture = producer_ticks
                 .send_non_blocking(event)
                 .await
                 .map_err(|e| anyhow!("Failed to create send future: {:?}", e))?;
@@ -143,7 +143,7 @@ async fn main() -> Result<()> {
     }
 
     drop(tx);
-    
+
     // Await all spawned client tasks stored in `handles`.
     // - `h.await` waits for the Tokio task to finish (JoinHandle).
     // - The first `?` propagates any panic or task-level error from the spawned task.
