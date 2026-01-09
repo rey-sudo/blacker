@@ -78,14 +78,38 @@ async fn main() -> Result<()> {
     // - Prevents WebSocket clients from blocking on I/O to the message broker
     let (tx, mut rx) = tokio::sync::mpsc::channel::<OutEvent>(100_000);
 
+    // Spawn a dedicated asynchronous task responsible for writing events to Apache Pulsar.
+    //
+    // This task acts as the single producer writer:
+    // - It continuously consumes OutEvent messages from the Tokio MPSC receiver (rx)
+    // - It serializes and sends each event to Pulsar impl SerializeMessage
+    // - It provides backpressure automatically via the bounded channel 100_000
+    // - It isolates Pulsar I/O from websocket ingestion logic
+    //
+    // Design:
+    // - Decouples market data ingestion from Pulsar network latency
+    // - Ensures ordered delivery per producer instance
+    // - Centralizes error handling and logging for Pulsar writes
+    // - Makes shutdown deterministic (task exits when all senders are dropped)
+    //
+    // Execution flow:
+    // 1. Waits asynchronously for the next event from rx
+    // 2. Calls send_non_blocking() to enqueue the message in Pulsar's internal buffer
+    // 3. Awaits the broker acknowledgment to guarantee persistence
+    // 4. Logs the returned MessageId for traceability
+    //
+    // The task exits gracefully when:
+    // - All Sender handles (tx) are dropped
+    // - rx.recv() returns None
     let writer: JoinHandle<std::result::Result<(), anyhow::Error>> = tokio::spawn(async move {
         while let Some(event) = rx.recv().await {
             info!("Sending tick: {:?}", event.symbol);
 
-            let send_future = producer
+            let send_future: pulsar::producer::SendFuture = producer
                 .send_non_blocking(event)
                 .await
                 .map_err(|e| anyhow!("Failed to create send future: {:?}", e))?;
+
             let msg_id = send_future
                 .await
                 .map_err(|e| anyhow!("Failed to send tick to Pulsar: {:?}", e))?;
@@ -96,7 +120,7 @@ async fn main() -> Result<()> {
         Ok::<(), anyhow::Error>(())
     });
 
-    //--------------------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------------------
 
     let mut handles: Vec<JoinHandle<std::result::Result<(), anyhow::Error>>> = Vec::new();
 
@@ -104,9 +128,9 @@ async fn main() -> Result<()> {
         Client::Binance => {
             for symbol in &config.symbols {
                 let sym: String = symbol.clone();
-                let tx_clone = tx.clone();
+                let tx_clone: tokio::sync::mpsc::Sender<OutEvent> = tx.clone();
 
-                let handler =
+                let handler: JoinHandle<std::result::Result<(), anyhow::Error>> =
                     tokio::spawn(async move { clients::binance::run(&sym, tx_clone).await });
 
                 handles.push(handler);
