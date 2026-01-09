@@ -11,3 +11,4 @@ kubectl
 skaffold
 .sha256
 backend/z/pulsar/data
+backend/z/pulsar/pulsar-manager
