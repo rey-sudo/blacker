@@ -4,7 +4,7 @@ outline: deep
 
 # service-ingest-history
 
-A microservice that queries the market data provider, normalizes the data, and saves the 1m history of each symbol.
+A microservice that queries the market data provider, normalizes the data, and saves the OHLCV history by symbol timeframe 1 minute
 
 
 ![Ingest](./assets/service-ingest-history.png)
