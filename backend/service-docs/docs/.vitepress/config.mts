@@ -13,9 +13,8 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: "Examples",
+        text: "Microservices",
         items: [
-          { text: "Markdown Examples", link: "/markdown-examples" },
           { text: "service-ingest", link: "/service-ingest" },
           { text: "service-ingest-history", link: "/service-ingest-history" },
         ],
