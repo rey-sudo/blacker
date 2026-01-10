@@ -7,7 +7,7 @@ outline: deep
 A microservice that queries the market data provider, normalizes the data, and saves the OHLCV history by symbol timeframe 1 minute
 
 
-![Ingest](./assets/service-ingest-history.png)
+![Ingest](./assets/service-ingest-history.svg)
 
 
 
