@@ -49,7 +49,7 @@ impl TryFrom<BinanceAggTrade> for Tick {
             .parse()
             .map_err(|e| anyhow!("invalid quantity '{}': {}", agg.q, e))?;
 
-        let side = if agg.m { Side::Sell } else { Side::Buy };
+        let side: Side = if agg.m { Side::Sell } else { Side::Buy };
 
         Ok(Tick {
             exchange: Client::Binance,

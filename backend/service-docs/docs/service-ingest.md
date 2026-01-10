@@ -4,7 +4,7 @@ outline: deep
 
 # Service ingest
 
-A microservice that queries the market data provider, normalizes the data, and adds it to the Redis stream for later consumption.
+A microservice that queries the market data provider, normalizes the data, and publishes it as ordered events using Apache Pulsar, to be consumed by other microservices.
 
 
 
