@@ -2,13 +2,12 @@
 outline: deep
 ---
 
-# service-ingest
+# service-ingest-history
 
-A microservice that queries the market data provider, normalizes the data, and publishes it as ordered events using Apache Pulsar, to be consumed by other microservices.
+A microservice that queries the market data provider, normalizes the data, and saves the 1m history of each symbol.
 
 
-
-![Ingest](./assets/service-ingest.png)
+![Ingest](./assets/service-ingest-history.png)
 
 
 
