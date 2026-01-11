@@ -2,12 +2,12 @@
 outline: deep
 ---
 
-# service-ingest-history
+# service-ingest-truth
 
 A microservice responsible for querying the market data provider, normalizing the retrieved data, and persisting the 1-minute OHLCV (candlestick) history for each symbol in the database.
 
 
-![Ingest](./assets/service-ingest-history.svg)
+![Ingest](./assets/service-ingest-truth.svg)
 
 
 
