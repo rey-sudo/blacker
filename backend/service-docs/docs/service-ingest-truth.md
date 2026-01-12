@@ -4,7 +4,11 @@ outline: deep
 
 # service-ingest-truth
 
-A microservice responsible for querying the market data provider, normalizing the retrieved data, and persisting the 1-minute OHLCV (candlestick) history for each symbol in the database.
+At startup, the service backfills historical 1-minute candles from the external data provider and persists them to PostgreSQL.
+In real time, a single Pulsar consumer receives ticks and forwards them to a dispatcher, which routes each tick to a symbol-specific task via MPSC channels.
+
+Each task processes ticks sequentially, maintains the in-memory live 1-minute candle, and on minute rollover closes and persists the candle.
+Live candles are never persisted.
 
 
 ![Ingest](./assets/service-ingest-truth.svg)
