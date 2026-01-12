@@ -26,12 +26,18 @@ use dotenvy::from_filename;
 use pulsar::{Pulsar, TokioExecutor};
 use rustls::crypto::ring;
 use tokio::task::JoinHandle;
-use tracing::info;
+use tracing::{info, warn};
+use xxhash_rust::xxh3::xxh3_64;
 
 use crate::{
     clients::client::Client,
     common::event::{EventType, OutEvent},
 };
+
+/// Deterministic sharding function
+fn belongs_to_shard(symbol: &str, shard_id: u32, total_shards: u32) -> bool {
+    (xxh3_64(symbol.as_bytes()) % total_shards as u64) == shard_id as u64
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -50,9 +56,32 @@ async fn main() -> Result<()> {
     //Env vars Config instance
     let config: Config = Config::from_env()?;
 
+    let owned_symbols: Vec<String> = config
+        .symbols
+        .iter()
+        .cloned()
+        .filter(|sym| {
+            config
+                .shard_ids
+                .iter()
+                .any(|&sid| belongs_to_shard(sym, sid, config.total_shards))
+        })
+        .collect();
+
+    info!(
+        "Owned symbols ({}): {:?}",
+        owned_symbols.len(),
+        owned_symbols
+    );
+
+    if owned_symbols.is_empty() {
+        warn!("No symbols assigned to this pod");
+        return Ok(());
+    }
+
     info!("Starting ingest service");
     info!("Client: {:?}", config.client_id);
-    info!("Symbols: {:?}", config.symbols);
+    info!("Symbols: {:?}", owned_symbols);
 
     // Initializes the Apache Pulsar client using the Tokio runtime.
     // - Uses the builder pattern to configure the broker URL and async executor
@@ -122,10 +151,7 @@ async fn main() -> Result<()> {
                     info!("Tick sent to Pulsar with id {:?}", msg_id);
                 }
 
-                EventType::MBP => {
-                    
-
-                }
+                EventType::MBP => {}
             }
         }
 
@@ -139,8 +165,9 @@ async fn main() -> Result<()> {
     let mut handles: Vec<JoinHandle<std::result::Result<(), anyhow::Error>>> = Vec::new();
 
     match config.client_id {
+        // Binance: 1 WS = 1 symbol
         Client::Binance => {
-            for symbol in &config.symbols {
+            for symbol in owned_symbols {
                 let sym: String = symbol.clone();
                 let tx_clone: tokio::sync::mpsc::Sender<OutEvent> = tx.clone();
 
