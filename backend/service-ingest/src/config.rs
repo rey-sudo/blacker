@@ -45,6 +45,10 @@ impl Config {
             return Err(anyhow::anyhow!("SYMBOLS cannot be empty"));
         }
 
+        // Parses the TOTAL_SHARDS environment variable.
+        // This value defines the total number of logical shards used for deterministic symbol distribution.
+        // It must be a positive integer and must be consistent across all service-ingest replicas.
+        // An invalid or missing value is treated as a fatal configuration error.
         let total_shards: u32 = total_shards_raw
             .parse()
             .map_err(|_| anyhow::anyhow!("TOTAL_SHARDS must be a positive integer"))?;
@@ -53,6 +57,12 @@ impl Config {
             return Err(anyhow::anyhow!("TOTAL_SHARDS must be > 0"));
         }
 
+        // Parses the SHARD_IDS environment variable.
+        // SHARD_IDS defines the logical shard identifiers owned by this pod.
+        // Multiple shard IDs can be assigned using a comma-separated list (e.g. "0,1,2").
+        // Each shard ID must be a valid non-negative integer and must be within the range
+        // [0, TOTAL_SHARDS - 1].
+        // An invalid format or non-integer value is treated as a fatal configuration error.
         let shard_ids: Vec<u32> = shard_ids_raw
             .split(',')
             .map(|s| s.trim().parse::<u32>())

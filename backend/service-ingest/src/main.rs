@@ -27,17 +27,14 @@ use pulsar::{Pulsar, TokioExecutor};
 use rustls::crypto::ring;
 use tokio::task::JoinHandle;
 use tracing::{info, warn};
-use xxhash_rust::xxh3::xxh3_64;
 
 use crate::{
     clients::client::Client,
-    common::event::{EventType, OutEvent},
+    common::{
+        event::{EventType, OutEvent},
+        sharding::belongs_to_shard,
+    },
 };
-
-/// Deterministic sharding function
-fn belongs_to_shard(symbol: &str, shard_id: u32, total_shards: u32) -> bool {
-    (xxh3_64(symbol.as_bytes()) % total_shards as u64) == shard_id as u64
-}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -56,11 +53,21 @@ async fn main() -> Result<()> {
     //Env vars Config instance
     let config: Config = Config::from_env()?;
 
+    // Computes the list of symbols owned by this pod.
+    // A symbol is considered owned if it deterministically maps to at least one
+    // of the shard IDs assigned to this pod.
+    //
+    // Ownership is computed using a consistent hash function, ensuring that:
+    // - Each symbol is assigned to exactly one logical shard
+    // - Shard ownership is deterministic across all replicas
+    // - Symbol distribution remains stable as long as TOTAL_SHARDS is unchanged
+    //
+    // The resulting owned_symbols list defines the effective workload of this pod.
     let owned_symbols: Vec<String> = config
         .symbols
         .iter()
         .cloned()
-        .filter(|sym| {
+        .filter(|sym: &String| {
             config
                 .shard_ids
                 .iter()
