@@ -75,12 +75,6 @@ async fn main() -> Result<()> {
         })
         .collect();
 
-    info!(
-        "Owned symbols ({}): {:?}",
-        owned_symbols.len(),
-        owned_symbols
-    );
-
     if owned_symbols.is_empty() {
         warn!("No symbols assigned to this pod");
         return Ok(());
@@ -88,7 +82,11 @@ async fn main() -> Result<()> {
 
     info!("Starting ingest service");
     info!("Client: {:?}", config.client_id);
-    info!("Symbols: {:?}", owned_symbols);
+    info!(
+        "Owned symbols ({}): {:?}",
+        owned_symbols.len(),
+        owned_symbols
+    );
 
     // Initializes the Apache Pulsar client using the Tokio runtime.
     // - Uses the builder pattern to configure the broker URL and async executor
