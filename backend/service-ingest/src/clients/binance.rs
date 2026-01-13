@@ -5,22 +5,20 @@ use std::time::Duration;
 use tokio::sync::mpsc::Sender;
 use tokio_tungstenite::connect_async;
 use tracing::{error, info};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::clients::client::Client;
 use crate::common::event::{EventType, OutEvent};
 use crate::common::tick::{Side, Tick};
-use std::time::{SystemTime, UNIX_EPOCH};
 
-const BINANCE_WS_BASE: &str = "wss://stream.binance.com:9443/ws";
+const BINANCE_WS_BASE: &str = "wss://stream.binance.com:9443/stream";
 const MAX_BACKOFF_SECS: u64 = 30;
 
 /// =======================
-/// STREAM @aggTrade
+/// SINGLE AGG TRADE STRUCT
 /// =======================
-
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
-#[allow(dead_code)]
 struct BinanceAggTrade {
     e: String, // event type
     E: i64,    // event time
@@ -63,12 +61,30 @@ impl TryFrom<BinanceAggTrade> for Tick {
 }
 
 /// =======================
-/// CLIENTE BINANCE WS
+/// MULTI-STREAM STRUCT
 /// =======================
+#[derive(Debug, Deserialize)]
+struct BinanceMultiAggTrade {
+    stream: String,
+    data: BinanceAggTrade,
+}
 
-pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
-    let symbol: String = symbol.to_lowercase();
-    let url: String = format!("{}/{}@aggTrade", BINANCE_WS_BASE, symbol);
+/// =======================
+/// BINANCE WS CLIENT (MULTI-SYMBOL)
+/// =======================
+pub async fn run(symbols: Vec<String>, tx: Sender<OutEvent>) -> Result<()> {
+    if symbols.is_empty() {
+        return Err(anyhow!("No symbols provided to Binance WS client"));
+    }
+
+    // Build multi-stream URL
+    let streams = symbols
+        .into_iter()
+        .map(|s| s.to_lowercase() + "@aggTrade")
+        .collect::<Vec<String>>()
+        .join("/");
+
+    let url = format!("{}?streams={}", BINANCE_WS_BASE, streams);
 
     let mut attempt: u32 = 0;
 
@@ -77,7 +93,7 @@ pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
 
         match connect_async(&url).await {
             Ok((ws_stream, _)) => {
-                info!("Connected to Binance [{}]", symbol);
+                info!("Connected to Binance WS for symbols: {}", streams);
                 attempt = 0;
 
                 let (_, mut read) = ws_stream.split();
@@ -85,8 +101,8 @@ pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
                 while let Some(msg) = read.next().await {
                     match msg {
                         Ok(msg) if msg.is_text() => {
-                            
-                            let now: i64 = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis() as i64;
+                            let now: i64 =
+                                SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis() as i64;
 
                             let text = match msg.into_text() {
                                 Ok(t) => t,
@@ -96,15 +112,17 @@ pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
                                 }
                             };
 
-                            let agg = match serde_json::from_str::<BinanceAggTrade>(&text) {
-                                Ok(a) => a,
+                            // Deserialize multi-stream wrapper
+                            let multi: BinanceMultiAggTrade = match serde_json::from_str(&text) {
+                                Ok(m) => m,
                                 Err(e) => {
                                     error!("Parse error: {} | raw={}", e, text);
                                     continue;
                                 }
                             };
 
-                            let tick = match Tick::try_from(agg) {
+                            // Convert inner data → Tick
+                            let tick: Tick = match Tick::try_from(multi.data) {
                                 Ok(t) => t,
                                 Err(e) => {
                                     error!("Tick conversion error: {}", e);
@@ -112,12 +130,13 @@ pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
                                 }
                             };
 
+                            // Debug logging
                             info!(
                                 "TICK | {:?} | {} | price={} qty={} side={:?}",
                                 tick.exchange, tick.symbol, tick.price, tick.quantity, tick.side
                             );
 
-                            // 🔑 Convertir Tick → OutEvent
+                            // Convert Tick → OutEvent
                             let payload = match serde_json::to_vec(&tick) {
                                 Ok(p) => p,
                                 Err(e) => {
@@ -131,7 +150,7 @@ pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
                                 payload,
                                 event_time: tick.ts,
                                 event_type: EventType::Tick,
-                                received_at: now
+                                received_at: now,
                             };
 
                             if let Err(e) = tx.send(event).await {
@@ -141,7 +160,7 @@ pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
                         }
 
                         Ok(_) => {
-                            // ping / pong / binary frames ignorados
+                            // ping/pong/binary frames ignored
                         }
 
                         Err(e) => {
@@ -153,7 +172,7 @@ pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
             }
 
             Err(e) => {
-                error!("Failed to connect to Binance: {}", e);
+                error!("Failed to connect to Binance WS: {}", e);
             }
         }
 
@@ -163,9 +182,8 @@ pub async fn run(symbol: String, tx: Sender<OutEvent>) -> Result<()> {
 }
 
 /// =======================
-/// BACKOFF SIMPLE
+/// SIMPLE BACKOFF
 /// =======================
-
 async fn backoff(attempt: u32) {
     let secs = std::cmp::min(attempt as u64 * 2, MAX_BACKOFF_SECS);
     info!("Reconnecting in {}s...", secs);

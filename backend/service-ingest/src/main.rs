@@ -172,15 +172,13 @@ async fn main() -> Result<()> {
     match config.client_id {
         // Binance: 1 WS = 1 symbol
         Client::Binance => {
-            for symbol in owned_symbols {
-                let sym: String = symbol.clone();
-                let tx_clone: tokio::sync::mpsc::Sender<OutEvent> = tx.clone();
+            let symbols_clone: Vec<String> = owned_symbols.clone();
+            let tx_clone: tokio::sync::mpsc::Sender<OutEvent> = tx.clone();
 
-                let handler: JoinHandle<std::result::Result<(), anyhow::Error>> =
-                    tokio::spawn(async move { clients::binance::run(sym, tx_clone).await });
+            let handler: JoinHandle<std::result::Result<(), anyhow::Error>> =
+                tokio::spawn(async move { clients::binance::run(symbols_clone, tx_clone).await });
 
-                handles.push(handler);
-            }
+            handles.push(handler);
         }
 
         Client::Databento => {}
