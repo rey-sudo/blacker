@@ -4,6 +4,7 @@ outline: deep
 
 # service-ingest-truth
 
+This microservice is the source of truth for the entire system regarding pricing (OHLCV).
 At startup, the service backfills historical 1-minute candles from the external data provider and persists them to PostgreSQL.
 In real time, a single Pulsar consumer receives ticks and forwards them to a dispatcher, which routes each tick to a symbol-specific task via MPSC channels.
 
