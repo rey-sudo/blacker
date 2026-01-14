@@ -134,7 +134,7 @@ pub async fn run(symbols: Vec<String>, tx: Sender<OutEvent>) -> Result<()> {
                             let now: i64 =
                                 SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis() as i64;
 
-                            let text = match msg.into_text() {
+                            let text: tungstenite::Utf8Bytes = match msg.into_text() {
                                 Ok(t) => t,
                                 Err(e) => {
                                     error!("WS text error: {}", e);
@@ -167,7 +167,7 @@ pub async fn run(symbols: Vec<String>, tx: Sender<OutEvent>) -> Result<()> {
                             );
 
                             // Convert Tick → OutEvent
-                            let payload = match serde_json::to_vec(&tick) {
+                            let payload: Vec<u8> = match serde_json::to_vec(&tick) {
                                 Ok(p) => p,
                                 Err(e) => {
                                     error!("Failed to serialize tick: {}", e);
@@ -215,7 +215,7 @@ pub async fn run(symbols: Vec<String>, tx: Sender<OutEvent>) -> Result<()> {
 /// SIMPLE BACKOFF
 /// =======================
 async fn backoff(attempt: u32) {
-    let secs = std::cmp::min(attempt as u64 * 2, MAX_BACKOFF_SECS);
+    let secs: u64 = std::cmp::min(attempt as u64 * 2, MAX_BACKOFF_SECS);
     info!("Reconnecting in {}s...", secs);
     tokio::time::sleep(Duration::from_secs(secs)).await;
 }
