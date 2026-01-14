@@ -1,6 +1,6 @@
 /*
  * BLACKER
- * Copyright (C) 2024  Juan José Caballero Rey
+ * Copyright (C) 2026  Juan José Caballero Rey
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -147,11 +147,11 @@ async fn main() -> Result<()> {
                     let send_future: pulsar::producer::SendFuture = producer_ticks
                         .send_non_blocking(event)
                         .await
-                        .map_err(|e| anyhow!("Failed to create send future: {:?}", e))?;
+                        .map_err(|e: pulsar::Error| anyhow!("Failed to create send future: {:?}", e))?;
 
                     let msg_id: pulsar::CommandSendReceipt = send_future
                         .await
-                        .map_err(|e| anyhow!("Failed to send tick to Pulsar: {:?}", e))?;
+                        .map_err(|e: pulsar::Error| anyhow!("Failed to send tick to Pulsar: {:?}", e))?;
 
                     info!("Tick sent to Pulsar with id {:?}", msg_id);
                 }

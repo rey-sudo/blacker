@@ -1,5 +1,6 @@
 use pulsar::{Error as PulsarError, SerializeMessage, producer};
 
+#[allow(dead_code)]
 pub enum EventType {
     Tick,
     MBP,
