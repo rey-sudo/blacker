@@ -170,7 +170,6 @@ async fn main() -> Result<()> {
     let mut handles: Vec<JoinHandle<std::result::Result<(), anyhow::Error>>> = Vec::new();
 
     match config.client_id {
-        // Binance: 1 WS = 1 symbol
         Client::Binance => {
             let symbols_clone: Vec<String> = owned_symbols.clone();
             let tx_clone: tokio::sync::mpsc::Sender<OutEvent> = tx.clone();

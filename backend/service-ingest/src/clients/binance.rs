@@ -2,10 +2,10 @@ use anyhow::{Result, anyhow};
 use futures_util::StreamExt;
 use serde::Deserialize;
 use std::time::Duration;
+use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::sync::mpsc::Sender;
 use tokio_tungstenite::connect_async;
 use tracing::{error, info};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::clients::client::Client;
 use crate::common::event::{EventType, OutEvent};
@@ -14,39 +14,68 @@ use crate::common::tick::{Side, Tick};
 const BINANCE_WS_BASE: &str = "wss://stream.binance.com:9443/stream";
 const MAX_BACKOFF_SECS: u64 = 30;
 
-/// =======================
-/// SINGLE AGG TRADE STRUCT
-/// =======================
 #[derive(Debug, Deserialize)]
 #[allow(non_snake_case)]
+#[allow(dead_code)]
 struct BinanceAggTrade {
-    e: String, // event type
-    E: i64,    // event time
-    s: String, // symbol
-    a: u64,    // aggregate trade id
-    p: String, // price
-    q: String, // quantity
-    f: u64,    // first trade id
-    l: u64,    // last trade id
-    T: i64,    // trade time
-    m: bool,   // buyer is market maker
-    M: bool,   // best price match
+    /// event type
+    e: String,
+    /// event time
+    E: i64,
+    /// symbol
+    s: String,
+    /// aggregate trade id
+    a: u64,
+    /// price
+    p: String,
+    /// quantity
+    q: String,
+    /// first trade id
+    f: u64,
+    /// last trade id
+    l: u64,
+    /// trade time
+    T: i64,
+    /// buyer is market maker
+    m: bool,
+    /// best price match
+    M: bool,
 }
 
+/// Converts a Binance `@aggTrade` WebSocket payload into the internal `Tick` domain model.
+///
+/// Responsibilities:
+/// - Parse numeric fields (`price`, `quantity`) from their string representation
+/// - Derive trade side based on Binance's `m` flag (buyer is market maker)
+/// - Map Binance-specific fields into a normalized `Tick` structure
+/// - Preserve the original trade timestamp (`T`) for event-time processing
+///
+/// Error handling:
+/// - Fails if numeric parsing of `price` or `quantity` is invalid
+/// - Uses `anyhow::Error` to provide rich error context for upstream logging
+///
+/// Notes:
+/// - `exchange` is hardcoded to `Client::Binance` as this converter is exchange-specific
+/// - Fields not required for the internal model (e.g. aggregate IDs) are intentionally ignored
+/// - This conversion is deterministic and side-effect free
 impl TryFrom<BinanceAggTrade> for Tick {
     type Error = anyhow::Error;
 
     fn try_from(agg: BinanceAggTrade) -> Result<Self> {
+        // Parse price from string to f64
         let price: f64 = agg
             .p
             .parse()
-            .map_err(|e| anyhow!("invalid price '{}': {}", agg.p, e))?;
+            .map_err(|e: std::num::ParseFloatError| anyhow!("invalid price '{}': {}", agg.p, e))?;
 
-        let quantity: f64 = agg
-            .q
-            .parse()
-            .map_err(|e| anyhow!("invalid quantity '{}': {}", agg.q, e))?;
+        // Parse quantity from string to f64
+        let quantity: f64 = agg.q.parse().map_err(|e: std::num::ParseFloatError| {
+            anyhow!("invalid quantity '{}': {}", agg.q, e)
+        })?;
 
+        // Derive trade side:
+        // - m = true  → buyer is market maker → aggressive seller
+        // - m = false → aggressive buyer
         let side: Side = if agg.m { Side::Sell } else { Side::Buy };
 
         Ok(Tick {
@@ -55,7 +84,7 @@ impl TryFrom<BinanceAggTrade> for Tick {
             price,
             quantity,
             side,
-            ts: agg.T,
+            ts: agg.T, //Trade timestamp
         })
     }
 }
@@ -64,6 +93,7 @@ impl TryFrom<BinanceAggTrade> for Tick {
 /// MULTI-STREAM STRUCT
 /// =======================
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct BinanceMultiAggTrade {
     stream: String,
     data: BinanceAggTrade,
@@ -78,13 +108,13 @@ pub async fn run(symbols: Vec<String>, tx: Sender<OutEvent>) -> Result<()> {
     }
 
     // Build multi-stream URL
-    let streams = symbols
+    let streams: String = symbols
         .into_iter()
-        .map(|s| s.to_lowercase() + "@aggTrade")
+        .map(|s: String| s.to_lowercase() + "@aggTrade")
         .collect::<Vec<String>>()
         .join("/");
 
-    let url = format!("{}?streams={}", BINANCE_WS_BASE, streams);
+    let url: String = format!("{}?streams={}", BINANCE_WS_BASE, streams);
 
     let mut attempt: u32 = 0;
 
