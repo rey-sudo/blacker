@@ -1,16 +1,20 @@
 use anyhow::Result;
-use sqlx::{Pool, Postgres};
+use sqlx::{PgPool, postgres::PgPoolOptions};
+use std::time::Duration;
 
-/// Shared Postgres connection pool
-pub type Db = Pool<Postgres>;
+/// Shared database handle used across the service.
+/// Internally this is an async, thread-safe connection pool.
+pub type Db = PgPool;
 
-/// Create and initialize the Postgres connection pool
+/// Create a PostgreSQL connection pool.
 ///
-/// - Fails fast if the database is unreachable or credentials are invalid
-/// - Returns a cloneable, async-safe pool handle
+/// - Uses sqlx async pooling
+/// - Fails fast if the database is unreachable
+/// - Safe to clone and share across tasks
 pub async fn connect(database_url: &str) -> Result<Db> {
-    let pool = sqlx::postgres::PgPoolOptions::new()
+    let pool: PgPool = PgPoolOptions::new()
         .max_connections(10)
+        .acquire_timeout(Duration::from_secs(5))
         .connect(database_url)
         .await?;
 

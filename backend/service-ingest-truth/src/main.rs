@@ -29,7 +29,6 @@ use rustls::crypto::ring;
 use tokio::task::JoinHandle;
 use tracing::{info, warn};
 
-
 #[tokio::main]
 async fn main() -> Result<()> {
     from_filename(".env.local").ok();
@@ -44,15 +43,21 @@ async fn main() -> Result<()> {
     // Enables info!, warn!, error! logs across the entire service.
     tracing_subscriber::fmt::init();
 
-    info!("Starting service-ingest-truth");
-
     //Env vars Config instance
     let config: Config = Config::from_env()?;
+
+    info!("Starting service-ingest-truth");
+    info!(
+        "Shards {:?} / {} | MAX_SYMBOLS={}",
+        config.shard_ids, config.total_shards, config.max_symbols
+    );
 
     // ------------------------------------------------------------
     // 3. Init database (Postgres)
     // ------------------------------------------------------------
-    let db:sqlx::Pool<_>  = database::client::connect(&config.database_url).await?;
+    let db: sqlx::Pool<_> = database::client::connect(&config.database_url).await?;
+
+    database::bootstrap::checklist(&db).await?;
 
     info!("Connected to Postgres");
 

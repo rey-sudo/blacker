@@ -1,0 +1,1 @@
+sudo -u postgres psql -f ./service_ingest_db.sql

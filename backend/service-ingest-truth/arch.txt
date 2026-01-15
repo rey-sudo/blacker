@@ -1,0 +1,50 @@
+┌──────────────────────────────┐
+│        service-ingest-truth  │
+└──────────────────────────────┘
+              │
+              ▼
+     Pulsar Consumer (KeyShared)
+              │
+              ▼
+     Receive Tick (symbol-keyed)
+              │
+              ▼
+     belongs_to_shard(symbol)?
+              │
+              ▼
+     Dispatcher (mpsc router)
+              │
+              ▼
+     Is symbol initialized?
+          │             │
+          │ no          │ yes
+          ▼             ▼
+┌────────────────────┐   ┌───────────────────┐
+│ Backfill 1m candles│   │ Route to worker   │
+│ External Provider  │   │ (in-memory)       │
+└────────────────────┘   └───────────────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Persist history    │
+│ (PostgreSQL)       │
+└────────────────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Init minute_bucket │
+│ (last closed 1m)   │
+└────────────────────┘
+          │
+          ▼
+┌────────────────────┐
+│ Spawn symbol task  │
+└────────────────────┘
+          │
+          ▼
+┌──────────────────────────────────┐
+│ Live candle processing           │
+│ - update live OHLC               │
+│ - publish non-persistent         │
+│ - persist closed candle          │
+└──────────────────────────────────┘

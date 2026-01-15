@@ -1,0 +1,1 @@
+sudo -u service_ingest -ppassword psql -f ./ohlcv_1m.sql
