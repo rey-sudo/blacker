@@ -1,3 +1,5 @@
+\c service_ingest
+
 CREATE TABLE
     IF NOT EXISTS ohlcv_1m (
         symbol TEXT NOT NULL,
