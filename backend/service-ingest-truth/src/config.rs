@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use crate::clients::client::Client;
+
 
 /// Microservice configuration struct
 /// ```
@@ -24,89 +24,69 @@ use crate::clients::client::Client;
 /// ```
 #[derive(Debug, Clone)]
 pub struct Config {
-    pub client_id: Client,
-    pub symbols: Vec<String>,
+    /// PostgreSQL url
+    pub database_url: String,
+
+    /// Pulsar broker URL
     pub pulsar_url: String,
 
-    pub total_shards: u32,
-    pub shard_ids: Vec<u32>,
+    /// Topic where Tick events are published
+    pub pulsar_topic: String,
+
+    /// Pulsar subscription name (consumer group)
+    pub subscription_name: String,
+
+    /// Logical name of this consumer instance
+    pub consumer_name: String,
+
+    /// Maximum number of concurrent symbol tasks
+    pub max_symbols: usize,
+
+    /// Seconds after which an inactive symbol task is stopped
+    pub idle_symbol_ttl_secs: u64,
 }
 
 impl Config {
     pub fn from_env() -> anyhow::Result<Self> {
-        let client_id_raw: String =
-            std::env::var("CLIENT_ID").map_err(|_| anyhow::anyhow!("CLIENT_ID is not set"))?;
-
-        let symbols_raw: String =
-            std::env::var("SYMBOLS").map_err(|_| anyhow::anyhow!("SYMBOLS is not set"))?;
+        let database_url: String = std::env::var("DATABASE_URL")
+            .map_err(|_| anyhow::anyhow!("DATABASE_URL is not set"))?;
 
         let pulsar_url: String =
             std::env::var("PULSAR_URL").map_err(|_| anyhow::anyhow!("PULSAR_URL is not set"))?;
 
-        let total_shards_raw: String = std::env::var("TOTAL_SHARDS")
-            .map_err(|_| anyhow::anyhow!("TOTAL_SHARDS is not set"))?;
+        let pulsar_topic: String = std::env::var("PULSAR_TOPIC")
+            .map_err(|_| anyhow::anyhow!("PULSAR_TOPIC is not set"))?;
 
-        let shard_ids_raw: String =
-            std::env::var("SHARD_IDS").map_err(|_| anyhow::anyhow!("SHARD_IDS is not set"))?;
+        let subscription_name: String = std::env::var("PULSAR_SUBSCRIPTION")
+            .map_err(|_| anyhow::anyhow!("PULSAR_SUBSCRIPTION is not set"))?;
+
+        let consumer_name: String = std::env::var("CONSUMER_NAME")
+            .map_err(|_| anyhow::anyhow!("CONSUMER_NAME is not set"))?;
+
+        let max_symbols: usize = std::env::var("MAX_SYMBOLS")
+            .map_err(|_| anyhow::anyhow!("MAX_SYMBOLS is not set"))?
+            .parse()
+            .map_err(|_| anyhow::anyhow!("MAX_SYMBOLS must be a positive integer"))?;
+
+        let idle_symbol_ttl_secs: u64 = std::env::var("IDLE_SYMBOL_TTL_SECS")
+            .map_err(|_| anyhow::anyhow!("IDLE_SYMBOL_TTL_SECS is not set"))?
+            .parse()
+            .map_err(|_| anyhow::anyhow!("IDLE_SYMBOL_TTL_SECS must be a positive integer"))?;
 
         //=========================================================================================
 
-        let client_id: Client = client_id_raw.parse()?;
-
-        let symbols: Vec<String> = symbols_raw
-            .split(',')
-            .map(|s| s.trim().to_uppercase())
-            .filter(|s| !s.is_empty())
-            .collect();
-
-        if symbols.is_empty() {
-            return Err(anyhow::anyhow!("SYMBOLS cannot be empty"));
-        }
-
-        // Parses the TOTAL_SHARDS environment variable.
-        // This value defines the total number of logical shards used for deterministic symbol distribution.
-        // It must be a positive integer and must be consistent across all service-ingest replicas.
-        // An invalid or missing value is treated as a fatal configuration error.
-        let total_shards: u32 = total_shards_raw
-            .parse()
-            .map_err(|_| anyhow::anyhow!("TOTAL_SHARDS must be a positive integer"))?;
-
-        if total_shards == 0 {
-            return Err(anyhow::anyhow!("TOTAL_SHARDS must be > 0"));
-        }
-
-        // Parses the SHARD_IDS environment variable.
-        // SHARD_IDS defines the logical shard identifiers owned by this pod.
-        // Multiple shard IDs can be assigned using a comma-separated list (e.g. "0,1,2").
-        // Each shard ID must be a valid non-negative integer and must be within the range
-        // [0, TOTAL_SHARDS - 1].
-        // An invalid format or non-integer value is treated as a fatal configuration error.
-        let shard_ids: Vec<u32> = shard_ids_raw
-            .split(',')
-            .map(|s| s.trim().parse::<u32>())
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(|_| anyhow::anyhow!("Invalid SHARD_IDS format"))?;
-
-        if shard_ids.is_empty() {
-            return Err(anyhow::anyhow!("SHARD_IDS cannot be empty"));
-        }
-
-        for &sid in &shard_ids {
-            if sid >= total_shards {
-                return Err(anyhow::anyhow!(
-                    "SHARD_ID {} out of range (TOTAL_SHARDS={})",
-                    sid,
-                    total_shards
-                ));
-            }
+        if max_symbols == 0 {
+            return Err(anyhow::anyhow!("MAX_SYMBOLS must be greater than 0"));
         }
 
         Ok(Self {
-            client_id,
-            symbols,
+            database_url,
             pulsar_url,
-            total_shards,
-            shard_ids,
+            pulsar_topic,
+            subscription_name,
+            consumer_name,
+            max_symbols,
+            idle_symbol_ttl_secs,
         })
     }
 }
