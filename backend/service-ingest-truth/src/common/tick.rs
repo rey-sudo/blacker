@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use pulsar::{DeserializeMessage, Payload};
 use serde::{Deserialize, Serialize};
 
 use crate::{clients::client::Client };
@@ -46,4 +47,13 @@ pub struct Tick {
 pub enum Side {
     Buy,
     Sell,
+}
+
+
+impl DeserializeMessage for Tick {
+    type Output = Result<Tick, serde_json::Error>;
+
+    fn deserialize_message(payload: &Payload) -> Self::Output {
+        serde_json::from_slice(&payload.data)
+    }
 }

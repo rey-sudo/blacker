@@ -22,6 +22,7 @@
 /// ```
 #[derive(Debug, Clone)]
 pub struct Config {
+    pub consumer_name: String,
     pub database_url: String,
     pub pulsar_url: String,
 
@@ -33,6 +34,9 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> anyhow::Result<Self> {
+        let consumer_name: String = std::env::var("POD_NAME")
+            .unwrap_or_else(|_| format!("service-ingest-truth-{}", std::process::id()));
+
         let pulsar_url: String =
             std::env::var("PULSAR_URL").map_err(|_| anyhow::anyhow!("PULSAR_URL is not set"))?;
 
@@ -97,6 +101,7 @@ impl Config {
         }
 
         Ok(Self {
+            consumer_name,
             database_url,
             pulsar_url,
             total_shards,
