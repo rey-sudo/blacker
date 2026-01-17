@@ -1,6 +1,4 @@
-pub mod bootstrap;
-
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::time::Duration;
 use tracing::info;
@@ -35,6 +33,34 @@ impl Database {
         info!("Connected to Postgres");
 
         Ok(Self { pool })
+    }
+
+    /// Checks if a table exists in the PostgreSQL database.
+    /// Returns an error if the table does not exist.
+    pub async fn check_table(&self, table_name: &str) -> Result<()> {
+        // Query returns a single row with a boolean
+        let table_exists: (bool,) = sqlx::query_as(
+            r#"
+            SELECT EXISTS (
+                SELECT 1
+                FROM information_schema.tables
+                WHERE table_schema = 'public'
+                  AND table_name = $1
+            )
+            "#,
+        )
+        .bind(table_name)
+        .fetch_one(&self.pool)
+        .await?;
+
+        if !table_exists.0 {
+            return Err(anyhow!(
+                "Table '{}' does not exist in the database",
+                table_name
+            ));
+        }
+
+        Ok(())
     }
 
     /// Returns a reference to the internal connection pool
