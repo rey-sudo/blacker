@@ -18,45 +18,31 @@
 
 mod clients;
 mod common;
-mod config;
 mod database;
 mod symbol_worker;
 
 use std::collections::HashMap;
 
 use anyhow::{Result, anyhow};
-use config::Config;
-use dotenvy::from_filename;
+
 use futures_util::TryStreamExt;
 use pulsar::{Consumer, Pulsar, SubType, TokioExecutor, consumer::Message};
-use rustls::crypto::ring;
+
 use tokio::{select, sync::mpsc, task::JoinHandle};
 use tracing::{info, warn};
 
-use crate::{common::tick::Tick, symbol_worker::worker::{SymbolCommand, spawn_symbol_worker}};
+use crate::{
+    common::tick::Tick,
+    symbol_worker::worker::{SymbolCommand, spawn_symbol_worker},
+};
+
+use service_ingest_truth::{config::Config, infrastructure::bootstrap};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    from_filename(".env.local").ok();
+    bootstrap::run()?;
 
-    // Initialize rustls crypto backend (ring).
-    // Required for all TLS connections (WebSockets, HTTPS, Pulsar).
-    ring::default_provider()
-        .install_default()
-        .expect("failed to install rustls crypto provider");
-
-    // Initialize tracing subscriber for structured, async-safe logging.
-    // Enables info!, warn!, error! logs across the entire service.
-    tracing_subscriber::fmt::init();
-
-    //Env vars Config instance
-    let config: Config = Config::from_env()?;
-
-    info!("Starting service-ingest-truth");
-    info!(
-        "Shards {:?} / {} | MAX_SYMBOLS={}",
-        config.shard_ids, config.total_shards, config.max_symbols
-    );
+    let config: Config = bootstrap::get_config()?;
 
     // Creates the database connection pool.
     let db: sqlx::Pool<_> = database::client::connect(&config.database_url).await?;
