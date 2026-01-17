@@ -2636,6 +2636,7 @@ name = "service-ingest-truth"
 version = "0.1.1"
 dependencies = [
  "anyhow",
+ "chrono",
  "dotenvy",
  "futures-util",
  "pulsar",
@@ -3153,6 +3154,7 @@ dependencies = [
  "libc",
  "mio",
  "pin-project-lite",
+ "signal-hook-registry",
  "socket2",
  "tokio-macros",
  "windows-sys 0.61.2",

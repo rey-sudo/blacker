@@ -27,12 +27,13 @@ use std::collections::HashMap;
 use anyhow::{Result, anyhow};
 use config::Config;
 use dotenvy::from_filename;
-use pulsar::{Consumer, Pulsar, SubType, TokioExecutor};
+use futures_util::TryStreamExt;
+use pulsar::{Consumer, Pulsar, SubType, TokioExecutor, consumer::Message};
 use rustls::crypto::ring;
-use tokio::{sync::mpsc, task::JoinHandle};
+use tokio::{select, sync::mpsc, task::JoinHandle};
 use tracing::{info, warn};
 
-use crate::{common::tick::Tick, symbol_worker::SymbolCommand};
+use crate::{common::tick::Tick, symbol_worker::worker::{SymbolCommand, spawn_symbol_worker}};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -76,11 +77,10 @@ async fn main() -> Result<()> {
     // All pods share the same subscription name (`service-ingest-truth`); Each consumer is
     // assigned a unique name derived from (POD_NAME) for observability only.
 
-    // The consumer subscribes to the `market-data/ticks` topic using a
-    // Key_Shared subscriptions allow multiple consumers to share the same
-    // subscription while guaranteeing strict ordering per message key.
-    // All messages with the same key are always delivered to the same
-    // consumer, even in case of redelivery.
+    // Key_Shared guarantees that all messages with the same key (symbol)
+    // are delivered to a single consumer at a time. If a consumer crashes
+    // or disconnects, Pulsar automatically reassigns the key to another
+    // active consumer, resuming from the last acknowledged message.
     let mut consumer: Consumer<Tick, _> = pulsar
         .consumer()
         .with_topic("persistent://public/market-data/ticks")
@@ -99,5 +99,85 @@ async fn main() -> Result<()> {
     // a graceful shutdown and proper error propagation.
     let mut worker_handles: Vec<JoinHandle<Result<()>>> = Vec::new();
 
+    info!("Waiting for ticks...");
+
+    loop {
+        select! {
+            result = consumer.try_next() => {
+                let maybe_msg: Option<Message<Tick>> = result?;
+
+                let Some(msg) = maybe_msg else {
+                    warn!("Pulsar stream closed");
+                    break;
+                };
+
+                let tick = match msg.deserialize() {
+                    Ok(t) => t,
+                    Err(e) => {
+                        warn!("Failed to deserialize tick: {:?}", e);
+                        consumer.ack(&msg).await?;
+                        continue;
+                    }
+                };
+
+                let symbol = tick.symbol.clone();
+
+                let sender = if let Some(tx) = workers.get(&symbol) {
+                    tx.clone()
+                } else {
+                    if workers.len() >= config.max_symbols {
+                        warn!("MAX_SYMBOLS reached, dropping tick for {}", symbol);
+                        consumer.ack(&msg).await?;
+                        continue;
+                    }
+
+                    info!("Initializing symbol {}", symbol);
+
+                    let (tx, rx) = mpsc::channel(1024);
+
+                    let handle = spawn_symbol_worker(
+                        symbol.clone(),
+                        rx,
+                        db.clone(),
+                        pulsar.clone(),
+                        config.clone(),
+                    );
+
+                    workers.insert(symbol.clone(), tx.clone());
+                    worker_handles.push(handle);
+
+                    tx
+                };
+
+                if sender.send(SymbolCommand::Tick(tick)).await.is_err() {
+                    warn!("Worker for {} dropped, removing", symbol);
+                    workers.remove(&symbol);
+                }
+
+                consumer.ack(&msg).await?;
+            }
+
+            _ = tokio::signal::ctrl_c() => {
+                info!("Shutdown signal received");
+                break;
+            }
+        }
+    }
+
+    info!("Shutting down symbol workers");
+
+    // Notify workers
+    for (_, tx) in workers {
+        let _ = tx.send(SymbolCommand::Shutdown).await;
+    }
+
+    // Await workers
+    for handle in worker_handles {
+        if let Err(e) = handle.await? {
+            warn!("Worker exited with error: {:?}", e);
+        }
+    }
+
+    info!("service-ingest-truth stopped cleanly");
     Ok(())
 }

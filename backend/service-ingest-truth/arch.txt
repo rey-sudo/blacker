@@ -9,9 +9,6 @@
      Receive Tick (symbol-keyed)
               │
               ▼
-     belongs_to_shard(symbol)?
-              │
-              ▼
      Dispatcher (mpsc router)
               │
               ▼
@@ -26,7 +23,8 @@
           │
           ▼
 ┌────────────────────┐
-│ Persist history    │
+│ Persist history    |
+| ohlcv_1m table     │
 │ (PostgreSQL)       │
 └────────────────────┘
           │
@@ -45,6 +43,8 @@
 ┌──────────────────────────────────┐
 │ Live candle processing           │
 │ - update live OHLC               │
-│ - publish non-persistent         │
+│ - publish non-persistent//market-data/ohlcv-1m-live
 │ - persist closed candle          │
+│ - publish non-persistent//market-data/ohlcv-1m-closed 
 └──────────────────────────────────┘
+
