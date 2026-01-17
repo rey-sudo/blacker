@@ -24,12 +24,13 @@ use std::collections::HashMap;
 use anyhow::{Result, anyhow};
 
 use futures_util::TryStreamExt;
-use pulsar::{consumer::Message};
+use pulsar::consumer::Message;
 
 use tokio::{select, sync::mpsc, task::JoinHandle};
 use tracing::{info, warn};
 
 use service_ingest_truth::{
+    application::symbol_worker::{SymbolCommand, spawn_symbol_worker},
     common::tick::Tick,
     config::Config,
     infrastructure::{
@@ -37,7 +38,6 @@ use service_ingest_truth::{
         database::{self, Database},
         pulsar::{PulsarClient, tick_consumer::TickConsumer},
     },
-    symbol_worker::worker::{SymbolCommand, spawn_symbol_worker},
 };
 
 #[tokio::main]
