@@ -1,3 +1,5 @@
+pub mod tick_consumer;
+
 use anyhow::Result;
 use pulsar::{Pulsar, TokioExecutor};
 

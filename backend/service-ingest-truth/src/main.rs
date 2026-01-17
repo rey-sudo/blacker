@@ -18,30 +18,26 @@
 
 mod clients;
 mod common;
-mod symbol_worker;
 
 use std::collections::HashMap;
 
 use anyhow::{Result, anyhow};
 
 use futures_util::TryStreamExt;
-use pulsar::{Consumer, Pulsar, SubType, TokioExecutor, consumer::Message};
+use pulsar::{consumer::Message};
 
 use tokio::{select, sync::mpsc, task::JoinHandle};
 use tracing::{info, warn};
 
-use crate::{
-    common::tick::Tick,
-    symbol_worker::worker::{SymbolCommand, spawn_symbol_worker},
-};
-
 use service_ingest_truth::{
+    common::tick::Tick,
     config::Config,
     infrastructure::{
         bootstrap,
         database::{self, Database},
-        pulsar::PulsarClient,
+        pulsar::{PulsarClient, tick_consumer::TickConsumer},
     },
+    symbol_worker::worker::{SymbolCommand, spawn_symbol_worker},
 };
 
 #[tokio::main]
@@ -56,23 +52,8 @@ async fn main() -> Result<()> {
 
     let pulsar_client: PulsarClient = PulsarClient::new(&config.pulsar_url).await?;
 
-    // Configures the Pulsar consumer used to receive the market ticks produced by `service-ingest`.
-    // All pods share the same subscription name (`service-ingest-truth`); Each consumer is
-    // assigned a unique name derived from (POD_NAME) for observability only.
-
-    // Key_Shared guarantees that all messages with the same key (symbol)
-    // are delivered to a single consumer at a time. If a consumer crashes
-    // or disconnects, Pulsar automatically reassigns the key to another
-    // active consumer, resuming from the last acknowledged message.
-    let mut consumer: Consumer<Tick, _> = pulsar_client
-        .inner()
-        .consumer()
-        .with_topic("persistent://public/market-data/ticks")
-        .with_subscription("service-ingest-truth")
-        .with_subscription_type(SubType::KeyShared)
-        .with_consumer_name(&config.consumer_name)
-        .build()
-        .await?;
+    let mut tick_consumer: TickConsumer =
+        TickConsumer::new(&pulsar_client.inner(), &config.consumer_name).await?;
 
     // Map of active symbol workers.
     // Each symbol is associated with a dedicated mpsc channel used
@@ -87,7 +68,7 @@ async fn main() -> Result<()> {
 
     loop {
         select! {
-            result = consumer.try_next() => {
+            result = tick_consumer.inner_mut().try_next() => {
                 let maybe_msg: Option<Message<Tick>> = result?;
 
                 let Some(msg) = maybe_msg else {
@@ -99,7 +80,7 @@ async fn main() -> Result<()> {
                     Ok(t) => t,
                     Err(e) => {
                         warn!("Failed to deserialize tick: {:?}", e);
-                        consumer.ack(&msg).await?;
+                        tick_consumer.inner_mut().ack(&msg).await?;
                         continue;
                     }
                 };
@@ -111,7 +92,7 @@ async fn main() -> Result<()> {
                 } else {
                     if workers.len() >= config.max_symbols {
                         warn!("MAX_SYMBOLS reached, dropping tick for {}", symbol);
-                        consumer.ack(&msg).await?;
+                        tick_consumer.inner_mut().ack(&msg).await?;
                         continue;
                     }
 
@@ -138,7 +119,7 @@ async fn main() -> Result<()> {
                     workers.remove(&symbol);
                 }
 
-                consumer.ack(&msg).await?;
+                tick_consumer.inner_mut().ack(&msg).await?;
             }
 
             _ = tokio::signal::ctrl_c() => {

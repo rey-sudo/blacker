@@ -1,7 +1,7 @@
 use anyhow::Result;
 use chrono::{DateTime, TimeZone, Timelike, Utc};
 use pulsar::{producer, Pulsar, SerializeMessage, TokioExecutor, Error as PulsarError};
-use service_ingest_truth::config::Config;
+
 use tokio::{
     sync::mpsc,
     task::JoinHandle,
@@ -9,7 +9,7 @@ use tokio::{
 use tracing::{info, warn};
 
 use crate::{
-    common::tick::Tick,
+    common::tick::Tick, config::Config,
 };
 
 /// Commands sent from dispatcher to symbol worker
