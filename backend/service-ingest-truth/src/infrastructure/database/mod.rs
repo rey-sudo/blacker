@@ -5,7 +5,6 @@ use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::time::Duration;
 use tracing::info;
 
-
 /// Encapsulates a PostgreSQL connection pool.
 /// Internally this is an async, thread-safe connection pool that can be shared across tasks.
 #[derive(Clone)]
@@ -32,7 +31,7 @@ impl Database {
             .acquire_timeout(Duration::from_secs(5))
             .connect(database_url)
             .await?;
-        
+
         info!("Connected to Postgres");
 
         Ok(Self { pool })

@@ -40,6 +40,7 @@ use service_ingest_truth::{
     infrastructure::{
         bootstrap,
         database::{self, Database},
+        pulsar::PulsarClient,
     },
 };
 
@@ -53,13 +54,7 @@ async fn main() -> Result<()> {
 
     database::bootstrap::checklist(&db).await?;
 
-    // Initializes the Apache Pulsar client using the Tokio runtime.
-    // - Uses the builder pattern to configure the broker URL and async executor
-    // - Establishes the connection asynchronously
-    // - Fails fast if the connection to the broker cannot be established
-    let pulsar: Pulsar<_> = Pulsar::builder(&config.pulsar_url, TokioExecutor)
-        .build()
-        .await?;
+    let pulsar_client: PulsarClient = PulsarClient::new(&config.pulsar_url).await?;
 
     // Configures the Pulsar consumer used to receive the market ticks produced by `service-ingest`.
     // All pods share the same subscription name (`service-ingest-truth`); Each consumer is
@@ -69,7 +64,8 @@ async fn main() -> Result<()> {
     // are delivered to a single consumer at a time. If a consumer crashes
     // or disconnects, Pulsar automatically reassigns the key to another
     // active consumer, resuming from the last acknowledged message.
-    let mut consumer: Consumer<Tick, _> = pulsar
+    let mut consumer: Consumer<Tick, _> = pulsar_client
+        .inner()
         .consumer()
         .with_topic("persistent://public/market-data/ticks")
         .with_subscription("service-ingest-truth")
@@ -127,7 +123,7 @@ async fn main() -> Result<()> {
                         symbol.clone(),
                         rx,
                         db.pool().clone(),
-                        pulsar.clone(),
+                        pulsar_client.inner().clone(),
                         config.clone(),
                     );
 
