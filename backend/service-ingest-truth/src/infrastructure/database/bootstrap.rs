@@ -1,7 +1,8 @@
 use anyhow::{Result, anyhow};
-use sqlx::PgPool;
+use crate::infrastructure::database::Database;
 
-pub async fn checklist(db: &PgPool) -> Result<()> {
+///Check necessary database properties.
+pub async fn checklist(db: &Database) -> Result<()> {
     let table_1: &str = "ohlcv_1m";
 
     let table_exists: (bool,) = sqlx::query_as(
@@ -13,7 +14,7 @@ pub async fn checklist(db: &PgPool) -> Result<()> {
         )"
     )
     .bind(table_1)
-    .fetch_one(db)
+    .fetch_one(db.pool())
     .await?;
 
     if !table_exists.0 {

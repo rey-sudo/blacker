@@ -18,7 +18,6 @@
 
 mod clients;
 mod common;
-mod database;
 mod symbol_worker;
 
 use std::collections::HashMap;
@@ -36,7 +35,13 @@ use crate::{
     symbol_worker::worker::{SymbolCommand, spawn_symbol_worker},
 };
 
-use service_ingest_truth::{config::Config, infrastructure::bootstrap};
+use service_ingest_truth::{
+    config::Config,
+    infrastructure::{
+        bootstrap,
+        database::{self, Database},
+    },
+};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -44,12 +49,9 @@ async fn main() -> Result<()> {
 
     let config: Config = bootstrap::get_config()?;
 
-    // Creates the database connection pool.
-    let db: sqlx::Pool<_> = database::client::connect(&config.database_url).await?;
+    let db: Database = Database::new(&config.database_url).await?;
 
     database::bootstrap::checklist(&db).await?;
-
-    info!("Connected to Postgres");
 
     // Initializes the Apache Pulsar client using the Tokio runtime.
     // - Uses the builder pattern to configure the broker URL and async executor
@@ -124,7 +126,7 @@ async fn main() -> Result<()> {
                     let handle = spawn_symbol_worker(
                         symbol.clone(),
                         rx,
-                        db.clone(),
+                        db.pool().clone(),
                         pulsar.clone(),
                         config.clone(),
                     );
