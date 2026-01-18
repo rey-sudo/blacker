@@ -60,6 +60,8 @@ impl Database {
             ));
         }
 
+        info!("Table {} OK", table_name);
+
         Ok(())
     }
 
