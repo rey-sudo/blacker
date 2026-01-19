@@ -9,7 +9,7 @@ use tokio::{
 use tracing::{info, warn};
 
 use crate::{
-    common::tick::Tick, config::Config,
+    common::tick::Tick, config::Config, infrastructure::database::Database,
 };
 
 /// Commands sent from dispatcher to symbol worker
@@ -75,7 +75,7 @@ fn ts_to_minute(ts_millis: i64) -> DateTime<Utc> {
 pub fn spawn_symbol_worker(
     symbol: String,
     mut rx: mpsc::Receiver<SymbolCommand>,
-    db: sqlx::Pool<sqlx::Postgres>,
+    db: Database,
     pulsar: Pulsar<TokioExecutor>,
     _config: Config,
 ) -> JoinHandle<Result<()>> {
@@ -85,7 +85,7 @@ pub fn spawn_symbol_worker(
         // ────────────────
         // 1. Backfill + initialization
         // ────────────────
-        let _last_closed_minute = backfill_and_init(&symbol, &db).await?;
+        let _last_closed_minute = backfill_and_init(&symbol, &db.pool()).await?;
 
         // ────────────────
         // 2. Pulsar producers (non-persistent)
@@ -123,7 +123,7 @@ pub fn spawn_symbol_worker(
 
                         Some(candle) => {
                             // Minute rollover → close candle
-                            persist_closed(&db, &symbol, candle).await?;
+                            persist_closed(&db.pool(), &symbol, candle).await?;
                             publish_closed(&mut closed_producer, &symbol, candle).await?;
 
                             let new_candle = LiveCandle::new(&tick, tick_minute);
