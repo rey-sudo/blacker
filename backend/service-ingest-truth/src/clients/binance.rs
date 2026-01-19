@@ -17,23 +17,17 @@
  */
 
 use anyhow::{Result, anyhow};
-use chrono::{DateTime, TimeZone, Utc};
+use reqwest::Response;
 use serde_json::Value;
+use tokio_retry::{
+    Retry,
+    strategy::{ExponentialBackoff, jitter},
+};
+use tracing::warn;
 
-#[derive(Debug, Clone)]
-pub struct Ohlcv {
-    pub symbol: String,
-    pub open_time: DateTime<Utc>,
-    pub close_time: DateTime<Utc>,
-    pub open: f64,
-    pub high: f64,
-    pub low: f64,
-    pub close: f64,
-    pub volume: f64,
-}
+use crate::common::candle::Candle;
 
 /// Binance REST client for historical market data.
-///
 /// Responsibilities:
 /// - Fetch closed OHLCV candles
 /// - Normalize Binance-specific formats
@@ -52,58 +46,83 @@ impl Binance {
         }
     }
 
-    /// Fetch 1m klines for a symbol.
+    /// Fetch 1-minute OHLCV candles from spot Binance.
     ///
-    /// - Returns fully closed candles only
-    /// - `start_time` and `end_time` are UTC millis
+    /// - `symbol`: Trading pair (e.g. "BTCUSDT").
+    /// - `start_time`: Optional UNIX timestamp in milliseconds (inclusive).
+    /// - `end_time`: Optional UNIX timestamp in milliseconds (inclusive).
+    /// - `limit`: Maximum number of candles to return (max 1000).
+    ///
+    /// If no time range is provided, the most recent candles are returned.
     pub async fn fetch_ohlcv_1m(
         &self,
         symbol: &str,
         start_time: Option<i64>,
         end_time: Option<i64>,
         limit: u16,
-    ) -> Result<Vec<Ohlcv>> {
-        let mut req = self
-            .http
-            .get(format!("{}/api/v3/klines", self.base_url))
-            .query(&[
-                ("symbol", symbol),
-                ("interval", "1m"),
-                ("limit", &limit.to_string()),
-            ]);
+    ) -> Result<Vec<Candle>> {
+        let retry_strategy = ExponentialBackoff::from_millis(200).map(jitter).take(3);
 
-        if let Some(start) = start_time {
-            req = req.query(&[("startTime", start.to_string())]);
-        }
+        let resp: Response = Retry::spawn(retry_strategy, || async {
+            // Build the base HTTP GET request to the Binance Klines endpoint.
+            // We start with the required query parameters that are always present:
+            // - symbol: trading pair (e.g. BTCUSDT)
+            // - interval: fixed to 1m candles (source of truth)
+            // - limit: maximum number of klines to return in a single request
+            //
+            // The RequestBuilder is immutable, so we store it in a mutable variable
+            // to allow conditional extension (e.g. adding startTime / endTime later).
+            let mut req: reqwest::RequestBuilder = self
+                .http
+                .get(format!("{}/api/v3/klines", self.base_url))
+                .query(&[
+                    ("symbol", symbol),
+                    ("interval", "1m"),
+                    ("limit", &limit.to_string()),
+                ]);
 
-        if let Some(end) = end_time {
-            req = req.query(&[("endTime", end.to_string())]);
-        }
+            // If a start timestamp is provided, constrain the query to candles
+            // starting at or after this UNIX millisecond timestamp.
+            if let Some(start) = start_time {
+                req = req.query(&[("startTime", start.to_string())]);
+            }
 
-        let resp: reqwest::Response = req.send().await?.error_for_status()?;
+            // If an end timestamp is provided, constrain the query to candles
+            // ending at or before this UNIX millisecond timestamp.
+            if let Some(end) = end_time {
+                req = req.query(&[("endTime", end.to_string())]);
+            }
+            
+            // Execute the HTTP request (status validation happens later).
+            let resp: Response = req.send().await?;
+
+            match resp.error_for_status() {
+                Ok(resp) => Ok(resp),
+                Err(err) => {
+                    warn!(
+                        symbol = symbol,
+                        error = %err,
+                        "Binance returned non-success status"
+                    );
+                    Err(err)
+                }
+            }
+        })
+        .await?;
+
         let data: Vec<Vec<Value>> = resp.json().await?;
 
-        let mut candles = Vec::with_capacity(data.len());
+        let mut candles: Vec<Candle> = Vec::with_capacity(data.len());
 
         for k in data {
             if k.len() < 7 {
                 return Err(anyhow!("Invalid kline payload from Binance"));
             }
 
-            let open_time_ms: i64 = k[0].as_i64().unwrap();
-            let close_time_ms: i64 = k[6].as_i64().unwrap();
+            let open_time: i64 = k[0].as_i64().unwrap();
+            let close_time: i64 = k[6].as_i64().unwrap();
 
-            let open_time: DateTime<Utc> = Utc
-                .timestamp_millis_opt(open_time_ms)
-                .single()
-                .ok_or_else(|| anyhow!("Invalid open_time millis: {}", open_time_ms))?;
-
-            let close_time: DateTime<Utc> = Utc
-                .timestamp_millis_opt(close_time_ms)
-                .single()
-                .ok_or_else(|| anyhow!("Invalid close_time millis: {}", close_time_ms))?;
-
-            candles.push(Ohlcv {
+            candles.push(Candle {
                 symbol: symbol.to_string(),
                 open_time,
                 close_time,
@@ -131,14 +150,14 @@ mod tests {
 
         let client: Binance = Binance::new();
 
-        let candles: Vec<Ohlcv> = client
+        let candles: Vec<Candle> = client
             .fetch_ohlcv_1m("BTCUSDT", None, None, 5)
             .await
             .expect("failed to fetch klines");
 
         assert!(!candles.is_empty());
 
-        let c: &Ohlcv = &candles[0];
+        let c: &Candle = &candles[0];
 
         info!("{:?}", c);
 
@@ -150,6 +169,6 @@ mod tests {
 
         // Time sanity
         assert!(c.close_time > c.open_time);
-        assert!(c.open_time < Utc::now());
+        assert!(c.open_time < Utc::now().timestamp_millis());
     }
 }
