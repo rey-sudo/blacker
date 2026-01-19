@@ -19,3 +19,4 @@ pulsar = "6.6.0"
 xxhash-rust = { version = "0.8.15", features = ["xxh3"] }
 sqlx = { version = "0.8.6", features = [ "runtime-tokio-rustls","postgres","macros"]}
 chrono = "0.4.43"
+reqwest = { version = "0.13.1", features = ["json", "query"]  }

@@ -17,223 +17,139 @@
  */
 
 use anyhow::{Result, anyhow};
-use futures_util::StreamExt;
-use serde::Deserialize;
-use std::time::Duration;
-use std::time::{SystemTime, UNIX_EPOCH};
-use tokio::sync::mpsc::Sender;
-use tokio_tungstenite::connect_async;
-use tracing::{error, info};
+use chrono::{DateTime, TimeZone, Utc};
+use serde_json::Value;
 
-use crate::clients::client::Client;
-use crate::common::event::{EventType, OutEvent};
-use crate::common::tick::{Side, Tick};
-
-const BINANCE_WS_BASE: &str = "wss://stream.binance.com:9443/stream";
-const MAX_BACKOFF_SECS: u64 = 30;
-
-#[derive(Debug, Deserialize)]
-#[allow(non_snake_case)]
-#[allow(dead_code)]
-struct BinanceAggTrade {
-    /// event type
-    e: String,
-    /// event time
-    E: i64,
-    /// symbol
-    s: String,
-    /// aggregate trade id
-    a: u64,
-    /// price
-    p: String,
-    /// quantity
-    q: String,
-    /// first trade id
-    f: u64,
-    /// last trade id
-    l: u64,
-    /// trade time
-    T: i64,
-    /// buyer is market maker
-    m: bool,
-    /// best price match
-    M: bool,
+#[derive(Debug, Clone)]
+pub struct Ohlcv {
+    pub symbol: String,
+    pub open_time: DateTime<Utc>,
+    pub close_time: DateTime<Utc>,
+    pub open: f64,
+    pub high: f64,
+    pub low: f64,
+    pub close: f64,
+    pub volume: f64,
 }
 
-/// Converts a Binance `@aggTrade` WebSocket payload into the internal `Tick` domain model.
+/// Binance REST client for historical market data.
 ///
 /// Responsibilities:
-/// - Parse numeric fields (`price`, `quantity`) from their string representation
-/// - Derive trade side based on Binance's `m` flag (buyer is market maker)
-/// - Map Binance-specific fields into a normalized `Tick` structure
-/// - Preserve the original trade timestamp (`T`) for event-time processing
-///
-/// Error handling:
-/// - Fails if numeric parsing of `price` or `quantity` is invalid
-/// - Uses `anyhow::Error` to provide rich error context for upstream logging
-///
-/// Notes:
-/// - `exchange` is hardcoded to `Client::Binance` as this converter is exchange-specific
-/// - Fields not required for the internal model (e.g. aggregate IDs) are intentionally ignored
-/// - This conversion is deterministic and side-effect free
-impl TryFrom<BinanceAggTrade> for Tick {
-    type Error = anyhow::Error;
-
-    fn try_from(agg: BinanceAggTrade) -> Result<Self> {
-        // Parse price from string to f64
-        let price: f64 = agg
-            .p
-            .parse()
-            .map_err(|e: std::num::ParseFloatError| anyhow!("invalid price '{}': {}", agg.p, e))?;
-
-        // Parse quantity from string to f64
-        let quantity: f64 = agg.q.parse().map_err(|e: std::num::ParseFloatError| {
-            anyhow!("invalid quantity '{}': {}", agg.q, e)
-        })?;
-
-        // Derive trade side:
-        // - m = true  → buyer is market maker → aggressive seller
-        // - m = false → aggressive buyer
-        let side: Side = if agg.m { Side::Sell } else { Side::Buy };
-
-        Ok(Tick {
-            exchange: Client::Binance,
-            symbol: agg.s,
-            price,
-            quantity,
-            side,
-            ts: agg.T, //Trade timestamp
-        })
-    }
+/// - Fetch closed OHLCV candles
+/// - Normalize Binance-specific formats
+/// - Never return partial candles
+#[derive(Clone)]
+pub struct Binance {
+    http: reqwest::Client,
+    base_url: String,
 }
 
-/// =======================
-/// MULTI-STREAM STRUCT
-/// =======================
-#[derive(Debug, Deserialize)]
-#[allow(dead_code)]
-struct BinanceMultiAggTrade {
-    stream: String,
-    data: BinanceAggTrade,
-}
-
-/// =======================
-/// BINANCE WS CLIENT (MULTI-SYMBOL)
-/// =======================
-pub async fn run(symbols: Vec<String>, tx: Sender<OutEvent>) -> Result<()> {
-    if symbols.is_empty() {
-        return Err(anyhow!("No symbols provided to Binance WS client"));
+impl Binance {
+    pub fn new() -> Self {
+        Self {
+            http: reqwest::Client::new(),
+            base_url: "https://api.binance.com".to_string(),
+        }
     }
 
-    // Build multi-stream URL
-    let streams: String = symbols
-        .into_iter()
-        .map(|s: String| s.to_lowercase() + "@aggTrade")
-        .collect::<Vec<String>>()
-        .join("/");
+    /// Fetch 1m klines for a symbol.
+    ///
+    /// - Returns fully closed candles only
+    /// - `start_time` and `end_time` are UTC millis
+    pub async fn fetch_ohlcv_1m(
+        &self,
+        symbol: &str,
+        start_time: Option<i64>,
+        end_time: Option<i64>,
+        limit: u16,
+    ) -> Result<Vec<Ohlcv>> {
+        let mut req = self
+            .http
+            .get(format!("{}/api/v3/klines", self.base_url))
+            .query(&[
+                ("symbol", symbol),
+                ("interval", "1m"),
+                ("limit", &limit.to_string()),
+            ]);
 
-    let url: String = format!("{}?streams={}", BINANCE_WS_BASE, streams);
-
-    let mut attempt: u32 = 0;
-
-    loop {
-        info!("Connecting to Binance WS: {}", url);
-
-        match connect_async(&url).await {
-            Ok((ws_stream, _)) => {
-                info!("Connected to Binance WS for symbols: {}", streams);
-                attempt = 0;
-
-                let (_, mut read) = ws_stream.split();
-
-                while let Some(msg) = read.next().await {
-                    match msg {
-                        Ok(msg) if msg.is_text() => {
-                            let now: i64 =
-                                SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis() as i64;
-
-                            let text: tungstenite::Utf8Bytes = match msg.into_text() {
-                                Ok(t) => t,
-                                Err(e) => {
-                                    error!("WS text error: {}", e);
-                                    continue;
-                                }
-                            };
-
-                            // Deserialize multi-stream wrapper
-                            let multi: BinanceMultiAggTrade = match serde_json::from_str(&text) {
-                                Ok(m) => m,
-                                Err(e) => {
-                                    error!("Parse error: {} | raw={}", e, text);
-                                    continue;
-                                }
-                            };
-
-                            // Convert inner data → Tick
-                            let tick: Tick = match Tick::try_from(multi.data) {
-                                Ok(t) => t,
-                                Err(e) => {
-                                    error!("Tick conversion error: {}", e);
-                                    continue;
-                                }
-                            };
-
-                            // Debug logging
-                            info!(
-                                "TICK | {:?} | {} | price={} qty={} side={:?}",
-                                tick.exchange, tick.symbol, tick.price, tick.quantity, tick.side
-                            );
-
-                            // Convert Tick → OutEvent
-                            let payload: Vec<u8> = match serde_json::to_vec(&tick) {
-                                Ok(p) => p,
-                                Err(e) => {
-                                    error!("Failed to serialize tick: {}", e);
-                                    continue;
-                                }
-                            };
-
-                            let event: OutEvent = OutEvent {
-                                symbol: tick.symbol.clone(),
-                                payload,
-                                event_time: tick.ts,
-                                event_type: EventType::Tick,
-                                received_at: now,
-                            };
-
-                            if let Err(e) = tx.send(event).await {
-                                error!("Channel closed, stopping Binance client: {}", e);
-                                return Ok(());
-                            }
-                        }
-
-                        Ok(_) => {
-                            // ping/pong/binary frames ignored
-                        }
-
-                        Err(e) => {
-                            error!("WebSocket read error: {}", e);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            Err(e) => {
-                error!("Failed to connect to Binance WS: {}", e);
-            }
+        if let Some(start) = start_time {
+            req = req.query(&[("startTime", start.to_string())]);
         }
 
-        attempt += 1;
-        backoff(attempt).await;
+        if let Some(end) = end_time {
+            req = req.query(&[("endTime", end.to_string())]);
+        }
+
+        let resp: reqwest::Response = req.send().await?.error_for_status()?;
+        let data: Vec<Vec<Value>> = resp.json().await?;
+
+        let mut candles = Vec::with_capacity(data.len());
+
+        for k in data {
+            if k.len() < 7 {
+                return Err(anyhow!("Invalid kline payload from Binance"));
+            }
+
+            let open_time_ms: i64 = k[0].as_i64().unwrap();
+            let close_time_ms: i64 = k[6].as_i64().unwrap();
+
+            let open_time: DateTime<Utc> = Utc
+                .timestamp_millis_opt(open_time_ms)
+                .single()
+                .ok_or_else(|| anyhow!("Invalid open_time millis: {}", open_time_ms))?;
+
+            let close_time: DateTime<Utc> = Utc
+                .timestamp_millis_opt(close_time_ms)
+                .single()
+                .ok_or_else(|| anyhow!("Invalid close_time millis: {}", close_time_ms))?;
+
+            candles.push(Ohlcv {
+                symbol: symbol.to_string(),
+                open_time,
+                close_time,
+                open: k[1].as_str().unwrap().parse()?,
+                high: k[2].as_str().unwrap().parse()?,
+                low: k[3].as_str().unwrap().parse()?,
+                close: k[4].as_str().unwrap().parse()?,
+                volume: k[5].as_str().unwrap().parse()?,
+            });
+        }
+
+        Ok(candles)
     }
 }
 
-/// =======================
-/// SIMPLE BACKOFF
-/// =======================
-async fn backoff(attempt: u32) {
-    let secs: u64 = std::cmp::min(attempt as u64 * 2, MAX_BACKOFF_SECS);
-    info!("Reconnecting in {}s...", secs);
-    tokio::time::sleep(Duration::from_secs(secs)).await;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Utc;
+    use tracing::info;
+
+    #[tokio::test]
+    async fn fetch_ohlcv_1m_from_binance() {
+        tracing_subscriber::fmt::init();
+
+        let client: Binance = Binance::new();
+
+        let candles: Vec<Ohlcv> = client
+            .fetch_ohlcv_1m("BTCUSDT", None, None, 5)
+            .await
+            .expect("failed to fetch klines");
+
+        assert!(!candles.is_empty());
+
+        let c: &Ohlcv = &candles[0];
+
+        info!("{:?}", c);
+
+        // Basic structural assertions
+        assert_eq!(c.symbol, "BTCUSDT");
+        assert!(c.open > 0.0);
+        assert!(c.high >= c.low);
+        assert!(c.volume >= 0.0);
+
+        // Time sanity
+        assert!(c.close_time > c.open_time);
+        assert!(c.open_time < Utc::now());
+    }
 }
