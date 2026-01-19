@@ -1,7 +1,6 @@
 use anyhow::Result;
 use chrono::{DateTime, TimeZone, Timelike, Utc};
 use pulsar::{producer, Pulsar, SerializeMessage, TokioExecutor, Error as PulsarError};
-
 use tokio::{
     sync::mpsc,
     task::JoinHandle,
@@ -90,13 +89,13 @@ pub fn spawn_symbol_worker(
         // ────────────────
         // 2. Pulsar producers (non-persistent)
         // ────────────────
-        let mut live_producer = pulsar
+        let mut live_producer: pulsar::Producer<TokioExecutor> = pulsar
             .producer()
             .with_topic("non-persistent://public/market-data/ohlcv-1m-live")
             .build()
             .await?;
 
-        let mut closed_producer = pulsar
+        let mut closed_producer: pulsar::Producer<TokioExecutor> = pulsar
             .producer()
             .with_topic("non-persistent://public/market-data/ohlcv-1m-closed")
             .build()
