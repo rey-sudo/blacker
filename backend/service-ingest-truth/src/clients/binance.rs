@@ -92,8 +92,8 @@ impl Binance {
             if let Some(end) = end_time {
                 req = req.query(&[("endTime", end.to_string())]);
             }
-            
-            // Execute the HTTP request (status validation happens later).
+
+            // Execute the HTTP request.
             let resp: Response = req.send().await?;
 
             match resp.error_for_status() {
@@ -110,11 +110,28 @@ impl Binance {
         })
         .await?;
 
+        // Parse the response body into raw Binance kline arrays.
         let data: Vec<Vec<Value>> = resp.json().await?;
 
+        // Pre-allocate storage for parsed candles.
         let mut candles: Vec<Candle> = Vec::with_capacity(data.len());
 
         for k in data {
+            // [
+            //   0: open_time (UNIX ms),
+            //   1: open_price (string),
+            //   2: high_price (string),
+            //   3: low_price  (string),
+            //   4: close_price (string),
+            //   5: volume (string),
+            //   6: close_time (UNIX ms),
+            //   7: quote_asset_volume (string),
+            //   8: number_of_trades (number),
+            //   9: taker_buy_base_volume (string),
+            //  10: taker_buy_quote_volume (string),
+            //  11: unused (ignore)
+            // ]
+
             if k.len() < 7 {
                 return Err(anyhow!("Invalid kline payload from Binance"));
             }
@@ -148,10 +165,13 @@ mod tests {
     async fn fetch_ohlcv_1m_from_binance() {
         tracing_subscriber::fmt::init();
 
+        let now_ms: i64 = Utc::now().timestamp_millis();
+        let five_minutes_ago_ms: i64 = now_ms - 5 * 60 * 1_000;
+
         let client: Binance = Binance::new();
 
         let candles: Vec<Candle> = client
-            .fetch_ohlcv_1m("BTCUSDT", None, None, 5)
+            .fetch_ohlcv_1m("BTCUSDT", Some(five_minutes_ago_ms), Some(now_ms), 5)
             .await
             .expect("failed to fetch klines");
 
@@ -160,6 +180,7 @@ mod tests {
         let c: &Candle = &candles[0];
 
         info!("{:?}", c);
+        info!("Candles length {}", candles.len());
 
         // Basic structural assertions
         assert_eq!(c.symbol, "BTCUSDT");
