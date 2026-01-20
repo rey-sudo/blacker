@@ -16,12 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use crate::clients::client::Client;
+
 /// Microservice configuration struct
 /// ```
 /// let config: Config = Config::from_env()?;
 /// ```
 #[derive(Debug, Clone)]
 pub struct Config {
+    pub client_id: Client,
     pub consumer_name: String,
     pub database_url: String,
     pub pulsar_url: String,
@@ -36,6 +39,9 @@ impl Config {
     pub fn from_env() -> anyhow::Result<Self> {
         let consumer_name: String = std::env::var("POD_NAME")
             .unwrap_or_else(|_| format!("service-ingest-truth-{}", std::process::id()));
+
+        let client_id_raw: String =
+            std::env::var("CLIENT_ID").map_err(|_| anyhow::anyhow!("CLIENT_ID is not set"))?;
 
         let pulsar_url: String =
             std::env::var("PULSAR_URL").map_err(|_| anyhow::anyhow!("PULSAR_URL is not set"))?;
@@ -53,6 +59,8 @@ impl Config {
             std::env::var("MAX_SYMBOLS").map_err(|_| anyhow::anyhow!("MAX_SYMBOLS is not set"))?;
 
         //==========================================================================================
+
+        let client_id: Client = client_id_raw.parse()?;
 
         // Parses the TOTAL_SHARDS environment variable.
         // This value defines the total number of logical shards used for deterministic symbol distribution.
@@ -101,6 +109,7 @@ impl Config {
         }
 
         Ok(Self {
+            client_id,
             consumer_name,
             database_url,
             pulsar_url,

@@ -17,6 +17,7 @@
  */
 
 use anyhow::{Result, anyhow};
+use async_trait::async_trait;
 use reqwest::Response;
 use serde_json::Value;
 use tokio_retry::{
@@ -25,7 +26,7 @@ use tokio_retry::{
 };
 use tracing::warn;
 
-use crate::common::candle::Candle;
+use crate::{clients::client::AnyClient, common::candle::Candle};
 
 /// Binance REST client for historical market data.
 /// Responsibilities:
@@ -45,7 +46,10 @@ impl Binance {
             base_url: "https://api.binance.com".to_string(),
         }
     }
+}
 
+#[async_trait]
+impl AnyClient for Binance {
     /// Fetch 1-minute OHLCV candles from spot Binance.
     ///
     /// - `symbol`: Trading pair (e.g. "BTCUSDT").
@@ -54,7 +58,7 @@ impl Binance {
     /// - `limit`: Maximum number of candles to return (max 1000).
     ///
     /// If no time range is provided, the most recent candles are returned.
-    pub async fn fetch_ohlcv_1m(
+    async fn fetch_ohlcv_1m(
         &self,
         symbol: &str,
         start_time: Option<i64>,

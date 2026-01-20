@@ -1,25 +1,13 @@
-/*
- * BLACKER
- * Copyright (C) 2026  Juan José Caballero Rey
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
+use anyhow::Result;
+use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-///Data provider Client enum 
+use crate::clients::binance::Binance;
+use crate::config::Config;
+use crate::common::candle::Candle;
+
+/// Data provider Client enum
 /// ```
 /// Client::Binance
 /// Client::Databento
@@ -27,9 +15,8 @@ use std::str::FromStr;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Client {
     Binance,
-    Databento
+    Databento,
 }
-
 
 impl FromStr for Client {
     type Err = anyhow::Error;
@@ -42,6 +29,32 @@ impl FromStr for Client {
                 "Unknown CLIENT_ID '{}'. Supported: binance, databento",
                 other
             )),
+        }
+    }
+}
+
+/// Trait that all data provider clients must implement
+#[async_trait]
+pub trait AnyClient: Send + Sync {
+    async fn fetch_ohlcv_1m(
+        &self,
+        symbol: &str,
+        start_time: Option<i64>,
+        end_time: Option<i64>,
+        limit: u16,
+    ) -> Result<Vec<Candle>>;
+}
+
+/// Factory function to create the appropriate client based on config
+pub fn create_client(config: &Config) -> Result<Box<dyn AnyClient>> {
+    match &config.client_id {
+        Client::Binance => {
+            let client: Binance = Binance::new();
+            Ok(Box::new(client))
+        }
+        Client::Databento => {
+            // TODO: Implement Databento client later
+            Err(anyhow::anyhow!("Databento client not implemented yet"))
         }
     }
 }
