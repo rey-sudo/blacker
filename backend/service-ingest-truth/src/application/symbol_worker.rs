@@ -114,7 +114,6 @@ pub fn spawn_symbol_worker(
     })
 }
 
-
 /// Backfill and initialize 1m candles for a given symbol.
 /// Returns the timestamp (Unix ms) of the last closed candle.
 pub async fn backfill_and_init(
@@ -145,7 +144,7 @@ pub async fn backfill_and_init(
     info!("Fetched {} candles", candles.len());
 
     // 4. Persist candles in DB
-    persist_candles_1m(symbol, &candles, db).await?;
+    persist_candle_history(symbol, &candles, db).await?;
 
     // 5. Return the timestamp of the last closed candle
     let last_close_ms: i64 = candles.last().expect("checked non-empty").close_time;
@@ -173,13 +172,51 @@ async fn query_last_closed_1m(
     Ok(last_close)
 }
 
-async fn persist_candles_1m(
+pub async fn persist_candle_history(
     symbol: &str,
     candles: &[Candle],
     db: &sqlx::Pool<sqlx::Postgres>,
 ) -> Result<()> {
-    // INSERT ... ON CONFLICT DO NOTHING
-    todo!()
+    if candles.is_empty() {
+        return Ok(());
+    }
+
+    let mut tx: sqlx::Transaction<'_, sqlx::Postgres> = db.begin().await?;
+
+    for candle in candles {
+        sqlx::query(
+            r#"
+    INSERT INTO ohlcv_1m (
+        symbol,
+        open_time,
+        close_time,
+        open,
+        high,
+        low,
+        close,
+        volume
+    )
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    ON CONFLICT (symbol, open_time) DO NOTHING
+    "#,
+        )
+        .bind(symbol)
+        .bind(candle.open_time)
+        .bind(candle.close_time)
+        .bind(candle.open)
+        .bind(candle.high)
+        .bind(candle.low)
+        .bind(candle.close)
+        .bind(candle.volume)
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    tx.commit().await?;
+
+    info!("Persisted {} 1m candles for {}", candles.len(), symbol);
+
+    Ok(())
 }
 
 async fn persist_closed(
