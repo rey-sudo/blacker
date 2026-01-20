@@ -1,11 +1,15 @@
 use anyhow::Result;
-use chrono::{DateTime, TimeZone, Timelike, Utc};
-use pulsar::{Error as PulsarError, Pulsar, SerializeMessage, TokioExecutor, producer};
+use chrono::{TimeZone, Timelike, Utc};
+use pulsar::{Pulsar, TokioExecutor, producer};
 use tokio::{sync::mpsc, task::JoinHandle};
-use tracing::{info, warn};
+use tracing::{error, info, warn};
+use tokio_retry::{
+    Retry,
+    strategy::{ExponentialBackoff, jitter},
+};
 
 use crate::{
-    clients::client::{AnyClient, Client, create_client},
+    clients::client::{AnyClient, create_client},
     common::{candle::Candle, tick::Tick},
     config::Config,
     infrastructure::database::Database,
@@ -181,38 +185,54 @@ pub async fn persist_candle_history(
         return Ok(());
     }
 
-    let mut tx: sqlx::Transaction<'_, sqlx::Postgres> = db.begin().await?;
+    let retry_strategy = ExponentialBackoff::from_millis(200).map(jitter).take(3);
 
-    for candle in candles {
-        sqlx::query(
-            r#"
-    INSERT INTO ohlcv_1m (
-        symbol,
-        open_time,
-        close_time,
-        open,
-        high,
-        low,
-        close,
-        volume
-    )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    ON CONFLICT (symbol, open_time) DO NOTHING
-    "#,
-        )
-        .bind(symbol)
-        .bind(candle.open_time)
-        .bind(candle.close_time)
-        .bind(candle.open)
-        .bind(candle.high)
-        .bind(candle.low)
-        .bind(candle.close)
-        .bind(candle.volume)
-        .execute(&mut *tx)
-        .await?;
-    }
+    Retry::spawn(retry_strategy, || async {
+        let mut tx: sqlx::Transaction<'_, sqlx::Postgres> = db.begin().await?;
 
-    tx.commit().await?;
+        for candle in candles {
+            sqlx::query(
+                r#"
+                INSERT INTO ohlcv_1m (
+                    symbol,
+                    open_time,
+                    close_time,
+                    open,
+                    high,
+                    low,
+                    close,
+                    volume
+                )
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                ON CONFLICT (symbol, open_time) DO NOTHING
+                "#,
+            )
+            .bind(symbol)
+            .bind(candle.open_time)
+            .bind(candle.close_time)
+            .bind(candle.open)
+            .bind(candle.high)
+            .bind(candle.low)
+            .bind(candle.close)
+            .bind(candle.volume)
+            .execute(&mut *tx)
+            .await?;
+        }
+
+        tx.commit().await?;
+
+        Ok::<(), anyhow::Error>(())
+    })
+    .await
+    .map_err(|e: anyhow::Error| {
+        error!(
+            symbol = %symbol,
+            candle_count = candles.len(),
+            error = %e,
+            "Failed to persist candle history after retries"
+        );
+        e
+    })?;
 
     info!("Persisted {} 1m candles for {}", candles.len(), symbol);
 
@@ -235,7 +255,7 @@ async fn publish_live(
 ) -> Result<()> {
     let fut = producer.send_non_blocking(candle.clone()).await?;
     fut.await?;
-    info!("Publish LIVE candle {} @ {}", symbol, candle.close_time);
+    info!("Publish LIVE candle {} @ {}", symbol, candle.close);
     Ok(())
 }
 
