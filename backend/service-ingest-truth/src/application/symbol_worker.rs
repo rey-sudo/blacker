@@ -5,10 +5,7 @@ use tokio::{sync::mpsc, task::JoinHandle};
 use tracing::{info, warn};
 
 use crate::{
-    clients::{
-        binance::Binance,
-        client::{AnyClient, Client, create_client},
-    },
+    clients::client::{AnyClient, Client, create_client},
     common::{candle::Candle, tick::Tick},
     config::Config,
     infrastructure::database::Database,
@@ -20,57 +17,17 @@ pub enum SymbolCommand {
     Shutdown,
 }
 
-/// In-memory OHLC state for the current 1m candle
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct LiveCandle {
-    pub open: f64,
-    pub high: f64,
-    pub low: f64,
-    pub close: f64,
-    pub quantity: f64,
-    pub minute: DateTime<Utc>,
-}
-
-impl LiveCandle {
-    fn new(tick: &Tick, minute: DateTime<Utc>) -> Self {
-        Self {
-            open: tick.price,
-            high: tick.price,
-            low: tick.price,
-            close: tick.price,
-            quantity: tick.quantity,
-            minute,
-        }
-    }
-
-    fn update(&mut self, tick: &Tick) {
-        self.high = self.high.max(tick.price);
-        self.low = self.low.min(tick.price);
-        self.close = tick.price;
-        self.quantity += tick.quantity;
-    }
-}
-
-/// Implement SerializeMessage para enviar por Pulsar
-impl SerializeMessage for LiveCandle {
-    fn serialize_message(candle: Self) -> Result<producer::Message, PulsarError> {
-        let payload =
-            serde_json::to_vec(&candle).map_err(|e| PulsarError::Custom(e.to_string()))?;
-        Ok(producer::Message {
-            payload,
-            ..Default::default()
-        })
-    }
-}
-
-/// Convierte unix millis a DateTime<Utc> y trunca a minuto
-fn ts_to_minute(ts_millis: i64) -> DateTime<Utc> {
+fn ts_to_minute(ts_millis: i64) -> i64 {
     let dt = Utc
         .timestamp_millis_opt(ts_millis)
         .single()
         .expect("invalid tick timestamp");
 
-    dt.with_second(0).unwrap().with_nanosecond(0).unwrap()
+    dt.with_second(0)
+        .unwrap()
+        .with_nanosecond(0)
+        .unwrap()
+        .timestamp_millis()
 }
 
 /// Spawn a dedicated worker task for a symbol
@@ -107,7 +64,7 @@ pub fn spawn_symbol_worker(
         // ────────────────
         // 3. Live state
         // ────────────────
-        let mut current_candle: Option<LiveCandle> = None;
+        let mut current_candle: Option<Candle> = None;
 
         // ────────────────
         // 4. Event loop
@@ -115,26 +72,30 @@ pub fn spawn_symbol_worker(
         while let Some(cmd) = rx.recv().await {
             match cmd {
                 SymbolCommand::Tick(tick) => {
-                    let tick_minute = ts_to_minute(tick.ts);
+                    let tick_minute_ts: i64 = ts_to_minute(tick.ts);
 
                     match &mut current_candle {
-                        Some(candle) if candle.minute == tick_minute => {
+                        // Same minute → update candle
+                        Some(candle) if candle.open_time == tick_minute_ts => {
                             candle.update(&tick);
                             publish_live(&mut live_producer, &symbol, candle).await?;
                         }
 
+                        // Minute rollover → close current, start new
                         Some(candle) => {
-                            // Minute rollover → close candle
                             persist_closed(&db.pool(), &symbol, candle).await?;
                             publish_closed(&mut closed_producer, &symbol, candle).await?;
 
-                            let new_candle = LiveCandle::new(&tick, tick_minute);
+                            let new_candle: Candle = Candle::new(&symbol, &tick, tick_minute_ts);
+
                             publish_live(&mut live_producer, &symbol, &new_candle).await?;
                             current_candle = Some(new_candle);
                         }
 
+                        // First tick ever for this symbol
                         None => {
-                            let candle = LiveCandle::new(&tick, tick_minute);
+                            let candle: Candle = Candle::new(&symbol, &tick, tick_minute_ts);
+
                             publish_live(&mut live_producer, &symbol, &candle).await?;
                             current_candle = Some(candle);
                         }
@@ -153,9 +114,6 @@ pub fn spawn_symbol_worker(
     })
 }
 
-// ========================================================================================================
-// Helpers
-// ========================================================================================================
 
 /// Backfill and initialize 1m candles for a given symbol.
 /// Returns the timestamp (Unix ms) of the last closed candle.
@@ -206,10 +164,10 @@ async fn query_last_closed_1m(
         WHERE symbol = $1
         ORDER BY close_time DESC
         LIMIT 1
-        "#
+        "#,
     )
     .bind(symbol)
-    .fetch_optional(db) 
+    .fetch_optional(db)
     .await?;
 
     Ok(last_close)
@@ -227,30 +185,30 @@ async fn persist_candles_1m(
 async fn persist_closed(
     _db: &sqlx::Pool<sqlx::Postgres>,
     symbol: &str,
-    candle: &LiveCandle,
+    candle: &Candle,
 ) -> Result<()> {
-    info!("Persist closed candle {} @ {}", symbol, candle.minute);
+    info!("Persist closed candle {} @ {}", symbol, candle.close_time);
     Ok(())
 }
 
 async fn publish_live(
     producer: &mut producer::Producer<TokioExecutor>,
     symbol: &str,
-    candle: &LiveCandle,
+    candle: &Candle,
 ) -> Result<()> {
     let fut = producer.send_non_blocking(candle.clone()).await?;
     fut.await?;
-    info!("Publish LIVE candle {} @ {}", symbol, candle.minute);
+    info!("Publish LIVE candle {} @ {}", symbol, candle.close_time);
     Ok(())
 }
 
 async fn publish_closed(
     producer: &mut producer::Producer<TokioExecutor>,
     symbol: &str,
-    candle: &LiveCandle,
+    candle: &Candle,
 ) -> Result<()> {
     let fut = producer.send_non_blocking(candle.clone()).await?;
     fut.await?;
-    info!("Publish CLOSED candle {} @ {}", symbol, candle.minute);
+    info!("Publish CLOSED candle {} @ {}", symbol, candle.close_time);
     Ok(())
 }
