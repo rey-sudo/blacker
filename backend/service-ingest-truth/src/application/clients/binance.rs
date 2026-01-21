@@ -26,7 +26,7 @@ use tokio_retry::{
 };
 use tracing::warn;
 
-use crate::{clients::client::AnyClient, common::candle::Candle};
+use crate::{application::clients::client::AnyClient, common::candle::Candle};
 
 /// Binance REST client for historical market data.
 /// Responsibilities:

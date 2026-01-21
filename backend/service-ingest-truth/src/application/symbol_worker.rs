@@ -9,7 +9,7 @@ use tokio_retry::{
 use tracing::{error, info, warn};
 
 use crate::{
-    clients::client::{AnyClient, create_client},
+    application::clients::client::{AnyClient, create_client},
     common::{candle::Candle, tick::Tick},
     config::Config,
     infrastructure::database::Database,

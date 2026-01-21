@@ -3,7 +3,9 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-use crate::clients::binance::Binance;
+
+
+use crate::application::clients::binance::Binance;
 use crate::common::candle::Candle;
 use crate::config::Config;
 
