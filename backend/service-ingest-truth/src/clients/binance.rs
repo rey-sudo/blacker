@@ -137,7 +137,7 @@ impl AnyClient for Binance {
             // ]
 
             if k.len() < 7 {
-                return Err(anyhow!("Invalid kline payload from Binance"));
+                return Err(anyhow!("Invalid kline payload from Binance")); // Add validator
             }
 
             let open_time: i64 = k[0].as_i64().unwrap();

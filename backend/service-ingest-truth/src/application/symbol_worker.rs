@@ -21,6 +21,16 @@ pub enum SymbolCommand {
     Shutdown,
 }
 
+/// Converts a Unix timestamp in milliseconds to the start of its minute.
+/// Sets seconds and nanoseconds to zero, returning a timestamp aligned
+/// to the 1-minute boundary.
+///
+/// # Example
+/// ```
+/// let ts = 1_682_000_123_456; // 2023-04-01 12:34:56.789 UTC
+/// let minute_ts = ts_to_minute(ts);
+/// assert_eq!(minute_ts, 1_682_000_120_000); // 2023-04-01 12:34:00.000 UTC
+/// ```
 fn ts_to_minute(ts_millis: i64) -> i64 {
     let dt: chrono::DateTime<Utc> = Utc
         .timestamp_millis_opt(ts_millis)
@@ -131,12 +141,14 @@ pub fn spawn_symbol_worker(
 
                     match &mut current_candle {
                         // Same minute → update candle
+                        // Specific case
                         Some(candle) if candle.open_time == tick_minute_ts => {
                             candle.update(&tick);
                             publish_live(&mut live_producer, &symbol, candle).await?;
                         }
 
                         // Minute rollover → close current, start new
+                        // General case
                         Some(candle) => {
                             persist_closed(&db.pool(), &symbol, candle).await?;
                             publish_closed(&mut closed_producer, &symbol, candle).await?;
@@ -148,6 +160,7 @@ pub fn spawn_symbol_worker(
                         }
 
                         // First tick ever for this symbol
+                        // Base case
                         None => {
                             let candle: Candle = Candle::new(&symbol, &tick, tick_minute_ts);
 
@@ -188,7 +201,7 @@ pub async fn backfill_and_init(
 
     // Fetch candles from the client (Binance, etc.)
     let candles: Vec<Candle> = client
-        .fetch_ohlcv_1m(symbol, start_ms, Some(end_ms), 100) // max 1000 per request
+        .fetch_ohlcv_1m(symbol, start_ms, Some(end_ms), 1000) // max 1000 per request
         .await?;
 
     if candles.is_empty() {
@@ -304,32 +317,71 @@ pub async fn persist_candle_history(
     Ok(())
 }
 
+/// Persists a finalized (closed) 1-minute candle to the database.
+/// This function is idempotent: if the candle already exists,
+/// the insert is ignored to safely handle replays or retries.
+/// Any database error is propagated to the caller, allowing the
+/// worker to fail fast on unrecoverable persistence failures.
 async fn persist_closed(
-    _db: &sqlx::Pool<sqlx::Postgres>,
+    db: &sqlx::Pool<sqlx::Postgres>,
     symbol: &str,
     candle: &Candle,
 ) -> Result<()> {
-    info!("Persist closed candle {} @ {}", symbol, candle.close_time);
+    sqlx::query(
+        r#"
+        INSERT INTO ohlcv_1m (
+            symbol,
+            open_time,
+            close_time,
+            open,
+            high,
+            low,
+            close,
+            volume
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        ON CONFLICT (symbol, open_time) DO NOTHING
+        "#,
+    )
+    .bind(symbol)
+    .bind(candle.open_time)
+    .bind(candle.close_time)
+    .bind(candle.open)
+    .bind(candle.high)
+    .bind(candle.low)
+    .bind(candle.close)
+    .bind(candle.volume)
+    .execute(db)
+    .await?;
+
+    info!("Persisted CLOSED candle {} @ {}", symbol, candle.close_time);
+
     Ok(())
 }
 
+/// Publishes the current (still open) 1-minute candle with the live producer.
+/// This is called on every tick update and emits non-finalized candle data
+/// for real-time consumers.
 async fn publish_live(
     producer: &mut producer::Producer<TokioExecutor>,
     symbol: &str,
     candle: &Candle,
 ) -> Result<()> {
-    let fut = producer.send_non_blocking(candle.clone()).await?;
+    let fut: producer::SendFuture = producer.send_non_blocking(candle.clone()).await?;
     fut.await?;
     info!("Publish LIVE candle {} @ {}", symbol, candle.close);
     Ok(())
 }
 
+/// Publishes a finalized (closed) 1-minute candle with the closed producer.
+/// This is called exactly once per candle, after it has been fully formed
+/// and persisted.
 async fn publish_closed(
     producer: &mut producer::Producer<TokioExecutor>,
     symbol: &str,
     candle: &Candle,
 ) -> Result<()> {
-    let fut = producer.send_non_blocking(candle.clone()).await?;
+    let fut: producer::SendFuture = producer.send_non_blocking(candle.clone()).await?;
     fut.await?;
     info!("Publish CLOSED candle {} @ {}", symbol, candle.close_time);
     Ok(())
