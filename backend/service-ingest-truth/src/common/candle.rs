@@ -1,13 +1,18 @@
-use pulsar::{Error, SerializeMessage, producer};
+use pulsar::{SerializeMessage, producer};
 
 use crate::common::tick::Tick;
 
+/// Represents a finalized or in-progress 1-minute OHLCV candle.
+/// All timestamps are expressed as Unix milliseconds, where
+/// `open_time` is aligned to the start of the minute and
+/// `close_time` marks the inclusive end of the interval.
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct Candle {
     pub symbol: String,
 
-    // Unix ms timestamps
+    /// Inclusive start time of the candle (Unix ms, minute-aligned)
     pub open_time: i64,
+    /// Inclusive end time of the candle (Unix ms)
     pub close_time: i64,
 
     pub open: f64,
@@ -46,8 +51,8 @@ impl Candle {
 
 impl SerializeMessage for Candle {
     fn serialize_message(candle: Self) -> Result<producer::Message, pulsar::Error> {
-        let payload: Vec<u8> =
-            serde_json::to_vec(&candle).map_err(|e: serde_json::Error| pulsar::Error::Custom(e.to_string()))?;
+        let payload: Vec<u8> = serde_json::to_vec(&candle)
+            .map_err(|e: serde_json::Error| pulsar::Error::Custom(e.to_string()))?;
 
         Ok(producer::Message {
             payload,
