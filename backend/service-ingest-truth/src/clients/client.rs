@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 use crate::clients::binance::Binance;
-use crate::config::Config;
 use crate::common::candle::Candle;
+use crate::config::Config;
 
 /// Data provider Client enum
 /// ```
@@ -33,9 +33,33 @@ impl FromStr for Client {
     }
 }
 
-/// Trait that all data provider clients must implement
+/// Abstraction over market data providers capable of supplying historical
+/// 1-minute OHLCV candles.
+///
+/// This trait defines a uniform interface that hides provider-specific APIs,
+/// authentication mechanisms, pagination behavior, and rate-limiting details
+/// from the rest of the system. Consumers depend only on this contract, not on
+/// concrete data source implementations.
+///
+/// All timestamps are expressed as Unix milliseconds. Returned candles must
+/// represent closed, finalized 1-minute intervals and be ordered
+/// chronologically by `open_time`.
+///
+/// Implementations must be safe to use inside asynchronous tasks and executors
+/// (`Send + Sync`), allowing them to be moved across threads and referenced
+/// safely within async contexts.
 #[async_trait]
 pub trait AnyClient: Send + Sync {
+    /// Fetches historical 1-minute OHLCV candles for a trading symbol.
+    ///
+    /// # Parameters
+    /// - `symbol`: Trading symbol identifier (e.g. "BTCUSDT").
+    /// - `start_time`: Optional inclusive start timestamp (Unix ms) indicating
+    ///   where the historical query should begin.
+    /// - `end_time`: Optional inclusive end timestamp (Unix ms) indicating
+    ///   where the historical query should stop.
+    /// - `limit`: Maximum number of 1-minute candles to return in a single call.
+
     async fn fetch_ohlcv_1m(
         &self,
         symbol: &str,

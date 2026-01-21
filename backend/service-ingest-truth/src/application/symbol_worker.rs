@@ -2,11 +2,11 @@ use anyhow::Result;
 use chrono::{TimeZone, Timelike, Utc};
 use pulsar::{Pulsar, TokioExecutor, producer};
 use tokio::{sync::mpsc, task::JoinHandle};
-use tracing::{error, info, warn};
 use tokio_retry::{
     Retry,
     strategy::{ExponentialBackoff, jitter},
 };
+use tracing::{error, info, warn};
 
 use crate::{
     clients::client::{AnyClient, create_client},
@@ -22,7 +22,7 @@ pub enum SymbolCommand {
 }
 
 fn ts_to_minute(ts_millis: i64) -> i64 {
-    let dt = Utc
+    let dt: chrono::DateTime<Utc> = Utc
         .timestamp_millis_opt(ts_millis)
         .single()
         .expect("invalid tick timestamp");
@@ -34,7 +34,40 @@ fn ts_to_minute(ts_millis: i64) -> i64 {
         .timestamp_millis()
 }
 
-/// Spawn a dedicated worker task for a symbol
+/// Spawns a dedicated asynchronous worker responsible for consuming and processing
+/// market data ticks for a single trading symbol.
+///
+/// This worker acts as an isolated, single-threaded actor with exclusive ownership
+/// of the symbol’s state. Its responsibilities include:
+///
+/// - Performing an initial backfill of historical 1-minute OHLCV candles.
+///   Client as data provider.
+/// - Maintaining the currently active 1-minute candle entirely in memory.
+/// - Consuming ticks sequentially from an MPSC channel to ensure deterministic
+///   candle construction with no concurrency races.
+/// - Detecting minute boundaries and, on rollover:
+///   - Closing the current candle,
+///   - Persisting it to the database,
+///   - Publishing the closed candle to Pulsar,
+///   - Initializing and publishing the next live candle.
+/// - Publishing live (in-progress) candle updates on every tick.
+/// - Handling graceful shutdown via an explicit `Shutdown` command.
+///
+/// Error handling semantics:
+/// - Any unrecoverable error (backfill, database, Pulsar, or client failure)
+///   causes the worker task to terminate.
+/// - Failure results in a clean exit, allowing the dispatcher to observe, log, and
+///   optionally respawn the worker.
+///
+/// Design guarantees:
+/// - Exactly one worker exists per symbol at any time.
+/// - All tick processing for a symbol is strictly ordered.
+/// - No shared mutable state exists across workers.
+/// - Partial candles are never persisted; only fully closed 1-minute candles
+///   are written to durable storage.
+///
+/// Returns a `JoinHandle` that resolves to `Result<()>`, allowing the caller
+/// to await task completion and surface any fatal worker errors.
 pub fn spawn_symbol_worker(
     symbol: String,
     mut rx: mpsc::Receiver<SymbolCommand>,
@@ -44,35 +77,53 @@ pub fn spawn_symbol_worker(
 ) -> JoinHandle<Result<()>> {
     tokio::spawn(async move {
         info!("Symbol worker started for {}", symbol);
-
+        // Create a concrete market data client (e.g. Binance, Databento) based on runtime
+        // configuration `client_id`. The worker depends only on the `AnyClient` trait, keeping it
+        // fully decoupled from specific data provider implementations.
         let client: Box<dyn AnyClient> = create_client(&config)?;
 
         let _last_closed_minute: i64 =
             backfill_and_init(&symbol, &db.pool(), client.as_ref()).await?;
 
-        // ────────────────
-        // 2. Pulsar producers (non-persistent)
-        // ────────────────
+        // Create a non-persistent Pulsar producer for publishing live (in-progress)
+        // 1-minute candles. Messages sent on this topic represent the current state
+        // of the active candle and are not intended for durable storage.
         let mut live_producer: pulsar::Producer<TokioExecutor> = pulsar
             .producer()
             .with_topic("non-persistent://public/market-data/ohlcv-1m-live")
             .build()
             .await?;
 
+        // Create a non-persistent Pulsar producer for publishing closed (finalized)
+        // 1-minute candles. Messages on this topic are emitted exactly once per
+        // completed minute and represent immutable OHLCV data.
         let mut closed_producer: pulsar::Producer<TokioExecutor> = pulsar
             .producer()
             .with_topic("non-persistent://public/market-data/ohlcv-1m-closed")
             .build()
             .await?;
 
-        // ────────────────
-        // 3. Live state
-        // ────────────────
+        // Holds the currently active 1-minute candle for this symbol.
+        // Starts as `None` because no ticks have been processed yet.
+        // Will be updated on each incoming tick and replaced when a new minute begins.
         let mut current_candle: Option<Candle> = None;
 
-        // ────────────────
-        // 4. Event loop
-        // ────────────────
+        // Main event loop of the symbol worker.
+        // Continuously receives commands from the dispatcher via the channel.
+        //
+        // Commands can be:
+        // - `SymbolCommand::Tick(tick)` → process an incoming market tick
+        // - `SymbolCommand::Shutdown` → stop the worker gracefully
+        //
+        // Tick processing logic:
+        // 1. Convert tick timestamp to the start of its minute.
+        // 2. Update the current candle if it's the same minute.
+        // 3. If the minute has rolled over, persist and publish the closed candle,
+        //    then start a new candle for the new minute.
+        // 4. If this is the first tick ever, initialize the first candle.
+        //
+        // Shutdown handling:
+        // - Logs a message and exits the loop, allowing the worker to stop cleanly.
         while let Some(cmd) = rx.recv().await {
             match cmd {
                 SymbolCommand::Tick(tick) => {
@@ -127,14 +178,15 @@ pub async fn backfill_and_init(
 ) -> Result<i64> {
     info!("Backfill/init for {}", symbol);
 
-    // 1. Get the last closed candle from the DB
-    let last_close_time: Option<i64> = query_last_closed_1m(symbol, db).await?;
+    // Query the database for the most recent closed 1-minute candle for this symbol.
+    // If present, its `close_time` is used as the starting point for historical
+    // backfill; otherwise, backfill will start from the provider’s earliest data.
+    let last_close_time: Option<i64> = query_last_closed(symbol, db).await?;
 
-    // 2. Compute the backfill range in Unix milliseconds
     let start_ms: Option<i64> = last_close_time;
     let end_ms: i64 = Utc::now().timestamp_millis();
 
-    // 3. Fetch candles from the client (Binance, etc.)
+    // Fetch candles from the client (Binance, etc.)
     let candles: Vec<Candle> = client
         .fetch_ohlcv_1m(symbol, start_ms, Some(end_ms), 100) // max 1000 per request
         .await?;
@@ -147,19 +199,19 @@ pub async fn backfill_and_init(
 
     info!("Fetched {} candles", candles.len());
 
-    // 4. Persist candles in DB
+    // Persist candles in DB
     persist_candle_history(symbol, &candles, db).await?;
 
-    // 5. Return the timestamp of the last closed candle
+    // Return the timestamp of the last closed candle
     let last_close_ms: i64 = candles.last().expect("checked non-empty").close_time;
 
     Ok(last_close_ms)
 }
 
-async fn query_last_closed_1m(
-    symbol: &str,
-    db: &sqlx::Pool<sqlx::Postgres>,
-) -> Result<Option<i64>> {
+/// Queries the database for the most recent closed 1-minute candle for a symbol.
+/// Returns the `close_time` (Unix ms) of the latest persisted candle, or `None`
+/// if the symbol has no historical data stored yet.
+async fn query_last_closed(symbol: &str, db: &sqlx::Pool<sqlx::Postgres>) -> Result<Option<i64>> {
     let last_close: Option<i64> = sqlx::query_scalar(
         r#"
         SELECT close_time
@@ -176,6 +228,19 @@ async fn query_last_closed_1m(
     Ok(last_close)
 }
 
+/// Persists a batch of historical 1-minute candles to the database.
+///
+/// This function is used during the initial backfill phase to store
+/// already-closed candles fetched from an external data provider.
+/// Inserts are performed idempotently using `ON CONFLICT DO NOTHING`,
+/// allowing safe re-execution without creating duplicates.
+///
+/// Database writes are executed inside a single transaction and wrapped
+/// in a bounded retry strategy to tolerate transient failures. If all
+/// retries are exhausted, the error is propagated to the caller.
+///
+/// Only fully closed candles are expected as input; live or partial
+/// candles must not be passed to this function.
 pub async fn persist_candle_history(
     symbol: &str,
     candles: &[Candle],
