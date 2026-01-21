@@ -27,8 +27,8 @@ pub fn get_config() -> Result<Config> {
     let config: Config = Config::from_env()?;
 
     info!(
-        "Shards {:?} / {} | MAX_SYMBOLS={}",
-        config.shard_ids, config.total_shards, config.max_symbols
+        "Client {:?} | MAX_SYMBOLS={}",
+        config.client_id, config.max_symbols
     );
 
     Ok(config)
