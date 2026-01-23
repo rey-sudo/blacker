@@ -4,12 +4,19 @@ outline: deep
 
 # service-ingest-base
 
-This microservice is the source of truth for the entire system regarding pricing (OHLCV).
-At startup, the service backfills historical 1-minute candles from the external data provider and persists them to PostgreSQL.
-In real time, a single Pulsar consumer receives ticks and forwards them to a dispatcher, which routes each tick to a symbol-specific task via MPSC channels.
+This microservice is the canonical source of OHLCV pricing data for the system.
 
-Each task processes ticks sequentially, maintains the in-memory live 1-minute candle, and on minute rollover closes and persists the candle.
-Live candles are never persisted.
+At startup, the service initializes its runtime dependencies (configuration, PostgreSQL, Pulsar) and ensures that the required storage schema is present. A single Pulsar consumer is then started to receive raw trade ticks.
+
+Incoming ticks are processed by a central dispatcher, which is responsible for dynamically spawning and managing symbol-specific worker tasks. Each symbol is handled by exactly one worker, and ticks are routed to workers through bounded MPSC channels to guarantee ordered, per-symbol processing.
+
+When a symbol worker starts, it performs a one-time bootstrap step by backfilling historical 1-minute candles from the configured external market data provider and persisting any missing candles into PostgreSQL. The system treats 1-minute candles as the sole source of truth.
+
+After initialization, each worker enters a real-time event loop where it processes ticks sequentially, maintains the current live 1-minute candle entirely in memory, and publishes live updates for downstream consumers.
+
+When a minute boundary is detected, the active candle is finalized, persisted to PostgreSQL as an immutable record, and published as a closed candle event. A new live candle is then initialized from the first tick of the next minute.
+
+Live candles are never persisted. Only closed, finalized 1-minute candles are stored and exposed as authoritative historical data.
 
 
 ![Ingest](./assets/service-ingest-base.svg)
