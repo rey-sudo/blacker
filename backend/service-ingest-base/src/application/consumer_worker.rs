@@ -89,7 +89,7 @@ pub async fn start_dispatcher(
                     // - Publishing live and closed candles to Pulsar
                     let handle = spawn_symbol_worker(
                         symbol.clone(),
-                        rx, //Multiple producer, single consumer architecture rx does not need a clone.
+                        rx, //Multiple producer, single consumer for this worker rx does not need a clone.
                         db.clone(),
                         pulsar_client.inner().clone(),
                         config.clone(),

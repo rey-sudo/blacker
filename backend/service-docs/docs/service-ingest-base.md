@@ -2,7 +2,7 @@
 outline: deep
 ---
 
-# service-ingest-truth
+# service-ingest-base
 
 This microservice is the source of truth for the entire system regarding pricing (OHLCV).
 At startup, the service backfills historical 1-minute candles from the external data provider and persists them to PostgreSQL.
@@ -12,7 +12,7 @@ Each task processes ticks sequentially, maintains the in-memory live 1-minute ca
 Live candles are never persisted.
 
 
-![Ingest](./assets/service-ingest-truth.svg)
+![Ingest](./assets/service-ingest-base.svg)
 
 
 

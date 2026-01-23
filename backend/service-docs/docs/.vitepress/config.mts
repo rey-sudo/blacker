@@ -16,7 +16,7 @@ export default defineConfig({
         text: "Microservices",
         items: [
           { text: "service-ingest", link: "/service-ingest" },
-          { text: "service-ingest-truth", link: "/service-ingest-truth" },
+          { text: "service-ingest-base", link: "/service-ingest-base" },
         ],
       },
     ],
