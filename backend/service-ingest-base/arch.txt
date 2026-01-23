@@ -1,50 +1,60 @@
-┌──────────────────────────────┐
-│        service-ingest-truth  │
-└──────────────────────────────┘
-              │
-              ▼
-     Pulsar Consumer (KeyShared)
-              │
-              ▼
-     Receive Tick (symbol-keyed)
-              │
-              ▼
-     Dispatcher (mpsc router)
-              │
-              ▼
-     Is symbol initialized?
-          │             │
-          │ no          │ yes
-          ▼             ▼
-┌────────────────────┐   ┌───────────────────┐
-│ Backfill 1m candles│   │ Route to worker   │
-│ External Provider  │   │ (in-memory)       │
-└────────────────────┘   └───────────────────┘
-          │
-          ▼
-┌────────────────────┐
-│ Persist history    |
-| ohlcv_1m table     │
-│ (PostgreSQL)       │
-└────────────────────┘
-          │
-          ▼
-┌────────────────────┐
-│ Init minute_bucket │
-│ (last closed 1m)   │
-└────────────────────┘
-          │
-          ▼
-┌────────────────────┐
-│ Spawn symbol task  │
-└────────────────────┘
-          │
-          ▼
-┌──────────────────────────────────┐
-│ Live candle processing           │
-│ - update live OHLC               │
-│ - publish non-persistent//market-data/ohlcv-1m-live
-│ - persist closed candle          │
-│ - publish non-persistent//market-data/ohlcv-1m-closed 
-└──────────────────────────────────┘
-
+                     ┌──────────────────────────┐
+                     │      Data Providers      │
+                     │   (Binance / Others)     │
+                     └────────────┬─────────────┘
+                                  │
+                                  │ ticks
+                                  ▼
+┌─────────────────────────────────────────────────────────┐
+│                    Pulsar (Persistent)                  │
+│                 market-data / ticks                    │
+└──────────────────────────┬──────────────────────────────┘
+                           │
+                           │ consume + ack
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                Tick Consumer / Dispatcher               │
+│            (routes by symbol / shard hash)              │
+└──────────────────────────┬──────────────────────────────┘
+                           │
+                           │ mpsc (per symbol)
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                   Symbol Worker (1×symbol)              │
+│                                                         │
+│   ┌─────────────────────────────────────────────────┐ │
+│   │                Initialization                   │ │
+│   │  • Query last closed 1m candle (DB)              │ │
+│   │  • Backfill missing history (provider)           │ │
+│   │  • Persist canonical candles                     │ │
+│   └─────────────────────────────────────────────────┘ │
+│                                                         │
+│   ┌─────────────────────────────────────────────────┐ │
+│   │               Live Aggregation                   │ │
+│   │  • Tick → current 1m candle                      │ │
+│   │  • Same minute → update                          │ │
+│   │  • Minute rollover → close                       │ │
+│   └─────────────────────────────────────────────────┘ │
+│                                                         │
+│   ┌──────────────────────┬──────────────────────────┐ │
+│   │   persist_closed     │      publish_closed      │ │
+│   │   (Postgres)         │   (Pulsar – CLOSED)      │ │
+│   └──────────────────────┴──────────────────────────┘ │
+│                                                         │
+│                    publish_live                         │
+│               (Pulsar – LIVE topic)                     │
+└──────────────────────────┬──────────────────────────────┘
+                           │
+             ┌─────────────┴─────────────┐
+             │                           │
+             ▼                           ▼
+┌─────────────────────────┐   ┌──────────────────────────┐
+│   Pulsar LIVE topic     │   │   Pulsar CLOSED topic     │
+│     ohlcv-1m-live       │   │     ohlcv-1m-closed       │
+└─────────────┬───────────┘   └─────────────┬────────────┘
+              │                             │
+              ▼                             ▼
+┌─────────────────────────┐   ┌──────────────────────────┐
+│   Real-time Consumers   │   │   Downstream Services    │
+│  (UI, alerts, streams)  │   │ (HTF, indicators, ML)   │
+└─────────────────────────┘   └──────────────────────────┘

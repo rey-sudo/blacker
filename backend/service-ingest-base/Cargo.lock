@@ -2846,7 +2846,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "service-ingest-truth"
+name = "service-ingest-base"
 version = "0.1.1"
 dependencies = [
  "anyhow",

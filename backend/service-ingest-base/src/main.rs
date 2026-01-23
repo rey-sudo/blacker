@@ -19,7 +19,7 @@
 
 use anyhow::{Result};
 
-use service_ingest_truth::{
+use service_ingest_base::{
     application::{
         consumer_worker::start_dispatcher,
     },
