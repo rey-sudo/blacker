@@ -1,4 +1,4 @@
-use crate::{application::state::AppState, common::error::AppError};
+use crate::{application::state::AppState, common::error_api::AppError};
 use axum::{
     Json,
     extract::{Query, State}
