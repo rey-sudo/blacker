@@ -1,10 +1,9 @@
 use axum::{
+    Json,
     extract::{Query, State},
     http::StatusCode,
-    Json,
 };
 use sqlx::QueryBuilder;
-
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -22,13 +21,13 @@ pub struct OhlcvQuery {
 #[derive(Debug, Serialize, sqlx::FromRow)]
 pub struct Ohlcv {
     pub open_time: i64,
+    pub close_time: i64,
     pub open: f64,
     pub high: f64,
     pub low: f64,
     pub close: f64,
     pub volume: f64,
 }
-
 
 pub async fn handler(
     State(state): State<AppState>,
@@ -44,12 +43,14 @@ pub async fn handler(
         return Err(StatusCode::BAD_REQUEST);
     }
 
+
     // -------- Query dinámica --------
 
     let mut qb = QueryBuilder::new(
         r#"
         SELECT
             open_time,
+            close_time,
             open,
             high,
             low,
@@ -73,6 +74,7 @@ pub async fn handler(
     }
 
     qb.push(" ORDER BY open_time DESC ");
+
     qb.push(" LIMIT ");
     qb.push_bind(params.limit);
 
@@ -86,7 +88,7 @@ pub async fn handler(
         })?;
 
     // -------- Reordenar ASC --------
-    let mut rows = rows;
+    let mut rows: Vec<Ohlcv> = rows;
     rows.reverse();
 
     Ok(Json(rows))
