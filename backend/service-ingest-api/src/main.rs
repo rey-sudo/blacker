@@ -16,37 +16,65 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use std::sync::Arc;
 
-use anyhow::{Result};
-
-use service_ingest_api::{
-    application::{
-        consumer_worker::start_dispatcher,
-    },
-    config::Config,
-    infrastructure::{
-        bootstrap,
-        database::{Database},
-        pulsar::{PulsarClient, tick_consumer::TickConsumer},
-    },
+use anyhow::Result;
+use axum::{
+    Json, Router,
+    extract::State,
+    http::StatusCode,
+    routing::{get, post},
 };
+use serde::{Deserialize, Serialize};
+
+use service_ingest_api::{config::Config, infrastructure::bootstrap};
+use tracing::info;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     bootstrap::run()?;
 
-    let config: Config = bootstrap::get_config()?;
+    let config: Arc<Config> = Arc::new(Config::from_env()?);
 
-    let db: Database = Database::new(&config.database_url).await?;
+    let app: Router = Router::new()
+        .route("/", get(root))
+        .route("/users", post(create_user))
+        .with_state(config);
 
-    db.check_table("ohlcv_1m").await?;
+    let listener: tokio::net::TcpListener =
+        tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
 
-    let pulsar_client: PulsarClient = PulsarClient::new(&config.pulsar_url).await?;
+    println!("Servidor corriendo en http://localhost:3000");
 
-    let tick_consumer: TickConsumer =
-        TickConsumer::new(&pulsar_client.inner(), &config.consumer_name).await?;
-
-    start_dispatcher(tick_consumer, db, pulsar_client, config).await?;
+    axum::serve(listener, app).await.unwrap();
 
     Ok(())
+}
+
+async fn root(State(_config): State<Arc<Config>>) -> &'static str {
+
+    "Hello, World!"
+}
+
+// POST /users
+async fn create_user(Json(payload): Json<CreateUser>) -> (StatusCode, Json<User>) {
+    let user: User = User {
+        id: 1337,
+        username: payload.username,
+    };
+
+    (StatusCode::CREATED, Json(user))
+}
+
+// --------- Structs ---------
+
+#[derive(Deserialize)]
+struct CreateUser {
+    username: String,
+}
+
+#[derive(Serialize)]
+struct User {
+    id: u64,
+    username: String,
 }

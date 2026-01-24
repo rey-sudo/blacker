@@ -1,6 +1,5 @@
 use pulsar::{SerializeMessage, producer};
 
-use crate::common::tick::Tick;
 
 /// Represents a finalized or in-progress 1-minute OHLCV candle.
 /// All timestamps are expressed as Unix milliseconds, where
@@ -20,33 +19,6 @@ pub struct Candle {
     pub low: f64,
     pub close: f64,
     pub volume: f64,
-}
-
-impl Candle {
-    /// Create a new 1-minute candle from the first tick of the minute
-    pub fn new(symbol: &str, tick: &Tick, minute_ts: i64) -> Self {
-        Self {
-            symbol: symbol.to_string(),
-
-            // Minute boundaries
-            open_time: minute_ts,
-            close_time: minute_ts + 60_000 - 1, // inclusive close
-
-            open: tick.price,
-            high: tick.price,
-            low: tick.price,
-            close: tick.price,
-            volume: tick.quantity,
-        }
-    }
-
-    /// Update candle with an incoming tick
-    pub fn update(&mut self, tick: &Tick) {
-        self.high = self.high.max(tick.price);
-        self.low = self.low.min(tick.price);
-        self.close = tick.price;
-        self.volume += tick.quantity;
-    }
 }
 
 impl SerializeMessage for Candle {

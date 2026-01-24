@@ -26,10 +26,5 @@ pub fn run() -> Result<()> {
 pub fn get_config() -> Result<Config> {
     let config: Config = Config::from_env()?;
 
-    info!(
-        "Client {:?} | MAX_SYMBOLS={}",
-        config.client_id, config.max_symbols
-    );
-
     Ok(config)
 }
