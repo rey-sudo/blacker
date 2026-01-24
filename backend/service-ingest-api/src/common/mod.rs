@@ -20,3 +20,4 @@
 pub mod event;
 pub mod sharding;
 pub mod candle;
+pub mod error;

@@ -1,20 +1,45 @@
+use crate::{application::state::AppState, common::error::AppError};
 use axum::{
     Json,
-    extract::{Query, State},
-    http::StatusCode,
+    extract::{Query, State}
 };
-use sqlx::QueryBuilder;
 use serde::Deserialize;
 use serde::Serialize;
+use sqlx::QueryBuilder;
+use validator::{Validate, ValidationError};
 
-use crate::application::state::AppState;
+fn validate_timeframe(tf: &str) -> Result<(), ValidationError> {
+    match tf {
+        "1m" => Ok(()),
+        _ => Err(ValidationError::new("invalid_timeframe")),
+    }
+}
 
-#[derive(Debug, Deserialize)]
+fn validate_time_range(q: &OhlcvQuery) -> Result<(), ValidationError> {
+    if let (Some(start), Some(end)) = (q.start_timestamp, q.end_timestamp) {
+        if start > end {
+            return Err(ValidationError::new("invalid_time_range"));
+        }
+    }
+    Ok(())
+}
+
+#[derive(Debug, Deserialize, Validate)]
+#[validate(schema(function = "validate_time_range"))]
 pub struct OhlcvQuery {
+    #[validate(length(min = 1, max = 20))]
     pub symbol: String,
+
+    #[validate(custom(function = "validate_timeframe"))]
     pub timeframe: String,
-    pub limit: i64,
+
+    #[validate(range(min = 1, max = 1000))]
+    pub limit: Option<i64>,
+
+    #[validate(range(min = 0))]
     pub start_timestamp: Option<i64>,
+
+    #[validate(range(min = 0))]
     pub end_timestamp: Option<i64>,
 }
 
@@ -32,17 +57,13 @@ pub struct Ohlcv {
 pub async fn handler(
     State(state): State<AppState>,
     Query(params): Query<OhlcvQuery>,
-) -> Result<Json<Vec<Ohlcv>>, StatusCode> {
+) -> Result<Json<Vec<Ohlcv>>, AppError> {
     // -------- Validaciones --------
 
-    if params.timeframe != "1m" {
-        return Err(StatusCode::BAD_REQUEST);
+    if let Err(err) = params.validate() {
+        tracing::warn!("Query validation error: {:?}", err);
+        return Err(AppError::validation(err));
     }
-
-    if params.limit <= 0 || params.limit > 1000 {
-        return Err(StatusCode::BAD_REQUEST);
-    }
-
 
     // -------- Query dinámica --------
 
@@ -82,10 +103,7 @@ pub async fn handler(
         .build_query_as()
         .fetch_all(state.db.pool())
         .await
-        .map_err(|e| {
-            tracing::error!("DB error: {:?}", e);
-            StatusCode::INTERNAL_SERVER_ERROR
-        })?;
+        .map_err(|_| AppError::internal("database error"))?;
 
     // -------- Reordenar ASC --------
     let mut rows: Vec<Ohlcv> = rows;
