@@ -17,7 +17,6 @@
  */
 
 
-pub mod event;
-pub mod sharding;
+
 pub mod candle;
-pub mod error_api;
+pub mod api_error;

@@ -5,7 +5,7 @@ use pulsar::{SerializeMessage, producer};
 /// All timestamps are expressed as Unix milliseconds, where
 /// `open_time` is aligned to the start of the minute and
 /// `close_time` marks the inclusive end of the interval.
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone, serde::Serialize,  sqlx::FromRow)]
 pub struct Candle {
     pub symbol: String,
 

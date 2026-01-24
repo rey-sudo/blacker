@@ -1,13 +1,18 @@
-use crate::{application::state::AppState, common::error_api::AppError};
+use crate::{
+    application::state::AppState,
+    common::{api_error::AppError, candle::Candle},
+};
 use axum::{
     Json,
-    extract::{Query, State}
+    extract::{Query, State},
 };
 use serde::Deserialize;
-use serde::Serialize;
 use sqlx::QueryBuilder;
 use validator::{Validate, ValidationError};
 
+//=====================================================================================
+// Params validation
+//
 fn validate_timeframe(tf: &str) -> Result<(), ValidationError> {
     match tf {
         "1m" => Ok(()),
@@ -15,7 +20,7 @@ fn validate_timeframe(tf: &str) -> Result<(), ValidationError> {
     }
 }
 
-fn validate_time_range(q: &OhlcvQuery) -> Result<(), ValidationError> {
+fn validate_time_range(q: &CandleQuery) -> Result<(), ValidationError> {
     if let (Some(start), Some(end)) = (q.start_timestamp, q.end_timestamp) {
         if start > end {
             return Err(ValidationError::new("invalid_time_range"));
@@ -23,10 +28,22 @@ fn validate_time_range(q: &OhlcvQuery) -> Result<(), ValidationError> {
     }
     Ok(())
 }
+//
+//=====================================================================================
 
+/// Represents the query parameters for fetching OHLCV (Open, High, Low, Close, Volume)
+/// from the ingestion microservice.
+///
+/// Automatic validations are applied using `validator`:
+/// - Required fields
+/// - Numeric ranges
+/// - Custom rules for timeframe and time range
+///
+/// # Example query
+/// GET /api/ingest/ohlcv/get-ohlcv?symbol=BTCUSDT&timeframe=1m&limit=500&start_timestamp=1672500000000&end_timestamp=1672503600000
 #[derive(Debug, Deserialize, Validate)]
 #[validate(schema(function = "validate_time_range"))]
-pub struct OhlcvQuery {
+pub struct CandleQuery {
     #[validate(length(min = 1, max = 20))]
     pub symbol: String,
 
@@ -43,33 +60,28 @@ pub struct OhlcvQuery {
     pub end_timestamp: Option<i64>,
 }
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
-pub struct Ohlcv {
-    pub open_time: i64,
-    pub close_time: i64,
-    pub open: f64,
-    pub high: f64,
-    pub low: f64,
-    pub close: f64,
-    pub volume: f64,
-}
-
+/// Handler for fetching OHLCV candles from the database.
+///
+/// # Parameters
+/// - `state`: Shared application state (contains DB connection pool, config, etc.)
+/// - `params`: Query parameters validated as `CandleQuery`
+///
+/// # Returns
+/// - `Json<Vec<Candle>>` on success
+/// - `AppError` on validation or internal errors
 pub async fn handler(
     State(state): State<AppState>,
-    Query(params): Query<OhlcvQuery>,
-) -> Result<Json<Vec<Ohlcv>>, AppError> {
-    // -------- Validaciones --------
-
+    Query(params): Query<CandleQuery>,
+) -> Result<Json<Vec<Candle>>, AppError> {
     if let Err(err) = params.validate() {
         tracing::warn!("Query validation error: {:?}", err);
         return Err(AppError::validation(err));
     }
 
-    // -------- Query dinámica --------
-
-    let mut qb = QueryBuilder::new(
+    let mut builder: QueryBuilder<'_, sqlx::Postgres> = QueryBuilder::new(
         r#"
         SELECT
+            symbol,
             open_time,
             close_time,
             open,
@@ -82,31 +94,36 @@ pub async fn handler(
         "#,
     );
 
-    qb.push_bind(&params.symbol);
+    // Bind symbol parameter
+    builder.push_bind(&params.symbol);
 
+    // Optional start timestamp filter
     if let Some(start) = params.start_timestamp {
-        qb.push(" AND open_time >= ");
-        qb.push_bind(start);
+        builder.push(" AND open_time >= ");
+        builder.push_bind(start);
     }
 
+    // Optional end timestamp filter
     if let Some(end) = params.end_timestamp {
-        qb.push(" AND open_time <= ");
-        qb.push_bind(end);
+        builder.push(" AND open_time <= ");
+        builder.push_bind(end);
     }
 
-    qb.push(" ORDER BY open_time DESC ");
+    // Sort descending by open_time
+    builder.push(" ORDER BY open_time DESC ");
 
-    qb.push(" LIMIT ");
-    qb.push_bind(params.limit);
+    // Limit number of results
+    builder.push(" LIMIT ");
+    builder.push_bind(params.limit);
 
-    let rows: Vec<Ohlcv> = qb
+    let rows: Vec<Candle> = builder
         .build_query_as()
         .fetch_all(state.db.pool())
         .await
         .map_err(|_| AppError::internal("database error"))?;
 
-    // -------- Reordenar ASC --------
-    let mut rows: Vec<Ohlcv> = rows;
+    // UI Chart ordering ASC
+    let mut rows: Vec<Candle> = rows;
     rows.reverse();
 
     Ok(Json(rows))
