@@ -10,7 +10,6 @@ use serde::Deserialize;
 use sqlx::QueryBuilder;
 use validator::{Validate, ValidationError};
 
-
 fn validate_timeframe(tf: &str) -> Result<(), ValidationError> {
     match tf {
         "1m" => Ok(()),
@@ -66,11 +65,14 @@ pub async fn handler(
     State(state): State<AppState>,
     Query(params): Query<CandleQuery>,
 ) -> Result<Json<Vec<Candle>>, AppError> {
+    // Validate the incoming query parameters using the `validator` crate.
     if let Err(err) = params.validate() {
         tracing::warn!("Query validation error: {:?}", err);
         return Err(AppError::validation(err));
     }
 
+    // Create a new SQLx QueryBuilder for PostgreSQL
+    // QueryBuilder allows building dynamic SQL queries safely with bound parameters.
     let mut builder: QueryBuilder<'_, sqlx::Postgres> = QueryBuilder::new(
         r#"
         SELECT
