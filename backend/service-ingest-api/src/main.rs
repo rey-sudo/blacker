@@ -17,16 +17,15 @@
  */
 
 use std::sync::Arc;
-
 use anyhow::Result;
 use axum::Router;
-
+use tracing::info;
 use service_ingest_api::{
     application::{api, state::AppState},
     config::Config,
     infrastructure::{bootstrap, database::Database},
 };
-use tracing::info;
+
 
 #[tokio::main]
 async fn main() -> Result<()> {
