@@ -10,9 +10,7 @@ use serde::Deserialize;
 use sqlx::QueryBuilder;
 use validator::{Validate, ValidationError};
 
-//=====================================================================================
-// Params validation
-//
+
 fn validate_timeframe(tf: &str) -> Result<(), ValidationError> {
     match tf {
         "1m" => Ok(()),
@@ -28,8 +26,6 @@ fn validate_time_range(q: &CandleQuery) -> Result<(), ValidationError> {
     }
     Ok(())
 }
-//
-//=====================================================================================
 
 /// Represents the query parameters for fetching OHLCV (Open, High, Low, Close, Volume)
 /// from the ingestion microservice.
@@ -38,9 +34,6 @@ fn validate_time_range(q: &CandleQuery) -> Result<(), ValidationError> {
 /// - Required fields
 /// - Numeric ranges
 /// - Custom rules for timeframe and time range
-///
-/// # Example query
-/// GET /api/ingest/ohlcv/get-ohlcv?symbol=BTCUSDT&timeframe=1m&limit=500&start_timestamp=1672500000000&end_timestamp=1672503600000
 #[derive(Debug, Deserialize, Validate)]
 #[validate(schema(function = "validate_time_range"))]
 pub struct CandleQuery {
