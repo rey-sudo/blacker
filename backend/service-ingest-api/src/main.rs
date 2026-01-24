@@ -19,15 +19,13 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use axum::{
-    Json, Router,
-    extract::State,
-    http::StatusCode,
-    routing::{get, post},
-};
-use serde::{Deserialize, Serialize};
+use axum::Router;
 
-use service_ingest_api::{config::Config, infrastructure::bootstrap};
+use service_ingest_api::{
+    application::{api, state::AppState},
+    config::Config,
+    infrastructure::{bootstrap, database::Database},
+};
 use tracing::info;
 
 #[tokio::main]
@@ -36,45 +34,18 @@ async fn main() -> Result<()> {
 
     let config: Arc<Config> = Arc::new(Config::from_env()?);
 
-    let app: Router = Router::new()
-        .route("/", get(root))
-        .route("/users", post(create_user))
-        .with_state(config);
+    let db: Arc<Database> = Arc::new(Database::new(&config.database_url).await?);
+
+    let state: AppState = AppState { config, db };
+
+    let app: Router = Router::new().nest("/api/ingest", api::router()).with_state(state);
 
     let listener: tokio::net::TcpListener =
         tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
 
-    println!("Servidor corriendo en http://localhost:3000");
+    info!("Server listening http://localhost:3000");
 
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
-}
-
-async fn root(State(_config): State<Arc<Config>>) -> &'static str {
-
-    "Hello, World!"
-}
-
-// POST /users
-async fn create_user(Json(payload): Json<CreateUser>) -> (StatusCode, Json<User>) {
-    let user: User = User {
-        id: 1337,
-        username: payload.username,
-    };
-
-    (StatusCode::CREATED, Json(user))
-}
-
-// --------- Structs ---------
-
-#[derive(Deserialize)]
-struct CreateUser {
-    username: String,
-}
-
-#[derive(Serialize)]
-struct User {
-    id: u64,
-    username: String,
 }
