@@ -179,12 +179,6 @@ pub async fn run(symbols: Vec<String>, tx: Sender<OutEvent>) -> Result<()> {
                                 }
                             };
 
-                            // Debug logging
-                            info!(
-                                "TICK | {:?} | {} | price={} qty={} side={:?}",
-                                tick.exchange, tick.symbol, tick.price, tick.quantity, tick.side
-                            );
-
                             // Convert Tick → OutEvent
                             let payload: Vec<u8> = match serde_json::to_vec(&tick) {
                                 Ok(p) => p,

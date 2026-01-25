@@ -1,13 +1,36 @@
+/*
+ * BLACKER
+ * Copyright (C) 2025  Juan José Caballero Rey
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 pub mod clients;
+
+use std::time::Duration;
 
 use crate::application::clients::client::Client;
 use crate::common::event::{EventType, OutEvent};
-use crate::common::sharding::belongs_to_shard;
 use crate::config::Config;
-use anyhow::{Result, anyhow};
+use crate::infrastructure::sharding::belongs_to_shard;
+use anyhow::Result;
 use pulsar::{Pulsar, TokioExecutor};
 use tokio::task::JoinHandle;
-use tracing::{info, warn};
+use tracing::{error, info, warn};
+
+const MAX_RETRIES: u32 = 3;
+const RETRY_DELAY: Duration = Duration::from_millis(100);
 
 pub async fn run(config: Config) -> Result<()> {
     // Computes the list of symbols owned by this pod.
@@ -32,17 +55,26 @@ pub async fn run(config: Config) -> Result<()> {
         })
         .collect();
 
+    // If no symbols are assigned to this pod, there is no work to perform.
+    //
+    // This situation can occur when:
+    // - The set of shard IDs assigned to this pod does not match any of the
+    //   logical shards derived from the configured symbol list
+    // - The number of pods or shard assignments exceeds the effective
+    //   symbol distribution
+    //
+    // Since symbol ownership is computed deterministically using a hash-based
+    // sharding function, this condition is stable as long as the configuration
+    // remains unchanged. In this case, the service exits gracefully.
     if owned_symbols.is_empty() {
         warn!("No symbols assigned to this pod");
         return Ok(());
     }
 
-    info!("Starting service-ingest");
-    info!("Client: {:?}", config.client_id);
     info!(
-        "Owned symbols ({}): {:?}",
-        owned_symbols.len(),
-        owned_symbols
+        client = ?config.client_id,
+        symbol_count = owned_symbols.len(),
+        "Ingest workload assigned to this instance"
     );
 
     // Initializes the Apache Pulsar client using the Tokio runtime.
@@ -72,46 +104,51 @@ pub async fn run(config: Config) -> Result<()> {
     // - Prevents WebSocket clients from blocking on I/O to the message broker
     let (tx, mut rx) = tokio::sync::mpsc::channel::<OutEvent>(100_000);
 
-    // Spawn a dedicated asynchronous task responsible for writing events to Apache Pulsar.
+    // Spawn a dedicated asynchronous task responsible for publishing events to Apache Pulsar.
     //
-    // This task acts as the single producer writer:
-    // - It continuously consumes OutEvent messages from the Tokio MPSC receiver (rx)
-    // - It serializes and sends each event to Pulsar impl SerializeMessage
-    // - It provides backpressure automatically via the bounded channel 100_000
-    // - It isolates Pulsar I/O from websocket ingestion logic
+    // The task acts as the single Pulsar writer:
+    // - Consumes OutEvent messages from a bounded Tokio MPSC receiver, providing backpressure
+    // - Serializes and sends events to Pulsar, awaiting broker acknowledgments
+    // - Isolates Pulsar I/O from ingestion logic and centralizes error handling
     //
-    // Design:
-    // - Decouples market data ingestion from Pulsar network latency
-    // - Ensures ordered delivery per producer instance
-    // - Centralizes error handling and logging for Pulsar writes
-    // - Makes shutdown deterministic (task exits when all senders are dropped)
-    //
-    // Execution flow:
-    // 1. Waits asynchronously for the next event from rx
-    // 2. Calls send_non_blocking() to enqueue the message in Pulsar's internal buffer
-    // 3. Awaits the broker acknowledgment to guarantee persistence
-    // 4. Logs the returned MessageId for traceability
-    //
-    // The task exits gracefully when:
-    // - All Sender handles (tx) are dropped
-    // - rx.recv() returns None
+    // This design ensures ordered delivery per producer instance and deterministic shutdown.
+    // The task exits gracefully once all senders are dropped and the channel is drained.
     let writer: JoinHandle<std::result::Result<(), anyhow::Error>> = tokio::spawn(async move {
         while let Some(event) = rx.recv().await {
             match event.event_type {
                 EventType::Tick => {
-                    info!("Sending tick: {:?}", event.symbol);
+                    let mut sent: bool = false;
 
-                    let send_future: pulsar::producer::SendFuture =
-                        producer_ticks.send_non_blocking(event).await.map_err(
-                            |e: pulsar::Error| anyhow!("Failed to create send future: {:?}", e),
-                        )?;
+                    for attempt in 1..=MAX_RETRIES {
+                        match producer_ticks.send_non_blocking(event.clone()).await {
+                            Ok(_) => {
+                                info!(
+                                    attempt,
+                                    symbol = ?event.symbol,
+                                    "Tick successfully sent to Pulsar"
+                                );
+                                sent = true;
+                                break;
+                            }
+                            Err(e) => {
+                                warn!(
+                                    attempt,
+                                    symbol = ?event.symbol,
+                                    error = ?e,
+                                    "Failed to send tick to Pulsar, retrying"
+                                );
+                                tokio::time::sleep(RETRY_DELAY).await;
+                            }
+                        }
+                    }
 
-                    let msg_id: pulsar::CommandSendReceipt =
-                        send_future.await.map_err(|e: pulsar::Error| {
-                            anyhow!("Failed to send tick to Pulsar: {:?}", e)
-                        })?;
-
-                    info!("Tick sent to Pulsar with id {:?}", msg_id);
+                    if !sent {
+                        error!(
+                            symbol = ?event.symbol,
+                            retries = MAX_RETRIES,
+                            "Dropping tick after exhausting retries"
+                        );
+                    }
                 }
 
                 EventType::MBP => {}
@@ -127,6 +164,17 @@ pub async fn run(config: Config) -> Result<()> {
     // - Collecting handles enables awaiting all client tasks before exiting the program.
     let mut handles: Vec<JoinHandle<std::result::Result<(), anyhow::Error>>> = Vec::new();
 
+    // Spawn the Client task based on the configured client.
+    //
+    // For the selected provider:
+    // - A dedicated asynchronous task is created using `tokio::spawn`
+    // - The list of symbols owned by this instance is cloned and passed to the task
+    // - A clone of the MPSC sender is provided so the provider can emit OutEvent messages
+    //   without being coupled to the Pulsar writer or other producers
+    //
+    // Each provider runs independently and publishes events into the shared channel.
+    // The returned JoinHandle is stored to allow coordinated shutdown and error
+    // propagation to the main task.
     match config.client_id {
         Client::Binance => {
             let symbols_clone: Vec<String> = owned_symbols.clone();

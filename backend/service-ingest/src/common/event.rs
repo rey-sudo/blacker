@@ -1,11 +1,13 @@
 use pulsar::{Error as PulsarError, SerializeMessage, producer};
 
+#[derive(Clone, Debug)]
 #[allow(dead_code)]
 pub enum EventType {
     Tick,
     MBP,
 }
 
+#[derive(Clone, Debug)]
 #[allow(dead_code)]
 pub struct OutEvent {
     pub symbol: String,
