@@ -17,6 +17,11 @@ It provides a **read-only HTTP API** optimized for low-latency access to time-se
 - **Internal-first API design**
   - No versioning (single team, coordinated deployments)
   - Fast iteration and schema evolution
+- Data is queried using `ORDER BY open_time DESC` to safely retrieve the **latest candles**
+- Results are reversed in-memory before responding
+- Final output is always **chronologically ordered (oldest → newest)**
+
+This behavior is compatible with charting libraries.
 
 ## Consumers
 
@@ -25,6 +30,23 @@ This service is **not public-facing**.
 It is intended to be consumed by internal services such as:
 
 - service-feed
+
+## Error Handling
+
+All errors are returned using a unified error format via `AppError`, including:
+
+- Validation errors
+- Bad requests
+- Internal server errors
+
+This ensures consistent error handling across all endpoints.
+
+
+## Architecture
+
+
+![Ingest](./assets/service-ingest-api.svg)
+
 
 ## OHLCV Endpoint
 
@@ -66,28 +88,3 @@ Each element in the response array represents a **single candlestick (OHLCV)** f
 ]
 
 ```
-
-## Ordering Guarantees
-
-- Data is queried using `ORDER BY open_time DESC` to safely retrieve the **latest candles**
-- Results are reversed in-memory before responding
-- Final output is always **chronologically ordered (oldest → newest)**
-
-This behavior is compatible with charting libraries.
-
-
-## Error Handling
-
-All errors are returned using a unified error format via `AppError`, including:
-
-- Validation errors
-- Bad requests
-- Internal server errors
-
-This ensures consistent error handling across all endpoints.
-
-
-## Architecture
-
-
-![Ingest](./assets/service-ingest-api.svg)
