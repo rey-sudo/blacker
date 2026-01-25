@@ -26,6 +26,18 @@ fn validate_time_range(q: &CandleQuery) -> Result<(), ValidationError> {
     Ok(())
 }
 
+fn validate_time_filters(query: &CandleQuery) -> Result<(), ValidationError> {
+    let uses_cursor_pagination: bool = query.before.is_some();
+    let uses_absolute_range: bool =
+        query.start_timestamp.is_some() || query.end_timestamp.is_some();
+
+    if uses_cursor_pagination && uses_absolute_range {
+        return Err(ValidationError::new("conflicting_time_filters"));
+    }
+
+    Ok(())
+}
+
 /// Represents the query parameters for fetching OHLCV (Open, High, Low, Close, Volume)
 /// from the ingestion microservice.
 ///
@@ -35,6 +47,7 @@ fn validate_time_range(q: &CandleQuery) -> Result<(), ValidationError> {
 /// - Custom rules for timeframe and time range
 #[derive(Debug, Deserialize, Validate)]
 #[validate(schema(function = "validate_time_range"))]
+#[validate(schema(function = "validate_time_filters"))]
 pub struct CandleQuery {
     #[validate(length(min = 1, max = 20))]
     pub symbol: String,
@@ -50,6 +63,8 @@ pub struct CandleQuery {
 
     #[validate(range(min = 0))]
     pub end_timestamp: Option<i64>,
+
+    pub before: Option<i64>,
 }
 
 /// Handler for fetching OHLCV candles from the database.
@@ -104,12 +119,18 @@ pub async fn handler(
         builder.push_bind(end);
     }
 
+    if let Some(before) = params.before {
+        builder.push(" AND open_time < ");
+        builder.push_bind(before);
+    }
+
     // Sort descending by open_time
     builder.push(" ORDER BY open_time DESC ");
 
     // Limit number of results
+    let limit: i64 = params.limit.unwrap_or(500);
     builder.push(" LIMIT ");
-    builder.push_bind(params.limit);
+    builder.push_bind(limit);
 
     let rows: Vec<Candle> = builder
         .build_query_as()

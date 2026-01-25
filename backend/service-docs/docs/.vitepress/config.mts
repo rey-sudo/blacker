@@ -17,6 +17,7 @@ export default defineConfig({
         items: [
           { text: "service-ingest", link: "/service-ingest" },
           { text: "service-ingest-base", link: "/service-ingest-base" },
+          { text: "service-ingest-api", link: "/service-ingest-api" },
         ],
       },
     ],
