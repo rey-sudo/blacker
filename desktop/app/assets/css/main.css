@@ -93,13 +93,13 @@ body {
 :root {
   --header-height: 2.5rem;
 
-  --chart-background: var(--color-neutral-900);
-  --chart-header-background: var(--color-neutral-900);
+  --chart-background: var(--ui-bg);
+  --chart-header-background: var(--ui-bg);
   --chart-header-height: 2.5rem;
 
-  --main-background: var(--ui-bg-accented);
+  --main-background: var(--ui-bg-elevated);
 
-  --nav-background: var(--color-neutral-950);
+  --nav-background: var( --ui-bg);
 
   --footer-height: 2.5rem;
 

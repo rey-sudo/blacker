@@ -1,6 +1,6 @@
 /*
  * BLACKER
- * Copyright (C) 2024  Juan José Caballero Rey
+ * Copyright (C) 2026  Juan José Caballero Rey
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,14 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      primary: "brand",
+      primary: 'brand',
+      secondary: 'blue',
+      success: 'green',
+      warning: 'yellow',
+      error: 'red',
+      neutral: 'neutral'
     },
+  
     //--------------------------------------------------------------------------------------------------
     slider: {
       slots: {

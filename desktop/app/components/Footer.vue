@@ -1,7 +1,7 @@
 <template>
   <div class="footer">
     <div class="flex items-center justify-center gap-2">
-      <UButton color="neutral" size="xs" variant="ghost" icon="lucide:layers"
+      <UButton color="neutral" size="xs" variant="ghost" 
         >Positions
 
         <template #trailing>
@@ -9,7 +9,7 @@
         </template>
       </UButton>
 
-      <UButton color="neutral" size="xs" variant="ghost" icon="lucide:history"
+      <UButton color="neutral" size="xs" variant="ghost" 
         >Order History</UButton
       >
 
@@ -17,15 +17,15 @@
         color="neutral"
         size="xs"
         variant="ghost"
-        icon="lucide:line-chart"
+  
         >Backtesting</UButton
       >
 
-      <UButton color="neutral" size="xs" variant="ghost" icon="lucide:code"
+      <UButton color="neutral" size="xs" variant="ghost" 
         >Algorithmic</UButton
       >
 
-      <UButton color="neutral" size="xs" variant="ghost" icon="lucide:bell">
+      <UButton color="neutral" size="xs" variant="ghost">
         <template #trailing>
           <UBadge size="sm" color="neutral" variant="outline">1</UBadge>
         </template>
