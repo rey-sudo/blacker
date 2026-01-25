@@ -18,7 +18,8 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{clients::client::Client };
+use crate::application::clients::client::Client;
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tick {

@@ -16,41 +16,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-mod clients;
-mod common;
-mod config;
-
 use anyhow::{Result, anyhow};
-use config::Config;
-use dotenvy::from_filename;
 use pulsar::{Pulsar, TokioExecutor};
-use rustls::crypto::ring;
 use tokio::task::JoinHandle;
 use tracing::{info, warn};
-
-use crate::{
-    clients::client::Client,
+use service_ingest::{
+    application::clients::{self, client::Client},
     common::{
         event::{EventType, OutEvent},
         sharding::belongs_to_shard,
     },
+    config::Config,
+    infrastructure::bootstrap,
 };
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    from_filename(".env.local").ok();
+    bootstrap::run()?;
 
-    // Initialize rustls crypto backend (ring).
-    // Required for all TLS connections (WebSockets, HTTPS, Pulsar).
-    ring::default_provider()
-        .install_default()
-        .expect("failed to install rustls crypto provider");
-
-    // Initialize tracing subscriber for structured, async-safe logging.
-    // Enables info!, warn!, error! logs across the entire service.
-    tracing_subscriber::fmt::init();
-
-    //Env vars Config instance
     let config: Config = Config::from_env()?;
 
     // Computes the list of symbols owned by this pod.
@@ -144,14 +127,15 @@ async fn main() -> Result<()> {
                 EventType::Tick => {
                     info!("Sending tick: {:?}", event.symbol);
 
-                    let send_future: pulsar::producer::SendFuture = producer_ticks
-                        .send_non_blocking(event)
-                        .await
-                        .map_err(|e: pulsar::Error| anyhow!("Failed to create send future: {:?}", e))?;
+                    let send_future: pulsar::producer::SendFuture =
+                        producer_ticks.send_non_blocking(event).await.map_err(
+                            |e: pulsar::Error| anyhow!("Failed to create send future: {:?}", e),
+                        )?;
 
-                    let msg_id: pulsar::CommandSendReceipt = send_future
-                        .await
-                        .map_err(|e: pulsar::Error| anyhow!("Failed to send tick to Pulsar: {:?}", e))?;
+                    let msg_id: pulsar::CommandSendReceipt =
+                        send_future.await.map_err(|e: pulsar::Error| {
+                            anyhow!("Failed to send tick to Pulsar: {:?}", e)
+                        })?;
 
                     info!("Tick sent to Pulsar with id {:?}", msg_id);
                 }

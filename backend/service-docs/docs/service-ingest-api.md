@@ -26,7 +26,7 @@ It is intended to be consumed by internal services such as:
 
 - service-feed
 
-## Example Endpoint
+## OHLCV Endpoint
 
 - `GET /api/ingest/ohlcv/get-ohlcv`
 - Query params:

@@ -25,7 +25,8 @@ use tokio::sync::mpsc::Sender;
 use tokio_tungstenite::connect_async;
 use tracing::{error, info};
 
-use crate::clients::client::Client;
+
+use crate::application::clients::client::Client;
 use crate::common::event::{EventType, OutEvent};
 use crate::common::tick::{Side, Tick};
 
