@@ -52,6 +52,7 @@ It is intended to be consumed by internal services such as:
 Each element in the response array represents a **single candlestick (OHLCV)** for a given symbol and timeframe.
 
 ```json
+]
 {
   "symbol": "BTCUSDT",
   "open_time": 1769274000000,
@@ -62,6 +63,8 @@ Each element in the response array represents a **single candlestick (OHLCV)** f
   "close": 89280.7,
   "volume": 6.421050000000006
 }
+]
+
 ```
 
 ## Ordering Guarantees
