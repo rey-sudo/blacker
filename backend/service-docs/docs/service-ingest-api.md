@@ -25,9 +25,7 @@ This behavior is compatible with charting libraries.
 
 ## Consumers
 
-This service is **not public-facing**.
-
-It is intended to be consumed by internal services such as:
+This service is not public-facing. It is intended to be consumed by internal services such as:
 
 - service-feed
 
