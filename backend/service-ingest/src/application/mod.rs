@@ -122,6 +122,7 @@ pub async fn run(config: Config) -> Result<()> {
                     for attempt in 1..=MAX_RETRIES {
                         match producer_ticks.send_non_blocking(event.clone()).await {
                             Ok(_) => {
+                                #[cfg(debug_assertions)]
                                 info!(
                                     attempt,
                                     symbol = ?event.symbol,

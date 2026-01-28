@@ -369,6 +369,7 @@ async fn publish_live(
 ) -> Result<()> {
     let fut: producer::SendFuture = producer.send_non_blocking(candle.clone()).await?;
     fut.await?;
+    #[cfg(debug_assertions)]
     info!("Publish LIVE candle {} @ {}", symbol, candle.close);
     Ok(())
 }
