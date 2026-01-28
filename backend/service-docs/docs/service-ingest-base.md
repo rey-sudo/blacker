@@ -2,7 +2,7 @@
 outline: deep
 ---
 
-# service-ingest-base
+# ⚙️ service-ingest-base
 
 This microservice is the canonical source of OHLCV pricing data for the system.
 
