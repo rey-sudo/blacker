@@ -1,11 +1,10 @@
-use pulsar::{SerializeMessage, producer};
-
+use pulsar::{DeserializeMessage, Payload, SerializeMessage, producer};
 
 /// Represents a finalized or in-progress 1-minute OHLCV candle.
 /// All timestamps are expressed as Unix milliseconds, where
 /// `open_time` is aligned to the start of the minute and
 /// `close_time` marks the inclusive end of the interval.
-#[derive(Debug, Clone, serde::Serialize,  sqlx::FromRow)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, sqlx::FromRow)]
 pub struct Candle {
     pub symbol: String,
 
@@ -30,5 +29,13 @@ impl SerializeMessage for Candle {
             payload,
             ..Default::default()
         })
+    }
+}
+
+impl DeserializeMessage for Candle {
+    type Output = Result<Candle, serde_json::Error>;
+
+    fn deserialize_message(payload: &Payload) -> Self::Output {
+        serde_json::from_slice(&payload.data)
     }
 }

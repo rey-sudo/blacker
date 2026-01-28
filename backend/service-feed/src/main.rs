@@ -16,18 +16,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use pulsar::{Pulsar, TokioExecutor};
+use service_feed::{
+    application::{consumers::ohlcv_live_consumer::{self, ohlcv_live_consumer}, state::AppState},
+    config::Config,
+    infrastructure::bootstrap,
+};
 use std::sync::Arc;
-use service_feed::{application::state::AppState, config::Config, infrastructure::bootstrap};
-
-
+use tokio::signal;
 
 const WS_BUFFER_SIZE: usize = 1024;
-
-
-
-/// =======================
-/// Main
-/// =======================
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -37,52 +35,48 @@ async fn main() -> anyhow::Result<()> {
 
     let state: Arc<AppState> = Arc::new(AppState::new());
 
-    // -----------------------
-    // Pulsar consumers (always-on)
-    // -----------------------
+    let pulsar: Pulsar<TokioExecutor> = Pulsar::builder(&config.pulsar_url, TokioExecutor)
+        .build()
+        .await?;
 
     {
         let s: Arc<AppState> = state.clone();
+        let p = pulsar.clone();
         tokio::spawn(async move {
-            if let Err(e) = consume_ohlcv_live(s).await {
+            if let Err(e) = ohlcv_live_consumer(s, p).await {
                 tracing::error!("ohlcv live consumer crashed: {:?}", e);
             }
         });
     }
 
-    {
-        let s: Arc<AppState> = state.clone();
-        tokio::spawn(async move {
-            if let Err(e) = consume_ohlcv_closed(s).await {
-                tracing::error!("ohlcv closed consumer crashed: {:?}", e);
-            }
-        });
-    }
+    /*
+        {
+            let s: Arc<AppState> = state.clone();
+            tokio::spawn(async move {
+                if let Err(e) = consume_ohlcv_closed(s).await {
+                    tracing::error!("ohlcv closed consumer crashed: {:?}", e);
+                }
+            });
+        }
 
-    {
-        let s: Arc<AppState> = state.clone();
-        tokio::spawn(async move {
-            if let Err(e) = consume_indicator_output(s).await {
-                tracing::error!("indicator-output consumer crashed: {:?}", e);
-            }
-        });
-    }
+        {
+            let s: Arc<AppState> = state.clone();
+            tokio::spawn(async move {
+                if let Err(e) = consume_indicator_output(s).await {
+                    tracing::error!("indicator-output consumer crashed: {:?}", e);
+                }
+            });
+        }
 
-    // -----------------------
-    // WebSocket server
-    // -----------------------
 
-    {
-        let s: Arc<AppState> = state.clone();
-        tokio::spawn(async move {
-            start_ws_server(s).await;
-        });
-    }
+        {
+            let s: Arc<AppState> = state.clone();
+            tokio::spawn(async move {
+                start_ws_server(s).await;
+            });
+        }
 
-    // -----------------------
-    // Graceful shutdown
-    // -----------------------
-
+    */
     signal::ctrl_c().await?;
     tracing::info!("shutdown signal received, exiting");
 
