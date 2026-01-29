@@ -2,7 +2,7 @@
 outline: deep
 ---
 
-# ⚙️ service-ingest-api
+# service-ingest-api
 
 Microservice responsible for serving normalized **OHLCV (candlestick) market data** to other microservices within the platform.
 It provides a **read-only HTTP API** optimized for low-latency access to time-series candle data used by charting UIs, analytics services, and downstream ingestion pipelines.

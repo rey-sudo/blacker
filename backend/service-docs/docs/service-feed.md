@@ -2,7 +2,7 @@
 outline: deep
 ---
 
-# ⚙️ service-feed
+# service-feed
 
 Microservice for **real-time routing and streaming** of financial chart data.  
 It does not calculate, store, or replicate data: **it only routes and transmits**.

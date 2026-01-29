@@ -19,8 +19,9 @@
 use pulsar::{Pulsar, TokioExecutor};
 use service_feed::{
     application::{
-        consumers::ohlcv_live_consumer::{self, ohlcv_live_consumer},
+        consumers::ohlcv_live_consumer::{ohlcv_live_consumer},
         state::AppState,
+        ws::start_ws_server,
     },
     config::Config,
     infrastructure::bootstrap,
@@ -72,15 +73,14 @@ async fn main() -> anyhow::Result<()> {
             });
         }
 
-
-        {
-            let s: Arc<AppState> = state.clone();
-            tokio::spawn(async move {
-                start_ws_server(s).await;
-            });
-        }
-
     */
+    {
+        let s: Arc<AppState> = state.clone();
+        tokio::spawn(async move {
+            start_ws_server(s).await;
+        });
+    }
+
     signal::ctrl_c().await?;
     tracing::info!("shutdown signal received, exiting");
 

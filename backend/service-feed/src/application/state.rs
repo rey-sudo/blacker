@@ -1,10 +1,9 @@
 use std::sync::Arc;
 use dashmap::DashMap;
 use tokio::sync::mpsc;
-use pulsar::producer;
 use crate::application::types::{ContextId, Symbol, Timeframe};
 
-pub type WsSender = mpsc::Sender<Arc<producer::Message>>;
+pub type WsSender = mpsc::Sender<Arc<serde_json::Value>>;
 
 #[derive(Clone)]
 pub struct AppState {

@@ -2,7 +2,7 @@
 outline: deep
 ---
 
-# ⚙️ service-ingest
+# service-ingest
 
 A microservice that retrieves market data from the data provider, normalizes it, and publishes it as ordered events to Apache Pulsar for consumption by other microservices. It uses deterministic sharding to balance symbols across each shard pod. It is designed to maintain one WebSocket connection per shard. 
 It supports clients such as Binance, Databento.
