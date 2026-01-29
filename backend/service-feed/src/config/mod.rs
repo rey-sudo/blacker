@@ -1,6 +1,6 @@
 /*
  * BLACKER
- * Copyright (C) 2026  Juan José Caballero Rey
+ * Copyright (C) 2025  Juan José Caballero Rey
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,27 +25,38 @@ use validator::Validate;
 /// ```
 #[derive(Debug, Clone, Deserialize, Validate)]
 pub struct Config {
+    #[validate(length(min = 1, message = "POD_NAME must not be empty"))]
+    pub pod_name: String,
+
     #[validate(length(min = 1, message = "PULSAR_URL must not be empty"))]
     pub pulsar_url: String,
 
-    #[validate(range(min = 1024, max = 65535, message = "PORT must be between 1024 and 65535"))]
+    #[validate(range(
+        min = 1024,
+        max = 65535,
+        message = "PORT must be between 1024 and 65535"
+    ))]
     pub port: u16,
 }
 
 impl Config {
     pub fn from_env() -> anyhow::Result<Self> {
+        let pod_name: String = std::env::var("POD_NAME").map_err(|_| anyhow::anyhow!("POD_NAME is not set"))?;
+
         let pulsar_url: String =
             std::env::var("PULSAR_URL").map_err(|_| anyhow::anyhow!("PULSAR_URL is not set"))?;
-        
-        let port_raw: String = std::env::var("PORT")
-            .map_err(|_| anyhow::anyhow!("PORT is not set"))?;
 
-        let port: u16 = port_raw.parse()
+        let port_raw: String =
+            std::env::var("PORT").map_err(|_| anyhow::anyhow!("PORT is not set"))?;
+
+        let port: u16 = port_raw
+            .parse()
             .map_err(|_| anyhow::anyhow!("PORT must be a valid number"))?;
 
-        let config: Config = Config { pulsar_url, port };
+        let config: Config = Config { pod_name, pulsar_url, port };
 
-        config.validate()
+        config
+            .validate()
             .map_err(|e: validator::ValidationErrors| anyhow::anyhow!("Invalid config: {}", e))?;
 
         Ok(config)

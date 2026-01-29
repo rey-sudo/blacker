@@ -18,7 +18,10 @@
 
 use pulsar::{Pulsar, TokioExecutor};
 use service_feed::{
-    application::{consumers::ohlcv_live_consumer::{self, ohlcv_live_consumer}, state::AppState},
+    application::{
+        consumers::ohlcv_live_consumer::{self, ohlcv_live_consumer},
+        state::AppState,
+    },
     config::Config,
     infrastructure::bootstrap,
 };
@@ -40,10 +43,11 @@ async fn main() -> anyhow::Result<()> {
         .await?;
 
     {
+        let c: Arc<Config> = config.clone();
         let s: Arc<AppState> = state.clone();
-        let p = pulsar.clone();
+        let p: Pulsar<TokioExecutor> = pulsar.clone();
         tokio::spawn(async move {
-            if let Err(e) = ohlcv_live_consumer(s, p).await {
+            if let Err(e) = ohlcv_live_consumer(c, s, p).await {
                 tracing::error!("ohlcv live consumer crashed: {:?}", e);
             }
         });
