@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 dotenvy = "0.15.7"
-tokio = { version = "1.49.0", features = ["macros", "rt-multi-thread", "time", "signal", "full"] }
+tokio = { version = "1.49.0", features = ["full"] }
 tokio-tungstenite = { version = "0.28.0", features = ["rustls-tls-webpki-roots"] }
 tungstenite = { version = "0.28.0", features = ["rustls-tls-webpki-roots"] }
 rustls = { version = "0.23.36", features = ["ring"] }
