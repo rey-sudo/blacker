@@ -137,6 +137,7 @@ pub fn spawn_symbol_worker(
         while let Some(cmd) = rx.recv().await {
             match cmd {
                 SymbolCommand::Tick(tick) => {
+                    let timeframe = "1m";
                     let tick_minute_ts: i64 = ts_to_minute(tick.ts);
 
                     match &mut current_candle {
@@ -153,7 +154,7 @@ pub fn spawn_symbol_worker(
                             persist_closed(&db.pool(), &symbol, candle).await?;
                             publish_closed(&mut closed_producer, &symbol, candle).await?;
 
-                            let new_candle: Candle = Candle::new(&symbol, &tick, tick_minute_ts);
+                            let new_candle: Candle = Candle::new(&timeframe, &symbol, &tick, tick_minute_ts);
 
                             publish_live(&mut live_producer, &symbol, &new_candle).await?;
                             current_candle = Some(new_candle);
@@ -162,7 +163,7 @@ pub fn spawn_symbol_worker(
                         // First tick ever for this symbol
                         // Base case
                         None => {
-                            let candle: Candle = Candle::new(&symbol, &tick, tick_minute_ts);
+                            let candle: Candle = Candle::new(&timeframe, &symbol, &tick, tick_minute_ts);
 
                             publish_live(&mut live_producer, &symbol, &candle).await?;
                             current_candle = Some(candle);

@@ -75,9 +75,10 @@ async fn main() -> anyhow::Result<()> {
 
     */
     {
+        let c: Arc<Config> = config.clone();
         let s: Arc<AppState> = state.clone();
         tokio::spawn(async move {
-            start_ws_server(s).await;
+            start_ws_server(c, s).await;
         });
     }
 

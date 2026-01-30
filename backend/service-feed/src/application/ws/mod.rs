@@ -1,46 +1,75 @@
-use crate::application::state::{AppState, WsSender};
-use crate::application::types::{ContextId, Symbol, Timeframe};
+use crate::application::state::{AppState, Chart, WsSender};
+use crate::application::types::{ContextId, IndicatorKind, IndicatorParams, IndicatorSpec, Symbol};
+use crate::common::candle::Timeframe;
+use crate::config::Config;
 use futures_util::{SinkExt, StreamExt};
 use serde_json::json;
+use std::str::FromStr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tokio::sync::mpsc;
 use tokio_tungstenite::accept_async;
 use tokio_tungstenite::tungstenite::Message;
 use tracing::info;
+use uuid::Uuid;
 
 #[derive(serde::Deserialize)]
 pub struct WsCommand {
     pub action: String,
-    pub symbol: Option<Symbol>,
-    pub timeframe: Option<Timeframe>,
+
     pub context_id: Option<ContextId>,
+
+    pub symbol: Option<Symbol>,
+    pub timeframe: Option<String>,
+
+    // indicador
+    pub indicator_id: Option<Uuid>,
+    pub indicator: Option<IndicatorKind>,
+    pub params: Option<IndicatorParams>,
 }
 
-fn cleanup_ws(tx: WsSender, state: &AppState) {
-    // 1. Remover de ws_registry (context_id -> sender)
-    state
-        .ws_registry
-        .retain(|_, sender| !sender.same_channel(&tx));
+pub fn cleanup_ws(tx: WsSender, state: &AppState) {
+    // 1. Encontrar todos los context_id cuyo chart pertenece a este WS
+    let context_ids: Vec<_> = state
+        .charts
+        .iter()
+        .filter(|entry| entry.value().ws_sender.same_channel(&tx))
+        .map(|entry| entry.key().clone())
+        .collect();
 
-    // 2. Remover de todas las subscripciones OHLCV
-    for mut entry in state.ohlcv_subs.iter_mut() {
-        entry.value_mut().retain(|sender| !sender.same_channel(&tx));
+    // 2. Eliminar charts y limpiar índices
+    for context_id in context_ids {
+        if let Some((_, chart)) = state.charts.remove(&context_id) {
+            let key = (chart.symbol.clone(), chart.timeframe.clone());
+
+            if let Some(mut entry) = state.ohlcv_index.get_mut(&key) {
+                entry.retain(|cid| cid != &context_id);
+
+                // limpieza extra: si no quedan charts, borra la key
+                if entry.is_empty() {
+                    drop(entry);
+                    state.ohlcv_index.remove(&key);
+                }
+            }
+
+            // TODO (opcional):
+            // emitir indicator-deactivation por cada indicator del chart
+        }
     }
 }
 
-// ---------- Start WS Server ----------
-pub async fn start_ws_server(state: Arc<AppState>) {
-    let listener = TcpListener::bind("0.0.0.0:3030").await.unwrap();
+pub async fn start_ws_server(config: Arc<Config>, state: Arc<AppState>) {
+    let listener: TcpListener = TcpListener::bind("0.0.0.0:3030").await.unwrap();
     info!("WebSocket server listening on 0.0.0.0:3030");
 
     while let Ok((stream, addr)) = listener.accept().await {
-        let state = state.clone();
+        let c: Arc<Config> = config.clone();
+        let s: Arc<AppState> = state.clone();
         tokio::spawn(async move {
             match accept_async(stream).await {
                 Ok(ws_stream) => {
                     info!("New WS connection from {}", addr);
-                    handle_ws_connection(ws_stream, state).await;
+                    handle_ws_connection(ws_stream, s).await;
                 }
                 Err(e) => {
                     tracing::error!("Error during WS handshake: {:?}", e);
@@ -97,42 +126,137 @@ async fn handle_ws_connection(
     cleanup_ws(tx, &state);
 }
 
-async fn handle_ws_command(cmd: WsCommand, tx: WsSender, state: Arc<AppState>) {
+pub async fn handle_ws_command(cmd: WsCommand, tx: WsSender, state: Arc<AppState>) {
     match cmd.action.as_str() {
         "open_chart" => {
-            let context_id: ContextId = cmd.context_id.unwrap_or_else(|| ContextId::new());
-            state.ws_registry.insert(context_id.clone(), tx.clone());
+            let symbol: Symbol = match cmd.symbol {
+                Some(s) => s,
+                None => return,
+            };
 
-            if let (Some(symbol), Some(timeframe)) = (cmd.symbol.clone(), cmd.timeframe.clone()) {
-                let key = (symbol, timeframe);
-                state.ohlcv_subs.entry(key).or_default().push(tx.clone());
-            }
+            let timeframe: Timeframe = match cmd.timeframe {
+                Some(t) => match Timeframe::from_str(&t) {
+                    Ok(tf) => tf,
+                    Err(_) => {
+                        tracing::warn!(
+                            timeframe = %t,
+                            "invalid timeframe in ws command"
+                        );
+                        return;
+                    }
+                },
+                None => {
+                    tracing::warn!("ws command missing timeframe");
+                    return;
+                }
+            };
 
-            let msg = json!({
+            let context_id: ContextId = cmd.context_id.unwrap_or_else(ContextId::new);
+
+            let chart: Chart = Chart {
+                context_id: context_id.clone(),
+                symbol: symbol.clone(),
+                timeframe: timeframe.clone(),
+                ws_sender: tx.clone(),
+                indicators: Vec::new(),
+            };
+
+            state.charts.insert(context_id.clone(), chart);
+
+            state
+                .ohlcv_index
+                .entry((symbol, timeframe))
+                .or_default()
+                .push(context_id.clone());
+
+            let msg: serde_json::Value = json!({
                 "type": "chart_opened",
                 "context_id": context_id,
             });
+
             let _ = tx.send(Arc::new(msg)).await;
         }
 
-        "subscribe_ohlcv" => {
-            if let (Some(symbol), Some(timeframe)) = (cmd.symbol, cmd.timeframe) {
-                let key = (symbol, timeframe);
-                state.ohlcv_subs.entry(key).or_default().push(tx.clone());
-            }
-        }
+        // ─────────────────────────────────────────────
+        // CLOSE CHART
+        // ─────────────────────────────────────────────
+        "close_chart" => {
+            let context_id = match cmd.context_id {
+                Some(id) => id,
+                None => return,
+            };
 
-        "unsubscribe_ohlcv" => {
-            if let (Some(symbol), Some(timeframe)) = (cmd.symbol, cmd.timeframe) {
-                let key = (symbol, timeframe);
-                if let Some(mut subs) = state.ohlcv_subs.get_mut(&key) {
-                    subs.retain(|s| !s.same_channel(&tx));
+            if let Some((_, chart)) = state.charts.remove(&context_id) {
+                let key = (chart.symbol.clone(), chart.timeframe.clone());
+
+                if let Some(mut entry) = state.ohlcv_index.get_mut(&key) {
+                    entry.retain(|cid| cid != &context_id);
                 }
             }
         }
 
+        // ─────────────────────────────────────────────
+        // ADD INDICATOR
+        // ─────────────────────────────────────────────
+        "add_indicator" => {
+            let context_id = match cmd.context_id {
+                Some(id) => id,
+                None => return,
+            };
+
+            let kind = match cmd.indicator {
+                Some(i) => i,
+                None => return,
+            };
+
+            let params = cmd.params.unwrap_or_default();
+
+            let indicator = IndicatorSpec {
+                indicator_id: Uuid::now_v7(),
+                kind,
+                params,
+            };
+
+            if let Some(mut chart) = state.charts.get_mut(&context_id) {
+                chart.indicators.push(indicator.clone());
+            }
+
+            // TODO: publicar indicator-activation en Pulsar
+            // payload:
+            // { context_id, indicator_id, indicator, params }
+
+            let msg = json!({
+                "type": "indicator_added",
+                "context_id": context_id,
+                "indicator_id": indicator.indicator_id,
+            });
+
+            let _ = tx.send(Arc::new(msg)).await;
+        }
+
+        // ─────────────────────────────────────────────
+        // REMOVE INDICATOR
+        // ─────────────────────────────────────────────
+        "remove_indicator" => {
+            let context_id = match cmd.context_id {
+                Some(id) => id,
+                None => return,
+            };
+
+            let indicator_id = match cmd.indicator_id {
+                Some(id) => id,
+                None => return,
+            };
+
+            if let Some(mut chart) = state.charts.get_mut(&context_id) {
+                chart.indicators.retain(|i| i.indicator_id != indicator_id);
+            }
+
+            // TODO: publicar indicator-deactivation si aplica
+        }
+
         _ => {
-            tracing::warn!("Unknown WS command: {:?}", cmd.action);
+            tracing::warn!("Unknown WS action: {}", cmd.action);
         }
     }
 }

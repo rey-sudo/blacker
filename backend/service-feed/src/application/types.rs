@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::{Uuid,};
 use std::fmt;
+use crate::common::candle::Timeframe;
 
 #[derive(Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ContextId(pub Uuid);
@@ -19,35 +20,33 @@ impl Hash for ContextId {
     }
 }
 
+impl fmt::Display for ContextId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 impl fmt::Debug for ContextId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "ContextId({})", self.0)
     }
 }
 
-/// =======================
-/// Dominio de mercado
-/// =======================
 
-#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize, Debug)]
+#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct Symbol(pub String);
 
-#[derive(Clone, Copy, Eq, PartialEq, Hash, Serialize, Deserialize, Debug)]
-pub enum Timeframe {
-    S1,
-    S5,
-    S15,
-    M1,
-    M5,
-    M15,
-    H1,
-    H4,
-    D1,
+impl fmt::Display for Symbol {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
 }
 
-/// =======================
-/// OHLCV
-/// =======================
+impl fmt::Debug for Symbol {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct OhlcvCandle {
@@ -98,13 +97,7 @@ pub struct IndicatorOutput {
     pub timestamp: u64,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub enum IndicatorKind {
-    SMA { period: u32 },
-    EMA { period: u32 },
-    RSI { period: u32 },
-    VWAP,
-}
+
 
 /// =======================
 /// Mensajes internos
@@ -191,3 +184,46 @@ impl Message {
 
 /// Shared message type across tasks
 pub type SharedMessage = Arc<Message>;
+
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct IndicatorParams {
+    pub period: Option<u32>,
+
+    // extensible sin romper
+    pub fast_period: Option<u32>,
+    pub slow_period: Option<u32>,
+    pub signal_period: Option<u32>,
+}
+
+
+impl Default for IndicatorParams {
+    fn default() -> Self {
+        Self {
+            period: None,
+            fast_period: None,
+            slow_period: None,
+            signal_period: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum IndicatorKind {
+    EMA,
+    RSI
+}
+
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct IndicatorSpec {
+    /// ID único del indicador dentro del chart
+    pub indicator_id: Uuid,
+
+    /// Tipo de indicador
+    pub kind: IndicatorKind,
+
+    /// Parámetros del indicador
+    pub params: IndicatorParams,
+}
+

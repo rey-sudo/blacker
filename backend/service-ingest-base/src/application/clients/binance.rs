@@ -145,6 +145,7 @@ impl AnyClient for Binance {
 
             candles.push(Candle {
                 symbol: symbol.to_string(),
+                timeframe: "1m".to_string(),
                 open_time,
                 close_time,
                 open: k[1].as_str().unwrap().parse()?,
