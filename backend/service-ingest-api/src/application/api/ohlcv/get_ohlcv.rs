@@ -6,9 +6,17 @@ use axum::{
     Json,
     extract::{Query, State},
 };
+use serde::Serialize;
 use serde::Deserialize;
 use sqlx::QueryBuilder;
 use validator::{Validate, ValidationError};
+
+#[derive(Serialize)]
+pub struct CandlePage {
+    pub data: Vec<Candle>,
+    pub cursor: Option<i64>,
+}
+
 
 fn validate_timeframe(tf: &str) -> Result<(), ValidationError> {
     match tf {
@@ -79,7 +87,7 @@ pub struct CandleQuery {
 pub async fn handler(
     State(state): State<AppState>,
     Query(params): Query<CandleQuery>,
-) -> Result<Json<Vec<Candle>>, AppError> {
+) ->  Result<Json<CandlePage>, AppError>  {
     // Validate the incoming query parameters using the `validator` crate.
     if let Err(err) = params.validate() {
         tracing::warn!("Query validation error: {:?}", err);
@@ -142,5 +150,11 @@ pub async fn handler(
     let mut rows: Vec<Candle> = rows;
     rows.reverse();
 
-    Ok(Json(rows))
+    // cursor = open_time oldest candle
+    let cursor = rows.first().map(|c| c.open_time);
+
+    Ok(Json(CandlePage {
+        data: rows,
+        cursor,
+    }))
 }
