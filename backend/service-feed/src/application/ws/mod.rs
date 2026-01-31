@@ -1,6 +1,9 @@
 use crate::application::state::{AppState, Chart, WsSender};
-use crate::application::types::{ContextId, IndicatorKind, IndicatorParams, IndicatorSpec, Symbol};
+use crate::application::types::{
+    CandlePage, ContextId, IndicatorKind, IndicatorParams, IndicatorSpec, Symbol,
+};
 use crate::common::candle::Timeframe;
+use crate::common::time::current_unix;
 use crate::config::Config;
 use futures_util::{SinkExt, StreamExt};
 use serde_json::json;
@@ -131,17 +134,17 @@ pub async fn handle_ws_command(cmd: WsCommand, tx: WsSender, state: Arc<AppState
         "open_chart" => {
             let symbol: Symbol = match cmd.symbol {
                 Some(s) => s,
-                None => return,
+                None => {
+                    tracing::warn!("ws command missing symbol");
+                    return;
+                }
             };
 
             let timeframe: Timeframe = match cmd.timeframe {
                 Some(t) => match Timeframe::from_str(&t) {
                     Ok(tf) => tf,
                     Err(_) => {
-                        tracing::warn!(
-                            timeframe = %t,
-                            "invalid timeframe in ws command"
-                        );
+                        tracing::warn!(timeframe = %t, "invalid timeframe in ws command");
                         return;
                     }
                 },
@@ -151,15 +154,53 @@ pub async fn handle_ws_command(cmd: WsCommand, tx: WsSender, state: Arc<AppState
                 }
             };
 
-            let context_id: ContextId = cmd.context_id.unwrap_or_else(ContextId::new);
+            let context_id: ContextId = ContextId::new(); //implement no duplication
 
-            let chart: Chart = Chart {
+            let mut chart: Chart = Chart {
                 context_id: context_id.clone(),
                 symbol: symbol.clone(),
-                timeframe: timeframe.clone(),
+                timeframe,
                 ws_sender: tx.clone(),
                 indicators: Vec::new(),
+
+                cursor: 0,
+                from: 0,
+                to: 0,
+
+                length: 10,
             };
+
+            let limit: i64 = chart.length as i64;
+
+            let http: reqwest::Client = reqwest::Client::new();
+            let ingest_url: &str = "http://localhost:3000/api/ingest/ohlcv/get-ohlcv";
+
+            let response: CandlePage = match http
+                .get(ingest_url)
+                .query(&[
+                    ("symbol", symbol.to_string().as_str()),
+                    ("timeframe", chart.timeframe.to_string().as_str()),
+                    ("limit", &limit.to_string()),
+                ])
+                .send()
+                .await
+            {
+                Ok(resp) => match resp.json::<CandlePage>().await {
+                    Ok(data) => data,
+                    Err(e) => {
+                        tracing::error!(error = ?e, "failed to deserialize ohlcv response");
+                        return;
+                    }
+                },
+                Err(e) => {
+                    tracing::error!(error = ?e, "failed to fetch ohlcv snapshot");
+                    return;
+                }
+            };
+
+            chart.cursor = response.cursor;
+            chart.from = response.cursor;
+            chart.to = response.first;
 
             state.charts.insert(context_id.clone(), chart);
 
@@ -169,12 +210,22 @@ pub async fn handle_ws_command(cmd: WsCommand, tx: WsSender, state: Arc<AppState
                 .or_default()
                 .push(context_id.clone());
 
-            let msg: serde_json::Value = json!({
-                "type": "chart_opened",
-                "context_id": context_id,
-            });
+            let _ = tx
+                .send(Arc::new(json!({
+                    "type": "ohlcv_snapshot",
+                    "context_id": context_id,
+                    "data": response.data,
+                    "first": response.first,
+                    "cursor": response.cursor,
+                })))
+                .await;
 
-            let _ = tx.send(Arc::new(msg)).await;
+            let _ = tx
+                .send(Arc::new(json!({
+                    "type": "chart_opened",
+                    "context_id": context_id,
+                })))
+                .await;
         }
 
         // ─────────────────────────────────────────────

@@ -14,6 +14,7 @@ use validator::{Validate, ValidationError};
 #[derive(Serialize)]
 pub struct CandlePage {
     pub data: Vec<Candle>,
+    pub first: Option<i64>,
     pub cursor: Option<i64>,
 }
 
@@ -100,6 +101,7 @@ pub async fn handler(
         r#"
         SELECT
             symbol,
+            timeframe,
             open_time,
             close_time,
             open,
@@ -150,11 +152,13 @@ pub async fn handler(
     let mut rows: Vec<Candle> = rows;
     rows.reverse();
 
-    // cursor = open_time oldest candle
+    let first = rows.last().map(|c| c.open_time);
     let cursor = rows.first().map(|c| c.open_time);
+
 
     Ok(Json(CandlePage {
         data: rows,
+        first,
         cursor,
     }))
 }

@@ -109,7 +109,7 @@ pub struct Candle {
 
 impl Candle {
     /// Create a new 1-minute candle from the first tick of the minute
-    pub fn new(timeframe: &str, symbol: &str, tick: &Tick, minute_ts: i64) -> Self {
+    pub fn new(symbol: &str, timeframe: &str, tick: &Tick, minute_ts: i64) -> Self {
         Self {
             symbol: symbol.to_string(),
             timeframe: timeframe.to_string(),

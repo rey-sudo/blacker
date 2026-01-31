@@ -2,6 +2,7 @@
 
 CREATE TABLE IF NOT EXISTS ohlcv_1m (
     symbol TEXT NOT NULL,
+    timeframe TEXT NOT NULL,
 
     open_time BIGINT NOT NULL,   -- minute boundary (Unix ms)
     close_time BIGINT NOT NULL,  -- last tick timestamp in that minute

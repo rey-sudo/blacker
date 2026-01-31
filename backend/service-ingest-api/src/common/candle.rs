@@ -1,13 +1,13 @@
-use pulsar::{SerializeMessage, producer};
-
+use pulsar::{producer, SerializeMessage};
 
 /// Represents a finalized or in-progress 1-minute OHLCV candle.
 /// All timestamps are expressed as Unix milliseconds, where
 /// `open_time` is aligned to the start of the minute and
 /// `close_time` marks the inclusive end of the interval.
-#[derive(Debug, Clone, serde::Serialize,  sqlx::FromRow)]
+#[derive(Debug, Clone, serde::Serialize, sqlx::FromRow)]
 pub struct Candle {
     pub symbol: String,
+    pub timeframe: String,
 
     /// Inclusive start time of the candle (Unix ms, minute-aligned)
     pub open_time: i64,

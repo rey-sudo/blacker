@@ -154,7 +154,7 @@ pub fn spawn_symbol_worker(
                             persist_closed(&db.pool(), &symbol, candle).await?;
                             publish_closed(&mut closed_producer, &symbol, candle).await?;
 
-                            let new_candle: Candle = Candle::new(&timeframe, &symbol, &tick, tick_minute_ts);
+                            let new_candle: Candle = Candle::new(&symbol, &timeframe, &tick, tick_minute_ts);
 
                             publish_live(&mut live_producer, &symbol, &new_candle).await?;
                             current_candle = Some(new_candle);
@@ -163,7 +163,7 @@ pub fn spawn_symbol_worker(
                         // First tick ever for this symbol
                         // Base case
                         None => {
-                            let candle: Candle = Candle::new(&timeframe, &symbol, &tick, tick_minute_ts);
+                            let candle: Candle = Candle::new(&symbol, &timeframe, &tick, tick_minute_ts);
 
                             publish_live(&mut live_producer, &symbol, &candle).await?;
                             current_candle = Some(candle);
@@ -274,6 +274,7 @@ pub async fn persist_candle_history(
                 r#"
                 INSERT INTO ohlcv_1m (
                     symbol,
+                    timeframe,
                     open_time,
                     close_time,
                     open,
@@ -282,11 +283,12 @@ pub async fn persist_candle_history(
                     close,
                     volume
                 )
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                 ON CONFLICT (symbol, open_time) DO NOTHING
                 "#,
             )
             .bind(symbol)
+            .bind(candle.timeframe.as_str())
             .bind(candle.open_time)
             .bind(candle.close_time)
             .bind(candle.open)
@@ -332,6 +334,7 @@ async fn persist_closed(
         r#"
         INSERT INTO ohlcv_1m (
             symbol,
+            timeframe,
             open_time,
             close_time,
             open,
@@ -340,11 +343,12 @@ async fn persist_closed(
             close,
             volume
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         ON CONFLICT (symbol, open_time) DO NOTHING
         "#,
     )
     .bind(symbol)
+    .bind(candle.timeframe.as_str())
     .bind(candle.open_time)
     .bind(candle.close_time)
     .bind(candle.open)

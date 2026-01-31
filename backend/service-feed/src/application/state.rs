@@ -1,4 +1,7 @@
-use crate::{application::types::{ContextId, IndicatorSpec, Symbol}, common::candle::Timeframe};
+use crate::{
+    application::types::{ContextId, IndicatorSpec, Symbol},
+    common::candle::Timeframe,
+};
 use dashmap::DashMap;
 use serde_json::Value;
 use std::sync::Arc;
@@ -10,12 +13,14 @@ pub struct Chart {
     pub context_id: ContextId,
     pub symbol: Symbol,
     pub timeframe: Timeframe,
-
-    /// WebSocket al que pertenece este chart
+    
     pub ws_sender: WsSender,
-
-    /// indicadores activos de este chart (ej: EMA(21), RSI(14))
     pub indicators: Vec<IndicatorSpec>,
+
+    pub from: i64,
+    pub to: i64,  
+    pub cursor: i64,
+    pub length: usize,
 }
 
 #[derive(Clone)]

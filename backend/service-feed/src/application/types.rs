@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use uuid::{Uuid,};
 use std::fmt;
-use crate::common::candle::Timeframe;
+use crate::common::candle::{Candle, Timeframe};
 
 #[derive(Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ContextId(pub Uuid);
@@ -227,3 +227,10 @@ pub struct IndicatorSpec {
     pub params: IndicatorParams,
 }
 
+
+#[derive(Debug, Deserialize)]
+pub struct CandlePage {
+    pub data: Vec<Candle>,
+    pub first: i64,
+    pub cursor: i64,
+}
