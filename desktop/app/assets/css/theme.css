@@ -3,20 +3,20 @@
 
 @theme static {
   /* ---------- BRAND ---------- */
-  --color-brand-50:  #f2f5ff;
-  --color-brand-100: #e6ebff;
-  --color-brand-200: #adc2ff;
-  --color-brand-300: #7da0ff;
-  --color-brand-400: #4d7dff;
-  --color-brand-500: #1d5bff;
-  --color-brand-600: #1748cc;
-  --color-brand-700: #113599;
-  --color-brand-800: #0b2266;
-  --color-brand-900: #050f33;
-  --color-brand-950: #03081a;
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dde7ff;
+  --color-brand-200: #b8cfff;
+  --color-brand-300: #8fb3ff;
+  --color-brand-400: #5f8eff;
+  --color-brand-500: #0563ff; /* base */
+  --color-brand-600: #0450cc;
+  --color-brand-700: #033c99;
+  --color-brand-800: #022866;
+  --color-brand-900: #011433;
+  --color-brand-950: #010a1a;
 
   /* ---------- NEUTRAL ---------- */
-  --color-neutral-50:  #fafafa;
+  --color-neutral-50: #fafafa;
   --color-neutral-100: #f4f4f5;
   --color-neutral-200: #e4e4e7;
   --color-neutral-300: #d4d4d8;
@@ -34,7 +34,7 @@
    =============================== */
 :root {
   /* primary */
-  --ui-primary: var(--color-brand-600);
+  --ui-primary: var(--color-brand-500);
 
   /* text */
   --ui-text: var(--color-neutral-800);
@@ -62,7 +62,7 @@
 
 .dark {
   /* primary */
-  --ui-primary: var(--color-brand-400);
+  --ui-primary: var(--color-brand-500);
 
   /* text */
   --ui-text: white;
@@ -91,7 +91,6 @@
 body {
   @apply antialiased text-default bg-default scheme-light dark:scheme-dark;
 }
-
 
 :root {
   --color-aqua: #00bcd4;
@@ -125,9 +124,6 @@ body {
   --color-white: #ffffff;
   --color-yellow: #ffeb3b;
 }
-
-
-
 
 ::-webkit-scrollbar {
   width: 8px;
@@ -190,14 +186,18 @@ body {
 /* Smooth transitions (respecting reduced motion) */
 @media (prefers-reduced-motion: no-preference) {
   * {
-    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+    transition-property:
+      background-color, border-color, color, fill, stroke, opacity, box-shadow,
+      transform;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
 /* Disable transitions for reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
