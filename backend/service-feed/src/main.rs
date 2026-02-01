@@ -19,7 +19,7 @@
 use pulsar::{Pulsar, TokioExecutor};
 use service_feed::{
     application::{
-        consumers::ohlcv_live_consumer::{ohlcv_live_consumer},
+        consumers::{ohlcv_closed_consumer, ohlcv_live_consumer},
         state::AppState,
         ws::start_ws_server,
     },
@@ -28,8 +28,8 @@ use service_feed::{
 };
 use std::sync::Arc;
 use tokio::signal;
+use tracing::{error, info};
 
-const WS_BUFFER_SIZE: usize = 1024;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -48,22 +48,24 @@ async fn main() -> anyhow::Result<()> {
         let s: Arc<AppState> = state.clone();
         let p: Pulsar<TokioExecutor> = pulsar.clone();
         tokio::spawn(async move {
-            if let Err(e) = ohlcv_live_consumer(c, s, p).await {
-                tracing::error!("ohlcv live consumer crashed: {:?}", e);
+            if let Err(e) = ohlcv_live_consumer::listen(c, s, p).await {
+                error!("ohlcv live consumer crashed: {:?}", e);
+            }
+        });
+    }
+
+    {
+        let c: Arc<Config> = config.clone();
+        let s: Arc<AppState> = state.clone();
+        let p: Pulsar<TokioExecutor> = pulsar.clone();
+        tokio::spawn(async move {
+            if let Err(e) = ohlcv_closed_consumer::listen(c, s, p).await {
+                error!("ohlcv closed consumer crashed: {:?}", e);
             }
         });
     }
 
     /*
-        {
-            let s: Arc<AppState> = state.clone();
-            tokio::spawn(async move {
-                if let Err(e) = consume_ohlcv_closed(s).await {
-                    tracing::error!("ohlcv closed consumer crashed: {:?}", e);
-                }
-            });
-        }
-
         {
             let s: Arc<AppState> = state.clone();
             tokio::spawn(async move {
@@ -83,7 +85,7 @@ async fn main() -> anyhow::Result<()> {
     }
 
     signal::ctrl_c().await?;
-    tracing::info!("shutdown signal received, exiting");
+    info!("shutdown signal received, exiting");
 
     Ok(())
 }

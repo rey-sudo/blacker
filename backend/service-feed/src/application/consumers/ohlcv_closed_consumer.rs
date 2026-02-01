@@ -14,7 +14,7 @@ pub async fn listen(
     state: Arc<AppState>,
     pulsar: Pulsar<pulsar::TokioExecutor>,
 ) -> Result<()> {
-    let subscription_name: String = format!("{}_ohlcv-timeframe-live", &config.pod_name);
+    let subscription_name: String = format!("{}_ohlcv-timeframe-closed", &config.pod_name);
 
     info!(subscription_name = %subscription_name, "Starting OHLCV consumer");
 
@@ -24,8 +24,8 @@ pub async fn listen(
         .with_subscription_type(SubType::Exclusive)
         .with_subscription(subscription_name)
         .with_topics([
-            "non-persistent://public/market-data/ohlcv-1m-live",
-            "non-persistent://public/market-data/ohlcv-5m-live",
+            "non-persistent://public/market-data/ohlcv-1m-closed",
+            "non-persistent://public/market-data/ohlcv-5m-closed",
         ])
         .build()
         .await?;
@@ -45,7 +45,7 @@ pub async fn listen(
             symbol = %candle.symbol,
             open_time = candle.open_time,
             close_time = candle.close_time,
-            "ohlcv live"
+            "ohlcv closed"
         );
 
         let timeframe: Timeframe = match Timeframe::from_str(&candle.timeframe) {
@@ -75,7 +75,7 @@ pub async fn listen(
             "low": candle.low,
             "close": candle.close,
             "volume": candle.volume,
-            "is_live": true,
+            "is_live": false,
         }));
 
         // 2️⃣ fan-out por charts
@@ -97,5 +97,5 @@ pub async fn listen(
         consumer.ack(&msg).await?;
     }
 
-    Err(anyhow::anyhow!("ohlcv-live consumer exited unexpectedly"))
+    Err(anyhow::anyhow!("ohlcv-closed consumer exited unexpectedly"))
 }
