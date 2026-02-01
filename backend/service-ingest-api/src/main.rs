@@ -40,9 +40,9 @@ async fn main() -> Result<()> {
     let app: Router = Router::new().nest("/api/ingest", api::router()).with_state(state);
 
     let listener: tokio::net::TcpListener =
-        tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+        tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
 
-    info!("Server listening http://localhost:3000");
+    info!("Server listening http://localhost:3001");
 
     axum::serve(listener, app).await.unwrap();
 

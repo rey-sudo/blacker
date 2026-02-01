@@ -173,7 +173,7 @@ pub async fn handle_ws_command(cmd: WsCommand, tx: WsSender, state: Arc<AppState
             let limit: i64 = chart.length as i64;
 
             let http: reqwest::Client = reqwest::Client::new();
-            let ingest_url: &str = "http://localhost:3000/api/ingest/ohlcv/get-ohlcv";
+            let ingest_url: &str = "http://localhost:3001/api/ingest/ohlcv/get-ohlcv";
 
             let response: CandlePage = match http
                 .get(ingest_url)
