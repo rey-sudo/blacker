@@ -92,9 +92,9 @@ export const createTabStore = (tabId: string) =>
             if (!set) return;
 
             for (const cb of set) {
-              const caca = normalizeToLightweight(data);
-              lastPrice.value = caca.close;
-              cb(caca);
+              const ce = normalizeToLightweight(data);
+              lastPrice.value = Number(formatPrice(ce.close));
+              cb(ce);
             }
           }
         }
@@ -185,4 +185,8 @@ export function normalizeToLightweight(
   });
 
   return Array.isArray(data) ? data.map(normalize) : normalize(data);
+}
+
+function formatPrice(price: number): string {
+  return price.toFixed(2);
 }
