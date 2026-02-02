@@ -116,7 +116,7 @@ impl Candle {
 
             // Minute boundaries
             open_time: minute_ts,
-            close_time: minute_ts + 60_000 - 1, // inclusive close
+            close_time: minute_ts + 60_000, // exclusive close
 
             open: tick.price,
             high: tick.price,

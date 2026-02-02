@@ -141,6 +141,15 @@ pub fn spawn_symbol_worker(
                     let tick_minute_ts: i64 = ts_to_minute(tick.ts);
 
                     match &mut current_candle {
+                        Some(candle) if tick_minute_ts < candle.open_time => {
+
+                        warn!(
+                            symbol = %symbol,
+                            tick_ts = tick.ts,
+                            candle_open = candle.open_time,
+                            "Dropping late tick");
+                        }
+
                         // Same minute → update candle
                         // Specific case
                         Some(candle) if candle.open_time == tick_minute_ts => {
