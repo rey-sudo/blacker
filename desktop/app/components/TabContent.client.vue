@@ -1,7 +1,7 @@
 <template>
   <div class="tab-content">
     <CandleChart :tabId="tabId" />
-    <TabIndicators />
+
   </div>
 </template>
 

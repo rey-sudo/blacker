@@ -1,6 +1,6 @@
 /*
  * BLACKER
- * Copyright (C) 2024  Juan José Caballero Rey
+ * Copyright (C) 2025  Juan José Caballero Rey
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,12 @@
  */
 
 export default defineNuxtConfig({
+  nitro: {
+    preset: "node",
+    experimental: {
+      websocket: true,
+    },
+  },
   ssr: false,
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
