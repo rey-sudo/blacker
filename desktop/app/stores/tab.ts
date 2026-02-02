@@ -1,4 +1,23 @@
 import { defineStore } from "pinia";
+type RawCandle = {
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  open_time: number;
+  close_time: number;
+  volume: number;
+  symbol: string;
+  timeframe: string;
+};
+
+type LWCandle = {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+};
 
 export const createTabStore = (tabId: string) =>
   defineStore(`tab-${tabId}`, () => {
@@ -11,7 +30,6 @@ export const createTabStore = (tabId: string) =>
 
     const candles: any = ref([]);
     const candle = ref(null);
-    const lastPrice = ref(0);
 
     const fetching = ref(false);
     const fetchError = ref(null);
@@ -27,119 +45,104 @@ export const createTabStore = (tabId: string) =>
     const chartSettings = reactive({});
     const indicators = ref([]);
 
-    function calcularCierreSiguienteVela(velas: any) {
-      if (velas.length < 2) {
-        throw new Error(
-          "Se necesitan al menos 2 velas para calcular el cierre de la siguiente."
-        );
-      }
+    ///-----------------------------------
 
-      const ultima = velas[velas.length - 1];
-      const penultima = velas[velas.length - 2];
+    const socket = ref<WebSocket | null>(null);
+    const connected = ref(false);
+    const messages: any = ref([]);
+    const lastPrice = ref<number | null>(0);
 
-      // Duración de la vela en milisegundos
-      const duracion = ultima.time - penultima.time;
+    const subscribers = new Map<string, Set<(c: LWCandle) => void>>();
 
-      // Timestamp del cierre de la siguiente vela
-      const cierreSiguiente = ultima.time + duracion;
+    function subscribe(symbol: string, cb: (c: LWCandle) => void) {
+      const set = subscribers.get(symbol) ?? new Set();
+      set.add(cb);
+      subscribers.set(symbol, set);
 
-      return cierreSiguiente;
+      return () => set.delete(cb);
     }
 
-    const fetchAll = async () => {
-      await fetchCandles();
-      await fetchCandle();
+    const getChartData = () => {
+      sendFeedCommand({
+        action: "open_chart",
+        symbol: "BTCUSDT",
+        timeframe: "1m",
+      });
+      console.log("Tabstore: open_chart command sent");
     };
 
-    async function start() {
-      await fetchAll();
+    const handleEvents = (event: any) => {
+      try {
+        const data = JSON.parse(event.data);
+        //console.log(data);
 
-      historyInterval.value = setInterval(
-        async () => {
-          const isClosed = nextClose.value < getNow();
-          console.log(isClosed);
-          if (isClosed) {
-            await fetchAll();
+        if (data.event === "backend_connected") {
+          connected.value = true;
+          console.log("Tabstore: ws client connected to the service-feed");
+          getChartData();
+        }
+
+        if (data.type === "ohlcv_snapshot") {
+          candles.value = normalizeToLightweight(data.data);
+        }
+
+        if (data.type === "ohlcv") {
+          if (data.is_live) {
+            const set = subscribers.get(data.symbol);
+            if (!set) return;
+
+            for (const cb of set) {
+              const caca = normalizeToLightweight(data);
+              lastPrice.value = caca.close;
+              cb(caca);
+            }
           }
-        },
-        slaveId.value ? 60_000 : 60_000
-      );
+        }
+      } catch (err) {}
+    };
 
-      lastInterval.value = setInterval(() => fetchCandle(), 60_000);
-    }
+    const connectFeedWebsocket = () => {
+      if (socket.value) return;
 
-    function stop() {
-      if (lastInterval.value) {
-        clearInterval(lastInterval.value);
-        lastInterval.value = null;
-      }
-    }
+      const protocol = location.protocol === "https:" ? "wss" : "ws";
+      const url = `ws://localhost:3000/api/feed/get-connection`;
 
-    function reset() {
-      symbol.value = "BTCUSDT";
-      interval.value = "1h";
-      Object.assign(chartSettings, defaultChartSettings());
-      indicators.value = [];
-    }
+      socket.value = new WebSocket(url);
 
-    async function fetchCandles() {
-      try {
-        const QUERY_URL = slaveId.value
-          ? `/api/slave/${slaveId.value}/get-candles`
-          : "/api/market/get-candles";
+      socket.value.onopen = () => {};
 
-        const res: any = await $fetch(QUERY_URL, {
-          method: "GET",
-          params: {
-            symbol: symbol.value,
-            market: market.value,
-            interval: interval.value,
-            window: window.value,
-          },
-        });
+      socket.value.onmessage = (event) => handleEvents(event);
 
-        candles.value = res.data;
+      socket.value.onclose = () => {
+        connected.value = false;
+        socket.value = null;
+        console.log("[WS] desconectado");
+      };
 
-        nextClose.value = calcularCierreSiguienteVela(candles.value.slice(-2));
+      socket.value.onerror = (err: any) => {
+        console.error("[WS] error", err);
+      };
+    };
 
-        return res.data;
-      } catch (err: any) {
-        console.error("Error en fetchCandles:", err);
-        fetchError.value = err?.message || "Error desconocido";
-      }
-    }
+    const sendFeedCommand = (payload: any) => {
+      if (!socket.value || !connected.value) return;
+      socket.value.send(JSON.stringify(payload));
+    };
 
-    async function fetchCandle() {
-      try {
-        fetching.value = true;
+    const disconnectFeedWebsocket = () => {
+      socket.value?.close();
+      socket.value = null;
+    };
 
-        const QUERY_URL = slaveId.value
-          ? `/api/slave/${slaveId.value}/get-candle`
-          : "/api/market/get-candle";
+    const start = () => {
+      console.log("tabStore: Starting.");
+      connectFeedWebsocket();
+    };
 
-        const res: any = await $fetch(QUERY_URL, {
-          method: "GET",
-          params: {
-            symbol: symbol.value,
-            market: market.value,
-            interval: interval.value,
-            window: window.value,
-          },
-        });
-
-        console.log("22222222222222");
-
-        candle.value = res.data;
-        lastPrice.value = res.data.close;
-
-        return res.data;
-      } catch (err: any) {
-        console.error("Error en fetchCandle:", err);
-        fetchError.value = err?.message || "Error desconocido";
-        fetching.value = false;
-      }
-    }
-
+    const stop = () => {
+      console.log("tabStore: Stopping.");
+      disconnectFeedWebsocket();
+    };
     return {
       symbol,
       interval,
@@ -149,10 +152,10 @@ export const createTabStore = (tabId: string) =>
       candles,
       fetchError,
       fetching,
-      reset,
       start,
       stop,
       candle,
+      subscribe,
       crosshair,
       nextClose,
       logicalRange,
@@ -166,4 +169,20 @@ function defaultChartSettings() {
     grid: true,
     priceScale: "right",
   };
+}
+
+export function normalizeToLightweight(data: RawCandle): LWCandle;
+export function normalizeToLightweight(data: RawCandle[]): LWCandle[];
+export function normalizeToLightweight(
+  data: RawCandle | RawCandle[],
+): LWCandle | LWCandle[] {
+  const normalize = (c: RawCandle): LWCandle => ({
+    time: Math.floor(c.open_time / 1000), // 🔑 UNIX seconds
+    open: c.open,
+    high: c.high,
+    low: c.low,
+    close: c.close,
+  });
+
+  return Array.isArray(data) ? data.map(normalize) : normalize(data);
 }

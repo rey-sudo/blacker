@@ -226,19 +226,11 @@ const setupChart = () => {
     { deep: true }
   );
 
-  watch(
-    () => tabStore.candle,
-    (candle) => {
-      candleSeries.update(candle);
+  tabStore.subscribe("BTCUSDT", (candle) => {
+    console.log(candle)
+    candleSeries.update(candle)
+  })
 
-      if (acc.value < 1) {
-        centerChart();
-      }
-
-      acc.value++;
-    },
-    { deep: true }
-  );
 };
 
 const applyOptions = () => {

@@ -17,32 +17,18 @@ const props = defineProps({
 const visible = ref(false);
 
 const useTabStore = createTabStore(props.tabId);
+
 const tabsStore = useTabStore();
 
 const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
 
-const ws = useWsStore();
-
-watch(
-  () => ws.connected,
-  (isConnected) => {
-    if (isConnected) {
-      setTimeout(() => {
-        ws.send({
-          action: "open_chart",
-          symbol: "ADAUSDT",
-          timeframe: "1m",
-        });
-      }, 1000);
-    } else {
-      console.log("🔴 WS desconectado");
-    }
-  },
-  { immediate: true },
-);
 
 onMounted(() => {
-  ws.connect();
+  tabsStore.start();
+});
+
+onBeforeUnmount(() => {
+  tabsStore.stop();
 });
 </script>
 

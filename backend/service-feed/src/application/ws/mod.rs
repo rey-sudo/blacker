@@ -167,7 +167,7 @@ pub async fn handle_ws_command(cmd: WsCommand, tx: WsSender, state: Arc<AppState
                 from: 0,
                 to: 0,
 
-                length: 10,
+                length: 500,
             };
 
             let limit: i64 = chart.length as i64;
