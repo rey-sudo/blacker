@@ -50,7 +50,7 @@ export const createTabStore = (tabId: string) =>
     const socket = ref<WebSocket | null>(null);
     const connected = ref(false);
     const messages: any = ref([]);
-    const lastPrice = ref<number | null>(0);
+    const lastPrice = ref<string | null>("0");
 
     const subscribers = new Map<string, Set<(c: LWCandle) => void>>();
 
@@ -93,7 +93,7 @@ export const createTabStore = (tabId: string) =>
 
             for (const cb of set) {
               const ce = normalizeToLightweight(data);
-              lastPrice.value = Number(formatPrice(ce.close));
+              lastPrice.value = formatPrice(ce.close);
               cb(ce);
             }
           }
