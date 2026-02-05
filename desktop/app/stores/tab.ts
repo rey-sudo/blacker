@@ -22,6 +22,9 @@ type LWCandle = {
 export const createTabStore = (tabId: string) =>
   defineStore(`tab-${tabId}`, () => {
     const symbol = ref("BTCUSDT");
+    
+    const charts = ref([]);
+
     const market = ref("crypto");
     const interval = ref("1m");
     const window = ref(500);
