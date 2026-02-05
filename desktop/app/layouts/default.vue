@@ -1,6 +1,6 @@
 <template>
   <div class="layout">
-    <HeaderComp />
+    <Header/>
     <main class="content">
       <NuxtPage :key="$route.fullPath" />
     </main>

@@ -1,5 +1,5 @@
 <template>
-  <div v-for="tab in tabs" :key="tab.id" class="tab-layout">
+  <div v-for="tab in tabs" :key="tab.id" class="index-page">
     <component :is="tab.component" :tabId="tab.id" />
   </div>
 </template>
@@ -10,6 +10,17 @@ import { ref, watch, markRaw } from "vue";
 
 const tabsStore = useTabsStore();
 const tabs = ref([]);
+
+/**
+ * We use `markRaw` for the tab component because `TabContent` renders a chart.
+ *
+ * Chart components (Chart.js, ApexCharts, ECharts, etc.) should not be made reactive,
+ * since Vue's reactivity system is unnecessary for them and can cause performance
+ * issues or unexpected behavior.
+ *
+ * By marking the component as raw, we prevent Vue from wrapping it in a Proxy,
+ * avoiding unnecessary re-renders and ensuring better stability and performance.
+ */
 
 watch(
   () => tabsStore.tabs,
@@ -23,14 +34,8 @@ watch(
       }
     });
   },
-  { deep: true, immediate: true }
+  { deep: true, immediate: true },
 );
-
-function removeTab(id) {
-  tabs.value = tabs.value.filter((t) => t.id !== id);
-}
 </script>
 
-<style scoped>
-  
-</style>
+<style scoped></style>

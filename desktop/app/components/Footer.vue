@@ -46,7 +46,7 @@
 
 <style lang="css" scoped>
 .footer {
-  border-top: 1px solid var(--ui-border);
+  border-top: 1px solid var(--ui-border-accented);
   background: var(--nav-background);
   height: var(--footer-height);
   padding: 0 1rem;

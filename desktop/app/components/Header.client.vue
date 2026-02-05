@@ -24,7 +24,7 @@ const tabsStore = useTabsStore();
   height: var(--header-height);
   background: var(--nav-background);
   padding: var(--tab-content-padding);
-  border-bottom: 1px solid var(--ui-border);
+  border-bottom: 1px solid var(--ui-border-accented);
   padding-top: initial;
   padding-bottom: initial;
 }
