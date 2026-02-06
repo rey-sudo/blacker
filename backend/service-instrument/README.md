@@ -1,1 +1,2 @@
-service-instrument
+# rust-template
+ rust-template
