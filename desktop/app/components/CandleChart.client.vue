@@ -68,7 +68,7 @@ let countdownInterval = null;
 const timestamp = ref(getNow());
 
 const nextClose = computed(() =>
-  calculateCountdown(tabStore.nextClose, timestamp.value)
+  calculateCountdown(tabStore.nextClose, timestamp.value),
 );
 
 const chartContainer = ref(null);
@@ -130,7 +130,7 @@ const setupChart = () => {
       if (candleChart) {
         candleChart.applyOptions({ width: w, height: h });
       }
-    }
+    },
   );
 
   let rangeFrame = null;
@@ -223,14 +223,13 @@ const setupChart = () => {
       calculateMa(data);
       // addMarkers(data);
     },
-    { deep: true }
+    { deep: true },
   );
 
   tabStore.subscribe("BTCUSDT", (candle) => {
-    console.log(candle)
-    candleSeries.update(candle)
-  })
-
+    console.log(candle);
+    candleSeries.update(candle);
+  });
 };
 
 const applyOptions = () => {
@@ -332,6 +331,7 @@ function calculateCountdown(nextClose, nowValue) {
   display: flex;
   overflow: hidden;
   flex-direction: column;
+  border-radius: var(--chart-radius);
 }
 
 .candle-chart-header {

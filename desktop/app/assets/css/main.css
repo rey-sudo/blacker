@@ -96,6 +96,7 @@ body {
   --chart-background: var(--ui-bg);
   --chart-header-background: var(--ui-bg);
   --chart-header-height: 2.5rem;
+  --chart-radius: var(--ui-radius);
 
   --main-background: var(--ui-bg-accented);
 
