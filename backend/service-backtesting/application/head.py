@@ -1,0 +1,130 @@
+import asyncio
+import queue
+from multiprocessing import Process, Queue
+from typing import Dict
+from application.events import Tick, Shutdown, Result, Heartbeat, WorkerError
+from application.worker import worker_main
+
+
+class WorkerRef:
+    def __init__(self, context_id: str):
+        self.context_id = context_id
+        self.in_q = Queue(maxsize=1000)
+        self.out_q = Queue(maxsize=1000)
+        self.process = Process(
+            target=worker_main,
+            args=(context_id, self.in_q, self.out_q),
+            daemon=True,
+        )
+        self.process.start()
+        self.last_seen = asyncio.get_event_loop().time()
+
+    def send(self, event):
+        self.in_q.put_nowait(event)
+
+
+class AppState:
+    """
+    Global application state and supervisor.
+
+    AppState owns the lifecycle of all worker processes and provides
+    deterministic routing by `context_id`.
+
+    This class:
+    - keeps track of active workers
+    - enforces a maximum worker limit
+    - spawns workers lazily
+    - handles graceful worker shutdown
+
+    AppState is single-threaded and is owned exclusively by the Head
+    (asyncio event loop). No locking is required.
+    """    
+    def __init__(self, max_workers: int = 128):
+        """
+        Initialize the application state.
+
+        Args:
+            max_workers (int):
+                Maximum number of concurrent worker processes allowed.
+                Acts as a hard safety limit to prevent resource exhaustion.
+        """
+        
+        # Maps context_id -> WorkerRef
+        self.workers: Dict[str, WorkerRef] = {}
+        # Hard upper bound on the number of active workers
+        self.max_workers = max_workers
+
+    def get_or_spawn(self, context_id: str) -> WorkerRef:
+        """
+        Get the worker responsible for the given context_id.
+        
+        If no worker exists for this context, a new one is spawned and
+        registered. Exactly one worker exists per context_id.
+
+        Args:
+            context_id (str):
+            
+        Returns:
+            WorkerRef:
+                Reference to the worker process handling this context.
+
+        Raises:
+            RuntimeError:
+                If the maximum number of workers has been reached.
+        """        
+        if context_id not in self.workers:
+            # Enforce global worker limit
+            if len(self.workers) >= self.max_workers:
+                raise RuntimeError("max_workers reached")
+            
+            # Lazily spawn a new worker for this context
+            self.workers[context_id] = WorkerRef(context_id)
+        return self.workers[context_id]
+
+    def remove(self, context_id: str):
+        """
+        Remove and gracefully shut down the worker for the given context_id.
+
+        This method performs best-effort cleanup:
+        - removes the worker from the registry
+        - sends a Shutdown event to the worker
+        - never raises, even if shutdown fails
+
+        Args:
+            context_id (str):
+                Identifier of the worker to be removed.
+        """        
+        worker = self.workers.pop(context_id, None)
+        if worker:
+            try:
+                worker.send(Shutdown("removed"))
+            except Exception:
+                pass
+
+    def shutdown_all(self):
+        """
+        Request graceful shutdown of all active workers.
+
+        This method is synchronous and non-blocking.
+        It only sends shutdown events and clears internal state.
+        """
+        for ctx in list(self.workers.keys()):
+            self.remove(ctx)
+
+async def poll_worker_events(app_state: AppState, producer):
+    while True:
+        for ctx, worker in list(app_state.workers.items()):
+            try:
+                event = worker.out_q.get_nowait()
+            except queue.Empty:
+                continue
+
+            if isinstance(event, Result):
+                producer.send(event.context_id, event.payload)
+            elif isinstance(event, Heartbeat):
+                worker.last_seen = asyncio.get_event_loop().time()
+            elif isinstance(event, WorkerError):
+                # kill and cleanup
+                app_state.remove(ctx)
+
+        await asyncio.sleep(0.001)
