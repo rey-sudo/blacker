@@ -162,19 +162,30 @@ class AppState:
 
 
 async def bridge_worker_events(
-    mp_queue: Queue,
-    async_queue: asyncio.Queue,
+    worker_event_queue: Queue,
+    shared_queue: asyncio.Queue,
 ):
     """
-    Bridges multiprocessing.Queue -> asyncio.Queue.
+    Bridge function to transfer events from a blocking multiprocessing.Queue
+    (used by worker processes) into an asyncio.Queue (used by the async head).
 
-    This isolates blocking IPC from the event loop.
+    This allows worker events to be processed in the async event loop without
+    blocking it.
+
+    Args:
+        worker_event_queue (Queue): Blocking queue from worker processes.
+        shared_queue (asyncio.Queue): Asyncio queue to forward events into.
     """
+    # Get reference to the currently running asyncio event loop
     loop = asyncio.get_running_loop()
-
+    
+    # Continuously poll the blocking worker queue
     while True:
-        event = await loop.run_in_executor(None, mp_queue.get)
-        await async_queue.put(event)
+        # Run the blocking 'get' call in a thread pool executor to avoid blocking
+        # the event loop. This will wait until a worker puts an event.        
+        event = await loop.run_in_executor(None, worker_event_queue.get)
+        # Forward the event to the shared asyncio.Queue for async processing
+        await shared_queue.put(event)
 
         
 async def handle_worker_events(

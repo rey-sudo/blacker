@@ -2,7 +2,7 @@ import asyncio
 import json
 import pulsar
 import structlog
-from application.events import Command, Tick
+from application.events import Command
 from application.head import AppState, bridge_worker_events, handle_worker_events
 
 log = structlog.get_logger().bind(component="head")
