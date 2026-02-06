@@ -9,11 +9,19 @@ docker compose up -d
 
 docker exec -it broker bash
 bin/pulsar-admin namespaces create public/market-data
-
+bin/pulsar-admin namespaces create public/backtesting
 
 bin/pulsar-admin namespaces list public
 
 
 bin/pulsar-admin topics create-partitioned-topic \
   persistent://public/market-data/ticks \
+  --partitions 8
+
+bin/pulsar-admin topics create-partitioned-topic \
+  non-persistent://public/backtesting/input \
+  --partitions 8
+
+bin/pulsar-admin topics create-partitioned-topic \
+  non-persistent://public/backtesting/output \
   --partitions 8

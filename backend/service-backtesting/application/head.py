@@ -1,26 +1,48 @@
 import asyncio
 import queue
 from multiprocessing import Process, Queue
+import time
 from typing import Dict
+
+import structlog
 from application.events import Tick, Shutdown, Result, Heartbeat, WorkerError
 from application.worker import worker_main
 
+log = structlog.get_logger().bind(component="head")
 
 class WorkerRef:
-    def __init__(self, context_id: str):
+    """
+    Reference to a worker process.
+
+    Owns:
+    - input queue (head -> worker)
+    - process handle
+    - liveness metadata
+    """
+
+    def __init__(self, context_id: str, event_q: Queue):
         self.context_id = context_id
-        self.in_q = Queue(maxsize=1000)
-        self.out_q = Queue(maxsize=1000)
+        self.in_q: Queue = Queue(maxsize=10_000)
+        self.event_q = event_q
         self.process = Process(
             target=worker_main,
-            args=(context_id, self.in_q, self.out_q),
+            args=(context_id, self.in_q, self.event_q),
             daemon=True,
         )
-        self.process.start()
-        self.last_seen = asyncio.get_event_loop().time()
+        self.last_seen: float = time.monotonic()
 
-    def send(self, event):
-        self.in_q.put_nowait(event)
+        self.process.start()
+
+        log.info("worker_spawned", context_id=context_id)
+
+    def send(self, msg):
+        self.in_q.put(msg)
+
+    def shutdown(self, reason: str):
+        try:
+            self.send(Shutdown(reason))
+        except Exception:
+            pass
 
 
 class AppState:
@@ -49,10 +71,13 @@ class AppState:
                 Acts as a hard safety limit to prevent resource exhaustion.
         """
         
-        # Maps context_id -> WorkerRef
-        self.workers: Dict[str, WorkerRef] = {}
+
         # Hard upper bound on the number of active workers
         self.max_workers = max_workers
+        # Maps context_id -> WorkerRef
+        self.workers: Dict[str, WorkerRef] = {}
+        
+        self.worker_event_queue: Queue = Queue(maxsize=100_000)
 
     def get_or_spawn(self, context_id: str) -> WorkerRef:
         """
@@ -75,12 +100,21 @@ class AppState:
         if context_id not in self.workers:
             # Enforce global worker limit
             if len(self.workers) >= self.max_workers:
-                raise RuntimeError("max_workers reached")
+                raise RuntimeError("max_workers_limit")
             
             # Lazily spawn a new worker for this context
-            self.workers[context_id] = WorkerRef(context_id)
+            self.workers[context_id] = WorkerRef(
+                context_id=context_id,
+                event_q=self.worker_event_queue,
+            )
+            
         return self.workers[context_id]
-
+    
+    def touch(self, context_id: str):
+        worker = self.workers.get(context_id)
+        if worker:
+            worker.last_seen = time.monotonic()
+            
     def remove(self, context_id: str):
         """
         Remove and gracefully shut down the worker for the given context_id.
@@ -95,36 +129,78 @@ class AppState:
                 Identifier of the worker to be removed.
         """        
         worker = self.workers.pop(context_id, None)
+        
+        if not worker:
+            return
+        
+        log.warn("remove_worker_completed", context_id=context_id)
+          
         if worker:
             try:
-                worker.send(Shutdown("removed"))
+                worker.shutdown("removed")
+                worker.process.join(timeout=1.0)
+                log.warn("remove_worker_shutdown", context_id=context_id)
             except Exception:
                 pass
 
-    def shutdown_all(self):
+    async def shutdown_all(self):
         """
         Request graceful shutdown of all active workers.
 
         This method is synchronous and non-blocking.
         It only sends shutdown events and clears internal state.
         """
+        log.info("shutdown_all_started")
+        
         for ctx in list(self.workers.keys()):
             self.remove(ctx)
+            
+        await asyncio.sleep(0.2)
+            
+        log.info("shutdown_all_completed")
 
-async def poll_worker_events(app_state: AppState, producer):
+
+
+async def bridge_worker_events(
+    mp_queue: Queue,
+    async_queue: asyncio.Queue,
+):
+    """
+    Bridges multiprocessing.Queue -> asyncio.Queue.
+
+    This isolates blocking IPC from the event loop.
+    """
+    loop = asyncio.get_running_loop()
+
     while True:
-        for ctx, worker in list(app_state.workers.items()):
-            try:
-                event = worker.out_q.get_nowait()
-            except queue.Empty:
-                continue
+        event = await loop.run_in_executor(None, mp_queue.get)
+        await async_queue.put(event)
 
-            if isinstance(event, Result):
-                producer.send(event.context_id, event.payload)
-            elif isinstance(event, Heartbeat):
-                worker.last_seen = asyncio.get_event_loop().time()
-            elif isinstance(event, WorkerError):
-                # kill and cleanup
-                app_state.remove(ctx)
+        
+async def handle_worker_events(
+    app_state: AppState,
+    producer,
+    async_q: asyncio.Queue,
+):
+    """
+    Central event dispatcher for worker-generated events.
+    """
+    while True:
+        event = await async_q.get()
 
-        await asyncio.sleep(0.001)
+        if isinstance(event, Result):
+            producer.send(
+                key=event.context_id,
+                value=event.payload,
+            )
+
+        elif isinstance(event, Heartbeat):
+            app_state.touch(event.context_id)
+
+        elif isinstance(event, WorkerError):
+            log.error(
+                "worker_error",
+                context_id=event.context_id,
+                error=event.error,
+            )
+            app_state.remove(event.context_id)

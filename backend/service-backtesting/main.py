@@ -1,72 +1,133 @@
 import asyncio
 import signal
-from application.head import AppState, poll_worker_events
-from application.events import Tick
-from infrastructure.logging import setup_logging
+
 import structlog
+import pulsar
 
-class DummyProducer:
-    """
-    Placeholder del producer de Pulsar.
-    Reemplazar por infra/pulsar_producer.py
-    """
-    def send(self, key: str, value: bytes):
-        # En prod: producer.send(value, partition_key=key)
-        pass
-
-
-async def pulsar_consumer_loop(app_state: AppState):
-    """
-    Simulación del consumer Pulsar.
-    En prod: este loop recibe mensajes reales del topic input.
-    """
-    i = 0
-    while True:
-        context_id = f"ctx-{i % 4}"
-        worker = app_state.get_or_spawn(context_id)
-        worker.send(Tick(context_id, b"tick"))
-        i += 1
-        await asyncio.sleep(0.01)
+from application.events import Tick
+from application.head import AppState, bridge_worker_events, handle_worker_events
 
 
 
+log = structlog.get_logger().bind(component="main")
 
-async def main():
-    setup_logging()
 
-    log = structlog.get_logger().bind(component="head")
+# =========================
+# Pulsar setup helpers
+# =========================
 
-    log.info(f"Starting backtesting microservice")
-
-    app_state = AppState(max_workers=128)
-    
-    producer = DummyProducer()
-
-    # Task que drena eventos worker -> head -> Pulsar output
-    asyncio.create_task(poll_worker_events(app_state, producer))
-
-    # Task que consume Pulsar input (simulado)
-    consumer_task = asyncio.create_task(
-        pulsar_consumer_loop(app_state)
+async def create_pulsar_consumer(client):
+    return client.subscribe(
+        topic="non-persistent://public/backtesting/input",
+        subscription_name="service-backtesting",
+        consumer_type=pulsar.ConsumerType.Shared,
     )
 
-    # Shutdown limpio por SIGTERM / SIGINT
-    loop = asyncio.get_running_loop()
-    stop_event = asyncio.Event()
 
-    def _stop():
-        stop_event.set()
+def create_pulsar_producer(client):
+    return client.create_producer(
+        topic="non-persistent://public/backtesting/output",
+    )
+
+
+# =========================
+# Main loop
+# =========================
+
+async def run():
+    log.info("service_starting")
+
+    # --- Pulsar client ---
+    client = pulsar.Client("pulsar://127.0.0.1:6650")
+    consumer = await create_pulsar_consumer(client)
+    producer = create_pulsar_producer(client)
+
+    # --- App state ---
+    app_state = AppState(max_workers=128)
+
+    # --- Internal async event bus ---
+    async_event_q = asyncio.Queue(maxsize=10_000)
+
+    # --- Background tasks ---
+    tasks = [
+        asyncio.create_task(
+            bridge_worker_events(
+                app_state.worker_event_queue,
+                async_event_q,
+            )
+        ),
+        asyncio.create_task(
+            handle_worker_events(
+                app_state,
+                producer,
+                async_event_q,
+            )
+        ),
+    ]
+
+    log.info("service_ready")
+
+    try:
+        while True:
+            # Pulsar receive is blocking → executor
+            msg = await asyncio.get_running_loop().run_in_executor(
+                None,
+                consumer.receive,
+            )
+
+            context_id = msg.partition_key()
+            payload = msg.data()
+
+            worker = app_state.get_or_spawn(context_id)
+            
+            worker.send(
+                Tick(
+                    context_id=context_id,
+                    payload=payload,
+                )
+            )
+
+            consumer.acknowledge(msg)
+
+    except asyncio.CancelledError:
+        log.info("main_task_cancelled")
+
+    finally:
+        log.info("service_shutting_down")
+
+        for t in tasks:
+            t.cancel()
+
+        await app_state.shutdown()
+
+        producer.close()
+        consumer.close()
+        client.close()
+
+        log.info("service_stopped")
+
+
+# =========================
+# Entrypoint
+# =========================
+
+def main():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    main_task = loop.create_task(run())
 
     for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, _stop)
+        loop.add_signal_handler(
+            sig,
+            lambda: main_task.cancel(),
+        )
 
-    await stop_event.wait()
-
-    consumer_task.cancel()
-    
-    app_state.shutdown_all()
-    await asyncio.sleep(0.2)
+    try:
+        loop.run_until_complete(main_task)
+    finally:
+        loop.close()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
