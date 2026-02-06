@@ -52,7 +52,7 @@ onBeforeUnmount(() => {
   height: calc(100vh - (var(--header-height) + var(--footer-height)));
   overflow: hidden;
   padding: var(--tab-content-padding);
-  grid-template-rows: 7fr 3fr;
+  grid-template-rows: 8fr 2fr;
   box-sizing: border-box;
 }
 

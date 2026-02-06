@@ -1,10 +1,12 @@
 <template>
   <UButton
     color="neutral"
-    size="md"
+    size="sm"
     variant="ghost"
-    icon="material-symbols:candlestick-chart-outline"
-  />
+    icon="lucide:chart-candlestick"
+  >
+
+  </UButton>
 </template>
 
 <script setup></script>
