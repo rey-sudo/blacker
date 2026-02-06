@@ -1,7 +1,8 @@
 import asyncio
+import json
 import pulsar
 import structlog
-from application.events import Tick
+from application.events import Command, Tick
 from application.head import AppState, bridge_worker_events, handle_worker_events
 
 log = structlog.get_logger().bind(component="head")
@@ -65,11 +66,17 @@ async def run():
             # All ticks with the same context_id will be handled by the same worker.
             context_id = msg.partition_key()
             payload = msg.data()
+            payload_str = payload.decode("utf-8")
+            payload_dict = json.loads(payload_str)
+
+            command = payload_dict.get("command")
+            params = payload_dict.get("params")
             
             log.debug(
                 "pulsar_message_received",
+                type=command,
                 context_id=context_id,
-                payload_size=len(payload),
+                params=params,
             )
             
             # Lazily retrieve or spawn a worker for this context.
@@ -79,9 +86,10 @@ async def run():
             # Forward the tick to the worker process.
             # This is a non-blocking IPC enqueue operation.
             worker.send(
-                Tick(
+                Command(
+                    type=command,
                     context_id=context_id,
-                    payload=payload,
+                    params=params,
                 )
             )
 

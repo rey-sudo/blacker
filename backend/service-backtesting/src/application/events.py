@@ -3,7 +3,12 @@ from typing import Any
 import time
 
 # ---- Head -> Worker events ----
-
+@dataclass
+class Command:
+    type: str
+    context_id: str
+    params: bytes
+    
 @dataclass
 class Tick:
     context_id: str

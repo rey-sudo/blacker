@@ -10,4 +10,5 @@ src/backtesting_service.egg-info/top_level.txt
 src/infrastructure/logging.py
 src/infrastructure/pulsar_consumer.py
 src/infrastructure/pulsar_producer.py
+tests/test_publisher.py
 tests/test_worker_io.py
