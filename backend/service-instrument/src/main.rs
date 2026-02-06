@@ -1,6 +1,6 @@
 /*
  * BLACKER
- * Copyright (C) 2026  Juan José Caballero Rey
+ * Copyright (C) 2025  Juan José Caballero Rey
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use axum::Router;
 use tracing::info;
-use service_ingest_api::{
+use service_instrument::{
     application::{api, state::AppState},
     config::Config,
     infrastructure::{bootstrap, database::Database},
