@@ -46,21 +46,21 @@ async def run():
     app_state = AppState(max_workers=128)
 
     # --- Internal async event bus ---
-    async_event_q = asyncio.Queue(maxsize=10_000)
+    shared_queue = asyncio.Queue(maxsize=10_000)
 
     # --- Background tasks ---
     tasks = [
         asyncio.create_task(
             bridge_worker_events(
                 app_state.worker_event_queue,
-                async_event_q,
+                shared_queue,
             )
         ),
         asyncio.create_task(
             handle_worker_events(
                 app_state,
                 producer,
-                async_event_q,
+                shared_queue,
             )
         ),
     ]

@@ -11,8 +11,8 @@ from application.events import Heartbeat, Result, Shutdown, Tick, WorkerError
 
 def worker_main(
     context_id: str,
-    in_q: Queue,
-    event_q: Queue,
+    in_queue: Queue,
+    out_queue: Queue,
 ):
     """
     Worker process entrypoint.
@@ -21,8 +21,8 @@ def worker_main(
     It owns its internal state and processes events sequentially.
 
     Communication:
-    - Receives commands via `in_q`
-    - Publishes events to the Head via `event_q`
+    - Receives commands via `in_queue`
+    - Publishes events to the Head via `out_queue`
     """
 
     log = structlog.get_logger().bind(
@@ -38,14 +38,14 @@ def worker_main(
     try:
         while True:
             # Blocking wait for next command
-            event = in_q.get()
+            event = in_queue.get()
 
             if isinstance(event, Tick):
                 try:
                     result = process_tick(state, event.payload)
 
                     if result is not None:
-                        event_q.put(
+                        out_queue.put(
                             Result(
                                 context_id=context_id,
                                 payload=result,
@@ -54,7 +54,7 @@ def worker_main(
 
                 except Exception as e:
                     log.exception("tick_processing_failed")
-                    event_q.put(
+                    out_queue.put(
                         WorkerError(
                             context_id=context_id,
                             error=str(e),
@@ -68,7 +68,7 @@ def worker_main(
             # Emit heartbeat periodically
             now = time.monotonic()
             if now - last_heartbeat >= 1.0:
-                event_q.put(
+                out_queue.put(
                     Heartbeat(
                         context_id=context_id,
                         ts=now,
@@ -79,7 +79,7 @@ def worker_main(
     except Exception:
         # Any unexpected failure is reported upstream
         log.exception("worker_crashed")
-        event_q.put(
+        out_queue.put(
             WorkerError(
                 context_id=context_id,
                 error=traceback.format_exc(),

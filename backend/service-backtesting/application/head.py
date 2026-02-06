@@ -20,13 +20,13 @@ class WorkerRef:
     - liveness metadata
     """
 
-    def __init__(self, context_id: str, event_q: Queue):
+    def __init__(self, context_id: str, out_queue: Queue):
         self.context_id = context_id
-        self.in_q: Queue = Queue(maxsize=10_000)
-        self.event_q = event_q
+        self.in_queue: Queue = Queue(maxsize=10_000)
+        self.out_queue = out_queue
         self.process = Process(
             target=worker_main,
-            args=(context_id, self.in_q, self.event_q),
+            args=(context_id, self.in_queue, self.out_queue),
             daemon=True,
         )
         self.last_seen: float = time.monotonic()
@@ -36,7 +36,7 @@ class WorkerRef:
         log.info("worker_spawned", context_id=context_id)
 
     def send(self, msg):
-        self.in_q.put(msg)
+        self.in_queue.put(msg)
 
     def shutdown(self, reason: str):
         try:
@@ -105,7 +105,7 @@ class AppState:
             # Lazily spawn a new worker for this context
             self.workers[context_id] = WorkerRef(
                 context_id=context_id,
-                event_q=self.worker_event_queue,
+                out_queue=self.worker_event_queue,
             )
             
         return self.workers[context_id]
@@ -180,13 +180,13 @@ async def bridge_worker_events(
 async def handle_worker_events(
     app_state: AppState,
     producer,
-    async_q: asyncio.Queue,
+    shared_queue: asyncio.Queue,
 ):
     """
     Central event dispatcher for worker-generated events.
     """
     while True:
-        event = await async_q.get()
+        event = await shared_queue.get()
 
         if isinstance(event, Result):
             producer.send(
