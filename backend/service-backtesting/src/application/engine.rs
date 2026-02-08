@@ -69,7 +69,7 @@ impl BacktestEngine {
     }
 
     /// Inicia la reproducción en un hilo separado
-    pub fn play(&self, speed_ms: u64) {
+    pub fn play(&self, speed_ns: u64) {
         if self.is_playing.load(Ordering::Relaxed) {
             return;
         }
@@ -94,8 +94,40 @@ impl BacktestEngine {
 
                 cursor.fetch_add(1, Ordering::Release);
 
-                if speed_ms > 0 {
-                    //  thread::sleep(Duration::from_millis(speed_ms));
+                if speed_ns > 0 {
+                    thread::sleep(Duration::from_nanos(speed_ns));
+                }
+            }
+        });
+    }
+
+    pub fn play_reverse(&self, speed_ns: u64) {
+        if self.is_playing.load(Ordering::Relaxed) {
+            return;
+        }
+
+        self.is_playing.store(true, Ordering::Relaxed);
+
+        let cursor = Arc::clone(&self.cursor);
+        let is_playing = Arc::clone(&self.is_playing);
+
+        thread::spawn(move || {
+            println!("⏪ Reproducción hacia atrás iniciada...");
+            while is_playing.load(Ordering::Relaxed) {
+                let current = cursor.load(Ordering::Acquire);
+
+                // Condición de parada: llegamos al primer tick
+                if current == 0 {
+                    is_playing.store(false, Ordering::Release);
+                    println!("⏪ Inicio de los datos alcanzado.");
+                    break;
+                }
+
+                // Restamos 1 al cursor
+                cursor.fetch_sub(1, Ordering::Release);
+
+                if speed_ns > 0 {
+                    thread::sleep(std::time::Duration::from_nanos(speed_ns));
                 }
             }
         });
@@ -178,5 +210,63 @@ impl BacktestEngine {
 
         candles.reverse(); // De más antigua a más reciente
         candles
+    }
+
+    pub fn get_live_candle(&self, timeframe_ms: i64) -> Option<Candle> {
+        let current_idx = self.cursor.load(Ordering::Acquire);
+
+        // No hay vela si no hay datos
+        if self.total_ticks == 0 || current_idx >= self.total_ticks {
+            return None;
+        }
+
+        let ts_slice = &self.timestamps;
+        let pr_slice = &self.prices;
+        let qt_slice = &self.quantities;
+
+        let current_ts = ts_slice[current_idx];
+
+        // 1. Calcular el inicio exacto de la vela actual (ej. si son las 10:01:15 y el TF es 1m, el inicio es 10:01:00)
+        let candle_start_ts = (current_ts / timeframe_ms) * timeframe_ms;
+
+        let mut high = f64::MIN;
+        let mut low = f64::MAX;
+        let mut volume = 0.0;
+        let close = pr_slice[current_idx]; // El último precio es el "close" momentáneo
+        let mut open = 0.0;
+
+        let mut i = current_idx;
+        let mut found_ticks = false;
+
+        // 2. Retroceder desde el cursor hasta encontrar el inicio de la vela
+        while i > 0 && ts_slice[i] >= candle_start_ts {
+            let p = pr_slice[i];
+            let q = qt_slice[i];
+
+            if p > high {
+                high = p;
+            }
+            if p < low {
+                low = p;
+            }
+            volume += q;
+            open = p; // El último tick procesado hacia atrás será el primero en el tiempo (Open)
+
+            found_ticks = true;
+            i -= 1;
+        }
+
+        if !found_ticks {
+            return None;
+        }
+
+        Some(Candle {
+            timestamp: candle_start_ts,
+            open,
+            high,
+            low,
+            close,
+            volume,
+        })
     }
 }

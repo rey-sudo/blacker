@@ -2,35 +2,40 @@ use polars::prelude::*;
 use service_backtesting::application::engine::BacktestEngine;
 use std::thread;
 
-fn main() -> PolarsResult<()> {
-    let path_parquet: &str = "data/BTCUSDT-aggTrades-2026-02-07.parquet";
+fn main() {
+    let engine: Arc<BacktestEngine> = Arc::new(
+        BacktestEngine::new("data/BTCUSDT-aggTrades-2026-02-07.parquet")
+            .expect("Error al cargar el motor"),
+    );
 
+    let engine_play: Arc<BacktestEngine> = Arc::clone(&engine);
+    engine_play.play(0);
 
-    println!("Cargando motor de backtesting...");
+    engine_play.mostrar_tick_actual();
 
-    
-    let engine: BacktestEngine = BacktestEngine::new(path_parquet)?;
-    
-    println!("Motor listo running in 5s. Ticks totales: {}", engine.total_ticks);
-    thread::sleep(std::time::Duration::from_secs(5));
+    thread::sleep(std::time::Duration::from_millis(100));
 
-    engine.play(1);
+    // Mientras el motor esté activo o queramos monitorear
+    while engine.is_playing.load(std::sync::atomic::Ordering::Relaxed)
+        || engine.cursor.load(std::sync::atomic::Ordering::Relaxed) < engine.total_ticks - 1
+    {
+        // Obtener la vela actual de 1 minuto (60,000 ms)
+        if let Some(live_candle) = engine.get_live_candle(60_000) {
+            println!(
+                "TS: {} | O: {:.2} | H: {:.2} | L: {:.2} | C: {:.2} | Vol: {:.2}",
+                live_candle.timestamp,
+                live_candle.open,
+                live_candle.high,
+                live_candle.low,
+                live_candle.close,
+                live_candle.volume
+            );
+        } else {
+            println!("Esperando datos...");
+        }
 
-    thread::sleep(std::time::Duration::from_secs(10));
-
-    engine.pause();
-
-    engine.mostrar_tick_actual();
-
-    let timeframe: i64 = 60 * 1000; // 1 minuto en ms
-    let history = engine.get_ohlcv(timeframe, 500);
-
-    if let Some(actual) = history.last() {
-        println!(
-            "Vela actual - Open: {}, Close: {}, Vol: {}",
-            actual.open, actual.close, actual.volume
-        );
+        thread::sleep(std::time::Duration::from_secs(1));
     }
 
-    Ok(())
+    println!("✅ Simulación terminada.");
 }
