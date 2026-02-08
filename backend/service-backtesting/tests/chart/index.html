@@ -25,8 +25,8 @@
 
       .chart-container {
         width: 100%;
-        max-width: 1200px;
-        height: 600px;
+        max-width: 1300px;
+        height: 700px;
         background: #131722;
         border-radius: 12px;
         padding: 16px;
@@ -80,13 +80,61 @@
         <button id="stepForward" title="Step forward">⏭</button>
       </div>
     </div>
+    <script>
+      function generateFakeOHLCV(
+        length,
+        {
+          startPrice = 100,
+          startDate = "2024-01-01",
+          volatility = 0.02, // 2% por vela
+          volumeBase = 1200,
+        } = {},
+      ) {
+        const data = [];
+        let lastClose = startPrice;
+        let currentDate = new Date(startDate);
 
+        for (let i = 0; i < length; i++) {
+          const direction = Math.random() > 0.5 ? 1 : -1;
+          const changePercent = Math.random() * volatility * direction;
+          const close = lastClose * (1 + changePercent);
+
+          const open = lastClose;
+          const high =
+            Math.max(open, close) * (1 + Math.random() * volatility * 0.5);
+          const low =
+            Math.min(open, close) * (1 - Math.random() * volatility * 0.5);
+
+          const volume =
+            volumeBase +
+            Math.floor(Math.random() * volumeBase * 0.6) +
+            (Math.random() > 0.9 ? volumeBase * 2 : 0);
+
+          data.push({
+            time: currentDate.toISOString().slice(0, 10), // YYYY-MM-DD
+            open: +open.toFixed(2),
+            high: +high.toFixed(2),
+            low: +low.toFixed(2),
+            close: +close.toFixed(2),
+            volume: Math.floor(volume),
+          });
+
+          lastClose = close;
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        return data;
+      }
+    </script>
     <script type="module">
       import {
         createChart,
         CandlestickSeries,
         HistogramSeries,
       } from "https://esm.sh/lightweight-charts";
+
+      const data = generateFakeOHLCV(300);
+
       const container = document.getElementById("chart");
 
       const chart = createChart(container, {
@@ -109,97 +157,16 @@
           },
         },
         timeScale: {
-          barSpacing: 12,
+          barSpacing: 6,
           timeVisible: true,
+          minBarSpacing: 2,
+          rightOffset: 20,
         },
       });
 
       const candles = chart.addSeries(CandlestickSeries, {
         priceScaleId: "right",
       });
-
-      const data = [
-        {
-          time: "2024-01-02",
-          open: 100.3,
-          high: 101.85,
-          low: 99.7,
-          close: 101.4,
-          volume: 980,
-        },
-        {
-          time: "2024-01-03",
-          open: 101.45,
-          high: 103.1,
-          low: 101.2,
-          close: 102.75,
-          volume: 1120,
-        },
-        {
-          time: "2024-01-04",
-          open: 102.7,
-          high: 104.3,
-          low: 102.1,
-          close: 103.9,
-          volume: 1450,
-        },
-        {
-          time: "2024-01-05",
-          open: 103.95,
-          high: 104.1,
-          low: 101.8,
-          close: 102.4,
-          volume: 1680,
-        },
-        {
-          time: "2024-01-08",
-          open: 102.35,
-          high: 103.2,
-          low: 100.9,
-          close: 101.1,
-          volume: 1540,
-        },
-        {
-          time: "2024-01-09",
-          open: 101.05,
-          high: 102.0,
-          low: 99.6,
-          close: 100.2,
-          volume: 1820,
-        },
-        {
-          time: "2024-01-10",
-          open: 100.25,
-          high: 101.4,
-          low: 99.9,
-          close: 101.1,
-          volume: 1360,
-        },
-        {
-          time: "2024-01-11",
-          open: 101.15,
-          high: 103.6,
-          low: 100.8,
-          close: 103.2,
-          volume: 2100,
-        },
-        {
-          time: "2024-01-12",
-          open: 103.25,
-          high: 104.9,
-          low: 102.7,
-          close: 104.5,
-          volume: 1980,
-        },
-        {
-          time: "2024-01-15",
-          open: 104.55,
-          high: 105.1,
-          low: 103.4,
-          close: 103.8,
-          volume: 1620,
-        },
-      ];
 
       candles.setData(
         data.map((d) => ({
@@ -212,6 +179,80 @@
       );
 
       chart.timeScale().fitContent();
+
+      /* =========================
+     REPLAY STATE
+     ========================= */
+      let currentIndex = 0;
+      let isPlaying = false;
+      let playInterval = null;
+
+      candles.setData([]);
+
+      function render() {
+        candles.setData(data.slice(0, currentIndex));
+        // chart.timeScale().fitContent();
+      }
+
+      /* =========================
+     CONTROLS LOGIC
+     ========================= */
+      function stepForward() {
+        if (currentIndex >= data.length) return;
+        currentIndex++;
+        render();
+      }
+
+      function stepBack() {
+        if (currentIndex <= 0) return;
+        currentIndex--;
+        render();
+      }
+
+      function play() {
+        if (isPlaying) return;
+        isPlaying = true;
+        playPauseBtn.textContent = "⏸";
+
+        playInterval = setInterval(() => {
+          if (currentIndex >= data.length) {
+            pause();
+            return;
+          }
+          stepForward();
+        }, 600); // velocidad replay
+      }
+
+      function pause() {
+        isPlaying = false;
+        playPauseBtn.textContent = "▶️";
+        clearInterval(playInterval);
+      }
+
+      function togglePlayPause() {
+        isPlaying ? pause() : play();
+      }
+
+      /* =========================
+     BUTTON BINDINGS
+     ========================= */
+      const stepBackBtn = document.getElementById("stepBack");
+      const playPauseBtn = document.getElementById("playPause");
+      const stepForwardBtn = document.getElementById("stepForward");
+
+      stepBackBtn.addEventListener("click", stepBack);
+      playPauseBtn.addEventListener("click", togglePlayPause);
+      stepForwardBtn.addEventListener("click", stepForward);
+
+      /* =========================
+     RESIZE HANDLING
+     ========================= */
+      window.addEventListener("resize", () => {
+        chart.applyOptions({
+          width: container.clientWidth,
+          height: container.clientHeight,
+        });
+      });
     </script>
   </body>
 </html>
