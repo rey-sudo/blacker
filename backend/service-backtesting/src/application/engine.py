@@ -1,14 +1,17 @@
 import pandas as pd
 import time
+from copy import deepcopy
 
 # ----------------------------------------
-# OHLCV incremental por timeframe
+# OHLCV incremental con snapshot por vela
 # ----------------------------------------
 class OHLCVSeries:
     def __init__(self, timeframe: str):
         self.timeframe = timeframe
-        self.closed = []       # velas cerradas
-        self.current = None    # vela en construcción
+        self.closed = []               # velas cerradas
+        self.current = None            # vela en construcción
+        self.current_snapshot = None   # snapshot antes del último tick
+        self.tick_buffer = []          # ticks que forman la vela actual
 
     def update_tick(self, tick: pd.Series):
         ts = tick["timestamp"]
@@ -25,7 +28,13 @@ class OHLCVSeries:
                 "close": price,
                 "volume": qty
             }
+            self.tick_buffer.append(tick)
+            self.current_snapshot = deepcopy(self.current)
             return
+
+        # guardar snapshot antes de modificar
+        self.current_snapshot = deepcopy(self.current)
+        self.tick_buffer.append(tick)
 
         # mismo intervalo
         if ts < self.current["start"] + pd.Timedelta(self.timeframe):
@@ -45,16 +54,33 @@ class OHLCVSeries:
                 "close": price,
                 "volume": qty
             }
+            # reset buffer para la nueva vela
+            self.tick_buffer = [tick]
+            self.current_snapshot = deepcopy(self.current)
 
-    def remove_last_tick(self, tick: pd.Series):
-        """
-        Para step_backward: eliminamos el tick actual.
-        Simple: se reconstruye solo la última vela si es necesario.
-        """
-        # reconstrucción mínima: quitar vela actual si vacía
-        # para simplificar, se recalcula a partir de los ticks de esa vela
-        # en un engine real se usaría stack o snapshots
-        raise NotImplementedError("step_backward requiere snapshot o reconstrucción parcial")
+    def step_backward(self):
+        if not self.tick_buffer:
+            # no hay ticks, quizás eliminar la última vela cerrada
+            if self.closed:
+                self.current = self.closed.pop()
+                self.tick_buffer = []
+                self.current_snapshot = deepcopy(self.current)
+            return
+
+        # quitar el último tick
+        self.tick_buffer.pop()
+        # restaurar snapshot
+        if self.tick_buffer:
+            self.current = deepcopy(self.current_snapshot)
+        else:
+            # si no quedan ticks, retroceder a la vela anterior
+            if self.closed:
+                self.current = self.closed.pop()
+                self.tick_buffer = []
+                self.current_snapshot = deepcopy(self.current)
+            else:
+                self.current = None
+                self.current_snapshot = None
 
     def get_ohlcv_df(self):
         df = pd.DataFrame(self.closed + ([self.current] if self.current else []))
@@ -74,12 +100,16 @@ class TimeframeManager:
         for series in self.series.values():
             series.update_tick(tick)
 
+    def step_backward_all(self):
+        for series in self.series.values():
+            series.step_backward()
+
     def ohlcv(self, timeframe: str):
         return self.series[timeframe].get_ohlcv_df()
 
 
 # ----------------------------------------
-# Engine incremental
+# Engine incremental bidireccional
 # ----------------------------------------
 class BacktestEngine:
     def __init__(self, ticks: pd.DataFrame, timeframes: list[str]):
@@ -88,7 +118,7 @@ class BacktestEngine:
         self.playing = False
         self.tf_manager = TimeframeManager(timeframes)
 
-        # inicializamos primera vela
+        # inicializa primera vela si hay ticks
         if len(self.ticks) > 0:
             self.tf_manager.update_tick_all(self.ticks.iloc[0])
 
@@ -102,8 +132,9 @@ class BacktestEngine:
             self.tf_manager.update_tick_all(tick)
 
     def step_backward(self):
-        # 🔹 Simplificación: para step_backward real necesitarías snapshots
-        raise NotImplementedError("Step backward aún no implementado en incremental")
+        if self.cursor > 0:
+            self.cursor -= 1
+            self.tf_manager.step_backward_all()
 
     def play(self, speed: float = 0.01):
         self.playing = True
