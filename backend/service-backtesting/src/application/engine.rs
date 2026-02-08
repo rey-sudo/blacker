@@ -3,9 +3,17 @@ use std::fs::File;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::thread;
-use std::time::Duration;
 
-// --- Motor de Backtesting ---
+#[derive(Debug, Clone)]
+pub struct Candle {
+    pub timestamp: i64,
+    pub open: f64,
+    pub high: f64,
+    pub low: f64,
+    pub close: f64,
+    pub volume: f64,
+}
+
 pub struct BacktestEngine {
     data: Arc<DataFrame>,
     pub cursor: Arc<AtomicUsize>,
@@ -88,5 +96,91 @@ impl BacktestEngine {
         if let Ok(row) = self.data.get_row(idx) {
             println!("Tick [{}]: {:?}", idx, row);
         }
+    }
+
+    pub fn get_ohlcv(&self, timeframe_ms: i64, length: usize) -> Vec<Candle> {
+        let current_idx: usize = self.cursor.load(Ordering::Relaxed);
+        if current_idx == 0 {
+            return vec![];
+        }
+
+        let mut candles: Vec<Candle> = Vec::with_capacity(length);
+
+        let ts_col = self
+            .data
+            .column("column_6")
+            .unwrap()
+            .i64()
+            .unwrap()
+            .rechunk();
+        let pr_col = self
+            .data
+            .column("column_2")
+            .unwrap()
+            .f64()
+            .unwrap()
+            .rechunk();
+        let qt_col = self
+            .data
+            .column("column_3")
+            .unwrap()
+            .f64()
+            .unwrap()
+            .rechunk();
+
+        // 2. Ahora cont_slice() funcionará siempre
+        let ts_slice = ts_col.cont_slice().unwrap();
+        let pr_slice = pr_col.cont_slice().unwrap();
+        let qt_slice = qt_col.cont_slice().unwrap();
+
+        let mut i = current_idx;
+        let last_ts = ts_slice[i];
+        let mut current_candle_end = (last_ts / timeframe_ms) * timeframe_ms;
+
+        for _ in 0..length {
+            if i == 0 {
+                break;
+            }
+
+            let mut high = f64::MIN;
+            let mut low = f64::MAX;
+            let mut volume = 0.0;
+            let close = pr_slice[i];
+            let mut open = close;
+
+            // Bucle interno sobre memoria contigua (Súper rápido)
+            while i > 0 && ts_slice[i] >= current_candle_end {
+                let p = pr_slice[i];
+                let q = qt_slice[i];
+
+                if p > high {
+                    high = p;
+                }
+                if p < low {
+                    low = p;
+                }
+                volume += q;
+                open = p;
+                i -= 1;
+            }
+
+            // Evitamos agregar velas "vacías" si i llegó a 0 prematuramente
+            candles.push(Candle {
+                timestamp: current_candle_end,
+                open,
+                high,
+                low,
+                close,
+                volume,
+            });
+
+            current_candle_end -= timeframe_ms;
+            if i == 0 {
+                break;
+            }
+        }
+
+        candles.reverse();
+        candles
     }
 }
