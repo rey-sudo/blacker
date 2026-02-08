@@ -60,7 +60,11 @@ class BacktestUI:
         self.speed_scale.set(50)  # valor inicial
         self.speed_scale.pack(side=tk.LEFT, padx=5)
         
-
+        # Candle a candle
+        self.btn_back_candle = ttk.Button(frame, text="⬅️ Back Candle", command=self.back_candle)
+        self.btn_back_candle.pack(side=tk.LEFT, padx=5)
+        self.btn_next_candle = ttk.Button(frame, text="➡️ Next Candle", command=self.next_candle)
+        self.btn_next_candle.pack(side=tk.LEFT, padx=5)
     # ----------------------------------------
     # Botones
     # ----------------------------------------
@@ -70,6 +74,14 @@ class BacktestUI:
 
     def step_backward(self):
         self.engine.step_backward()
+        self.update_ui()
+
+    def next_candle(self):
+        self.engine.next_candle()
+        self.update_ui()
+
+    def back_candle(self):
+        self.engine.back_candle()
         self.update_ui()
 
     def play(self):
