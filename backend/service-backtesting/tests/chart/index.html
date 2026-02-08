@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Lightweight Charts v4+ (ESM working)</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: #0f1115;
+        font-family: system-ui, sans-serif;
+      }
+
+      .app {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        padding: 24px;
+        box-sizing: border-box;
+      }
+
+      .chart-container {
+        width: 100%;
+        max-width: 1200px;
+        height: 600px;
+        background: #131722;
+        border-radius: 12px;
+        padding: 16px;
+        box-sizing: border-box;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      }
+
+      #chart {
+        width: 100%;
+        height: 100%;
+      }
+
+      .controls {
+        margin-top: 12px;
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+      }
+
+      .controls button {
+        background: #1f2430;
+        border: 1px solid #2a2e39;
+        color: #d1d4dc;
+        font-size: 18px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          transform 0.1s;
+      }
+
+      .controls button:hover {
+        background: #2a2e39;
+      }
+
+      .controls button:active {
+        transform: scale(0.95);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="chart-container">
+        <div id="chart"></div>
+      </div>
+
+      <div class="controls">
+        <button id="stepBack" title="Step back">⏮</button>
+        <button id="playPause" title="Play / Pause">▶️</button>
+        <button id="stepForward" title="Step forward">⏭</button>
+      </div>
+    </div>
+
+    <script type="module">
+      import {
+        createChart,
+        CandlestickSeries,
+        HistogramSeries,
+      } from "https://esm.sh/lightweight-charts";
+      const container = document.getElementById("chart");
+
+      const chart = createChart(container, {
+        width: container.clientWidth,
+        height: container.clientHeight,
+        layout: {
+          background: { color: "#0f1115" },
+          textColor: "#d1d4dc",
+        },
+        grid: {
+          vertLines: {
+            color: "#1f2430",
+            style: 1,
+            visible: true,
+          },
+          horzLines: {
+            color: "#1f2430",
+            style: 1,
+            visible: true,
+          },
+        },
+        timeScale: {
+          barSpacing: 12,
+          timeVisible: true,
+        },
+      });
+
+      const candles = chart.addSeries(CandlestickSeries, {
+        priceScaleId: "right",
+      });
+
+      const data = [
+        {
+          time: "2024-01-02",
+          open: 100.3,
+          high: 101.85,
+          low: 99.7,
+          close: 101.4,
+          volume: 980,
+        },
+        {
+          time: "2024-01-03",
+          open: 101.45,
+          high: 103.1,
+          low: 101.2,
+          close: 102.75,
+          volume: 1120,
+        },
+        {
+          time: "2024-01-04",
+          open: 102.7,
+          high: 104.3,
+          low: 102.1,
+          close: 103.9,
+          volume: 1450,
+        },
+        {
+          time: "2024-01-05",
+          open: 103.95,
+          high: 104.1,
+          low: 101.8,
+          close: 102.4,
+          volume: 1680,
+        },
+        {
+          time: "2024-01-08",
+          open: 102.35,
+          high: 103.2,
+          low: 100.9,
+          close: 101.1,
+          volume: 1540,
+        },
+        {
+          time: "2024-01-09",
+          open: 101.05,
+          high: 102.0,
+          low: 99.6,
+          close: 100.2,
+          volume: 1820,
+        },
+        {
+          time: "2024-01-10",
+          open: 100.25,
+          high: 101.4,
+          low: 99.9,
+          close: 101.1,
+          volume: 1360,
+        },
+        {
+          time: "2024-01-11",
+          open: 101.15,
+          high: 103.6,
+          low: 100.8,
+          close: 103.2,
+          volume: 2100,
+        },
+        {
+          time: "2024-01-12",
+          open: 103.25,
+          high: 104.9,
+          low: 102.7,
+          close: 104.5,
+          volume: 1980,
+        },
+        {
+          time: "2024-01-15",
+          open: 104.55,
+          high: 105.1,
+          low: 103.4,
+          close: 103.8,
+          volume: 1620,
+        },
+      ];
+
+      candles.setData(
+        data.map((d) => ({
+          time: d.time,
+          open: d.open,
+          high: d.high,
+          low: d.low,
+          close: d.close,
+        })),
+      );
+
+      chart.timeScale().fitContent();
+    </script>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 use polars::prelude::*;
-use service_backtesting::application::engine::BacktestEngine;
+use service_backtesting::application::engine::{BacktestEngine, Candle};
 use std::thread;
 
 fn main() {
@@ -37,5 +37,17 @@ fn main() {
         thread::sleep(std::time::Duration::from_secs(1));
     }
 
-    println!("✅ Simulación terminada.");
+    let candles = engine_play.get_ohlcv(60_000, 5);
+
+    let candles_sec: Vec<Candle> = candles
+        .into_iter()
+        .map(|mut c| {
+            c.timestamp /= 1_000_000;
+            c
+        })
+        .collect();
+
+   let json = serde_json::to_string_pretty(&candles_sec).unwrap();
+   println!("{}", json);
+   
 }

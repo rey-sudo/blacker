@@ -1,11 +1,12 @@
 use polars::prelude::*;
+use serde::Serialize;
 use std::fs::File;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::thread;
 use std::time::Duration;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize)]
 pub struct Candle {
     pub timestamp: i64,
     pub open: f64,

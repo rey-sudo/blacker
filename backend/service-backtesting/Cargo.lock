@@ -2832,6 +2832,8 @@ version = "0.1.0"
 dependencies = [
  "parquet",
  "polars",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
