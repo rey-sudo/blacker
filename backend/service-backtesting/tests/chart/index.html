@@ -66,6 +66,23 @@
       .controls button:active {
         transform: scale(0.95);
       }
+
+      .speed-control {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: 16px;
+     
+      }
+
+      #speedLabel {
+        min-width: 60px;
+        font-size: 12px;
+        font-family: monospace;
+        color: #9aa0a6;
+        text-align: right;
+        user-select: none;
+      }
     </style>
   </head>
   <body>
@@ -78,6 +95,18 @@
         <button id="stepBack" title="Step back">⏮</button>
         <button id="playPause" title="Play / Pause">▶️</button>
         <button id="stepForward" title="Step forward">⏭</button>
+
+        <div class="speed-control">
+          <input
+            id="speedRange"
+            type="range"
+            min="1"
+            max="1000"
+            step="50"
+            value="400"
+          />
+        </div>
+        <span id="speedLabel">400 ms</span>
       </div>
     </div>
     <script>
@@ -187,6 +216,14 @@
       let isPlaying = false;
       let playInterval = null;
 
+      let isSteppingBack = false;
+      let isSteppingForward = false;
+
+      let forwardInterval = null;
+      let backInterval = null;
+
+      let iterationSpeed = 400; // ms
+
       candles.setData([]);
 
       function render() {
@@ -220,7 +257,7 @@
             return;
           }
           stepForward();
-        }, 600); // velocidad replay
+        }, iterationSpeed); // velocidad replay
       }
 
       function pause() {
@@ -233,6 +270,48 @@
         isPlaying ? pause() : play();
       }
 
+      function startStepBack() {
+        if (isSteppingBack) return;
+
+        pause(); // ⛔ no permitir play + back
+        isSteppingBack = true;
+
+        backInterval = setInterval(() => {
+          if (currentIndex <= 0) {
+            stopStepBack();
+            return;
+          }
+          stepBack();
+        }, iterationSpeed); // velocidad
+      }
+
+      function stopStepBack() {
+        isSteppingBack = false;
+        clearInterval(backInterval);
+      }
+
+      function startStepForward() {
+        if (isSteppingForward) return;
+
+        stopStepBack(); // ⛔ no avanzar y retroceder a la vez
+        pause(); // ⛔ no play automático
+
+        isSteppingForward = true;
+
+        forwardInterval = setInterval(() => {
+          if (currentIndex >= data.length) {
+            stopStepForward();
+            return;
+          }
+          stepForward();
+        }, iterationSpeed);
+      }
+
+      function stopStepForward() {
+        isSteppingForward = false;
+        clearInterval(forwardInterval);
+      }
+
       /* =========================
      BUTTON BINDINGS
      ========================= */
@@ -243,6 +322,38 @@
       stepBackBtn.addEventListener("click", stepBack);
       playPauseBtn.addEventListener("click", togglePlayPause);
       stepForwardBtn.addEventListener("click", stepForward);
+
+      stepBackBtn.addEventListener("pointerdown", startStepBack);
+      stepBackBtn.addEventListener("pointerup", stopStepBack);
+      stepBackBtn.addEventListener("pointerleave", stopStepBack);
+
+      stepForwardBtn.addEventListener("pointerdown", startStepForward);
+      stepForwardBtn.addEventListener("pointerup", stopStepForward);
+      stepForwardBtn.addEventListener("pointerleave", stopStepForward);
+
+      const speedLabel = document.getElementById("speedLabel");
+      const speedRange = document.getElementById("speedRange");
+
+      speedRange.addEventListener("input", (e) => {
+        iterationSpeed = Number(e.target.value);
+        speedLabel.textContent = `${iterationSpeed} ms`;
+
+        // si está reproduciendo, reiniciamos intervalos
+        if (isPlaying) {
+          pause();
+          play();
+        }
+
+        if (isSteppingForward) {
+          stopStepForward();
+          startStepForward();
+        }
+
+        if (isSteppingBack) {
+          stopStepBack();
+          startStepBack();
+        }
+      });
 
       /* =========================
      RESIZE HANDLING
