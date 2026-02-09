@@ -225,19 +225,28 @@
       let isPlaying = false;
       let playInterval = null;
 
-      let isSteppingBack = false;
-      let isSteppingForward = false;
-
       let forwardInterval = null;
       let backInterval = null;
 
       let iterationSpeed = 400; // ms
 
+      let backTimeout = null;
+      let isSteppingBack = false;
+      let backDelay = 400;
+      const backMinDelay = 40;
+      const backAcceleration = 0.85;
+
+      let forwardTimeout = null;
+      let isSteppingForward = false;
+      let forwardDelay = 400; // inicio
+      const forwardMinDelay = 40; // límite rápido
+      const forwardAcceleration = 0.85;
+
       candles.setData([]);
 
       function render() {
         candles.setData(data.slice(0, currentIndex));
-        chart.timeScale().fitContent();
+        //chart.timeScale().fitContent();
       }
 
       /* =========================
@@ -279,58 +288,80 @@
         isPlaying ? pause() : play();
       }
 
+      function stopStepBack() {
+        isSteppingBack = false;
+        clearTimeout(backTimeout);
+        backTimeout = null;
+      }
+
       function startStepBack() {
         if (isSteppingBack) return;
 
-        pause(); // ⛔ no permitir play + back
-        isSteppingBack = true;
+        pause();
+        stopStepForward();
 
-        backInterval = setInterval(() => {
+        isSteppingBack = true;
+        backDelay = 400; // reset cada vez
+
+        function tick() {
+          if (!isSteppingBack) return;
+
           if (currentIndex <= 0) {
             stopStepBack();
             return;
           }
+
           stepBack();
-        }, iterationSpeed); // velocidad
+
+          backDelay = Math.max(backMinDelay, backDelay * backAcceleration);
+
+          backTimeout = setTimeout(tick, backDelay);
+        }
+
+        tick();
       }
 
-      function stopStepBack() {
-        isSteppingBack = false;
-        clearInterval(backInterval);
+      function stopStepForward() {
+        isSteppingForward = false;
+        clearTimeout(forwardTimeout);
+        forwardTimeout = null;
       }
 
       function startStepForward() {
         if (isSteppingForward) return;
 
-        stopStepBack(); // ⛔ no avanzar y retroceder a la vez
+        stopStepBack(); // ⛔ no back + forward
         pause(); // ⛔ no play automático
 
         isSteppingForward = true;
+        forwardDelay = 400; // reset cada vez
 
-        forwardInterval = setInterval(() => {
+        function tick() {
+          if (!isSteppingForward) return;
+
           if (currentIndex >= data.length) {
             stopStepForward();
             return;
           }
+
           stepForward();
-        }, iterationSpeed);
+
+          forwardDelay = Math.max(
+            forwardMinDelay,
+            forwardDelay * forwardAcceleration,
+          );
+
+          forwardTimeout = setTimeout(tick, forwardDelay);
+        }
+
+        tick();
       }
 
-      function stopStepForward() {
-        isSteppingForward = false;
-        clearInterval(forwardInterval);
-      }
-
-      /* =========================
-     BUTTON BINDINGS
-     ========================= */
       const stepBackBtn = document.getElementById("stepBack");
       const playPauseBtn = document.getElementById("playPause");
       const stepForwardBtn = document.getElementById("stepForward");
 
-      stepBackBtn.addEventListener("click", stepBack);
       playPauseBtn.addEventListener("click", togglePlayPause);
-      stepForwardBtn.addEventListener("click", stepForward);
 
       stepBackBtn.addEventListener("pointerdown", startStepBack);
       stepBackBtn.addEventListener("pointerup", stopStepBack);
@@ -378,8 +409,6 @@
         iterationSpeed = 0;
         togglePlayPause();
       };
-
-    
     </script>
   </body>
 </html>
