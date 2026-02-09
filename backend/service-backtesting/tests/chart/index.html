@@ -72,7 +72,6 @@
         align-items: center;
         gap: 10px;
         margin-left: 16px;
-     
       }
 
       #speedLabel {
@@ -162,7 +161,7 @@
         HistogramSeries,
       } from "https://esm.sh/lightweight-charts";
 
-      const data = generateFakeOHLCV(300);
+      const data = generateFakeOHLCV(1000);
 
       const container = document.getElementById("chart");
 
@@ -209,6 +208,16 @@
 
       chart.timeScale().fitContent();
 
+      chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
+        if (!range) return;
+
+        //console.log(range);
+
+        if (range.from < 10) {
+          //loadMoreHistory();
+        }
+      });
+
       /* =========================
      REPLAY STATE
      ========================= */
@@ -228,7 +237,7 @@
 
       function render() {
         candles.setData(data.slice(0, currentIndex));
-        // chart.timeScale().fitContent();
+        chart.timeScale().fitContent();
       }
 
       /* =========================
@@ -364,6 +373,13 @@
           height: container.clientHeight,
         });
       });
+
+      const test = () => {
+        iterationSpeed = 0;
+        togglePlayPause();
+      };
+
+    
     </script>
   </body>
 </html>
