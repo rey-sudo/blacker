@@ -1,9 +1,13 @@
 use anyhow::Result;
 use csv::ReaderBuilder;
+use polars::prelude::*;
 use std::collections::BTreeMap;
-use ticks_to_ohlcv::{candle::Candle, parquet::{write_parquet}, tick::Tick};
+use ticks_to_ohlcv::{candle::Candle, parquet::write_parquet, read::read_ohlcv_range, tick::Tick};
 
-const INTERVAL_US: i64 = 60_000_000; // 1 minuto en microsegundos
+const H1: i64 = 3_600_000_000;
+const M1: i64 = 60_000_000;
+
+const INTERVAL_US: i64 = H1;
 
 fn bucket_ts(ts: i64) -> i64 {
     (ts / INTERVAL_US) * INTERVAL_US
@@ -30,6 +34,13 @@ fn main() -> Result<()> {
     let ohlcv: Vec<Candle> = candles.into_values().collect();
 
     write_parquet("data/ohlcv.parquet", &ohlcv)?;
+
+    let start_ts: i64 = 1770006959 * 1_000_000;
+    let end_ts: i64 = 1770680159 * 1_000_000;
+
+    let df: DataFrame= read_ohlcv_range("data/ohlcv.parquet", start_ts, end_ts)?;
+
+    println!("{:?}", df);
 
     Ok(())
 }
