@@ -56,3 +56,36 @@ pub fn ohlcv_bounds(
 
     Ok((min_ts, max_ts))
 }
+
+
+pub fn read_ohlcv_from(
+    parquet_path: &str,
+    start_ts: i64,
+    length: IdxSize,
+) -> PolarsResult<DataFrame> {
+    let lf = LazyFrame::scan_parquet(
+        parquet_path.into(),
+        ScanArgsParquet {
+            low_memory: true,
+            ..Default::default()
+        },
+    )?;
+
+    let df = lf
+        .filter(col("ts").gt_eq(lit(start_ts)))
+        .slice(0, length)
+        .select([
+            col("ts"),
+            col("open"),
+            col("high"),
+            col("low"),
+            col("close"),
+            col("volume"),
+            col("first_tick_ts"),
+            col("last_tick_ts"),
+        ])
+        .collect()?;
+
+    Ok(df)
+}
+

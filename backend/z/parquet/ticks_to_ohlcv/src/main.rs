@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use ticks_to_ohlcv::{
     candle::Candle,
     parquet::write_parquet,
-    read::{ohlcv_bounds, read_ohlcv_range},
+    read::{ohlcv_bounds, read_ohlcv_from, read_ohlcv_range},
     tick::Tick,
 };
 
@@ -43,13 +43,19 @@ fn main() -> Result<()> {
     let start_ts: i64 = 1770006959 * 1_000_000;
     let end_ts: i64 = 1770680159 * 1_000_000;
 
-    let df: DataFrame = read_ohlcv_range("data/BTCUSDT_1h.parquet", start_ts, end_ts)?;
+    let parquet_path: &str = "data/BTCUSDT_1h.parquet";
+
+    let df: DataFrame = read_ohlcv_range(parquet_path, start_ts, end_ts)?;
 
     println!("{:?}", df);
 
-    let bounds = ohlcv_bounds("data/BTCUSDT_1h.parquet");
+    let bounds = ohlcv_bounds(parquet_path);
 
     println!("{:?}", bounds);
-    
+
+    let chunck = read_ohlcv_from(parquet_path, start_ts, 10);
+
+    println!("{:?}", chunck);
+
     Ok(())
 }

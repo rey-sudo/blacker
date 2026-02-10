@@ -10,5 +10,6 @@ anyhow = "1.0.101"
 
 polars = { version = "0.53.0", features = [
     "lazy",
-    "parquet"
+    "parquet",
+    "bigidx"
 ]}
