@@ -16,7 +16,7 @@ fn bucket_ts(ts: i64) -> i64 {
 fn main() -> Result<()> {
     let mut rdr: csv::Reader<std::fs::File> = ReaderBuilder::new()
         .has_headers(false)
-        .from_path("data/BTCUSDT-4-year-ticks.csv")?;
+        .from_path("data/BTCUSDT_ticks_4_year.csv")?;
 
     let mut candles: BTreeMap<i64, Candle> = BTreeMap::new();
 
@@ -33,12 +33,12 @@ fn main() -> Result<()> {
 
     let ohlcv: Vec<Candle> = candles.into_values().collect();
 
-    write_parquet("data/ohlcv.parquet", &ohlcv)?;
+    write_parquet("data/BTCUSDT_1h.parquet", &ohlcv)?;
 
     let start_ts: i64 = 1770006959 * 1_000_000;
     let end_ts: i64 = 1770680159 * 1_000_000;
 
-    let df: DataFrame= read_ohlcv_range("data/ohlcv.parquet", start_ts, end_ts)?;
+    let df: DataFrame= read_ohlcv_range("data/BTCUSDT_1h.parquet", start_ts, end_ts)?;
 
     println!("{:?}", df);
 
