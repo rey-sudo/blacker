@@ -1,12 +1,12 @@
 use polars::prelude::*;
 
 pub fn read_ohlcv_range(
-    parquet_glob: &str,
+    parquet_path: &str,
     start_ts: i64,
     end_ts: i64,
 ) -> PolarsResult<DataFrame> {
     let lf: LazyFrame = LazyFrame::scan_parquet(
-        parquet_glob.into(),
+        parquet_path.into(),
         ScanArgsParquet::default(),
     )?;
 
@@ -29,4 +29,30 @@ pub fn read_ohlcv_range(
         .collect()?;
 
     Ok(df)
+}
+
+
+
+pub fn ohlcv_bounds(
+    parquet_path: &str,
+) -> PolarsResult<(i64, i64)> {
+    let lf = LazyFrame::scan_parquet(
+        parquet_path.into(),
+        ScanArgsParquet {
+            low_memory: true,
+            ..Default::default()
+        },
+    )?;
+
+    let df = lf
+        .select([
+            col("ts").min().alias("min_ts"),
+            col("ts").max().alias("max_ts"),
+        ])
+        .collect()?;
+
+    let min_ts: i64 = df.column("min_ts")?.i64()?.get(0).unwrap();
+    let max_ts: i64 = df.column("max_ts")?.i64()?.get(0).unwrap();
+
+    Ok((min_ts, max_ts))
 }

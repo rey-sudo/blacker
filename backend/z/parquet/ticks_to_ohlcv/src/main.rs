@@ -2,7 +2,12 @@ use anyhow::Result;
 use csv::ReaderBuilder;
 use polars::prelude::*;
 use std::collections::BTreeMap;
-use ticks_to_ohlcv::{candle::Candle, parquet::write_parquet, read::read_ohlcv_range, tick::Tick};
+use ticks_to_ohlcv::{
+    candle::Candle,
+    parquet::write_parquet,
+    read::{ohlcv_bounds, read_ohlcv_range},
+    tick::Tick,
+};
 
 const H1: i64 = 3_600_000_000;
 const M1: i64 = 60_000_000;
@@ -38,9 +43,13 @@ fn main() -> Result<()> {
     let start_ts: i64 = 1770006959 * 1_000_000;
     let end_ts: i64 = 1770680159 * 1_000_000;
 
-    let df: DataFrame= read_ohlcv_range("data/BTCUSDT_1h.parquet", start_ts, end_ts)?;
+    let df: DataFrame = read_ohlcv_range("data/BTCUSDT_1h.parquet", start_ts, end_ts)?;
 
     println!("{:?}", df);
 
+    let bounds = ohlcv_bounds("data/BTCUSDT_1h.parquet");
+
+    println!("{:?}", bounds);
+    
     Ok(())
 }
