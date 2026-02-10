@@ -3,10 +3,7 @@ use csv::ReaderBuilder;
 use polars::prelude::*;
 use std::collections::BTreeMap;
 use ticks_to_ohlcv::{
-    candle::Candle,
-    parquet::write_parquet,
-    read::{ohlcv_bounds, read_ohlcv_from, read_ohlcv_range},
-    tick::Tick,
+    candle::Candle, check::verify_ticks_ordered, parquet::write_parquet, read::{ohlcv_bounds, read_ohlcv_from, read_ohlcv_range}, tick::Tick
 };
 
 const H1: i64 = 3_600_000_000;
@@ -23,6 +20,11 @@ fn main() -> Result<()> {
         .has_headers(false)
         .from_path("data/BTCUSDT_ticks_4_year.csv")?;
 
+    let check_csv = verify_ticks_ordered("data/BTCUSDT_ticks_4_year.csv");
+
+    println!("{:?}", check_csv);
+
+
     let mut candles: BTreeMap<i64, Candle> = BTreeMap::new();
 
     for result in rdr.deserialize() {
@@ -38,24 +40,24 @@ fn main() -> Result<()> {
 
     let ohlcv: Vec<Candle> = candles.into_values().collect();
 
-    write_parquet("data/BTCUSDT_1h.parquet", &ohlcv)?;
+    write_parquet("data/BTCUSDT_1h_24_hour.parquet", &ohlcv)?;
 
     let start_ts: i64 = 1770006959 * 1_000_000;
     let end_ts: i64 = 1770680159 * 1_000_000;
 
-    let parquet_path: &str = "data/BTCUSDT_1h.parquet";
+    let parquet_path: &str = "data/BTCUSDT_1h_24_hour.parquet";
 
     let df: DataFrame = read_ohlcv_range(parquet_path, start_ts, end_ts)?;
 
-    println!("{:?}", df);
+    //println!("{:?}", df);
 
     let bounds = ohlcv_bounds(parquet_path);
 
-    println!("{:?}", bounds);
+   // println!("{:?}", bounds);
 
-    let chunck = read_ohlcv_from(parquet_path, start_ts, 10);
+    let chunk = read_ohlcv_from(parquet_path, start_ts, 10);
 
-    println!("{:?}", chunck);
+    //println!("{:?}", chunk);
 
     Ok(())
 }
