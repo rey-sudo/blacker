@@ -1,6 +1,7 @@
 use csv::{ReaderBuilder, WriterBuilder};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::error::Error;
+use crate::check::validate_ticks_sorted;
 
 #[derive(Debug, Deserialize)]
 struct Trade {
@@ -47,6 +48,8 @@ pub fn run(
     if timeframe_ms == 0 {
         return Err("timeframe_ms no puede ser 0".into());
     }
+
+    validate_ticks_sorted(csv_path)?;
 
     let mut rdr = ReaderBuilder::new()
         .has_headers(false)
