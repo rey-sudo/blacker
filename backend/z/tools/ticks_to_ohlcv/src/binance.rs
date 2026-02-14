@@ -103,20 +103,17 @@ pub fn run(
             }
 
             Some(cb) if bucket > cb => {
-                // Nuevo bucket → cerrar vela anterior
-                let mut finished = current_candle.take().unwrap();
-                finished.timestamp /= 1000; // ms → segundos
-                wtr.serialize(finished)?;
+                let finished = current_candle.take().unwrap();
+                let prev_close = finished.close;
 
-                // Opcional: rellenar gaps
+                wtr.serialize(&finished)?;
+
                 if fill_gaps {
                     let mut gap_bucket = cb + timeframe_ms;
 
                     while gap_bucket < bucket {
-                        let prev_close = current_candle.as_ref().map(|c| c.close).unwrap_or(0.0);
-
                         let gap_candle = Ohlcv {
-                            timestamp: gap_bucket / 1000,
+                            timestamp: gap_bucket,
                             open: prev_close,
                             high: prev_close,
                             low: prev_close,
@@ -129,7 +126,6 @@ pub fn run(
                     }
                 }
 
-                // Iniciar nueva vela
                 current_bucket = Some(bucket);
                 current_candle = Some(Ohlcv {
                     timestamp: bucket,
@@ -150,7 +146,6 @@ pub fn run(
 
     // Escribir última vela
     if let Some(mut last) = current_candle {
-        last.timestamp /= 1000;
         wtr.serialize(last)?;
     }
 
