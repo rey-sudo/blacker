@@ -4,4 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+chrono = "0.4.43"
+csv = "1.4.0"
 cursor_db = "0.1.0"
+plotly = "0.14.0"
+plotters = "0.3.7"
+serde = { version="1.0.228", features = ["derive"] }
