@@ -1,7 +1,6 @@
 use csv::{ReaderBuilder, WriterBuilder};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::error::Error;
-use crate::check::validate_ticks_sorted;
 
 #[derive(Debug, Deserialize)]
 struct Trade {
@@ -20,6 +19,8 @@ struct Trade {
 #[derive(Debug, Serialize, Clone)]
 struct Ohlcv {
     timestamp: u64,
+    first_tick_ts: u64, // primer tick real (ms)
+    last_tick_ts: u64,  // último tick real (ms)
     open: f64,
     high: f64,
     low: f64,
@@ -49,7 +50,7 @@ pub fn run(
         return Err("timeframe_ms no puede ser 0".into());
     }
 
-    validate_ticks_sorted(csv_path)?;
+    let mut prev_timestamp: Option<u64> = None;
 
     let mut rdr = ReaderBuilder::new()
         .has_headers(false)
@@ -73,6 +74,13 @@ pub fn run(
             }
         };
 
+        if let Some(prev) = prev_timestamp {
+            if trade.timestamp < prev {
+                return Err("Los trades no están ordenados por timestamp ascendente".into());
+            }
+        }
+        prev_timestamp = Some(trade.timestamp);
+
         let timestamp_ms = trade.timestamp / 1_000;
         let bucket = (timestamp_ms / timeframe_ms) * timeframe_ms;
 
@@ -82,6 +90,8 @@ pub fn run(
                 current_bucket = Some(bucket);
                 current_candle = Some(Ohlcv {
                     timestamp: bucket,
+                    first_tick_ts: timestamp_ms,
+                    last_tick_ts: timestamp_ms,
                     open: trade.price,
                     high: trade.price,
                     low: trade.price,
@@ -103,6 +113,8 @@ pub fn run(
 
                 candle.close = trade.price;
                 candle.volume += trade.quantity;
+
+                candle.last_tick_ts = timestamp_ms;
             }
 
             Some(cb) if bucket > cb => {
@@ -117,6 +129,8 @@ pub fn run(
                     while gap_bucket < bucket {
                         let gap_candle = Ohlcv {
                             timestamp: gap_bucket,
+                            first_tick_ts: gap_bucket,
+                            last_tick_ts: gap_bucket,
                             open: prev_close,
                             high: prev_close,
                             low: prev_close,
@@ -132,6 +146,8 @@ pub fn run(
                 current_bucket = Some(bucket);
                 current_candle = Some(Ohlcv {
                     timestamp: bucket,
+                    first_tick_ts: timestamp_ms,
+                    last_tick_ts: timestamp_ms,
                     open: trade.price,
                     high: trade.price,
                     low: trade.price,
