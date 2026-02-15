@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 chrono = "0.4.43"
+ciborium = "0.2.2"
 csv = "1.4.0"
 cursor_db = "0.1.0"
 plotly = "0.14.0"

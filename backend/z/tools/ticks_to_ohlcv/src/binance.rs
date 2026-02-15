@@ -16,16 +16,16 @@ struct Trade {
     _is_best_match: bool,
 }
 
-#[derive(Debug, Serialize, Clone)]
-struct Ohlcv {
-    timestamp: u64,
-    first_tick_ts: u64, // primer tick real (ms)
-    last_tick_ts: u64,  // último tick real (ms)
-    open: f64,
-    high: f64,
-    low: f64,
-    close: f64,
-    volume: f64,
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Ohlcv {
+    pub timestamp: u64,
+    pub first_tick_ts: u64, // primer tick real (ms)
+    pub last_tick_ts: u64,  // último tick real (ms)
+    pub open: f64,
+    pub high: f64,
+    pub low: f64,
+    pub close: f64,
+    pub volume: f64,
 }
 
 fn bool_from_str<'de, D>(deserializer: D) -> Result<bool, D::Error>
