@@ -1,53 +1,242 @@
-use polars::prelude::*;
-use service_backtest::application::engine::{BacktestEngine, Candle};
-use std::thread;
+use futures::TryStreamExt;
+use serde::{Deserialize, Serialize};
+use service_backtest::infrastructure::pulsar::PulsarClient;
+use std::{collections::HashMap, env};
+use tokio::sync::mpsc;
+use tokio::time::{self, Duration};
 
-fn main() {
-    let engine: Arc<BacktestEngine> = Arc::new(
-        BacktestEngine::new("data/BTCUSDT-aggTrades-2026-02-07.parquet")
-            .expect("Error al cargar el motor"),
-    );
+use pulsar::{
+    Consumer, DeserializeMessage, Error as PulsarError, Payload, Producer, Pulsar,
+    SerializeMessage, SubType, TokioExecutor, message::proto, producer,
+};
 
-    let engine_play: Arc<BacktestEngine> = Arc::clone(&engine);
-    engine_play.play(0);
+// =====================
+// Tipos
+// =====================
 
-    engine_play.mostrar_tick_actual();
+type ContextId = String;
 
-    thread::sleep(std::time::Duration::from_millis(100));
+#[derive(Debug, Deserialize)]
+struct InputEvent {
+    context_id: ContextId,
+    payload: Vec<u8>,
+}
 
-    // Mientras el motor esté activo o queramos monitorear
-    while engine.is_playing.load(std::sync::atomic::Ordering::Relaxed)
-        || engine.cursor.load(std::sync::atomic::Ordering::Relaxed) < engine.total_ticks - 1
-    {
-        // Obtener la vela actual de 1 minuto (60,000 ms)
-        if let Some(live_candle) = engine.get_live_candle(60_000) {
-            println!(
-                "TS: {} | O: {:.2} | H: {:.2} | L: {:.2} | C: {:.2} | Vol: {:.2}",
-                live_candle.timestamp,
-                live_candle.open,
-                live_candle.high,
-                live_candle.low,
-                live_candle.close,
-                live_candle.volume
-            );
-        } else {
-            println!("Esperando datos...");
+#[derive(Debug, Serialize)]
+struct OutputEvent {
+    context_id: ContextId,
+    payload: Vec<u8>,
+}
+
+// =====================
+// Pulsar Serialization
+// =====================
+
+impl DeserializeMessage for InputEvent {
+    type Output = Result<InputEvent, serde_json::Error>;
+
+    fn deserialize_message(payload: &Payload) -> Self::Output {
+        serde_json::from_slice(&payload.data)
+    }
+}
+
+impl SerializeMessage for OutputEvent {
+    fn serialize_message(input: Self) -> Result<producer::Message, PulsarError> {
+        let payload: Vec<u8> =
+            serde_json::to_vec(&input).map_err(|e| PulsarError::Custom(e.to_string()))?;
+        Ok(producer::Message {
+            payload,
+            ..Default::default()
+        })
+    }
+}
+
+// =====================
+// Worker Actor
+// =====================
+
+struct Worker {
+    context_id: ContextId,
+    state: u64,
+}
+
+impl Worker {
+    fn new(context_id: ContextId) -> Self {
+        Self {
+            context_id,
+            state: 0,
         }
-
-        thread::sleep(std::time::Duration::from_secs(1));
     }
 
-    let candles = engine_play.get_ohlcv(60_000, 5);
+    fn apply(&mut self, payload: Vec<u8>) {
+        self.state += payload.len() as u64;
+    }
 
-    let candles_sec: Vec<Candle> = candles
-        .into_iter()
-        .map(|mut c| {
-            c.timestamp /= 1_000_000;
-            c
+    fn maybe_emit(&mut self) -> Option<OutputEvent> {
+        if self.state > 0 && self.state % 10 == 0 {
+            Some(OutputEvent {
+                context_id: self.context_id.clone(),
+                payload: format!("signal-{}", self.state).into_bytes(),
+            })
+        } else {
+            None
+        }
+    }
+}
+
+// =====================
+// Worker Loop
+// =====================
+
+async fn worker_loop(
+    context_id: ContextId,
+    mut rx: mpsc::Receiver<InputEvent>,
+    tx_output: mpsc::Sender<OutputEvent>,
+) {
+    let mut worker = Worker::new(context_id.clone());
+    let mut interval = time::interval(Duration::from_millis(200));
+
+    loop {
+        tokio::select! {
+            Some(event) = rx.recv() => {
+                worker.apply(event.payload);
+            }
+
+            _ = interval.tick() => {
+                if let Some(out) = worker.maybe_emit() {
+                    if tx_output.send(out).await.is_err() {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    println!("Worker {} terminated", context_id);
+}
+
+// =====================
+// Main
+// =====================
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let pulsar_url = env::var("PULSAR_URL").unwrap_or_else(|_| "pulsar://localhost:6650".into());
+
+    let max_workers: usize = env::var("MAX_WORKERS")
+        .unwrap_or_else(|_| "100".into())
+        .parse()
+        .expect("Invalid MAX_WORKERS");
+
+    let pulsar_client: PulsarClient = PulsarClient::new(&pulsar_url).await?;
+
+    // =====================
+    // Consumer (KeyShared)
+    // =====================
+
+    let mut consumer: Consumer<InputEvent, _> = pulsar_client.inner()
+        .consumer()
+        .with_topic("non-persistent://public/backtest/input")
+        .with_subscription_type(SubType::KeyShared)
+        .with_subscription("service-backtesting")
+        .build()
+        .await?;
+
+    // =====================
+    // Producer (alineado con doc)
+    // =====================
+
+    let mut producer = pulsar_client.inner()
+        .producer()
+        .with_topic("non-persistent://public/backtest/output")
+        .with_name("my producer")
+        .with_options(producer::ProducerOptions {
+            schema: Some(proto::Schema {
+                r#type: proto::schema::Type::String as i32,
+                ..Default::default()
+            }),
+            ..Default::default()
         })
-        .collect();
+        .build()
+        .await?;
+    // Canal global salida
+    let (tx_output, mut rx_output) = mpsc::channel::<OutputEvent>(10_000);
 
-   let json = serde_json::to_string_pretty(&candles_sec).unwrap();
-   println!("{}", json);
-   
+    // =====================
+    // Publisher Task
+    // =====================
+
+    tokio::spawn(async move {
+        while let Some(event) = rx_output.recv().await {
+            match producer.send_non_blocking(event).await {
+                Ok(delivery_future) => {
+                    if let Err(e) = delivery_future.await {
+                        eprintln!("Delivery error: {:?}", e);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Enqueue error: {:?}", e);
+                }
+            }
+        }
+
+        if let Err(e) = producer.close().await {
+            eprintln!("Producer close error: {:?}", e);
+        }
+    });
+
+    // =====================
+    // Worker table
+    // =====================
+
+    let mut workers: HashMap<ContextId, mpsc::Sender<InputEvent>> = HashMap::new();
+
+    // =====================
+    // Consumer Loop
+    // =====================
+
+    while let Some(msg) = consumer.try_next().await? {
+        let input = match msg.deserialize() {
+            Ok(data) => {
+                println!("📩 Input recibido: {:?}", data);
+                data
+            },
+            Err(e) => {
+                eprintln!("Deserialize error: {:?}", e);
+                consumer.nack(&msg).await?;
+                continue;
+            }
+        };
+
+        let context_id = input.context_id.clone();
+
+        if !workers.contains_key(&context_id) {
+            if workers.len() >= max_workers {
+                eprintln!("MAX_WORKERS reached");
+                consumer.nack(&msg).await?;
+                continue;
+            }
+
+            let (tx_worker, rx_worker) = mpsc::channel(100);
+            workers.insert(context_id.clone(), tx_worker.clone());
+
+            let tx_out = tx_output.clone();
+            tokio::spawn(worker_loop(context_id.clone(), rx_worker, tx_out));
+        }
+
+        if let Some(tx_worker) = workers.get(&context_id) {
+            match tx_worker.try_send(input) {
+                Ok(_) => {
+                    consumer.ack(&msg).await?;
+                }
+                Err(_) => {
+                    consumer.nack(&msg).await?;
+                }
+            }
+        } else {
+            consumer.nack(&msg).await?;
+        }
+    }
+
+    Ok(())
 }

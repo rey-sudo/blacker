@@ -19,6 +19,7 @@ export default defineConfig({
           { text: "⚙️ service-ingest-base", link: "/service-ingest-base" },
           { text: "⚙️ service-ingest-api", link: "/service-ingest-api" },
           { text: "⚙️ service-feed", link: "/service-feed" },
+          { text: "⚙️ service-backtest", link: "/service-backtest" },
         ],
       },
     ],
