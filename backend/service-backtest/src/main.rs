@@ -1,5 +1,5 @@
 use polars::prelude::*;
-use service_backtesting::application::engine::{BacktestEngine, Candle};
+use service_backtest::application::engine::{BacktestEngine, Candle};
 use std::thread;
 
 fn main() {
