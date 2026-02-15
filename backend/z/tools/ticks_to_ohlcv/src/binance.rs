@@ -19,8 +19,8 @@ struct Trade {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Ohlcv {
     pub timestamp: u64,
-    pub first_tick_ts: u64, // primer tick real (ms)
-    pub last_tick_ts: u64,  // último tick real (ms)
+    pub first_tick_ts: u64, // primer tick real (nano)
+    pub last_tick_ts: u64,  // último tick real (nano)
     pub open: f64,
     pub high: f64,
     pub low: f64,
@@ -43,11 +43,11 @@ where
 pub fn run(
     csv_path: &str,
     output_path: &str,
-    timeframe_ms: u64,
+    timeframe_ns: u64,
     fill_gaps: bool,
 ) -> Result<(), Box<dyn Error>> {
-    if timeframe_ms == 0 {
-        return Err("timeframe_ms no puede ser 0".into());
+    if timeframe_ns == 0 {
+        return Err("timeframe_ns no puede ser 0".into());
     }
 
     let mut prev_timestamp: Option<u64> = None;
@@ -81,8 +81,8 @@ pub fn run(
         }
         prev_timestamp = Some(trade.timestamp);
 
-        let timestamp_ms = trade.timestamp / 1_000;
-        let bucket = (timestamp_ms / timeframe_ms) * timeframe_ms;
+        let timestamp_ns = trade.timestamp;
+        let bucket = (timestamp_ns / timeframe_ns) * timeframe_ns;
 
         match current_bucket {
             None => {
@@ -90,8 +90,8 @@ pub fn run(
                 current_bucket = Some(bucket);
                 current_candle = Some(Ohlcv {
                     timestamp: bucket,
-                    first_tick_ts: timestamp_ms,
-                    last_tick_ts: timestamp_ms,
+                    first_tick_ts: timestamp_ns,
+                    last_tick_ts: timestamp_ns,
                     open: trade.price,
                     high: trade.price,
                     low: trade.price,
@@ -114,7 +114,7 @@ pub fn run(
                 candle.close = trade.price;
                 candle.volume += trade.quantity;
 
-                candle.last_tick_ts = timestamp_ms;
+                candle.last_tick_ts = timestamp_ns;
             }
 
             Some(cb) if bucket > cb => {
@@ -124,7 +124,7 @@ pub fn run(
                 wtr.serialize(&finished)?;
 
                 if fill_gaps {
-                    let mut gap_bucket = cb + timeframe_ms;
+                    let mut gap_bucket = cb + timeframe_ns;
 
                     while gap_bucket < bucket {
                         let gap_candle = Ohlcv {
@@ -139,15 +139,15 @@ pub fn run(
                         };
 
                         wtr.serialize(gap_candle)?;
-                        gap_bucket += timeframe_ms;
+                        gap_bucket += timeframe_ns;
                     }
                 }
 
                 current_bucket = Some(bucket);
                 current_candle = Some(Ohlcv {
                     timestamp: bucket,
-                    first_tick_ts: timestamp_ms,
-                    last_tick_ts: timestamp_ms,
+                    first_tick_ts: timestamp_ns,
+                    last_tick_ts: timestamp_ns,
                     open: trade.price,
                     high: trade.price,
                     low: trade.price,

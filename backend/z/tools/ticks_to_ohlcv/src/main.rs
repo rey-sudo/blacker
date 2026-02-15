@@ -1,5 +1,5 @@
 use ticks_to_ohlcv::{
-    binance::{run},
+    binance::run,
     chart::draw_ohlcv_chart,
     cursor::{ohlcv_csv_to_cursordb, print_cursordb_ohlcv},
 };
@@ -8,11 +8,12 @@ fn main() -> std::io::Result<()> {
     let csv_path: &str = "./data/ticks_BTCUSDT_1_day.csv";
     let output_path: &str = "./data/ohlcv_BTCUSDT_1_day.csv";
     let chart_output: &str = "./data/chart.html";
-    let timeframe_ms: u64 = 3_600_000;
+    let timeframe_ns: u64 = 3_600_000 * 1_000; // fake nanos; binance millis; databento nanos;
+
     let data_path: &str = "./data/data.cdb";
     let index_path: &str = "./data/index.cdbi";
 
-    if let Err(e) = run(csv_path, output_path, timeframe_ms, false) {
+    if let Err(e) = run(csv_path, output_path, timeframe_ns, false) {
         eprintln!("Error crítico: {}", e);
         std::process::exit(1);
     }
