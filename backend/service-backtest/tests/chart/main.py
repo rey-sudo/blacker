@@ -41,18 +41,18 @@ async def ws_handler(websocket):
             data = json.loads(message)
 
             context_id = data["context_id"]
-            payload_bytes = data["payload"].encode("utf-8")
-
-            encoded_payload = base64.b64encode(payload_bytes).decode("utf-8")
-
+            command = data["command"]
+            params = data["params"]
+            
             input_event = {
                 "context_id": context_id,
-                "payload": encoded_payload
+                "command": command,
+                "params": params
             }
-
-            final = json.dumps(input_event).encode("utf-8")
             
-            producer.send_async(json.dumps(input_event).encode("utf-8"), None)            
+            final = json.dumps(input_event).encode("utf-8")
+
+            producer.send_async(final, None)            
             
             log.debug("message_sent", id=client_id, payload=final)
             

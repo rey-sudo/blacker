@@ -19,7 +19,8 @@ type ContextId = String;
 #[derive(Debug, Deserialize)]
 struct InputEvent {
     context_id: ContextId,
-    payload: String,
+    command: String,
+    params: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -98,7 +99,7 @@ async fn worker_loop(
     loop {
         tokio::select! {
             Some(event) = rx.recv() => {
-                worker.apply(event.payload.into());
+                worker.apply(event.params.into());
             }
 
             _ = interval.tick() => {
