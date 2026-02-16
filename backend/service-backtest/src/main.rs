@@ -1,20 +1,38 @@
 use futures::TryStreamExt;
-use serde::{Deserialize, Serialize};
-use service_backtest::infrastructure::pulsar::PulsarClient;
-use std::{collections::HashMap, env};
-use tokio::sync::mpsc;
-use tokio::time::{self, Duration};
-
 use pulsar::{
     Consumer, DeserializeMessage, Error as PulsarError, Payload, Producer, Pulsar,
     SerializeMessage, SubType, TokioExecutor, message::proto, producer,
 };
-
-// =====================
-// Tipos
-// =====================
+use serde::{Deserialize, Serialize};
+use service_backtest::infrastructure::pulsar::PulsarClient;
+use std::convert::TryFrom;
+use std::{collections::HashMap, env};
+use tokio::sync::mpsc;
+use tokio::time::{self, Duration};
 
 type ContextId = String;
+
+#[derive(Debug)]
+enum Command {
+    Setup,
+    Start,
+    Stop,
+    RunBacktest,
+}
+
+impl TryFrom<String> for Command {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        match value.as_str() {
+            "SETUP" => Ok(Command::Setup),
+            "START" => Ok(Command::Start),
+            "STOP" => Ok(Command::Stop),
+            "RUN_BACKTEST" => Ok(Command::RunBacktest),
+            _ => Err(format!("Invalid command: {}", value)),
+        }
+    }
+}
 
 #[derive(Debug, Deserialize)]
 struct InputEvent {
@@ -130,41 +148,26 @@ async fn main() -> anyhow::Result<()> {
 
     let pulsar_client: PulsarClient = PulsarClient::new(&pulsar_url).await?;
 
-    // =====================
-    // Consumer (KeyShared)
-    // =====================
-
-    let mut consumer: Consumer<InputEvent, _> = pulsar_client.inner()
+    let mut consumer: Consumer<InputEvent, _> = pulsar_client
+        .inner()
         .consumer()
         .with_topic("non-persistent://public/backtest/input")
         .with_subscription_type(SubType::KeyShared)
-        .with_subscription("service-backtesting")
+        .with_subscription("service-backtest")
         .build()
         .await?;
 
-    // =====================
-    // Producer (alineado con doc)
-    // =====================
-
-    let mut producer = pulsar_client.inner()
+    let mut producer = pulsar_client
+        .inner()
         .producer()
         .with_topic("non-persistent://public/backtest/output")
-        .with_name("my producer")
-        .with_options(producer::ProducerOptions {
-            schema: Some(proto::Schema {
-                r#type: proto::schema::Type::String as i32,
-                ..Default::default()
-            }),
-            ..Default::default()
-        })
+        .with_name("service-backtest")
         .build()
         .await?;
+
+
     // Canal global salida
     let (tx_output, mut rx_output) = mpsc::channel::<OutputEvent>(10_000);
-
-    // =====================
-    // Publisher Task
-    // =====================
 
     tokio::spawn(async move {
         while let Some(event) = rx_output.recv().await {
@@ -196,11 +199,11 @@ async fn main() -> anyhow::Result<()> {
     // =====================
 
     while let Some(msg) = consumer.try_next().await? {
-        let input = match msg.deserialize() {
+        let input: InputEvent = match msg.deserialize() {
             Ok(data) => {
                 println!("📩 Input recibido: {:?}", data);
                 data
-            },
+            }
             Err(e) => {
                 eprintln!("Deserialize error: {:?}", e);
                 consumer.nack(&msg).await?;
@@ -208,7 +211,16 @@ async fn main() -> anyhow::Result<()> {
             }
         };
 
-        let context_id = input.context_id.clone();
+        let context_id: String = input.context_id.clone();
+
+        let command: Command = match Command::try_from(input.command.clone()) {
+            Ok(cmd) => cmd,
+            Err(e) => {
+                eprintln!("{}", e);
+                consumer.nack(&msg).await?;
+                continue;
+            }
+        };
 
         if !workers.contains_key(&context_id) {
             if workers.len() >= max_workers {
@@ -218,10 +230,35 @@ async fn main() -> anyhow::Result<()> {
             }
 
             let (tx_worker, rx_worker) = mpsc::channel(100);
+
             workers.insert(context_id.clone(), tx_worker.clone());
 
-            let tx_out = tx_output.clone();
-            tokio::spawn(worker_loop(context_id.clone(), rx_worker, tx_out));
+
+            let tx_output_clone: mpsc::Sender<OutputEvent> = tx_output.clone();
+
+            tokio::spawn(worker_loop(context_id.clone(), rx_worker, tx_output_clone));
+        }
+
+        match command {
+            Command::Setup => {
+                println!("Starting process for {}", input.context_id);
+                // lógica start
+            }
+
+            Command::Start => {
+                println!("Starting process for {}", input.context_id);
+                // lógica start
+            }
+
+            Command::Stop => {
+                println!("Stopping process for {}", input.context_id);
+                // lógica stop
+            }
+
+            Command::RunBacktest => {
+                println!("Running backtest for {}", input.context_id);
+                // lógica principal
+            }
         }
 
         if let Some(tx_worker) = workers.get(&context_id) {
