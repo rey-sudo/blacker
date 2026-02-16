@@ -19,7 +19,7 @@ type ContextId = String;
 #[derive(Debug, Deserialize)]
 struct InputEvent {
     context_id: ContextId,
-    payload: Vec<u8>,
+    payload: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -42,10 +42,9 @@ impl DeserializeMessage for InputEvent {
 
 impl SerializeMessage for OutputEvent {
     fn serialize_message(input: Self) -> Result<producer::Message, PulsarError> {
-        let payload: Vec<u8> =
-            serde_json::to_vec(&input).map_err(|e| PulsarError::Custom(e.to_string()))?;
         Ok(producer::Message {
-            payload,
+            payload: input.payload,
+            partition_key: Some(input.context_id),
             ..Default::default()
         })
     }
@@ -99,7 +98,7 @@ async fn worker_loop(
     loop {
         tokio::select! {
             Some(event) = rx.recv() => {
-                worker.apply(event.payload);
+                worker.apply(event.payload.into());
             }
 
             _ = interval.tick() => {

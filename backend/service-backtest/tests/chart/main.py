@@ -1,4 +1,6 @@
 import asyncio
+import base64
+import json
 import websockets
 import pulsar
 import structlog
@@ -16,8 +18,8 @@ log = structlog.get_logger()
 #=====================================================================================
 
 PULSAR_URL = "pulsar://localhost:6650"
-CONSUME_TOPIC = "non-persistent://public/backtest/input"
-PRODUCE_TOPIC = "non-persistent://public/backtest/output"
+CONSUME_TOPIC = "non-persistent://public/backtest/output"
+PRODUCE_TOPIC = "non-persistent://public/backtest/input" 
 
 connected_clients = set()
 
@@ -34,9 +36,25 @@ async def ws_handler(websocket):
     
     try:
         async for message in websocket:
-            log.debug("message_received", id=client_id, payload=message)
+            log.debug("message_received", id=client_id, payload=message.encode("utf-8"))
+
+            data = json.loads(message)
+
+            context_id = data["context_id"]
+            payload_bytes = data["payload"].encode("utf-8")
+
+            encoded_payload = base64.b64encode(payload_bytes).decode("utf-8")
+
+            input_event = {
+                "context_id": context_id,
+                "payload": encoded_payload
+            }
+
+            final = json.dumps(input_event).encode("utf-8")
             
-            producer.send_async(message.encode("utf-8"), None)
+            producer.send_async(json.dumps(input_event).encode("utf-8"), None)            
+            
+            log.debug("message_sent", id=client_id, payload=final)
             
     except websockets.exceptions.ConnectionClosed:
         pass 
