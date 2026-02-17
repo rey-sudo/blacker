@@ -91,18 +91,15 @@ pub async fn run() -> anyhow::Result<()> {
         if matches!(command, Command::Delete) {
             println!("Delete process for {}", context_id);
 
-            let tx: Option<mpsc::Sender<InputEvent>> = workers.remove(&context_id);
-
-            let send_result: Result<(), TrySendError<InputEvent>> = match tx {
-                Some(tx_input) => tx_input.try_send(event),
-                None => Ok(()), // no había worker, consideramos éxito
-            };
-
-            match send_result {
-                Ok(_) => consumer.ack(&msg).await?,
-                Err(_) => consumer.nack(&msg).await?,
+            if let Some(tx) = workers.get(&context_id) {
+                if tx.try_send(event).is_err() {
+                    consumer.nack(&msg).await?;
+                    continue;
+                }
             }
 
+            workers.remove(&context_id);
+            consumer.ack(&msg).await?;
             continue;
         }
 
