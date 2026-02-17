@@ -5,9 +5,11 @@ use pulsar::{
 };
 use serde::{Deserialize, Serialize};
 use service_backtest::infrastructure::pulsar::PulsarClient;
+use std::collections::hash_map::Entry;
 use std::convert::TryFrom;
 use std::{collections::HashMap, env};
 use tokio::sync::mpsc;
+use tokio::sync::mpsc::error::TrySendError;
 use tokio::time::{self, Duration};
 
 type ContextId = String;
@@ -169,8 +171,6 @@ async fn main() -> anyhow::Result<()> {
     // Canal global salida
     let (tx_output, mut rx_output) = mpsc::channel::<OutputEvent>(10_000);
 
-    let mut workers: HashMap<ContextId, mpsc::Sender<InputEvent>> = HashMap::new();
-
     tokio::spawn(async move {
         while let Some(event) = rx_output.recv().await {
             match producer.send_non_blocking(event).await {
@@ -190,13 +190,7 @@ async fn main() -> anyhow::Result<()> {
         }
     });
 
-    // =====================
-    // Worker table
-    // =====================
-
-    // =====================
-    // Consumer Loop
-    // =====================
+    let mut workers: HashMap<ContextId, mpsc::Sender<InputEvent>> = HashMap::new();
 
     while let Some(msg) = consumer.try_next().await? {
         let event: InputEvent = match msg.deserialize() {
@@ -222,69 +216,56 @@ async fn main() -> anyhow::Result<()> {
             }
         };
 
-        if !workers.contains_key(&context_id) {
-            if workers.len() >= max_workers {
-                eprintln!("MAX_WORKERS reached");
-                consumer.nack(&msg).await?;
-                continue;
+        if matches!(command, Command::Delete) {
+            println!("Delete process for {}", context_id);
+
+            if let Some(tx_input) = workers.remove(&context_id) {
+                if tx_input.try_send(event).is_err() {
+                    consumer.nack(&msg).await?;
+                    continue;
+                }
             }
 
-            let (tx_input, rx_input) = mpsc::channel(100);
-
-            workers.insert(context_id.clone(), tx_input.clone());
-
-            let tx_output_clone: mpsc::Sender<OutputEvent> = tx_output.clone();
-
-            tokio::spawn(worker_loop(context_id.clone(), rx_input, tx_output_clone));
+            consumer.ack(&msg).await?;
+            continue;
         }
 
-        if let Some(tx_input) = workers.get(&context_id) {
+        let workers_len: usize = workers.len();
+        let max_reached: bool = workers_len >= max_workers;
 
-            match command {
-                Command::Setup => {
-                    println!("Setup process for {}", event.context_id);
-                }
-
-                Command::Delete => {
-                    println!("Delete process for {}", event.context_id);
-                    workers.remove(&context_id);
-                }
-
-                Command::Start => {
-                    println!("Starting process for {}", event.context_id);
-                    // lógica start
-                }
-
-                Command::Stop => {
-                    println!("Stopping process for {}", event.context_id);
-                    // lógica stop
-                }
-
-                Command::RunBacktest => {
-                    println!("Running backtest for {}", event.context_id);
-                    // lógica principal
-                }
+        match workers.entry(context_id.clone()) {
+            Entry::Occupied(e) => {
+                match e.get().try_send(event) {
+                    Ok(_) => {
+                        println!("Received Valid Command {}", context_id);
+                        consumer.ack(&msg).await?;
+                    }
+                    Err(_) => consumer.nack(&msg).await?,
+                };
             }
 
-            match tx_input.try_send(event) {
-                Ok(_) => {
-                    consumer.ack(&msg).await?;
-                }
-                Err(_) => {
+            Entry::Vacant(v) => {
+                if max_reached {
                     consumer.nack(&msg).await?;
+                    continue;
+                }
+
+                let (tx_input, rx_input) = mpsc::channel(100);
+                let tx_ref = v.insert(tx_input);
+
+                let tx_output_clone = tx_output.clone();
+                tokio::spawn(worker_loop(context_id.clone(), rx_input, tx_output_clone));
+
+                match tx_ref.try_send(event) {
+                    Ok(_) => {
+                        println!("Received Valid Command {}", context_id);
+                        consumer.ack(&msg).await?;
+                    }
+                    Err(_) => consumer.nack(&msg).await?,
                 }
             }
-        } else {
-            consumer.nack(&msg).await?;
         }
     }
 
     Ok(())
 }
-
-/*
-
-
-
-
-*/
