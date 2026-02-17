@@ -17,6 +17,7 @@ enum Command {
     Setup,
     Start,
     Stop,
+    Delete,
     RunBacktest,
 }
 
@@ -165,9 +166,10 @@ async fn main() -> anyhow::Result<()> {
         .build()
         .await?;
 
-
     // Canal global salida
     let (tx_output, mut rx_output) = mpsc::channel::<OutputEvent>(10_000);
+
+    let mut workers: HashMap<ContextId, mpsc::Sender<InputEvent>> = HashMap::new();
 
     tokio::spawn(async move {
         while let Some(event) = rx_output.recv().await {
@@ -192,14 +194,12 @@ async fn main() -> anyhow::Result<()> {
     // Worker table
     // =====================
 
-    let mut workers: HashMap<ContextId, mpsc::Sender<InputEvent>> = HashMap::new();
-
     // =====================
     // Consumer Loop
     // =====================
 
     while let Some(msg) = consumer.try_next().await? {
-        let input: InputEvent = match msg.deserialize() {
+        let event: InputEvent = match msg.deserialize() {
             Ok(data) => {
                 println!("📩 Input recibido: {:?}", data);
                 data
@@ -211,9 +211,9 @@ async fn main() -> anyhow::Result<()> {
             }
         };
 
-        let context_id: String = input.context_id.clone();
+        let context_id: String = event.context_id.clone();
 
-        let command: Command = match Command::try_from(input.command.clone()) {
+        let command: Command = match Command::try_from(event.command.clone()) {
             Ok(cmd) => cmd,
             Err(e) => {
                 eprintln!("{}", e);
@@ -229,40 +229,44 @@ async fn main() -> anyhow::Result<()> {
                 continue;
             }
 
-            let (tx_worker, rx_worker) = mpsc::channel(100);
+            let (tx_input, rx_input) = mpsc::channel(100);
 
-            workers.insert(context_id.clone(), tx_worker.clone());
-
+            workers.insert(context_id.clone(), tx_input.clone());
 
             let tx_output_clone: mpsc::Sender<OutputEvent> = tx_output.clone();
 
-            tokio::spawn(worker_loop(context_id.clone(), rx_worker, tx_output_clone));
+            tokio::spawn(worker_loop(context_id.clone(), rx_input, tx_output_clone));
         }
 
-        match command {
-            Command::Setup => {
-                println!("Starting process for {}", input.context_id);
-                // lógica start
+        if let Some(tx_input) = workers.get(&context_id) {
+
+            match command {
+                Command::Setup => {
+                    println!("Setup process for {}", event.context_id);
+                }
+
+                Command::Delete => {
+                    println!("Delete process for {}", event.context_id);
+                    workers.remove(&context_id);
+                }
+
+                Command::Start => {
+                    println!("Starting process for {}", event.context_id);
+                    // lógica start
+                }
+
+                Command::Stop => {
+                    println!("Stopping process for {}", event.context_id);
+                    // lógica stop
+                }
+
+                Command::RunBacktest => {
+                    println!("Running backtest for {}", event.context_id);
+                    // lógica principal
+                }
             }
 
-            Command::Start => {
-                println!("Starting process for {}", input.context_id);
-                // lógica start
-            }
-
-            Command::Stop => {
-                println!("Stopping process for {}", input.context_id);
-                // lógica stop
-            }
-
-            Command::RunBacktest => {
-                println!("Running backtest for {}", input.context_id);
-                // lógica principal
-            }
-        }
-
-        if let Some(tx_worker) = workers.get(&context_id) {
-            match tx_worker.try_send(input) {
+            match tx_input.try_send(event) {
                 Ok(_) => {
                     consumer.ack(&msg).await?;
                 }
@@ -277,3 +281,10 @@ async fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+/*
+
+
+
+
+*/
