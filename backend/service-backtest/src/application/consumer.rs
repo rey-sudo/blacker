@@ -1,7 +1,7 @@
 use crate::{
     application::{
         event::{ContextId, ControlEvent, InputEvent, OutputEvent},
-        worker::{Command, worker_loop},
+        worker::{worker_loop},
     },
     config::Config,
 };
@@ -31,17 +31,6 @@ pub async fn handle_consumer(
     // Extract and clone the context identifier from the event.
     // This ID is used to route the message to the corresponding worker.
     let context_id: String = event.context_id.clone();
-
-    // Convert the raw command field into a strongly-typed Command enum.
-    // If conversion fails, log the error, ACK to skip
-    let command: Command = match Command::try_from(event.command.clone()) {
-        Ok(cmd) => cmd,
-        Err(e) => {
-            eprintln!("{}", e);
-            consumer.ack(&msg).await?;
-            return Ok(());
-        }
-    };
 
     let workers_len: usize = workers.len();
     let max_reached: bool = workers_len >= config.max_workers;

@@ -1,8 +1,9 @@
 use crate::application::event::{ContextId, ControlEvent, InputEvent, OutputEvent};
+use serde::Deserialize;
 use std::time::Duration;
 use tokio::{sync::mpsc, time};
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub enum Command {
     Setup,
     Start,
@@ -10,22 +11,6 @@ pub enum Command {
     Delete,
     RunBacktest,
 }
-
-impl TryFrom<String> for Command {
-    type Error = String;
-
-    fn try_from(value: String) -> Result<Self, Self::Error> {
-        match value.as_str() {
-            "SETUP" => Ok(Command::Setup),
-            "DELETE" => Ok(Command::Delete),
-            "START" => Ok(Command::Start),
-            "STOP" => Ok(Command::Stop),
-            "RUN_BACKTEST" => Ok(Command::RunBacktest),
-            _ => Err(format!("Invalid command: {}", value)),
-        }
-    }
-}
-
 struct Worker {
     context_id: ContextId,
     state: u64,
@@ -66,17 +51,48 @@ pub async fn worker_loop(
 
     loop {
         tokio::select! {
-            Some(event) = rx.recv() => {
-                worker.apply(event.params.into());
-            }
+        
+        Some(event) = rx.recv() => {
+        
+            worker.apply(event.params.into());
 
-            _ = interval.tick() => {
+            match event.command {
+                Command::Setup => {
+                    println!("Handling Setup command");
+                    // lógica para inicialización
+                }
+
+                Command::Start => {
+                    println!("Handling Start command");
+                    // lógica para iniciar proceso
+                }
+
+                Command::Stop => {
+                    println!("Handling Stop command");
+                    // lógica para detener proceso
+                }
+
+                Command::Delete => {
+                    println!("Handling Delete command");
+                    // lógica para eliminar recursos
+                }
+
+                Command::RunBacktest => {
+                    println!("Handling RunBacktest command");
+                    // lógica para ejecutar backtest
+                }
+            }
+        
+        }
+
+        _ = interval.tick() => {
                 if let Some(out) = worker.maybe_emit() {
                     if tx_output.send(out).await.is_err() {
-                        break;
+                                    break;
                     }
                 }
             }
+            
         }
     }
 

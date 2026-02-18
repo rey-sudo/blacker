@@ -1,12 +1,13 @@
 use pulsar::{DeserializeMessage, Error as PulsarError, Payload, SerializeMessage, producer};
 use serde::{Deserialize, Serialize};
+use crate::application::worker::Command;
 
 pub type ContextId = String;
 
 #[derive(Debug, Deserialize)]
 pub struct InputEvent {
     pub context_id: ContextId,
-    pub command: String,
+    pub command: Command,
     pub params: String,
 }
 
