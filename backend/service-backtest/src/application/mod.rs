@@ -43,13 +43,22 @@ pub async fn run() -> anyhow::Result<()> {
     // from workers to a dedicated task responsible for publishing them to Pulsar.
     let (tx_output, mut rx_output) = mpsc::channel::<OutputEvent>(10_000);
 
+    // Spawns a dedicated asynchronous task responsible for publishing OutputEvent
+    // messages to the Pulsar output topic. The task runs independently from the
+    // main event loop and continuously consumes events from rx_output.
     spawn_output_handler(rx_output, config.clone(), pulsar_client.clone());
 
+    // Main event loop.
+    // Uses `tokio::select!` to concurrently listen for:
+    // 1) New input messages from the Pulsar consumer.
+    // 2) Control events emitted by worker tasks.
     loop {
         tokio::select! {
 
             res = consumer.try_next() => {
                 match res {
+                    // A valid message was received from Pulsar.
+                    // Delegate processing and routing to `handle_consumer`.
                     Ok(Some(msg)) => {
                         handle_consumer(
                             msg,
@@ -61,8 +70,12 @@ pub async fn run() -> anyhow::Result<()> {
                         ).await?;
                     }
 
+                    // This typically indicates the consumer stream ended.
+                    // Currently ignored to keep the loop alive.
                     Ok(None) => (),
 
+                    // An error occurred while polling the consumer.
+                    // The error is logged and the loop continues,
                     Err(e) => {
                         eprintln!("Consumer error: {:?}", e);
                         continue;
@@ -70,6 +83,9 @@ pub async fn run() -> anyhow::Result<()> {
                 }
             }
 
+            // Receives control events from workers (e.g., Delete).
+            // These events are used to manage the worker registry safely
+            // from the main loop (single ownership of `workers`).
             Some(control) = rx_control.recv() => {
                 handle_control(control, &mut workers);
             }
