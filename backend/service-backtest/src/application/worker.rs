@@ -1,4 +1,4 @@
-use crate::application::event::{ContextId, InputEvent, OutputEvent};
+use crate::application::event::{ContextId, ControlEvent, InputEvent, OutputEvent};
 use std::time::Duration;
 use tokio::{sync::mpsc, time};
 
@@ -57,6 +57,7 @@ impl Worker {
 
 pub async fn worker_loop(
     context_id: ContextId,
+    tx_control: mpsc::Sender<ControlEvent>,
     mut rx: mpsc::Receiver<InputEvent>,
     tx_output: mpsc::Sender<OutputEvent>,
 ) {
