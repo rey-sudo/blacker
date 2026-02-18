@@ -33,3 +33,8 @@ impl SerializeMessage for OutputEvent {
         })
     }
 }
+
+pub enum ControlEvent {
+    WorkerFinished(ContextId),
+    DeleteConfirmed(ContextId),
+}
