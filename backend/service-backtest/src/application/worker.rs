@@ -10,12 +10,39 @@ pub enum WorkerError {
     AlreadyInitialized,
     InvalidParams,
     CursorInitFailed,
-    EmptyDataset
+    EmptyDataset,
+    NotInitialized,
+    InvalidTimeframe,
 }
 
 #[derive(Deserialize)]
 struct SetupParams {
-    symbol: String
+    symbol: String,
+}
+
+#[derive(Deserialize)]
+struct AddTimeframeParams {
+    timeframe: String,
+}
+
+#[derive(Clone, Debug)]
+pub struct TimeframeState {
+    /// Identificador del timeframe (ej: M1, H1, D1)
+    pub kind: Timeframe,
+
+    pub cursor: CursorDB, //pub current_candle: u64,
+
+                          //pub candle_buffer: CandleBuffer,
+
+                          //pub parallel_layers: Vec<Vec<IndicatorState>>,
+
+                          //pub sequential_indicators: Vec<IndicatorState>,
+}
+
+impl TimeframeState {
+    pub fn new(kind: Timeframe, cursor: CursorDB) -> Self {
+        Self { kind, cursor }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -32,19 +59,34 @@ impl Symbol {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-#[repr(u8)]
 pub enum Timeframe {
-    M1 = 1,
-    M5 = 2,
-    M15 = 3,
-    M30 = 4,
-    H1 = 5,
-    H4 = 6,
-    D1 = 7,
+    M1,
+    M5,
+    M15,
+    M30,
+    H1,
+    H4,
+    D1,
+    MN,
 }
 
 impl Timeframe {
-    pub const fn as_seconds(self) -> u64 {
+    /// Devuelve el string representativo de cada timeframe
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Timeframe::M1 => "M1",
+            Timeframe::M5 => "M5",
+            Timeframe::M15 => "M15",
+            Timeframe::M30 => "M30",
+            Timeframe::H1 => "H1",
+            Timeframe::H4 => "H4",
+            Timeframe::D1 => "D1",
+            Timeframe::MN => "MN",
+        }
+    }
+
+    /// Devuelve duración aproximada en segundos
+    pub fn as_seconds(&self) -> u64 {
         match self {
             Timeframe::M1 => 60,
             Timeframe::M5 => 300,
@@ -53,6 +95,7 @@ impl Timeframe {
             Timeframe::H1 => 3600,
             Timeframe::H4 => 14_400,
             Timeframe::D1 => 86_400,
+            Timeframe::MN => 2_592_000, // 30 días aproximados
         }
     }
 }
@@ -60,7 +103,7 @@ impl Timeframe {
 #[derive(Debug, Deserialize)]
 pub enum Command {
     Setup,
-    Start,
+    AddTimeframe,
     Stop,
     Delete,
     RunBacktest,
@@ -69,6 +112,7 @@ pub enum Command {
 #[derive(Clone)]
 pub struct WorkerState {
     pub current_index: Record,
+    pub timeframes: Option<Vec<TimeframeState>>,
 }
 
 struct Worker {
@@ -87,11 +131,14 @@ impl Worker {
             cursor: None,
         }
     }
+
+    pub fn symbol(&self) -> Option<&Symbol> {
+        self.symbol.as_ref()
+    }
 }
 
 impl Worker {
     pub fn setup(&mut self, event: InputEvent) -> Result<(), WorkerError> {
-
         if self.state.is_some() {
             return Err(WorkerError::AlreadyInitialized);
         }
@@ -103,24 +150,74 @@ impl Worker {
 
         let symbol: Symbol = Symbol::new(params.symbol);
 
-        let data_path: &str = "data/data.cdb";      //symbol
-        let index_path: &str = "data/index.cdbi";
+        let data_path: String = format!("data/ticks_{}_data.cdb", symbol.as_str()); //Validator
+        let index_path: String = format!("data/ticks_{}_index.cdbi", symbol.as_str()); //Validator
 
-        let mut cursor: CursorDB =
-            CursorDB::new(data_path, index_path).map_err(|_| WorkerError::CursorInitFailed)?;
+        let mut cursor: CursorDB = CursorDB::new(data_path.as_str(), index_path.as_str())
+            .map_err(|_| WorkerError::CursorInitFailed)?;
 
-        let current_index = cursor
+        let current_index: Record = cursor
             .move_to_first()
             .map_err(|_| WorkerError::CursorInitFailed)?
             .ok_or(WorkerError::EmptyDataset)?;
 
         info!("{:?}", current_index);
 
-        let state: WorkerState = WorkerState { current_index };
+        let state: WorkerState = WorkerState {
+            current_index,
+            timeframes: None,
+        };
 
         self.symbol = Some(symbol);
         self.cursor = Some(cursor);
         self.state = Some(state);
+
+        Ok(())
+    }
+}
+
+impl Worker {
+    pub fn add_timeframe(&mut self, event: InputEvent) -> Result<(), WorkerError> {
+        // Verificar que el estado ya está inicializado
+        let state: &mut WorkerState = self.state.as_mut().ok_or(WorkerError::NotInitialized)?;
+
+        // Parsear JSON
+        let params: AddTimeframeParams =
+            serde_json::from_str(&event.params).map_err(|_| WorkerError::InvalidParams)?;
+
+        // Convertir string a enum Timeframe
+        let timeframe: Timeframe = match params.timeframe.as_str() {
+            "M1" => Timeframe::M1,
+            "M5" => Timeframe::M5,
+            "M15" => Timeframe::M15,
+            "M30" => Timeframe::M30,
+            "H1" => Timeframe::H1,
+            "H4" => Timeframe::H4,
+            "D1" => Timeframe::D1,
+            _ => return Err(WorkerError::InvalidTimeframe),
+        };
+
+        let symbol: &Symbol = self.symbol.as_ref().ok_or(WorkerError::NotInitialized)?;
+
+        let data_path: String = format!(
+            "data/ohlcv_{}_{}_data.cdb",
+            symbol.as_str(),
+            timeframe.as_str()
+        );
+        let index_path: String = format!(
+            "data/ohlcv_{}_{}_index.cdbi",
+            symbol.as_str(),
+            timeframe.as_str()
+        );
+
+        let mut cursor: CursorDB = CursorDB::new(data_path.as_str(), index_path.as_str())
+            .map_err(|_| WorkerError::CursorInitFailed)?;
+
+        let tf_state: TimeframeState = TimeframeState::new(timeframe, cursor);
+
+        let timeframes: &mut Vec<TimeframeState> = state.timeframes.get_or_insert_with(Vec::new);
+
+        timeframes.push(tf_state);
 
         Ok(())
     }
@@ -151,9 +248,15 @@ pub async fn worker_loop(
                         }
                     }
 
-                    Command::Start => {
-                        println!("Handling Start command");
-                        // lógica para iniciar proceso
+                    Command::AddTimeframe => {
+                        match worker.add_timeframe(event) {
+                            Ok(_) => {
+                                info!("AddTimeframe complete");
+                            }
+                            Err(e) => {
+                                error!("AddTimeframe failed: {:?}", e);
+                            }
+                        }
                     }
 
                     Command::Stop => {
