@@ -1,4 +1,7 @@
-use crate::application::event::{ContextId, ControlEvent, InputEvent, OutputEvent};
+use crate::{
+    application::event::{ContextId, ControlEvent, InputEvent, OutputEvent},
+    common::candle::Ohlcv,
+};
 use cursor_db::{cursor::CursorDB, record::Record};
 use serde::Deserialize;
 use serde_json;
@@ -25,23 +28,27 @@ struct AddTimeframeParams {
     timeframe: String,
 }
 
-#[derive(Clone, Debug)]
 pub struct TimeframeState {
-    /// Identificador del timeframe (ej: M1, H1, D1)
     pub kind: Timeframe,
 
-    pub cursor: CursorDB, //pub current_candle: u64,
+    pub cursor: CursorDB,
 
-                          //pub candle_buffer: CandleBuffer,
+    pub ohlcv_history: Vec<Ohlcv>, //pub current_candle: u64,
 
-                          //pub parallel_layers: Vec<Vec<IndicatorState>>,
+                                   //pub candle_buffer: CandleBuffer,
 
-                          //pub sequential_indicators: Vec<IndicatorState>,
+                                   //pub parallel_layers: Vec<Vec<IndicatorState>>,
+
+                                   //pub sequential_indicators: Vec<IndicatorState>,
 }
 
 impl TimeframeState {
     pub fn new(kind: Timeframe, cursor: CursorDB) -> Self {
-        Self { kind, cursor }
+        Self {
+            kind,
+            cursor,
+            ohlcv_history: Vec::new(),
+        }
     }
 }
 
@@ -109,7 +116,6 @@ pub enum Command {
     RunBacktest,
 }
 
-#[derive(Clone)]
 pub struct WorkerState {
     pub current_index: Record,
     pub timeframes: Option<Vec<TimeframeState>>,
@@ -120,20 +126,32 @@ struct Worker {
     symbol: Option<Symbol>,
     state: Option<WorkerState>,
     cursor: Option<CursorDB>,
+    tx_control: mpsc::Sender<ControlEvent>,
+    tx_output: mpsc::Sender<OutputEvent>,
 }
 
 impl Worker {
-    fn new(context_id: ContextId) -> Self {
+    fn new(
+        context_id: ContextId,
+        tx_control: mpsc::Sender<ControlEvent>,
+        tx_output: mpsc::Sender<OutputEvent>,
+    ) -> Self {
         Self {
             context_id,
             symbol: None,
             state: None,
             cursor: None,
+            tx_control,
+            tx_output,
         }
     }
 
-    pub fn symbol(&self) -> Option<&Symbol> {
-        self.symbol.as_ref()
+    pub fn tx_control(&self) -> &mpsc::Sender<ControlEvent> {
+        &self.tx_control
+    }
+
+    pub fn tx_output(&self) -> &mpsc::Sender<OutputEvent> {
+        &self.tx_output
     }
 }
 
@@ -219,17 +237,19 @@ impl Worker {
 
         timeframes.push(tf_state);
 
+        //State Change
+
         Ok(())
     }
 }
 
 pub async fn worker_loop(
     context_id: ContextId,
-    tx_control: mpsc::Sender<ControlEvent>,
     mut rx: mpsc::Receiver<InputEvent>,
+    tx_control: mpsc::Sender<ControlEvent>,
     tx_output: mpsc::Sender<OutputEvent>,
 ) {
-    let mut worker: Worker = Worker::new(context_id.clone());
+    let mut worker: Worker = Worker::new(context_id.clone(), tx_control, tx_output);
 
     loop {
         tokio::select! {

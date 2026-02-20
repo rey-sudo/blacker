@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.101"
+ciborium = "0.2.2"
 cursor_db = "0.1.0"
 dotenvy = "0.15.7"
 futures = "0.3.32"

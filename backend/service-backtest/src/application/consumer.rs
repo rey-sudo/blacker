@@ -60,8 +60,8 @@ pub async fn handle_consumer(
 
             tokio::spawn(worker_loop(
                 context_id.clone(),
-                tx_control_clone,
                 rx_input,
+                tx_control_clone,
                 tx_output_clone,
             ));
 
