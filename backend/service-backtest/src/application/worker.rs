@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 
 use crate::{
-    application::event::{ContextId, ControlEvent, InputEvent, OutputEvent, OutputEventKind},
-    common::{candle::Ohlcv},
+    application::{
+        event::{ContextId, ControlEvent, InputEvent, OutputEvent, OutputEventKind},
+        timeframe::{AddTimeframeParams, Timeframe, TimeframeState},
+    },
+    common::candle::Ohlcv,
 };
 use cursor_db::{cursor::CursorDB, record::Record};
 use serde::{Deserialize, Serialize};
@@ -19,84 +22,13 @@ pub enum WorkerError {
     NotInitialized,
     InvalidTimeframe,
     SerializationError,
+    DeserializationError,
     OutputChannelClosed,
 }
 
 #[derive(Deserialize)]
 struct SetupParams {
     symbol: String,
-}
-
-#[derive(Deserialize)]
-struct AddTimeframeParams {
-    timeframe: String,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum Timeframe {
-    M1,
-    M5,
-    M15,
-    M30,
-    H1,
-    H4,
-    D1,
-    MN,
-}
-
-impl Timeframe {
-    /// Devuelve el string representativo de cada timeframe
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Timeframe::M1 => "M1",
-            Timeframe::M5 => "M5",
-            Timeframe::M15 => "M15",
-            Timeframe::M30 => "M30",
-            Timeframe::H1 => "H1",
-            Timeframe::H4 => "H4",
-            Timeframe::D1 => "D1",
-            Timeframe::MN => "MN",
-        }
-    }
-
-    /// Devuelve duración aproximada en segundos
-    pub fn as_seconds(&self) -> u64 {
-        match self {
-            Timeframe::M1 => 60,
-            Timeframe::M5 => 300,
-            Timeframe::M15 => 900,
-            Timeframe::M30 => 1800,
-            Timeframe::H1 => 3600,
-            Timeframe::H4 => 14_400,
-            Timeframe::D1 => 86_400,
-            Timeframe::MN => 2_592_000, // 30 días aproximados
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct TimeframeState {
-    pub kind: Timeframe,
-
-    pub current_index: Record,
-
-    pub ohlcv_history: Vec<Ohlcv>, //pub current_candle: u64,
-
-                                   //pub candle_buffer: CandleBuffer,
-
-                                   //pub parallel_layers: Vec<Vec<IndicatorState>>,
-
-                                   //pub sequential_indicators: Vec<IndicatorState>,
-}
-
-impl TimeframeState {
-    pub fn new(kind: Timeframe, current_index: Record) -> Self {
-        Self {
-            kind,
-            current_index,
-            ohlcv_history: Vec::new(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -263,8 +195,9 @@ impl Worker {
             .move_to_first()
             .map_err(|_| WorkerError::CursorInitFailed)?
             .ok_or(WorkerError::EmptyDataset)?;
-
-        let tf_state: TimeframeState = TimeframeState::new(timeframe.clone(), current_index);
+           
+        let tf_state: TimeframeState =
+            TimeframeState::new(timeframe.clone(), current_index.timestamp);
 
         state.timeframes.insert(timeframe, tf_state);
 
@@ -348,6 +281,16 @@ pub async fn worker_loop(
 
 /*
 
+        if let Some(timeframe_state) = state.timeframes.get_mut(&timeframe) {
+            let decoded_payload: Ohlcv = Ohlcv::from_cbor(&current_index.payload)
+                .map_err(|_| WorkerError::DeserializationError)?;
+            
+            timeframe_state.ohlcv_history.push(decoded_payload);
+        } else {
+            println!("Timeframe no encontrado");
+        }
+
+        
     let data_path: &str = "../data/data.cdb";
     let index_path: &str = "../data/index.cdbi";
 

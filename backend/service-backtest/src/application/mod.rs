@@ -4,6 +4,7 @@ pub mod engine;
 pub mod event;
 pub mod producer;
 pub mod worker;
+pub mod timeframe;
 
 use crate::application::consumer::handle_consumer;
 use crate::application::control::handle_control;
