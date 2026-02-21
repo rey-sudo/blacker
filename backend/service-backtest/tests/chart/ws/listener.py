@@ -1,24 +1,52 @@
 import asyncio
+import json
 
 async def safe_send(ws, data):
-    """Envío seguro para evitar que un error de un cliente rompa el loop principal"""
     try:
         await ws.send(data)
-    except Exception:
-        pass # La limpieza se hace en el ws_handler (finally)
+    except Exception as e:
+        print("WebSocket send error:", e)
 
 
 async def pulsar_listener(consumer, connected_clients):
     loop = asyncio.get_running_loop()
+
     while True:
-        # Recibir mensaje de forma no bloqueante para el loop
+
         msg = await loop.run_in_executor(None, consumer.receive)
-        data = msg.data().decode("utf-8")
+        print("📥 Message received from Pulsar")
         
-        # Acknowledge también en un executor para evitar micro-bloqueos
-        loop.run_in_executor(None, consumer.acknowledge, msg)
+        data = None
+
+        try:
+            event = json.loads(msg.data())
+            
+            print(event)
+            
+            payload_bytes = bytes(event["payload"])
+
+            state = json.loads(payload_bytes.decode("utf-8"))
+
+            print(state)
+            
+            data = state
+            
+        except Exception as e:
+            print("Decode error:", e)
+            await loop.run_in_executor(None, consumer.negative_acknowledge, msg)
+            continue
+
+        await loop.run_in_executor(None, consumer.acknowledge, msg)
+        print("✅ Message acknowledged")
 
         if connected_clients:
-            # Creamos tareas individuales para que un cliente lento no frene al resto
-            tasks = [asyncio.create_task(safe_send(ws, data)) for ws in connected_clients]
-            await asyncio.wait(tasks)
+            print(f"📤 Broadcasting to {len(connected_clients)} clients")
+
+            await asyncio.gather(
+                *(safe_send(ws, data) for ws in connected_clients),
+                return_exceptions=True
+            )
+
+            print("🚀 Broadcast complete\n")
+        else:
+            print("⚠ No connected clients\n")

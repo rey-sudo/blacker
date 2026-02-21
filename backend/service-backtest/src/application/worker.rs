@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     application::event::{ContextId, ControlEvent, InputEvent, OutputEvent, OutputEventKind},
-    common::{candle::Ohlcv, cbor::to_cbor_bytes},
+    common::{candle::Ohlcv},
 };
 use cursor_db::{cursor::CursorDB, record::Record};
 use serde::{Deserialize, Serialize};
@@ -19,7 +19,7 @@ pub enum WorkerError {
     NotInitialized,
     InvalidTimeframe,
     SerializationError,
-    OutputChannelClosed
+    OutputChannelClosed,
 }
 
 #[derive(Deserialize)]
@@ -274,7 +274,7 @@ impl Worker {
         let state: &WorkerState = self.state.as_ref().ok_or(WorkerError::NotInitialized)?;
 
         let payload: Vec<u8> =
-            to_cbor_bytes(&state).map_err(|_| WorkerError::SerializationError)?;
+            serde_json::to_vec(state).map_err(|_| WorkerError::SerializationError)?;
 
         let output: OutputEvent = OutputEvent {
             context_id: event.context_id,

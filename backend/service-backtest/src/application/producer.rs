@@ -1,7 +1,7 @@
 use crate::{
     application::event::OutputEvent, config::Config, infrastructure::pulsar::PulsarClient,
 };
-use pulsar::{Producer, TokioExecutor};
+use pulsar::{Producer, TokioExecutor, producer::SendFuture};
 use std::sync::Arc;
 use tokio::sync::mpsc;
 
@@ -33,17 +33,26 @@ pub fn spawn_output_handler(
         while let Some(event) = rx_output.recv().await {
             println!("Received event: {:?}", event.context_id);
 
-            match producer.send_non_blocking(event).await {
-                Ok(delivery_future) => {
-                    if let Err(e) = delivery_future.await {
-                        eprintln!("Delivery error: {:?}", e);
-                    }
-
-                    println!("Event sent");
+            let json_bytes: Vec<u8> = match serde_json::to_vec(&event) {
+                Ok(bytes) => bytes,
+                Err(e) => {
+                    eprintln!("Serialization error: {:?}", e);
+                    continue;
                 }
+            };
+
+            let delivery: SendFuture = match producer.send_non_blocking(json_bytes).await {
+                Ok(fut) => fut,
                 Err(e) => {
                     eprintln!("Enqueue error: {:?}", e);
+                    continue;
                 }
+            };
+
+            if let Err(e) = delivery.await {
+                eprintln!("Delivery error: {:?}", e);
+            } else {
+                println!("Event sent");
             }
         }
 
