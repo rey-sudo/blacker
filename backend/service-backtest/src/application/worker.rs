@@ -24,6 +24,8 @@ pub enum WorkerError {
     SerializationError,
     DeserializationError,
     OutputChannelClosed,
+    CursorMethodError,
+    CursorEmpty,
 }
 
 #[derive(Deserialize)]
@@ -48,6 +50,7 @@ impl Symbol {
 pub enum Command {
     Setup,
     AddTimeframe,
+    NextTimeframeCandle,
     Stop,
     Delete,
     RunBacktest,
@@ -113,6 +116,23 @@ impl Worker {
             }
         });
     }
+
+    pub fn emit_state(&self) -> Result<(), WorkerError> {
+        let state: &WorkerState = self.state.as_ref().ok_or(WorkerError::NotInitialized)?;
+
+        let payload: Vec<u8> =
+            serde_json::to_vec(state).map_err(|_| WorkerError::SerializationError)?;
+
+        let output: OutputEvent = OutputEvent {
+            context_id: self.context_id.clone(),
+            kind: OutputEventKind::StateChanged,
+            payload,
+        };
+        //json_diff
+        self.emit(output);
+
+        Ok(())
+    }
 }
 
 impl Worker {
@@ -164,16 +184,8 @@ impl Worker {
             serde_json::from_str(&event.params).map_err(|_| WorkerError::InvalidParams)?;
 
         // Convertir string a enum Timeframe
-        let timeframe: Timeframe = match params.timeframe.as_str() {
-            "M1" => Timeframe::M1,
-            "M5" => Timeframe::M5,
-            "M15" => Timeframe::M15,
-            "M30" => Timeframe::M30,
-            "H1" => Timeframe::H1,
-            "H4" => Timeframe::H4,
-            "D1" => Timeframe::D1,
-            _ => return Err(WorkerError::InvalidTimeframe),
-        };
+        let timeframe: Timeframe =
+            Timeframe::from_str(params.timeframe.as_str()).ok_or(WorkerError::InvalidTimeframe)?;
 
         let symbol: &Symbol = self.symbol.as_ref().ok_or(WorkerError::NotInitialized)?;
 
@@ -195,7 +207,7 @@ impl Worker {
             .move_to_first()
             .map_err(|_| WorkerError::CursorInitFailed)?
             .ok_or(WorkerError::EmptyDataset)?;
-           
+
         let tf_state: TimeframeState =
             TimeframeState::new(timeframe.clone(), current_index.timestamp);
 
@@ -203,19 +215,43 @@ impl Worker {
 
         self.timeframe_cursors.insert(timeframe, timeframe_cursor);
 
-        //State Changed EVENT
-        let state: &WorkerState = self.state.as_ref().ok_or(WorkerError::NotInitialized)?;
+        self.emit_state()?;
 
-        let payload: Vec<u8> =
-            serde_json::to_vec(state).map_err(|_| WorkerError::SerializationError)?;
+        Ok(())
+    }
+}
 
-        let output: OutputEvent = OutputEvent {
-            context_id: event.context_id,
-            kind: OutputEventKind::StateChanged,
-            payload: payload,
-        };
+impl Worker {
+    pub fn next_timeframe_candle(&mut self, event: InputEvent) -> Result<(), WorkerError> {
+        let state: &mut WorkerState = self.state.as_mut().ok_or(WorkerError::NotInitialized)?;
 
-        self.emit(output);
+        let params: AddTimeframeParams =
+            serde_json::from_str(&event.params).map_err(|_| WorkerError::InvalidParams)?;
+
+        let timeframe: Timeframe =
+            Timeframe::from_str(params.timeframe.as_str()).ok_or(WorkerError::InvalidTimeframe)?;
+
+        let timeframe_cursor: &mut CursorDB = self
+            .timeframe_cursors
+            .get_mut(&timeframe)
+            .ok_or(WorkerError::InvalidTimeframe)?;
+
+        let current_record: Record = timeframe_cursor
+            .next()
+            .map_err(|_| WorkerError::CursorMethodError)?
+            .ok_or(WorkerError::CursorEmpty)?;
+
+        let decoded_payload: Ohlcv = Ohlcv::from_cbor(&current_record.payload)
+            .map_err(|_| WorkerError::DeserializationError)?;
+
+        let timeframe_state: &mut TimeframeState = state
+            .timeframes
+            .get_mut(&timeframe)
+            .ok_or(WorkerError::EmptyDataset)?;
+
+        timeframe_state.ohlcv_history.push(decoded_payload);
+
+        self.emit_state()?;
 
         Ok(())
     }
@@ -257,6 +293,17 @@ pub async fn worker_loop(
                         }
                     }
 
+                    Command::NextTimeframeCandle => {
+                        match worker.next_timeframe_candle(event) {
+                            Ok(_) => {
+                                info!("NextTimeframeCandle complete");
+                            }
+                            Err(e) => {
+                                error!("NextTimeframeCandle failed: {:?}", e);
+                            }
+                        }
+                    }
+
                     Command::Stop => {
                         println!("Handling Stop command");
                         // lógica para detener proceso
@@ -281,16 +328,9 @@ pub async fn worker_loop(
 
 /*
 
-        if let Some(timeframe_state) = state.timeframes.get_mut(&timeframe) {
-            let decoded_payload: Ohlcv = Ohlcv::from_cbor(&current_index.payload)
-                .map_err(|_| WorkerError::DeserializationError)?;
-            
-            timeframe_state.ohlcv_history.push(decoded_payload);
-        } else {
-            println!("Timeframe no encontrado");
-        }
 
-        
+
+
     let data_path: &str = "../data/data.cdb";
     let index_path: &str = "../data/index.cdbi";
 

@@ -3,7 +3,7 @@ import json
 
 async def safe_send(ws, data):
     try:
-        await ws.send(data)
+        await ws.send(json.dumps(data))
     except Exception as e:
         print("WebSocket send error:", e)
 

@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::common::candle::Ohlcv;
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 pub struct AddTimeframeParams {
@@ -33,6 +33,20 @@ impl Timeframe {
         }
     }
 
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "M1" => Some(Timeframe::M1),
+            "M5" => Some(Timeframe::M5),
+            "M15" => Some(Timeframe::M15),
+            "M30" => Some(Timeframe::M30),
+            "H1" => Some(Timeframe::H1),
+            "H4" => Some(Timeframe::H4),
+            "D1" => Some(Timeframe::D1),
+            "MN" => Some(Timeframe::MN),
+            _ => None,
+        }
+    }
+
     /// Devuelve duración aproximada en segundos
     pub fn as_seconds(&self) -> u64 {
         match self {
@@ -54,7 +68,7 @@ pub struct TimeframeState {
 
     pub current_index: i64,
 
-    pub ohlcv_history: Vec<Ohlcv>, 
+    pub ohlcv_history: Vec<Ohlcv>,
 }
 
 impl TimeframeState {
@@ -67,11 +81,10 @@ impl TimeframeState {
     }
 }
 
-
 //pub current_candle: u64,
 
-                                   //pub candle_buffer: CandleBuffer,
+//pub candle_buffer: CandleBuffer,
 
-                                   //pub parallel_layers: Vec<Vec<IndicatorState>>,
+//pub parallel_layers: Vec<Vec<IndicatorState>>,
 
-                                   //pub sequential_indicators: Vec<IndicatorState>,
+//pub sequential_indicators: Vec<IndicatorState>,

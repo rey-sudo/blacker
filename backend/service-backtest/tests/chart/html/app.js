@@ -6,6 +6,8 @@ import {
 
 let ws = null;
 
+let worker_state = null;
+
 function connectWebSocket() {
   ws = new WebSocket("ws://localhost:8765");
 
@@ -14,7 +16,12 @@ function connectWebSocket() {
   };
 
   ws.onmessage = (event) => {
-    console.log("Message received:", event.data);
+    //console.log("Message received:", event.data);
+    worker_state = JSON.parse(event.data);
+
+
+
+    render();
   };
 
   ws.onerror = (error) => {
@@ -54,6 +61,22 @@ function addTimeframe() {
   const command = {
     context_id: "123",
     command: "AddTimeframe",
+    params: `{\n  "timeframe": "H1"\n}`,
+  };
+
+  ws.send(JSON.stringify(command));
+  console.log("Command sent:", command);
+}
+
+function nextTimeframeCandle() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    console.warn("WebSocket not connected");
+    return;
+  }
+
+  const command = {
+    context_id: "123",
+    command: "NextTimeframeCandle",
     params: `{\n  "timeframe": "H1"\n}`,
   };
 
@@ -195,7 +218,14 @@ const forwardAcceleration = 0.85;
 candles.setData([]);
 
 function render() {
-  candles.setData(data.slice(0, currentIndex));
+  const result = worker_state.timeframes.H1.ohlcv_history.map((item) => ({
+    ...item,
+    time: item.timestamp / 1_000_000, // micro → seconds
+  }));
+
+  console.log(result);
+
+  candles.setData(result);
   //chart.timeScale().fitContent();
 }
 
@@ -203,9 +233,9 @@ function render() {
      CONTROLS LOGIC
      ========================= */
 function stepForward() {
-  if (currentIndex >= data.length) return;
-  currentIndex++;
-  render();
+  //if (currentIndex >= data.length) return;
+  // currentIndex++;
+  nextTimeframeCandle();
 }
 
 function stepBack() {
