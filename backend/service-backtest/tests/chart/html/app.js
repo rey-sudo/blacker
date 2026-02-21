@@ -18,9 +18,7 @@ function connectWebSocket() {
   ws.onmessage = (event) => {
     //console.log("Message received:", event.data);
     worker_state = JSON.parse(event.data);
-
-
-
+    console.log(worker_state);
     render();
   };
 
@@ -77,6 +75,22 @@ function nextTimeframeCandle() {
   const command = {
     context_id: "123",
     command: "NextTimeframeCandle",
+    params: `{\n  "timeframe": "H1"\n}`,
+  };
+
+  ws.send(JSON.stringify(command));
+  console.log("Command sent:", command);
+}
+
+function backTimeframeCandle() {
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    console.warn("WebSocket not connected");
+    return;
+  }
+
+  const command = {
+    context_id: "123",
+    command: "BackTimeframeCandle",
     params: `{\n  "timeframe": "H1"\n}`,
   };
 
@@ -223,8 +237,6 @@ function render() {
     time: item.timestamp / 1_000_000, // micro → seconds
   }));
 
-  console.log(result);
-
   candles.setData(result);
   //chart.timeScale().fitContent();
 }
@@ -233,15 +245,11 @@ function render() {
      CONTROLS LOGIC
      ========================= */
 function stepForward() {
-  //if (currentIndex >= data.length) return;
-  // currentIndex++;
   nextTimeframeCandle();
 }
 
 function stepBack() {
-  if (currentIndex <= 0) return;
-  currentIndex--;
-  render();
+  backTimeframeCandle();
 }
 
 function play() {
@@ -276,20 +284,13 @@ function stopStepBack() {
 
 function startStepBack() {
   if (isSteppingBack) return;
-
   pause();
   stopStepForward();
-
   isSteppingBack = true;
   backDelay = 400; // reset cada vez
 
   function tick() {
     if (!isSteppingBack) return;
-
-    if (currentIndex <= 0) {
-      stopStepBack();
-      return;
-    }
 
     stepBack();
 

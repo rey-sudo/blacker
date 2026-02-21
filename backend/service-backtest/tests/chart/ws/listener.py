@@ -21,7 +21,7 @@ async def pulsar_listener(consumer, connected_clients):
         try:
             event = json.loads(msg.data())
             
-            print(event)
+            #print(event)
             
             payload_bytes = bytes(event["payload"])
 

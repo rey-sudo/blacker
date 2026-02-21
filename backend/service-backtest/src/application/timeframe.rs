@@ -1,11 +1,6 @@
 use crate::common::candle::Ohlcv;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize)]
-pub struct AddTimeframeParams {
-    pub timeframe: String,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Timeframe {
     M1,

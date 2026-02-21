@@ -1,9 +1,7 @@
-use std::collections::HashMap;
-
 use crate::{
     application::{
         event::{ContextId, ControlEvent, InputEvent, OutputEvent, OutputEventKind},
-        timeframe::{AddTimeframeParams, Timeframe, TimeframeState},
+        timeframe::{Timeframe, TimeframeState},
     },
     common::candle::Ohlcv,
 };
@@ -12,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 use tokio::sync::mpsc;
 use tracing::{debug, error, info};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum WorkerError {
@@ -33,6 +32,18 @@ struct SetupParams {
     symbol: String,
 }
 
+#[derive(Deserialize)]
+pub struct AddTimeframeParams {
+    pub timeframe: String,
+}
+#[derive(Deserialize)]
+pub struct NextTimeframeParams {
+    pub timeframe: String,
+}
+#[derive(Deserialize)]
+pub struct BackTimeframeParams {
+    pub timeframe: String,
+}
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Symbol(String);
 
@@ -51,6 +62,7 @@ pub enum Command {
     Setup,
     AddTimeframe,
     NextTimeframeCandle,
+    BackTimeframeCandle,
     Stop,
     Delete,
     RunBacktest,
@@ -225,7 +237,7 @@ impl Worker {
     pub fn next_timeframe_candle(&mut self, event: InputEvent) -> Result<(), WorkerError> {
         let state: &mut WorkerState = self.state.as_mut().ok_or(WorkerError::NotInitialized)?;
 
-        let params: AddTimeframeParams =
+        let params: NextTimeframeParams =
             serde_json::from_str(&event.params).map_err(|_| WorkerError::InvalidParams)?;
 
         let timeframe: Timeframe =
@@ -236,6 +248,11 @@ impl Worker {
             .get_mut(&timeframe)
             .ok_or(WorkerError::InvalidTimeframe)?;
 
+        let timeframe_state: &mut TimeframeState = state
+            .timeframes
+            .get_mut(&timeframe)
+            .ok_or(WorkerError::EmptyDataset)?;
+
         let current_record: Record = timeframe_cursor
             .next()
             .map_err(|_| WorkerError::CursorMethodError)?
@@ -244,12 +261,45 @@ impl Worker {
         let decoded_payload: Ohlcv = Ohlcv::from_cbor(&current_record.payload)
             .map_err(|_| WorkerError::DeserializationError)?;
 
+        timeframe_state.current_index = current_record.timestamp;
+
+        timeframe_state.ohlcv_history.push(decoded_payload);
+
+        self.emit_state()?;
+
+        Ok(())
+    }
+}
+
+
+impl Worker {
+    pub fn back_timeframe_candle(&mut self, event: InputEvent) -> Result<(), WorkerError> {
+        let state: &mut WorkerState = self.state.as_mut().ok_or(WorkerError::NotInitialized)?;
+
+        let params: BackTimeframeParams =
+            serde_json::from_str(&event.params).map_err(|_| WorkerError::InvalidParams)?;
+
+        let timeframe: Timeframe =
+            Timeframe::from_str(params.timeframe.as_str()).ok_or(WorkerError::InvalidTimeframe)?;
+
+        let timeframe_cursor: &mut CursorDB = self
+            .timeframe_cursors
+            .get_mut(&timeframe)
+            .ok_or(WorkerError::InvalidTimeframe)?;
+
         let timeframe_state: &mut TimeframeState = state
             .timeframes
             .get_mut(&timeframe)
             .ok_or(WorkerError::EmptyDataset)?;
 
-        timeframe_state.ohlcv_history.push(decoded_payload);
+        let current_record: Record = timeframe_cursor
+            .back()
+            .map_err(|_| WorkerError::CursorMethodError)?
+            .ok_or(WorkerError::CursorEmpty)?;
+
+        timeframe_state.current_index = current_record.timestamp;
+
+        timeframe_state.ohlcv_history.pop();
 
         self.emit_state()?;
 
@@ -300,6 +350,17 @@ pub async fn worker_loop(
                             }
                             Err(e) => {
                                 error!("NextTimeframeCandle failed: {:?}", e);
+                            }
+                        }
+                    }
+
+                    Command::BackTimeframeCandle => {
+                        match worker.back_timeframe_candle(event) {
+                            Ok(_) => {
+                                info!("BackTimeframeCandle complete");
+                            }
+                            Err(e) => {
+                                error!("BackTimeframeCandle failed: {:?}", e);
                             }
                         }
                     }
