@@ -1,5 +1,5 @@
 use crate::{
-    application::event::{ContextId, ControlEvent, InputEvent, OutputEvent},
+    application::event::{ContextId, ControlEvent, InputEvent, OutputEvent, OutputEventKind},
     common::candle::Ohlcv,
 };
 use cursor_db::{cursor::CursorDB, record::Record};
@@ -235,10 +235,21 @@ impl Worker {
 
         let timeframes: &mut Vec<TimeframeState> = state.timeframes.get_or_insert_with(Vec::new);
 
+        //Check if Exists
         timeframes.push(tf_state);
 
-        //State Change
+        //State Changed EVENT
 
+        let output: OutputEvent = OutputEvent {
+            context_id: event.context_id,
+            kind: OutputEventKind::TimeframeAdded,
+            payload: vec![],
+        };
+
+        let tx: mpsc::Sender<OutputEvent> = self.tx_output().clone();
+        tokio::spawn(async move {
+            let _ = tx.send(output).await;
+        });
         Ok(())
     }
 }

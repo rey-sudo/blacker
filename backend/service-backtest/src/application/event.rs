@@ -1,6 +1,6 @@
+use crate::application::worker::Command;
 use pulsar::{DeserializeMessage, Error as PulsarError, Payload, SerializeMessage, producer};
 use serde::{Deserialize, Serialize};
-use crate::application::worker::Command;
 
 pub type ContextId = String;
 
@@ -11,9 +11,20 @@ pub struct InputEvent {
     pub params: String,
 }
 
+#[derive(Debug, Serialize, Clone, Copy)]
+#[serde(rename_all = "snake_case")]
+pub enum OutputEventKind {
+    SetupCompleted,
+    TimeframeAdded,
+    TickProcessed,
+    IndicatorUpdated,
+    Error,
+}
+
 #[derive(Debug, Serialize)]
 pub struct OutputEvent {
     pub context_id: ContextId,
+    pub kind: OutputEventKind,
     pub payload: Vec<u8>,
 }
 

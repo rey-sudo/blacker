@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 
 app = FastAPI()
+
+app.mount("/html", StaticFiles(directory="html"), name="static")
 
 @app.get("/")
 async def serve_index():
