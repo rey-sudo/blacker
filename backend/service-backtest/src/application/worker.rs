@@ -1,9 +1,11 @@
+use std::collections::HashMap;
+
 use crate::{
     application::event::{ContextId, ControlEvent, InputEvent, OutputEvent, OutputEventKind},
-    common::candle::Ohlcv,
+    common::{candle::Ohlcv, cbor::to_cbor_bytes},
 };
 use cursor_db::{cursor::CursorDB, record::Record};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json;
 use tokio::sync::mpsc;
 use tracing::{debug, error, info};
@@ -16,6 +18,8 @@ pub enum WorkerError {
     EmptyDataset,
     NotInitialized,
     InvalidTimeframe,
+    SerializationError,
+    OutputChannelClosed
 }
 
 #[derive(Deserialize)]
@@ -28,44 +32,7 @@ struct AddTimeframeParams {
     timeframe: String,
 }
 
-pub struct TimeframeState {
-    pub kind: Timeframe,
-
-    pub cursor: CursorDB,
-
-    pub ohlcv_history: Vec<Ohlcv>, //pub current_candle: u64,
-
-                                   //pub candle_buffer: CandleBuffer,
-
-                                   //pub parallel_layers: Vec<Vec<IndicatorState>>,
-
-                                   //pub sequential_indicators: Vec<IndicatorState>,
-}
-
-impl TimeframeState {
-    pub fn new(kind: Timeframe, cursor: CursorDB) -> Self {
-        Self {
-            kind,
-            cursor,
-            ohlcv_history: Vec::new(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Symbol(String);
-
-impl Symbol {
-    pub fn new(value: impl Into<String>) -> Self {
-        Self(value.into())
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Timeframe {
     M1,
     M5,
@@ -107,6 +74,44 @@ impl Timeframe {
     }
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct TimeframeState {
+    pub kind: Timeframe,
+
+    pub current_index: Record,
+
+    pub ohlcv_history: Vec<Ohlcv>, //pub current_candle: u64,
+
+                                   //pub candle_buffer: CandleBuffer,
+
+                                   //pub parallel_layers: Vec<Vec<IndicatorState>>,
+
+                                   //pub sequential_indicators: Vec<IndicatorState>,
+}
+
+impl TimeframeState {
+    pub fn new(kind: Timeframe, current_index: Record) -> Self {
+        Self {
+            kind,
+            current_index,
+            ohlcv_history: Vec::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Symbol(String);
+
+impl Symbol {
+    pub fn new(value: impl Into<String>) -> Self {
+        Self(value.into())
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub enum Command {
     Setup,
@@ -116,16 +121,24 @@ pub enum Command {
     RunBacktest,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum WorkerStatus {
+    Initialized,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct WorkerState {
+    pub status: WorkerStatus,
     pub current_index: Record,
-    pub timeframes: Option<Vec<TimeframeState>>,
+    pub timeframes: HashMap<Timeframe, TimeframeState>,
 }
 
 struct Worker {
     context_id: ContextId,
     symbol: Option<Symbol>,
     state: Option<WorkerState>,
-    cursor: Option<CursorDB>,
+    tick_cursor: Option<CursorDB>,
+    timeframe_cursors: HashMap<Timeframe, CursorDB>,
     tx_control: mpsc::Sender<ControlEvent>,
     tx_output: mpsc::Sender<OutputEvent>,
 }
@@ -140,10 +153,15 @@ impl Worker {
             context_id,
             symbol: None,
             state: None,
-            cursor: None,
+            tick_cursor: None,
+            timeframe_cursors: HashMap::new(),
             tx_control,
             tx_output,
         }
+    }
+
+    pub fn is_initialized(&self) -> bool {
+        self.state.is_some()
     }
 
     pub fn tx_control(&self) -> &mpsc::Sender<ControlEvent> {
@@ -153,11 +171,21 @@ impl Worker {
     pub fn tx_output(&self) -> &mpsc::Sender<OutputEvent> {
         &self.tx_output
     }
+
+    pub fn emit(&self, output: OutputEvent) {
+        let tx = self.tx_output().clone();
+
+        tokio::spawn(async move {
+            if let Err(e) = tx.send(output).await {
+                eprintln!("Error enviando OutputEvent: {:?}", e);
+            }
+        });
+    }
 }
 
 impl Worker {
     pub fn setup(&mut self, event: InputEvent) -> Result<(), WorkerError> {
-        if self.state.is_some() {
+        if self.is_initialized() {
             return Err(WorkerError::AlreadyInitialized);
         }
 
@@ -171,10 +199,10 @@ impl Worker {
         let data_path: String = format!("data/ticks_{}_data.cdb", symbol.as_str()); //Validator
         let index_path: String = format!("data/ticks_{}_index.cdbi", symbol.as_str()); //Validator
 
-        let mut cursor: CursorDB = CursorDB::new(data_path.as_str(), index_path.as_str())
+        let mut tick_cursor: CursorDB = CursorDB::new(data_path.as_str(), index_path.as_str())
             .map_err(|_| WorkerError::CursorInitFailed)?;
 
-        let current_index: Record = cursor
+        let current_index: Record = tick_cursor
             .move_to_first()
             .map_err(|_| WorkerError::CursorInitFailed)?
             .ok_or(WorkerError::EmptyDataset)?;
@@ -182,12 +210,13 @@ impl Worker {
         info!("{:?}", current_index);
 
         let state: WorkerState = WorkerState {
+            status: WorkerStatus::Initialized,
             current_index,
-            timeframes: None,
+            timeframes: HashMap::new(),
         };
 
         self.symbol = Some(symbol);
-        self.cursor = Some(cursor);
+        self.tick_cursor = Some(tick_cursor);
         self.state = Some(state);
 
         Ok(())
@@ -196,7 +225,6 @@ impl Worker {
 
 impl Worker {
     pub fn add_timeframe(&mut self, event: InputEvent) -> Result<(), WorkerError> {
-        // Verificar que el estado ya está inicializado
         let state: &mut WorkerState = self.state.as_mut().ok_or(WorkerError::NotInitialized)?;
 
         // Parsear JSON
@@ -228,28 +256,34 @@ impl Worker {
             timeframe.as_str()
         );
 
-        let mut cursor: CursorDB = CursorDB::new(data_path.as_str(), index_path.as_str())
+        let mut timeframe_cursor: CursorDB = CursorDB::new(data_path.as_str(), index_path.as_str())
             .map_err(|_| WorkerError::CursorInitFailed)?;
 
-        let tf_state: TimeframeState = TimeframeState::new(timeframe, cursor);
+        let current_index: Record = timeframe_cursor
+            .move_to_first()
+            .map_err(|_| WorkerError::CursorInitFailed)?
+            .ok_or(WorkerError::EmptyDataset)?;
 
-        let timeframes: &mut Vec<TimeframeState> = state.timeframes.get_or_insert_with(Vec::new);
+        let tf_state: TimeframeState = TimeframeState::new(timeframe.clone(), current_index);
 
-        //Check if Exists
-        timeframes.push(tf_state);
+        state.timeframes.insert(timeframe, tf_state);
+
+        self.timeframe_cursors.insert(timeframe, timeframe_cursor);
 
         //State Changed EVENT
+        let state: &WorkerState = self.state.as_ref().ok_or(WorkerError::NotInitialized)?;
+
+        let payload: Vec<u8> =
+            to_cbor_bytes(&state).map_err(|_| WorkerError::SerializationError)?;
 
         let output: OutputEvent = OutputEvent {
             context_id: event.context_id,
-            kind: OutputEventKind::TimeframeAdded,
-            payload: vec![],
+            kind: OutputEventKind::StateChanged,
+            payload: payload,
         };
 
-        let tx: mpsc::Sender<OutputEvent> = self.tx_output().clone();
-        tokio::spawn(async move {
-            let _ = tx.send(output).await;
-        });
+        self.emit(output);
+
         Ok(())
     }
 }

@@ -1,8 +1,8 @@
-use std::sync::Arc;
 use crate::{
     application::event::OutputEvent, config::Config, infrastructure::pulsar::PulsarClient,
 };
 use pulsar::{Producer, TokioExecutor};
+use std::sync::Arc;
 use tokio::sync::mpsc;
 
 // Spawns a dedicated async task that continuously receives OutputEvent messages
@@ -31,11 +31,15 @@ pub fn spawn_output_handler(
         };
 
         while let Some(event) = rx_output.recv().await {
+            println!("Received event: {:?}", event.context_id);
+
             match producer.send_non_blocking(event).await {
                 Ok(delivery_future) => {
                     if let Err(e) = delivery_future.await {
                         eprintln!("Delivery error: {:?}", e);
                     }
+
+                    println!("Event sent");
                 }
                 Err(e) => {
                     eprintln!("Enqueue error: {:?}", e);

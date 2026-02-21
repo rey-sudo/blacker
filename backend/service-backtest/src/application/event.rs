@@ -14,6 +14,7 @@ pub struct InputEvent {
 #[derive(Debug, Serialize, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum OutputEventKind {
+    StateChanged,
     SetupCompleted,
     TimeframeAdded,
     TickProcessed,
