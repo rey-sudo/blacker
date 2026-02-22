@@ -9,7 +9,7 @@ app.mount("/html", StaticFiles(directory="html"), name="static")
 
 @app.get("/")
 async def serve_index():
-    return FileResponse("html/ui.html")
+    return FileResponse("html/index.html")
 
 if __name__ == "__main__":
     print("🌐 Frontend server running http://localhost:8007")
