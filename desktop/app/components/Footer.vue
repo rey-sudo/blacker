@@ -5,12 +5,12 @@
         >Positions
 
         <template #trailing>
-          <UBadge size="sm" color="neutral" variant="outline">2</UBadge>
+          <UBadge size="sm" color="neutral" variant="subtle">2</UBadge>
         </template>
       </UButton>
       <UButton color="neutral" size="xs" variant="ghost">
         <template #trailing>
-          <UBadge size="sm" color="neutral" variant="outline">1</UBadge>
+          <UBadge size="sm" color="neutral" variant="subtle">1</UBadge>
         </template>
 
         Alerts</UButton
@@ -22,7 +22,7 @@
       <UButton color="neutral" size="xs" variant="ghost">Algorithmic</UButton>
 
       <USeparator orientation="vertical" class="h-6 pl-2 pr-4" />
-      <FooterBacktestBar />
+      <FooterTime />
       <USeparator orientation="vertical" class="h-6 px-4" />
     </div>
 

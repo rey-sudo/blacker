@@ -91,7 +91,7 @@ body {
 }
 
 :root {
-  --header-height: 2.5rem;
+  --header-height: 2.25rem;
 
   --chart-background: var(--ui-bg);
   --chart-header-background: var(--ui-bg);
@@ -102,7 +102,7 @@ body {
 
   --nav-background: var( --ui-bg);
 
-  --footer-height: 2.5rem;
+  --footer-height: 2.25rem;
 
   --tab-content-padding: 0.25rem;
 }

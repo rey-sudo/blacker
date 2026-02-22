@@ -314,7 +314,6 @@ function calculateCountdown(nextClose, nowValue) {
   height: 100%;
   min-height: 100%;
   background: var(--chart-background);
-  border-bottom: 1px solid var(--ui-border);
 }
 
 .countdown {
@@ -332,6 +331,7 @@ function calculateCountdown(nextClose, nowValue) {
   overflow: hidden;
   flex-direction: column;
   border-radius: var(--chart-radius);
+  border: 1px solid var(--ui-border-accented);
 }
 
 .candle-chart-header {
