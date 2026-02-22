@@ -8,9 +8,9 @@ use crate::{
 use cursor_db::{cursor::CursorDB, record::Record};
 use serde::{Deserialize, Serialize};
 use serde_json;
+use std::collections::HashMap;
 use tokio::sync::mpsc;
 use tracing::{debug, error, info};
-use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum WorkerError {
@@ -215,13 +215,22 @@ impl Worker {
         let mut timeframe_cursor: CursorDB = CursorDB::new(data_path.as_str(), index_path.as_str())
             .map_err(|_| WorkerError::CursorInitFailed)?;
 
-        let current_index: Record = timeframe_cursor
-            .move_to_first()
+        let current_record: Record = timeframe_cursor
+            .current()
             .map_err(|_| WorkerError::CursorInitFailed)?
             .ok_or(WorkerError::EmptyDataset)?;
 
-        let tf_state: TimeframeState =
-            TimeframeState::new(timeframe.clone(), current_index.timestamp);
+        let last_record: Record = timeframe_cursor
+            .get_last_record()
+            .map_err(|_| WorkerError::CursorInitFailed)?
+            .ok_or(WorkerError::EmptyDataset)?;
+
+        let tf_state: TimeframeState = TimeframeState::new(
+            timeframe.clone(),
+            current_record.timestamp,
+            current_record.timestamp,
+            last_record.timestamp,
+        );
 
         state.timeframes.insert(timeframe, tf_state);
 
@@ -253,6 +262,11 @@ impl Worker {
             .get_mut(&timeframe)
             .ok_or(WorkerError::EmptyDataset)?;
 
+        if timeframe_state.current_index == timeframe_state.last_index {
+            info!("LAST INDEX CANDLE");
+            return Ok(());
+        }
+
         let current_record: Record = timeframe_cursor
             .next()
             .map_err(|_| WorkerError::CursorMethodError)?
@@ -270,7 +284,6 @@ impl Worker {
         Ok(())
     }
 }
-
 
 impl Worker {
     pub fn back_timeframe_candle(&mut self, event: InputEvent) -> Result<(), WorkerError> {
@@ -291,6 +304,11 @@ impl Worker {
             .timeframes
             .get_mut(&timeframe)
             .ok_or(WorkerError::EmptyDataset)?;
+
+        if timeframe_state.current_index == timeframe_state.first_index {
+            info!("FIRST INDEX CANDLE");
+            return Ok(());
+        }
 
         let current_record: Record = timeframe_cursor
             .back()

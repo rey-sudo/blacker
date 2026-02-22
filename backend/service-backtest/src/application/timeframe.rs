@@ -64,14 +64,20 @@ pub struct TimeframeState {
     pub current_index: i64,
 
     pub ohlcv_history: Vec<Ohlcv>,
+
+    pub first_index: i64,
+
+    pub last_index: i64,
 }
 
 impl TimeframeState {
-    pub fn new(kind: Timeframe, current_index: i64) -> Self {
+    pub fn new(kind: Timeframe, current_index: i64, first_index: i64, last_index: i64) -> Self {
         Self {
             kind,
             current_index,
             ohlcv_history: Vec::new(),
+            first_index,
+            last_index
         }
     }
 }

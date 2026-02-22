@@ -470,9 +470,9 @@ dependencies = [
 
 [[package]]
 name = "cursor_db"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77c0374ab69dc0278b7ecefd644c8f22b10ba0f1cf5f000b1e46689c5d5e0af4"
+checksum = "efffff9806dbc0d6d060482faf7e1d82c4f8e975aabc9e64a8db4e32496b280c"
 dependencies = [
  "crc32fast",
  "serde",
