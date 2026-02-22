@@ -3,7 +3,9 @@ export function formatPrice(value: number | string): string {
 
   const str = String(value);
 
-  const [integerPart, decimalPart] = str.split(".");
+  const numberStr = Number(str).toFixed(2)
+
+  const [integerPart, decimalPart] = numberStr.split(".");
 
   const formattedInt = Number(integerPart).toLocaleString("en-US");
 

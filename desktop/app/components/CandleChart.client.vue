@@ -20,6 +20,10 @@
       <TabToolsButton />
 
       <USeparator orientation="vertical" class="h-6 px-2" />
+
+      <TabChartBacktestButton />
+
+      <USeparator orientation="vertical" class="h-6 px-2" />
     </div>
 
     <div class="countdown">{{ nextClose }}</div>
@@ -227,7 +231,7 @@ const setupChart = () => {
   );
 
   tabStore.subscribe("BTCUSDT", (candle) => {
-    console.log(candle);
+    //console.log(candle);
     candleSeries.update(candle);
   });
 };
@@ -322,6 +326,7 @@ function calculateCountdown(nextClose, nowValue) {
   width: 150px;
   right: 300px;
   top: 0;
+  display: none;
 }
 
 .candle-chart {

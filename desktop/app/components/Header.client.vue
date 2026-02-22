@@ -5,8 +5,22 @@
 
       <TabAdd />
     </div>
-
+    <USeparator orientation="vertical" class="h-6 pl-4 pr-4" />
     <ColorModeButton />
+
+    <UUser
+      name="slave_nauter"
+      description="Lvl 31"
+      :avatar="{
+        src: 'https://i.pravatar.cc/150?u=john-doex',
+      }"
+      :chip="{
+        color: 'success',
+        position: 'top-right',
+      }"
+      size="xs"
+    />
+    <USeparator orientation="vertical" class="h-6 pl-4 pr-4" />
     <HeaderSettingsButton style="margin-left: auto" />
   </div>
 </template>
