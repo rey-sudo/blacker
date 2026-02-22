@@ -103,31 +103,6 @@
         border-color: var(--muted);
       }
 
-      /* Corner markers */
-      .panel::before,
-      .panel::after {
-        content: "";
-        position: absolute;
-        width: 12px;
-        height: 12px;
-        border-color: var(--accent);
-        border-style: solid;
-        opacity: 0.4;
-        z-index: 2;
-      }
-
-      .panel::before {
-        top: 8px;
-        left: 8px;
-        border-width: 1px 0 0 1px;
-      }
-
-      .panel::after {
-        bottom: 8px;
-        right: 8px;
-        border-width: 0 1px 1px 0;
-      }
-
       /* Panel labels */
       .panel-label {
         position: absolute;
@@ -279,7 +254,7 @@
       .tracks {
         position: absolute;
         top: 20px;
-        left: 0;
+        left: 200px;
         right: 0;
         bottom: 0;
         display: flex;
@@ -354,12 +329,23 @@
         align-items: center;
         box-sizing: border-box;
       }
+
+      .timeframes {
+        display: flex;
+        align-items: center;
+      }
+
+      .timeframes-left {
+        width: 100px;
+        position: absolute;
+        background: red;
+      }
     </style>
   </head>
   <body>
     <!-- Top bar -->
     <header class="topbar">
-      <span class="logo">Blacker</span>
+      <span class="logo">Blacker 1.0.0</span>
     </header>
 
     <!-- Editor grid -->
@@ -412,26 +398,30 @@
       <!-- Timeline -->
       <div class="panel timeline">
         <span class="panel-label">Strategy</span>
-        <!-- Track lanes -->
-        <div class="tracks">
-          <div class="track-lane">
-            <div class="track-header">V2</div>
-            <div class="track-body"></div>
+
+        <div class="timeframes">
+          <div class="timeframes-left"></div>
+          <!-- Track lanes -->
+          <div class="tracks">
+            <div class="track-lane">
+              <div class="track-header">V2</div>
+              <div class="track-body"></div>
+            </div>
+            <div class="track-lane">
+              <div class="track-header">V1</div>
+              <div class="track-body"></div>
+            </div>
+            <div class="track-lane">
+              <div class="track-header">A1</div>
+              <div class="track-body"></div>
+            </div>
+            <div class="track-lane">
+              <div class="track-header">A2</div>
+              <div class="track-body"></div>
+            </div>
           </div>
-          <div class="track-lane">
-            <div class="track-header">V1</div>
-            <div class="track-body"></div>
-          </div>
-          <div class="track-lane">
-            <div class="track-header">A1</div>
-            <div class="track-body"></div>
-          </div>
-          <div class="track-lane">
-            <div class="track-header">A2</div>
-            <div class="track-body"></div>
-          </div>
+          <!-- Track lanes -->
         </div>
-        <!-- Track lanes -->
       </div>
       <!-- Timeline -->
     </main>
