@@ -3,17 +3,17 @@
 
 @theme static {
   /* ---------- BRAND ---------- */
-  --color-brand-50: #fdffe6;
-  --color-brand-100: #faffb3;
-  --color-brand-200: #f6ff80;
-  --color-brand-300: #f2ff4d;
-  --color-brand-400: #edff1a;
-  --color-brand-500: #e8ff47; /* base */
-  --color-brand-600: #c2d63a;
-  --color-brand-700: #9cad2e;
-  --color-brand-800: #768321;
-  --color-brand-900: #505a15;
-  --color-brand-950: #2a300a;
+  --color-brand-50: #e6fffb;
+  --color-brand-100: #b3fff3;
+  --color-brand-200: #80ffea;
+  --color-brand-300: #4dffe2;
+  --color-brand-400: #1affd9;
+  --color-brand-500: #00f5c4; /* base */
+  --color-brand-600: #00c49d;
+  --color-brand-700: #009376;
+  --color-brand-800: #00624f;
+  --color-brand-900: #003128;
+  --color-brand-950: #001915;
 
   /* ---------- NEUTRAL ---------- */
   --color-neutral-50: #f5f7fa;
