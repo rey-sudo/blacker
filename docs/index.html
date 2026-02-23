@@ -34,7 +34,7 @@
         color: var(--text);
         font-family: "Poppins", sans-serif;
         font-optical-sizing: auto;
-        font-weight: 100;
+        font-weight: 300;
         overflow-x: hidden;
         cursor: none;
       }
@@ -219,12 +219,12 @@
         animation: fadeUp 0.8s ease both;
       }
       .hero h1 {
-        font-size: clamp(56px, 8vw, 110px);
+        font-size: clamp(56px, 8vw, 100px);
         font-weight: 800;
-        line-height: 0.95;
+        line-height: 0.97;
         text-align: center;
         letter-spacing: -0.02em;
-        max-width: 900px;
+        max-width: 1000px;
         animation: fadeUp 0.8s 0.15s ease both;
       }
       .hero h1 .line-accent {
@@ -575,7 +575,7 @@
       .step-num {
         font-size: 80px;
         font-weight: 300;
-        color: rgba(0, 245, 196, 0.08);
+        color: rgba(0, 245, 196, 0.25);
         line-height: 1;
         position: absolute;
         top: 16px;
@@ -586,13 +586,13 @@
         margin-bottom: 24px;
       }
       .step-title {
-        font-size: 18px;
+        font-size: 1.25rem;
         font-weight: 700;
         margin-bottom: 12px;
       }
       .step-desc {
         color: var(--muted);
-        font-size: 14px;
+        font-size: 1rem;
         line-height: 1.7;
 
         font-weight: 300;
@@ -1430,7 +1430,7 @@
           <a href="#features">Features</a>
           <a href="#traders">Traders</a>
           <a href="#how">How It Works</a>
-          <a href="#pricing">Pricing</a>
+          <a href="#how">Analytics</a>
           <button
             class="btn-nav"
             @mouseenter="cursorExpanded = true"
@@ -1466,15 +1466,17 @@
         <div class="hero-orb orb1"></div>
         <div class="hero-orb orb2"></div>
         <div class="hero-orb orb3"></div>
-        <div class="hero-tag">⬡ Global Social Trading Platform</div>
+        <div class="hero-tag">⬡ Global Market Analytics Platform</div>
         <h1>
-          Copy the
-          <span class="line-accent">world's best traders</span>
-          <span class="outline">right now.</span>
+          Open-source
+          <span class="line-accent"
+            >aggregated data <span class="outline">from traders.</span></span
+          >
         </h1>
         <p class="hero-sub">
-          Invest smartly by following elite traders in real time. No prior
-          experience needed. Proven results.
+          “Aggregated market data and analytics from traders’ activity. This
+          information is for informational purposes only and does not constitute
+          investment advice or a recommendation to buy or sell any securities.”
         </p>
         <div class="hero-ctas">
           <button
@@ -1489,7 +1491,7 @@
             @mouseenter="cursorExpanded = true"
             @mouseleave="cursorExpanded = false"
           >
-            Watch Demo
+            Github 11.2k
           </button>
         </div>
         <div class="hero-stats">
@@ -1520,6 +1522,22 @@
           </div>
         </div>
       </div>
+
+      <!-- HOW IT WORKS -->
+      <section class="how-section" id="how">
+        <div class="fade-in">
+          <div class="section-label">Process</div>
+          <h2 class="section-title">How it works</h2>
+        </div>
+        <div class="steps fade-in">
+          <div class="step" v-for="s in steps" :key="s.num">
+            <div class="step-num">{{ s.num }}</div>
+            <div class="step-icon">{{ s.icon }}</div>
+            <div class="step-title">{{ s.title }}</div>
+            <div class="step-desc">{{ s.desc }}</div>
+          </div>
+        </div>
+      </section>
 
       <!-- FEATURES -->
       <section class="features-section" id="features">
@@ -1662,22 +1680,6 @@
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- HOW IT WORKS -->
-      <section class="how-section" id="how">
-        <div class="fade-in">
-          <div class="section-label">Process</div>
-          <h2 class="section-title">Start earning in 4 steps</h2>
-        </div>
-        <div class="steps fade-in">
-          <div class="step" v-for="s in steps" :key="s.num">
-            <div class="step-num">{{ s.num }}</div>
-            <div class="step-icon">{{ s.icon }}</div>
-            <div class="step-title">{{ s.title }}</div>
-            <div class="step-desc">{{ s.desc }}</div>
           </div>
         </div>
       </section>
@@ -1984,26 +1986,26 @@
             {
               num: "01",
               icon: "👤",
-              title: "Create your account",
-              desc: "Sign up in 2 minutes with automatic KYC verification. No red tape.",
+              title: "Execute your trade (Locally)",
+              desc: "Execute trades directly through your preferred broker or platform. Blacker does not execute or manage trades.",
             },
             {
               num: "02",
-              icon: "💰",
-              title: "Deposit funds",
-              desc: "Transfer from $100. Accepts SEPA, cards and crypto.",
+              icon: "⚙️",
+              title: "Data transformation",
+              desc: "Blacker’s engine processes your locally trades, extracting outcome data and converting it into anonymized statistical inputs.",
             },
             {
               num: "03",
               icon: "🔍",
-              title: "Choose your trader",
-              desc: "Filter by performance, risk, market and trading style.",
+              title: "Global processing",
+              desc: "Anonymized inputs are combined to model collective market behavior using an auditable open source algorithm.",
             },
             {
               num: "04",
               icon: "📈",
-              title: "Copy and earn",
-              desc: "Your copies execute automatically. Monitor everything in real time.",
+              title: "Public market analytics",
+              desc: "The output of aggregated data is public and free through widgets and modules created by the community.",
             },
           ];
 
@@ -2030,12 +2032,13 @@
               price: "Free",
               desc: "Start exploring social trading with zero risk.",
               features: [
-                { text: "Copy up to 3 traders", on: true },
-                { text: "Up to $1,000 in copy", on: true },
+                { text: "Unlimited copies", on: true },
                 { text: "Basic dashboard", on: true },
                 { text: "Email support", on: true },
-                { text: "Advanced analytics", on: false },
+                { text: "Advanced analytics", on: true },
+                { text: "24/7 VPS automatic copies", on: false },
                 { text: "API access", on: false },
+                { text: "Websocket access", on: false },
               ],
               cta: "Start for Free",
               featured: false,
@@ -2046,7 +2049,7 @@
               sub: "mo",
               desc: "For serious investors looking to maximize returns.",
               features: [
-                { text: "Copy up to 20 traders", on: true },
+                { text: "Unlimited copies", on: true },
                 { text: "Unlimited copy amount", on: true },
                 { text: "Advanced analytics", on: true },
                 { text: "Priority 24/7 support", on: true },
