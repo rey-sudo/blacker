@@ -1,11 +1,9 @@
 <template>
-<UButton color="neutral" size="sm" variant="ghost" icon="lucide:step-forward">Backtest</UButton>
+  <UButton color="neutral" size="sm" variant="ghost" icon="lucide:step-forward"
+    >Backtest</UButton
+  >
 </template>
 
-<script setup>
+<script setup></script>
 
-</script>
-
-<style lang="css" scoped>
-
-</style>
+<style lang="css" scoped></style>

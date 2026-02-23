@@ -3,27 +3,27 @@
     <div class="candle-chart-header">
       <PriceTicker :price="tabStore.lastPrice" />
 
-      <USeparator orientation="vertical" class="h-6 px-2" />
+      <USeparator orientation="vertical" class="h-6 px-1" />
 
       <ChartTimeframeSelector />
 
-      <USeparator orientation="vertical" class="h-6 px-2" />
+      <USeparator orientation="vertical" class="h-6 px-1" />
 
       <TabChartTypeButton />
 
-      <USeparator orientation="vertical" class="h-6 px-2" />
+      <USeparator orientation="vertical" class="h-6 px-1" />
 
       <TabIndicatorsButton />
 
-      <USeparator orientation="vertical" class="h-6 px-2" />
+      <USeparator orientation="vertical" class="h-6 px-1" />
 
       <TabToolsButton />
 
-      <USeparator orientation="vertical" class="h-6 px-2" />
+      <USeparator orientation="vertical" class="h-6 px-1" />
 
       <TabChartBacktestButton />
 
-      <USeparator orientation="vertical" class="h-6 px-2" />
+      <USeparator orientation="vertical" class="h-6 px-1" />
     </div>
 
     <div class="countdown">{{ nextClose }}</div>
@@ -336,7 +336,6 @@ function calculateCountdown(nextClose, nowValue) {
   overflow: hidden;
   flex-direction: column;
   border-radius: var(--chart-radius);
-  border: 1px solid var(--ui-border-accented);
 }
 
 .candle-chart-header {
@@ -346,7 +345,7 @@ function calculateCountdown(nextClose, nowValue) {
   color: var(--ui-text);
   font-size: var(--font-size-3);
   height: var(--chart-header-height);
-  border-bottom: 1px solid var(--ui-border);
+  border-bottom: 3px solid var(--ui-border);
   background: var(--chart-header-background);
 }
 

@@ -1,27 +1,17 @@
 <template>
   <div class="header">
-    <div class="header-body">
+    <div class="header__left">
       <Tab :tabId="String(tab.id)" v-for="tab in tabsStore.tabs" :key="tab" />
 
       <TabAdd />
     </div>
-    <USeparator orientation="vertical" class="h-6 pl-4 pr-4" />
-    <ColorModeButton />
 
-    <UUser
-      name="slave_nauter"
-      description="Lvl 31"
-      :avatar="{
-        src: 'https://i.pravatar.cc/150?u=john-doex',
-      }"
-      :chip="{
-        color: 'success',
-        position: 'top-right',
-      }"
-      size="xs"
-    />
-    <USeparator orientation="vertical" class="h-6 pl-4 pr-4" />
-    <HeaderSettingsButton style="margin-left: auto" />
+    <div class="header__right">
+      <USeparator orientation="vertical" class="h-6 pl-0 pr-0" />
+      <HeaderThemeButton />
+      <HeaderSettingsButton style="margin-left: auto" />
+      <HeaderAvatar />
+    </div>
   </div>
 </template>
 
@@ -32,24 +22,28 @@ const tabsStore = useTabsStore();
 <style lang="css" scoped>
 .header {
   gap: 1rem;
-  display: flex;
+  display: grid;
   align-items: center;
   box-sizing: border-box;
+  grid-template-columns: 1fr auto;
   height: var(--header-height);
   background: var(--nav-background);
   padding: var(--tab-content-padding);
-  border-bottom: 1px solid var(--ui-border-accented);
   padding-top: initial;
   padding-bottom: initial;
 }
 
-.header-body {
+.header__left {
+  gap: 1rem;
+  height: inherit;
+  display: flex;
+  align-items: center;
+}
+
+.header__right {
   gap: 1rem;
   display: flex;
   align-items: center;
-  height: inherit;
-}
-
-.logo {
+  padding-right: 1rem;
 }
 </style>

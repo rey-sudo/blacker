@@ -74,8 +74,8 @@
   /* background */
   --ui-bg: var(--color-neutral-950);
   --ui-bg-muted: var(--color-neutral-900);
-  --ui-bg-elevated: var(--color-neutral-900);
-  --ui-bg-accented: var(--color-neutral-800);
+  --ui-bg-elevated: var(--color-neutral-800);
+  --ui-bg-accented: var(--color-neutral-700);
   --ui-bg-inverted: white;
 
   /* border */
