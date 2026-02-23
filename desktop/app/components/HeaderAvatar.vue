@@ -1,9 +1,8 @@
 <template>
   <UUser
-    name="slave_nauter_564"
-    description="Lvl 31"
+    name="kakaroto67"
     :avatar="{
-      src: 'https://i.pravatar.cc/150?u=john-doex',
+      src: 'https://i.pravatar.cc/150?u=john-doexd',
     }"
     :chip="{
       color: 'success',
