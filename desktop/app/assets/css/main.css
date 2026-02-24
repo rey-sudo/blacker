@@ -39,12 +39,6 @@ body {
   --font-size-8: 2.986rem;
 }
 
-:root {
-  --chart-background: var(--background-0);
-  --chart-header-background: var(--background-0);
-  --nav-background: var(--background-1);
-  --tab-padding: 0.25rem;
-}
 
 :root {
   --red-0: #e74c3c;
@@ -93,7 +87,7 @@ body {
 :root {
   --header-height: 2.25rem;
 
-  --chart-background: var(--ui-bg);
+  --chart-background: black;
   --chart-header-background: var(--ui-bg);
   --chart-header-height: 2.5rem;
   --chart-radius: var(--ui-radius);

@@ -14,6 +14,7 @@
         --bg: #03060d;
         --bg2: #070e1c;
         --accent: #00f5c4;
+        --accent-soft: rgba(0, 245, 196, 5%);
         --accent2: #0066ff;
         --gold: #f5c400;
         --text: #e8edf5;
@@ -562,9 +563,10 @@
       .steps {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 2px;
+        gap: 0.25rem;
+        padding: 0.25rem;
         margin-top: 80px;
-        background: var(--border);
+        background: var(--accent-soft);
       }
       .step {
         background: var(--bg);
@@ -1283,7 +1285,7 @@
         .how-section,
         .global-section,
         .pricing-section {
-          padding: 60px 16px;
+          padding: 1rem 16px;
         }
         .feat-card {
           padding: 28px 20px;
@@ -1297,6 +1299,14 @@
         .step {
           padding: 28px 20px;
         }
+
+        .steps {
+          margin-top: 2rem;
+        }
+        .features-header {
+          margin-bottom: 2rem;
+        }
+
         .plan {
           padding: 36px 28px;
         }
@@ -1430,6 +1440,7 @@
           <a href="#traders">Traders</a>
           <a href="#how">How It Works</a>
           <a href="#how">Analytics</a>
+          <a href="#how">API docs</a>
           <button
             class="btn-nav"
             @mouseenter="cursorExpanded = true"
@@ -1490,7 +1501,7 @@
             @mouseenter="cursorExpanded = true"
             @mouseleave="cursorExpanded = false"
           >
-            Github 11.2k
+            Github ⭐ 1.2k Stars
           </button>
         </div>
         <div class="hero-stats">
@@ -1809,7 +1820,7 @@
           const mobileOpen = ref(false);
 
           const heroStats = [
-            { value: "$2.4B+", label: "Monthly Volume" },
+            { value: "2.4TB+", label: "Data Volume" },
             { value: "2.4M+", label: "Active Users" },
             { value: "180+", label: "Countries" },
             { value: "94%", label: "Satisfaction" },
@@ -2091,6 +2102,7 @@
                 { text: "Priority Email support", on: true },
                 { text: "1 API access (1000rq/day)", on: true },
                 { text: "1 Websocket access", on: true },
+                { text: "Historical data access", on: true },
               ],
               cta: "Buy Now",
               featured: true,
