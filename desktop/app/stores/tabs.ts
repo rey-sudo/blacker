@@ -1,40 +1,81 @@
 import { defineStore } from "pinia";
 
-export interface SymbolInfo {
-  id: string;
-  symbol: string;
-  subtitle: string;
-  description: string;
-  category: string;
-  exchange: string;
-  base: string;
-  quote: string;
-  precision: number;
+export enum TabKind {
+  Backtesting,
+  Trading,
+  Bots,
 }
 
+interface TabBase {
+  id: string;
+  kind: TabKind;
+  title: string;
+  subtitle: string;
+  description: string;
+  color: string;
+}
+
+export interface BacktestingTab extends TabBase {
+  kind: TabKind.Backtesting;
+  initialBalance: number;
+  startDate: Date;
+  endDate: Date;
+}
+
+export interface TradingTab extends TabBase {
+  kind: TabKind.Trading;
+  symbol: string;
+  timeframe: string;
+}
+
+export interface BotsTab extends TabBase {
+  kind: TabKind.Bots;
+  botId: string;
+  strategyName: string;
+}
+
+export type Tab = BacktestingTab | TradingTab | BotsTab;
+
 export const useTabsStore = defineStore("tabs", () => {
-  const count = ref(0);
+  const tabsById = ref<Map<string, Tab>>(new Map());
+  const tabOrder = ref<string[]>([]);
 
-  const tabs: Ref<SymbolInfo[]> = ref([]);
+  // 🔹 Getter: tabs ordenadas
+  const allTabs = computed(() =>
+    tabOrder.value.map((id) => tabsById.value.get(id)!).filter(Boolean),
+  );
 
-  function increase() {
-    count.value++;
+  // 🔹 Add
+  function addTab(tab: Tab) {
+    if (tabsById.value.has(tab.id)) return false;
+
+    tabsById.value.set(tab.id, tab);
+    tabOrder.value.push(tab.id);
+    return true;
   }
 
-  function decrease() {
-    count.value = Math.max(0, count.value - 1);
+  // 🔹 Remove
+  function removeTab(id: string) {
+    if (!tabsById.value.has(id)) return;
+
+    tabsById.value.delete(id);
+    tabOrder.value = tabOrder.value.filter((tid) => tid !== id);
   }
 
-  function addTab(symbol: SymbolInfo) {
-    tabs.value.push(symbol);
-    increase();
+  // 🔹 Move (drag & drop)
+  function moveTab(fromIndex: number, toIndex: number) {
+    const order = tabOrder.value;
+    const moved = order.splice(fromIndex, 1)[0];
+
+    if (moved === undefined) return;
+
+    order.splice(toIndex, 0, moved);
   }
 
   return {
-    count,
-    increase,
-    decrease,
     addTab,
-    tabs
+    allTabs,
+    removeTab,
+    moveTab,
   };
 });

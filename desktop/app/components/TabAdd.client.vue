@@ -6,10 +6,7 @@
     variant="outline"
   />
 
-  <UModal
-    v-model:open="visible"
-    title="Symbol Search"
-  >
+  <UModal v-model:open="visible" title="Symbol Search">
     <template #body>
       <TabSymbolSearch @close="visible = false" @select="onSelect" />
     </template>
@@ -17,26 +14,26 @@
 </template>
 
 <script setup lang="ts">
+import { TabKind, type TradingTab } from "~/stores/tabs";
+
 const tabsStore = useTabsStore();
 
 const visible = ref(true);
 
-const fakeAsset = {
+const newTab: TradingTab = {
   id: "casdcasdascd",
-  symbol: "FAKE",
-  subtitle: "Fictitious Asset",
-  description:
-    "This is a mock description for a fake financial asset used for testing purposes.",
-  category: "Cryptocurrency",
-  exchange: "FakeExchange",
-  base: "FAKE",
-  quote: "USD",
-  precision: 8,
+  kind: TabKind.Trading,
+  title: "tab test",
+  subtitle: "tab sub",
+  description: "tab description",
+  color: "red",
+  symbol: "BTCUSDT",
+  timeframe: "H1"
 };
 
-const onSelect = (e: SymbolInfo) => {
+const onSelect = () => {
   visible.value = false;
-  tabsStore.addTab(fakeAsset);
+  tabsStore.addTab(newTab);
 };
 </script>
 

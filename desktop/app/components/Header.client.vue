@@ -1,7 +1,7 @@
 <template>
   <div class="header">
     <div class="header__left">
-      <Tab :tabId="String(tab.id)" v-for="tab in tabsStore.tabs" :key="tab" />
+      <Tab :tabId="String(tab.id)" v-for="tab in tabsStore.allTabs" :key="tab" />
 
       <TabAdd />
     </div>

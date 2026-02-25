@@ -7,7 +7,6 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from "vue";
-import { fakeData1 } from "./fakeData";
 
 const props = defineProps({
   tabId: {
