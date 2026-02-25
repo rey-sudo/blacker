@@ -48,6 +48,7 @@ import {
   createSeriesMarkers,
   LineSeries,
   PriceScaleMode,
+  LineStyle,
 } from "lightweight-charts";
 
 const props = defineProps({
@@ -117,8 +118,8 @@ const setupChart = () => {
       secondsVisible: false,
     },
     grid: {
-      vertLines: { color: chartTheme.value.grid.axis },
-      horzLines: { color: chartTheme.value.grid.lines },
+      vertLines: { color: chartTheme.value.grid.axis, style: LineStyle.LargeDashed },
+      horzLines: { color: chartTheme.value.grid.lines, style: LineStyle.LargeDashed },
     },
     handleScroll: true,
     handleScale: true,

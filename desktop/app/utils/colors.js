@@ -72,8 +72,8 @@ export const colors = {
 
   dark: {
     grid: {
-      lines: "rgba(255,255,255,0.04)",
-      axis: "rgba(255,255,255,0.04)",
+      lines: "rgba(255,255,255,0.09)",
+      axis: "rgba(255,255,255,0.09)",
     },
   },
   crosshair: "#FFEB3B",

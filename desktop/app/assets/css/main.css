@@ -87,7 +87,7 @@ body {
 :root {
   --header-height: 2.25rem;
 
-  --chart-background: black;
+  --chart-background: var(--ui-bg);
   --chart-header-background: var(--ui-bg);
   --chart-header-height: 2.5rem;
   --chart-radius: var(--ui-radius);
