@@ -1,12 +1,17 @@
 <template>
   <div class="tab-content">
     <CandleChart :tabId="tabId" />
-
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import {
+  ref,
+  onMounted,
+  onBeforeUnmount,
+  onActivated,
+  onDeactivated,
+} from "vue";
 
 const props = defineProps({
   tabId: {
@@ -22,6 +27,14 @@ const chartDiv = ref(null);
 const chartWidth = ref(0);
 const chartHeight = ref(0);
 
+onActivated(() => {
+  //tabStore.resume?.();
+});
+
+onDeactivated(() => {
+  //tabStore.pause?.();
+});
+
 let chartObserver;
 
 onMounted(async () => {
@@ -36,7 +49,9 @@ onMounted(async () => {
     }
   });
 
-  chartObserver.observe(chartDiv.value);
+  if (chartDiv.value) {
+    chartObserver.observe(chartDiv.value);
+  }
 });
 
 onBeforeUnmount(() => {

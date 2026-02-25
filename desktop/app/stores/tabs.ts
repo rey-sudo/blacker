@@ -40,21 +40,28 @@ export const useTabsStore = defineStore("tabs", () => {
   const tabsById = ref<Map<string, Tab>>(new Map());
   const tabOrder = ref<string[]>([]);
 
-  // 🔹 Getter: tabs ordenadas
+  const activeTabId = ref<string | null>(null);
+
+  function setActiveTab(id: string) {
+    activeTabId.value = id;
+  }
+
   const allTabs = computed(() =>
     tabOrder.value.map((id) => tabsById.value.get(id)!).filter(Boolean),
   );
 
-  // 🔹 Add
   function addTab(tab: Tab) {
+    console.log("Adding tab:", tab.id);
+
     if (tabsById.value.has(tab.id)) return false;
 
     tabsById.value.set(tab.id, tab);
     tabOrder.value.push(tab.id);
+
+    activeTabId.value = tab.id;
     return true;
   }
 
-  // 🔹 Remove
   function removeTab(id: string) {
     if (!tabsById.value.has(id)) return;
 
@@ -62,7 +69,6 @@ export const useTabsStore = defineStore("tabs", () => {
     tabOrder.value = tabOrder.value.filter((tid) => tid !== id);
   }
 
-  // 🔹 Move (drag & drop)
   function moveTab(fromIndex: number, toIndex: number) {
     const order = tabOrder.value;
     const moved = order.splice(fromIndex, 1)[0];
@@ -77,5 +83,7 @@ export const useTabsStore = defineStore("tabs", () => {
     allTabs,
     removeTab,
     moveTab,
+    setActiveTab,
+    activeTabId,
   };
 });

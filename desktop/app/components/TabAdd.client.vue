@@ -20,18 +20,18 @@ const tabsStore = useTabsStore();
 
 const visible = ref(true);
 
-const newTab: TradingTab = {
-  id: "casdcasdascd",
-  kind: TabKind.Trading,
-  title: "tab test",
-  subtitle: "tab sub",
-  description: "tab description",
-  color: "red",
-  symbol: "BTCUSDT",
-  timeframe: "H1"
-};
-
 const onSelect = () => {
+  const newTab: TradingTab = {
+    id: `hashid${Date.now()}`,
+    kind: TabKind.Trading,
+    title: "tab test",
+    subtitle: "tab sub",
+    description: "tab description",
+    color: "red",
+    symbol: "BTCUSDT",
+    timeframe: "H1",
+  };
+
   visible.value = false;
   tabsStore.addTab(newTab);
 };

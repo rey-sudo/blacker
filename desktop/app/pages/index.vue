@@ -1,37 +1,41 @@
 <template>
-  <div v-for="tab in renderedTabs" :key="tab.id" class="index-page">
-    <component :is="tab.component" :tabId="tab.id" />
-  </div>
+  <KeepAlive :max="5">
+    <TabContent
+      v-if="tabsStore.activeTabId"
+      :key="tabsStore.activeTabId"
+      :tabId="tabsStore.activeTabId"
+    />
+  </KeepAlive>
 </template>
 
 <script setup>
 import TabContent from "~/components/TabContent.client.vue";
-import { markRaw } from "vue";
 
 const tabsStore = useTabsStore();
 
 /**
- * We derive `renderedTabs` from the store using a computed property.
+ * We wrap TabContent with <KeepAlive> to cache inactive tabs instead of destroying them.
  *
- * Even though this computed recalculates whenever `allTabs` changes,
- * Vue will NOT remount all TabContent components.
+ * Without KeepAlive:
+ * - Switching tabs would unmount the current TabContent
+ * - The chart instance would be destroyed
+ * - Internal state (zoom, scroll, indicators, etc.) would be lost
+ * - Returning to the tab would require a full re-mount and re-initialization
  *
- * Because we use `:key="tab.id"` in the template, Vue's Virtual DOM
- * diffing algorithm preserves existing component instances and only
- * mounts the newly added tab.
+ * With KeepAlive:
+ * - Only one TabContent is rendered at a time (based on activeTabId)
+ * - Previously visited tabs are cached in memory
+ * - Switching back to a tab reactivates it instantly (no re-mount)
  *
- * This makes the approach declarative, safe, and more maintainable
- * than manually syncing state with a watcher.
+ * We also use onActivated() and onDeactivated() inside TabContent
+ * to pause and resume heavy processes (websockets, render loops, observers).
  *
- * Only new tabs are mounted.
- * Existing tabs remain untouched.
+ * The :max prop limits how many inactive tabs are kept in memory,
+ * preventing excessive memory usage (LRU cache behavior).
+ *
+ * This approach provides:
+ * - Better performance (only one active chart running)
+ * - Instant tab switching
+ * - Controlled memory usage
  */
-const renderedTabs = computed(() =>
-  tabsStore.allTabs.map(tab => ({
-    id: tab.id,
-    component: markRaw(TabContent)
-  }))
-);
 </script>
-
-<style scoped></style>
