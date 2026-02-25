@@ -20,6 +20,10 @@ const props = defineProps({
   },
 });
 
+const tabsStore = useTabsStore();
+
+const currentTab = computed(() => tabsStore.getTabById(props.tabId));
+
 const useTabStore = createTabStore(props.tabId);
 const tabStore = useTabStore();
 
@@ -38,6 +42,8 @@ onDeactivated(() => {
 let chartObserver;
 
 onMounted(async () => {
+  console.log(currentTab.value);
+
   await tabStore.start();
 
   chartObserver = new ResizeObserver(() => {

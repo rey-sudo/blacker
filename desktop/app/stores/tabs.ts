@@ -78,6 +78,16 @@ export const useTabsStore = defineStore("tabs", () => {
     order.splice(toIndex, 0, moved);
   }
 
+  function selectTab(id: string): boolean {
+    if (!tabsById.value.has(id)) return false;
+
+    activeTabId.value = id;
+    return true;
+  }
+
+  function getTabById(id: string): Tab | undefined {
+    return tabsById.value.get(id);
+  }
   return {
     addTab,
     allTabs,
@@ -85,5 +95,7 @@ export const useTabsStore = defineStore("tabs", () => {
     moveTab,
     setActiveTab,
     activeTabId,
+    selectTab,
+    getTabById
   };
 });
