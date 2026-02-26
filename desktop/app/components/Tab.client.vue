@@ -83,10 +83,16 @@ onBeforeUnmount(() => {
 }
 
 .tab.active {
+  background: var(--ui-bg);
   border-bottom-color: var(--color-white);
 }
 
 .tab.inactive {
+  background: var(--ui-bg);
+  border-bottom-color: transparent;
+}
+
+.tab:hover {
   background: var(--ui-bg-elevated);
 }
 
