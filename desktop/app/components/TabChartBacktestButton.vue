@@ -1,9 +1,37 @@
 <template>
-  <UButton color="neutral" size="sm" variant="ghost" icon="lucide:step-forward"
-    >Backtest</UButton
+  <UModal
+    v-model:open="open"
+    title="Create Backtest"
+    :close="{
+      color: 'primary',
+      variant: 'outline',
+      class: 'rounded-full',
+    }"
   >
+    <UButton
+      color="neutral"
+      size="sm"
+      variant="ghost"
+      icon="lucide:step-forward"
+      >Backtest</UButton
+    >
+    <template #body>
+      <div class="content">x</div>
+    </template>
+  </UModal>
 </template>
 
-<script setup></script>
+<script setup lang="ts">
+const open = ref(true);
 
-<style lang="css" scoped></style>
+const openModal = () => {
+  open.value = open.value!;
+};
+</script>
+
+<style lang="css" scoped>
+.content {
+  width: 700px;
+  height: 200px;
+}
+</style>

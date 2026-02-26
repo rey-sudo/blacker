@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
 
 export enum TabKind {
-  Backtesting,
-  Trading,
-  Bots,
+  Backtesting = "Backtesting",
+  Trading = "Trading",
+  Bots = "Bots"
 }
 
 interface TabBase {

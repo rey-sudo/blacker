@@ -1,17 +1,13 @@
 <template>
   <div class="tab-content">
-    <CandleChart :tabId="tabId" />
+    <component v-if="currentTab" :is="component" :tabId="currentTab.id" />
   </div>
 </template>
 
-<script setup>
-import {
-  ref,
-  onMounted,
-  onBeforeUnmount,
-  onActivated,
-  onDeactivated,
-} from "vue";
+<script setup lang="ts">
+import TabTrading from "./TabTrading.vue";
+import Backtesting from "./TabBacktesting.vue";
+import { onMounted, onActivated, onDeactivated } from "vue";
 
 const props = defineProps({
   tabId: {
@@ -21,47 +17,39 @@ const props = defineProps({
 });
 
 const tabsStore = useTabsStore();
-
 const currentTab = computed(() => tabsStore.getTabById(props.tabId));
 
 const useTabStore = createTabStore(props.tabId);
-const tabStore = useTabStore();
+const currentTabStore = useTabStore();
 
-const chartDiv = ref(null);
-const chartWidth = ref(0);
-const chartHeight = ref(0);
+function getComponentByKind(kind: TabKind) {
+  switch (kind) {
+    case TabKind.Trading:
+      return TabTrading;
+
+    case TabKind.Backtesting:
+      return Backtesting;  
+  }
+}
+
+const component = computed(() => {
+  if (!currentTab.value) return null;
+
+  return getComponentByKind(currentTab.value.kind);
+});
 
 onActivated(() => {
-  //tabStore.resume?.();
+  //currentTabStore.resume?.();
 });
 
 onDeactivated(() => {
-  //tabStore.pause?.();
+  //currentTabStore.pause?.();
 });
-
-let chartObserver;
 
 onMounted(async () => {
   console.log(currentTab.value);
 
-  await tabStore.start();
-
-  chartObserver = new ResizeObserver(() => {
-    const chartHeaderHeight = 48;
-
-    if (chartDiv.value) {
-      chartWidth.value = chartDiv.value.clientWidth;
-      chartHeight.value = chartDiv.value.clientHeight - chartHeaderHeight;
-    }
-  });
-
-  if (chartDiv.value) {
-    chartObserver.observe(chartDiv.value);
-  }
-});
-
-onBeforeUnmount(() => {
-  if (chartObserver) chartObserver.disconnect();
+  await currentTabStore.start();
 });
 </script>
 
