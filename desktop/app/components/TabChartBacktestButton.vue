@@ -3,7 +3,7 @@
     v-model:open="open"
     :title="title"
     :close="{
-      color: 'primary',
+      color: 'neutral',
       variant: 'outline',
       class: 'rounded-full',
     }"
@@ -61,7 +61,7 @@ const tabStore = useTabStore();
 const open = ref(false);
 
 const title = computed(() => {
-  return `Create backtest on ${tabStore.symbol}`;
+  return `Create a backtest for ${tabStore.symbol}`;
 });
 
 const onCreate = () => {
