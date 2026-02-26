@@ -6,7 +6,7 @@ export const modal = {
     header: "flex items-center gap-1.5 p-4 sm:px-6 min-h-16",
     wrapper: "",
     body: "flex-1 p-4 sm:p-6",
-    footer: "flex items-center gap-1.5 p-4 sm:px-6",
+    footer: "flex items-center justify-end gap-1.5 p-4 sm:px-6",
     title: "text-highlighted font-semibold",
     description: "mt-1 text-muted text-sm",
     close: "absolute top-4 end-4",
@@ -26,7 +26,7 @@ export const modal = {
       },
       false: {
         content:
-          "w-[calc(100vw-2rem)] max-w-lg rounded-lg shadow-lg ring ring-default",
+          "w-fit max-w-[calc(100vw-2rem)] rounded-lg shadow-lg ring ring-default",
       },
     },
     overlay: {

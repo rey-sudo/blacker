@@ -21,7 +21,7 @@
 
       <USeparator orientation="vertical" class="h-6 px-1" />
 
-      <TabChartBacktestButton />
+      <TabChartBacktestButton :tabId="tabId"/>
 
       <USeparator orientation="vertical" class="h-6 px-1" />
     </div>

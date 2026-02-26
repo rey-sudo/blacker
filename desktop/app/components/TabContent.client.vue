@@ -22,15 +22,15 @@ const currentTab = computed(() => tabsStore.getTabById(props.tabId));
 const useTabStore = createTabStore(props.tabId);
 const currentTabStore = useTabStore();
 
-function getComponentByKind(kind: TabKind) {
+const getComponentByKind = (kind: TabKind) => {
   switch (kind) {
     case TabKind.Trading:
       return TabTrading;
 
     case TabKind.Backtesting:
-      return Backtesting;  
+      return Backtesting;
   }
-}
+};
 
 const component = computed(() => {
   if (!currentTab.value) return null;
