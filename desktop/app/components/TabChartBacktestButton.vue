@@ -34,7 +34,11 @@
           >Cancel</UButton
         >
 
-        <UButton color="neutral" size="md" variant="solid" @click="onCreate"
+        <UButton
+          color="neutral"
+          size="md"
+          variant="solid"
+          @click="onCreate"
           >Create</UButton
         >
       </div>

@@ -2,6 +2,7 @@
   <UButton
     icon="i-lucide-plus"
     size="xs"
+    color="neutral"
     @click="visible = true"
     variant="outline"
   />

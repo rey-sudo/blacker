@@ -3,7 +3,7 @@ export const modal = {
     overlay: "fixed inset-0",
     content:
       "bg-default divide-y divide-default flex flex-col focus:outline-none",
-    header: "flex items-center gap-1.5 p-4 sm:px-6 min-h-16",
+    header: "flex items-center gap-1.5 p-4 sm:px-6 min-h-16 text-base",
     wrapper: "",
     body: "flex-1 p-4 sm:p-6",
     footer: "flex items-center justify-end gap-1.5 p-4 sm:px-6",

@@ -1,13 +1,17 @@
 <template>
-  <div class="tab fz-0" :class="[isActive ? 'active' : 'inactive']">
-    <UChip standalone inset size="xs" :color="tabColor" />
-
-    <div class="tab-label" @click="visible = true">{{ tabName }}</div>
+  <div class="tab text-xs" :class="[isActive ? 'active' : 'inactive']">
+    <UContextMenu v-model:open="menuOpen" :items="menuItems" size="sm">
+      <div class="tab-label">
+        <UChip standalone inset size="xs" :color="tabColor" />
+        <span> {{ tabName }}</span>
+      </div>
+    </UContextMenu>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
+import type { ContextMenuItem } from "@nuxt/ui";
 
 const props = defineProps({
   tabId: {
@@ -20,7 +24,28 @@ const props = defineProps({
   },
 });
 
-const visible = ref(false);
+const menuOpen = ref(false);
+
+const menuItems: ContextMenuItem[] = [
+  [
+    {
+      label: "Clone",
+      icon: "i-lucide-arrow-right",
+    },
+    {
+      label: "Delete Tab",
+      color: "error" as const,
+      icon: "i-lucide-x",
+    },
+  ],
+  [
+    {
+      label: "Delete All Tabs",
+      color: "error" as const,
+      icon: "i-lucide-trash",
+    },
+  ],
+];
 
 const useTabStore = createTabStore(props.tabId);
 const tabStore = useTabStore();
@@ -73,13 +98,21 @@ onBeforeUnmount(() => {
   border-left: 1px solid var(--ui-border);
   border-right: 1px solid var(--ui-border);
   border-bottom: 1px solid var(--ui-border);
-  padding: 0.5rem 1rem;
   align-items: center;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   height: inherit;
   overflow: hidden;
+  box-sizing: border-box;
+}
+.tab-label {
+  padding: 0.5rem 1rem;
+  height: inherit;
+}
+
+.tab-label span {
+  margin-left: 0.25rem;
 }
 
 .tab.active {
@@ -94,9 +127,5 @@ onBeforeUnmount(() => {
 
 .tab:hover {
   background: var(--ui-bg-elevated);
-}
-
-.tab-label {
-  margin-left: 0.25rem;
 }
 </style>

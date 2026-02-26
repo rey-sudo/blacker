@@ -19,5 +19,5 @@
 import { themeUI } from "./theme/theme";
 
 export default defineAppConfig({
-   ui:  themeUI
+   ui:  themeUI,
 });
