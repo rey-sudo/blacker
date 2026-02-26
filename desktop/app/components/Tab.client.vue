@@ -1,6 +1,8 @@
 <template>
-  <div class="tab fz-1" :style="{ borderBottomColor: tabColor }">
-    <div @click="visible = true">{{ tabName }}</div>
+  <div class="tab fz-0" :class="[isActive ? 'active' : 'inactive']">
+    <UChip standalone inset size="xs" :color="tabColor" />
+
+    <div class="tab-label" @click="visible = true">{{ tabName }}</div>
   </div>
 </template>
 
@@ -12,6 +14,10 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  isActive: {
+    type: Boolean,
+    required: true,
+  },
 });
 
 const visible = ref(false);
@@ -21,15 +27,15 @@ const tabStore = useTabStore();
 
 const currentTab = tabStore.getCurrentTab(props.tabId);
 
-const getBorderColor = (kind: TabKind) =>{
+const getBorderColor = (kind: TabKind) => {
   switch (kind) {
     case TabKind.Trading:
-      return "var(--ui-primary)";
+      return "primary";
 
     case TabKind.Backtesting:
-      return "var(--color-yellow)";
+      return "warning";
   }
-}
+};
 
 const getTabName = (kind: TabKind) => {
   switch (kind) {
@@ -42,13 +48,13 @@ const getTabName = (kind: TabKind) => {
 };
 
 const tabColor = computed(() => {
-  if(!currentTab) return;
+  if (!currentTab) return;
 
   return getBorderColor(currentTab.kind);
 });
 
 const tabName = computed(() => {
-  if(!currentTab) return;
+  if (!currentTab) return;
 
   return getTabName(currentTab.kind);
 });
@@ -66,15 +72,25 @@ onBeforeUnmount(() => {
 .tab {
   border-left: 1px solid var(--ui-border);
   border-right: 1px solid var(--ui-border);
-  border-bottom: 0.5px solid
-    color-mix(in oklab, var(--ui-primary) 65%, transparent);
-  text-transform: capitalize;
+  border-bottom: 1px solid var(--ui-border);
   padding: 0.5rem 1rem;
-  color: var(--text-0);
   align-items: center;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   display: flex;
   height: inherit;
+  overflow: hidden;
+}
+
+.tab.active {
+  border-bottom-color: var(--color-white);
+}
+
+.tab.inactive {
+  background: var(--ui-bg-elevated);
+}
+
+.tab-label {
+  margin-left: 0.25rem;
 }
 </style>

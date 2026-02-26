@@ -74,6 +74,8 @@ export const useTabsStore = defineStore("tabs", () => {
     if (moved === undefined) return;
 
     order.splice(toIndex, 0, moved);
+
+    console.log("tabOrder", tabOrder.value)
   }
 
   function selectTab(id: string): boolean {

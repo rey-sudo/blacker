@@ -1,8 +1,7 @@
 <template>
   <div class="header">
     <div class="header__left">
-      <Tab :tabId="String(tab.id)" v-for="tab in tabsStore.allTabs" :key="tab" />
-
+      <TabSelector />
       <TabAdd />
     </div>
 
@@ -15,9 +14,7 @@
   </div>
 </template>
 
-<script setup>
-const tabsStore = useTabsStore();
-</script>
+<script setup></script>
 
 <style lang="css" scoped>
 .header {

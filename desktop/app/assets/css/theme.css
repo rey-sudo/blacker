@@ -58,7 +58,7 @@
   --ui-border-inverted: var(--color-neutral-900);
 
   /* radius */
-  --ui-radius: 0.25rem;
+  --ui-radius: 0.15rem;
 }
 
 .dark {

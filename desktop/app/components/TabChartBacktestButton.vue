@@ -18,7 +18,7 @@
     >
 
     <template #body>
-      <p class="text-muted w-100 fz-1">
+      <p class="w-100 fz-1">
         Validate your strategy with historical data to uncover strengths,
         weaknesses, and potential risks before trading live.
       </p>
