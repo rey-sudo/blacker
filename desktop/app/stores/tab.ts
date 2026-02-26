@@ -21,8 +21,10 @@ type LWCandle = {
 
 export const createTabStore = (tabId: string) =>
   defineStore(`tab-${tabId}`, () => {
+    const id: string = tabId;
+
     const symbol = ref("BTCUSDT");
-    
+
     const charts = ref([]);
 
     const market = ref("crypto");
@@ -146,6 +148,12 @@ export const createTabStore = (tabId: string) =>
       console.log("tabStore: Stopping.");
       disconnectFeedWebsocket();
     };
+
+    function getCurrentTab(tabId: string) {
+      const tabsStore = useTabsStore();
+      return tabsStore.getTabById(tabId);
+    }
+
     return {
       symbol,
       interval,
@@ -161,8 +169,10 @@ export const createTabStore = (tabId: string) =>
       subscribe,
       crosshair,
       nextClose,
+      id,
       logicalRange,
       defaultRightPriceWidth,
+      getCurrentTab
     };
   });
 
@@ -191,5 +201,5 @@ export function normalizeToLightweight(
 }
 
 function formatPrice(price: number): number {
-  return parseFloat(price.toFixed(2))
+  return parseFloat(price.toFixed(2));
 }

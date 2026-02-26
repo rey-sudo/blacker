@@ -1,10 +1,10 @@
 <template>
-  <div class="tab">
+  <div class="tab fz-1" :style="{ borderBottomColor: tabColor }">
     <div @click="visible = true">{{ tabName }}</div>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 
 const props = defineProps({
@@ -17,18 +17,48 @@ const props = defineProps({
 const visible = ref(false);
 
 const useTabStore = createTabStore(props.tabId);
+const tabStore = useTabStore();
 
-const tabsStore = useTabStore();
+const currentTab = tabStore.getCurrentTab(props.tabId);
 
-const tabName = computed(() => `${tabsStore.symbol} ${tabsStore.interval}`);
+const getBorderColor = (kind: TabKind) =>{
+  switch (kind) {
+    case TabKind.Trading:
+      return "var(--ui-primary)";
 
+    case TabKind.Backtesting:
+      return "var(--color-yellow)";
+  }
+}
+
+const getTabName = (kind: TabKind) => {
+  switch (kind) {
+    case TabKind.Trading:
+      return `${tabStore.symbol} ${tabStore.interval}`;
+
+    case TabKind.Backtesting:
+      return `${tabStore.symbol}_B`;
+  }
+};
+
+const tabColor = computed(() => {
+  if(!currentTab) return;
+
+  return getBorderColor(currentTab.kind);
+});
+
+const tabName = computed(() => {
+  if(!currentTab) return;
+
+  return getTabName(currentTab.kind);
+});
 
 onMounted(() => {
-  tabsStore.start();
+  tabStore.start();
 });
 
 onBeforeUnmount(() => {
-  tabsStore.stop();
+  tabStore.stop();
 });
 </script>
 
@@ -38,7 +68,6 @@ onBeforeUnmount(() => {
   border-right: 1px solid var(--ui-border);
   border-bottom: 0.5px solid
     color-mix(in oklab, var(--ui-primary) 65%, transparent);
-  font-size: var(--font-size-1);
   text-transform: capitalize;
   padding: 0.5rem 1rem;
   color: var(--text-0);

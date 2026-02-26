@@ -1,6 +1,10 @@
 <template>
   <div class="tab-content">
-    <component v-if="currentTab" :is="component" :tabId="currentTab.id" />
+    <component
+      v-if="tabStore.id"
+      :is="component"
+      :tabId="tabStore.id"
+    />
   </div>
 </template>
 
@@ -16,11 +20,10 @@ const props = defineProps({
   },
 });
 
-const tabsStore = useTabsStore();
-const currentTab = computed(() => tabsStore.getTabById(props.tabId));
-
 const useTabStore = createTabStore(props.tabId);
-const currentTabStore = useTabStore();
+const tabStore = useTabStore();
+
+const currentTab = tabStore.getCurrentTab(props.tabId);
 
 const getComponentByKind = (kind: TabKind) => {
   switch (kind) {
@@ -33,23 +36,23 @@ const getComponentByKind = (kind: TabKind) => {
 };
 
 const component = computed(() => {
-  if (!currentTab.value) return null;
+  if (!currentTab) return;
 
-  return getComponentByKind(currentTab.value.kind);
+  return getComponentByKind(currentTab.kind);
 });
 
 onActivated(() => {
-  //currentTabStore.resume?.();
+  //tabStore.resume?.();
 });
 
 onDeactivated(() => {
-  //currentTabStore.pause?.();
+  //tabStore.pause?.();
 });
 
 onMounted(async () => {
-  console.log(currentTab.value);
+  console.log(currentTab);
 
-  await currentTabStore.start();
+  await tabStore.start();
 });
 </script>
 

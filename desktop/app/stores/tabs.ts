@@ -17,9 +17,7 @@ interface TabBase {
 
 export interface BacktestingTab extends TabBase {
   kind: TabKind.Backtesting;
-  initialBalance: number;
-  startDate: Date;
-  endDate: Date;
+  symbol: string;
 }
 
 export interface TradingTab extends TabBase {
