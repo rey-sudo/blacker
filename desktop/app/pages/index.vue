@@ -1,11 +1,14 @@
 <template>
-  <KeepAlive :max="5">
-    <TabContent
-      v-if="tabsStore.activeTabId"
-      :key="tabsStore.activeTabId"
-      :tabId="tabsStore.activeTabId"
-    />
-  </KeepAlive>
+  <TabContent
+    v-for="tab in tabsStore.allTabs"
+    :key="tab.id"
+    :tabId="tab.id"
+    :isActive="tab.id === tabsStore.activeTabId"
+    :style="{
+      visibility: tab.id === tabsStore.activeTabId ? 'visible' : 'hidden',
+      position: tab.id === tabsStore.activeTabId ? 'relative' : 'absolute',
+    }"
+  />
 </template>
 
 <script setup>

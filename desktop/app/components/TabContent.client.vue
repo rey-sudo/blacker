@@ -1,23 +1,23 @@
 <template>
   <div class="tab-content">
-    <component
-      v-if="tabStore.id"
-      :is="component"
-      :tabId="tabStore.id"
-    />
+    <component v-if="tabStore.id" :is="component" :tabId="tabStore.id" />
   </div>
 </template>
 
 <script setup lang="ts">
 import TabTrading from "./TabTrading.vue";
 import Backtesting from "./TabBacktesting.vue";
-import { onMounted, onActivated, onDeactivated } from "vue";
+import { onMounted } from "vue";
 
 const props = defineProps({
   tabId: {
     type: String,
     required: true,
   },
+  isActive: {
+    type: Boolean,
+    required: true
+  }
 });
 
 const useTabStore = createTabStore(props.tabId);
@@ -41,12 +41,12 @@ const component = computed(() => {
   return getComponentByKind(currentTab.kind);
 });
 
-onActivated(() => {
-  //tabStore.resume?.();
-});
-
-onDeactivated(() => {
-  //tabStore.pause?.();
+watch(() => props.isActive, async (active) => {
+  if (active) {
+    await tabStore.resume();
+  } else {
+    await tabStore.pause();
+  }
 });
 
 onMounted(async () => {
@@ -54,6 +54,7 @@ onMounted(async () => {
 
   await tabStore.start();
 });
+
 </script>
 
 <style lang="css" scoped>
