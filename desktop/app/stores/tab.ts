@@ -11,6 +11,20 @@ type RawCandle = {
   timeframe: string;
 };
 
+type BufferedCandle = {
+  close: number;
+  close_time: number;
+  high: number;
+  is_live: boolean;
+  low: number;
+  open: number;
+  open_time: number;
+  symbol: string;
+  timeframe: string;
+  type: "ohlcv";
+  volume: number;
+};
+
 type LWCandle = {
   time: number;
   open: number;
@@ -50,6 +64,11 @@ export const createTabStore = (tabId: string) =>
     const chartSettings = reactive({});
     const indicators = ref([]);
 
+    const ohlcvLiveBuffer = ref<BufferedCandle[]>([]);
+    const isPaused = ref(false);
+
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
     ///-----------------------------------
 
     const socket = ref<WebSocket | null>(null);
@@ -79,7 +98,6 @@ export const createTabStore = (tabId: string) =>
     const handleEvents = (event: any) => {
       try {
         const data = JSON.parse(event.data);
-        //console.log(data);
 
         if (data.event === "backend_connected") {
           connected.value = true;
@@ -93,14 +111,7 @@ export const createTabStore = (tabId: string) =>
 
         if (data.type === "ohlcv") {
           if (data.is_live) {
-            const set = subscribers.get(data.symbol);
-            if (!set) return;
-
-            for (const cb of set) {
-              const ce = normalizeToLightweight(data);
-              lastPrice.value = formatPrice(ce.close);
-              cb(ce);
-            }
+            ohlcvLiveBuffer.value.push(data);
           }
         }
       } catch (err) {}
@@ -141,13 +152,65 @@ export const createTabStore = (tabId: string) =>
 
     const start = () => {
       console.log("tabStore: Starting.");
+      startConsuming();
       connectFeedWebsocket();
     };
 
     const stop = () => {
       console.log("tabStore: Stopping.");
       disconnectFeedWebsocket();
+      stopConsuming();
     };
+
+    function ohlcvLiveHandle(data: BufferedCandle) {
+      const set = subscribers.get(data.symbol);
+      if (!set) return;
+
+      for (const cb of set) {
+        const ce = normalizeToLightweight(data);
+        lastPrice.value = formatPrice(ce.close);
+        cb(ce);
+      }
+    }
+
+    function consumeNext() {
+      if (ohlcvLiveBuffer.value.length > 0) {
+        const data = ohlcvLiveBuffer.value.shift()!;
+        ohlcvLiveHandle(data);
+        //console.log("consumido del buffer");
+      } else {
+        //console.log("no eventos");
+      }
+    }
+
+    function startConsuming() {
+      stopConsuming(); // evitar duplicados
+
+      function schedule() {
+        consumeNext();
+        const delay = isPaused.value ? 100 : 1;
+        intervalId = setTimeout(schedule, delay); // setTimeout recursivo
+      }
+
+      schedule();
+    }
+
+    function stopConsuming() {
+      if (intervalId !== null) {
+        clearTimeout(intervalId);
+        intervalId = null;
+      }
+    }
+
+    function pause() {
+      isPaused.value = true;
+      console.log("paused");
+    }
+
+    function resume() {
+      isPaused.value = false;
+      console.log("resumed");
+    }
 
     function getCurrentTab(tabId: string) {
       const tabsStore = useTabsStore();
@@ -172,7 +235,9 @@ export const createTabStore = (tabId: string) =>
       id,
       logicalRange,
       defaultRightPriceWidth,
-      getCurrentTab
+      getCurrentTab,
+      pause,
+      resume,
     };
   });
 

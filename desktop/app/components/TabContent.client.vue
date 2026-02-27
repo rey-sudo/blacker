@@ -16,8 +16,8 @@ const props = defineProps({
   },
   isActive: {
     type: Boolean,
-    required: true
-  }
+    required: true,
+  },
 });
 
 const useTabStore = createTabStore(props.tabId);
@@ -41,20 +41,22 @@ const component = computed(() => {
   return getComponentByKind(currentTab.kind);
 });
 
-watch(() => props.isActive, async (active) => {
-  if (active) {
-    await tabStore.resume();
-  } else {
-    await tabStore.pause();
-  }
-});
+watch(
+  () => props.isActive,
+  (active) => {
+    if (active) {
+      tabStore.resume();
+    } else {
+      tabStore.pause();
+    }
+  },
+);
 
 onMounted(async () => {
   console.log(currentTab);
 
   await tabStore.start();
 });
-
 </script>
 
 <style lang="css" scoped>
