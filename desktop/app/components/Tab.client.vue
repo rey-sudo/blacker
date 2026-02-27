@@ -1,7 +1,7 @@
 <template>
   <div class="tab text-xs" :class="[isActive ? 'active' : 'inactive']">
     <UContextMenu v-model:open="menuOpen" :items="menuItems" size="sm">
-      <div class="tab-label">
+      <div class="tab-label flex items-center">
         <UChip standalone inset size="xs" :color="tabColor" />
         <span> {{ tabName }}</span>
       </div>
@@ -42,7 +42,7 @@ const menuItems: ContextMenuItem[] = [
     {
       label: "Delete All Tabs",
       color: "error" as const,
-      icon: "i-lucide-trash",
+      icon: "i-lucide-x",
     },
   ],
 ];
@@ -117,7 +117,7 @@ onBeforeUnmount(() => {
 
 .tab.active {
   background: var(--ui-bg);
-  border-bottom-color: var(--color-white);
+  border-bottom-color: var(--ui-primary);
 }
 
 .tab.inactive {

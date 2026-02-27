@@ -1,5 +1,5 @@
 <template>
-  <div ref="tabsContainer" class="flex gap-2 overflow-x-auto">
+  <div ref="tabsContainer" class="tab-selector flex gap-2 overflow-x-auto">
     <Tab
       v-for="tab in tabsStore.allTabs"
       :key="tab.id"
@@ -39,3 +39,10 @@ onMounted(async () => {
   });
 });
 </script>
+
+<style scoped>
+.tab-selector{
+  height: inherit;
+  box-sizing: border-box;
+}
+</style>
