@@ -36,7 +36,10 @@ const menuItems: ContextMenuItem[] = [
   [
     {
       label: "Clone",
-      icon: "i-lucide-arrow-right",
+      icon: "i-lucide-copy-plus",
+      onSelect() {
+        tabsStore.cloneTab(props.tabId);
+      },
     },
     {
       label: "Delete Tab",
@@ -52,6 +55,9 @@ const menuItems: ContextMenuItem[] = [
       label: "Delete All Tabs",
       color: "error" as const,
       icon: "i-lucide-x",
+      onSelect() {
+        tabsStore.closeAllTabs();
+      },
     },
   ],
 ];

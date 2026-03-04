@@ -157,6 +157,42 @@ export const useTabsStore = defineStore("tabs", () => {
     return tabsById.value.get(id);
   }
 
+  /**
+   * Closes all open tabs and resets the active tab to null.
+   */
+  function closeAllTabs(): void {
+    tabsById.value.clear();
+    tabOrder.value = [];
+    activeTabId.value = null;
+  }
+
+  /**
+   * Creates a clone of an existing tab with a new unique id.
+   * The cloned tab is inserted immediately after the original and activated.
+   *
+   * @param id - ID of the tab to clone
+   * @returns The cloned tab, or null if the original was not found
+   */
+  function cloneTab(id: string): Tab | null {
+    const original = tabsById.value.get(id);
+    if (!original) return null;
+
+    const clone: Tab = {
+      ...original,
+      id: crypto.randomUUID(),
+      title: `${original.title} (copy)`,
+    };
+
+    const index = tabOrder.value.indexOf(id);
+
+    tabsById.value.set(clone.id, clone);
+    tabOrder.value.splice(index + 1, 0, clone.id);
+
+    activeTabId.value = clone.id;
+
+    return clone;
+  }
+
   return {
     addTab,
     allTabs,
@@ -164,6 +200,8 @@ export const useTabsStore = defineStore("tabs", () => {
     moveTab,
     activeTabId,
     selectTab,
-    getTabById
+    getTabById,
+    closeAllTabs,
+    cloneTab
   };
 });

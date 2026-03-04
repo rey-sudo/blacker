@@ -188,7 +188,7 @@ export const createTabStore = (tabId: string) =>
 
       function schedule() {
         consumeNext();
-        const delay = isPaused.value ? 10 : 0;
+        const delay = isPaused.value ? 0 : 0;
         intervalId = setTimeout(schedule, delay); // setTimeout recursivo
       }
 
