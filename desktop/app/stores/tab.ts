@@ -56,6 +56,8 @@ export const createTabStore = (tabId: string) =>
     const ohlcvLiveBuffer = ref<BufferedCandle[]>([]);
     let ohlcvLiveBufferAck = ref(Date.now());
 
+    let miWorker: Worker | null = null;
+
     const isPaused = ref(false);
 
     let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -103,6 +105,7 @@ export const createTabStore = (tabId: string) =>
         if (data.type === "ohlcv") {
           if (data.is_live) {
             ohlcvLiveBuffer.value.push(data);
+            console.log(ohlcvLiveBuffer.value.length);
           }
         }
       } catch (err) {}
@@ -141,16 +144,26 @@ export const createTabStore = (tabId: string) =>
       socket.value = null;
     };
 
+    const createWorkers = () => {
+      miWorker = new Worker("/test.js");
+    };
+
+    const stopWorkers = () => {
+      if (!miWorker) return;
+      miWorker.postMessage("parar");
+    };
+
     const start = () => {
       console.log("tabStore: Starting.");
+      createWorkers();
       startConsuming();
       connectFeedWebsocket();
     };
 
     const stop = () => {
       console.log("tabStore: Stopping.");
+      stopWorkers();
       disconnectFeedWebsocket();
-      stopConsuming();
     };
 
     function ohlcvLiveHandle(data: BufferedCandle) {
@@ -180,57 +193,35 @@ export const createTabStore = (tabId: string) =>
     }
 
     function startConsuming() {
-      stopConsuming();
+      if (!miWorker) return;
 
-      async function schedule() {
-        const _newIterval = () => {
-          intervalId = setTimeout(schedule, 0);
-        };
+      miWorker.postMessage("empezar");
 
-        const _consumeBatch = () => {
-          for (let i = 1; i <= 100; i++) {
-            consumeNext();
+      const _consumeBatch = (n: number = 100) => {
+        for (let i = 1; i <= n; i++) {
+          consumeNext();
+        }
+      };
+
+      miWorker.onmessage = (e) => {
+        if (e.data === "trabajando") {
+          if (document.hidden) {
+            _consumeBatch();
           }
-        };
 
-        if (document.hidden) {
-          _consumeBatch();
+          if (isPaused.value) {
+            _consumeBatch();
+          }
 
-          const isOld = Date.now() - ohlcvLiveBufferAck.value > 1 * 60 * 1000;
-
-          if (isOld) {
-            console.log(isOld);
-
-            getChartData();
-
-            return _newIterval();
+          if (!isPaused.value) {
+            window.requestIdleCallback((deadline) => {
+              if (deadline.timeRemaining() > 1) {
+                _consumeBatch();
+              }
+            });
           }
         }
-
-        if (isPaused.value) {
-          _consumeBatch();
-          return _newIterval();
-        }
-
-        if (!isPaused.value) {
-          window.requestIdleCallback((deadline) => {
-            if (deadline.timeRemaining() > 1) {
-              _consumeBatch();
-            }
-          });
-
-          return _newIterval();
-        }
-      }
-
-      schedule();
-    }
-
-    function stopConsuming() {
-      if (intervalId !== null) {
-        clearTimeout(intervalId);
-        intervalId = null;
-      }
+      };
     }
 
     function pause() {
@@ -269,7 +260,7 @@ export const createTabStore = (tabId: string) =>
       pause,
       resume,
       isPaused,
-      ohlcvLiveBufferAck
+      ohlcvLiveBufferAck,
     };
   });
 
