@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+
 type RawCandle = {
   open: number;
   high: number;
@@ -179,17 +180,27 @@ export const createTabStore = (tabId: string) =>
     function startConsuming() {
       stopConsuming(); // evitar duplicados
 
-      function schedule() {
-        if (!isPaused.value) {
-          window.requestIdleCallback((deadline) => {
-            for (let i = 1; i <= 100 && deadline.timeRemaining() > 1; i++) {
-              consumeNext();
-            }
-          });
-        } else {
+      async function schedule() {
+        console.log(document.hidden);
+
+        const consumeBatch_ = () => {
           for (let i = 1; i <= 100; i++) {
             consumeNext();
           }
+        };
+
+        if (document.hidden) {
+          consumeBatch_();
+        }
+
+        if (!isPaused.value) {
+          window.requestIdleCallback((deadline) => {
+            for (deadline.timeRemaining() >) {
+             consumeBatch_();
+            }
+          });
+        } else {
+          consumeBatch_();
         }
 
         intervalId = setTimeout(schedule, 0); // recursive loop event
