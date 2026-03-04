@@ -100,11 +100,18 @@ export const useTabsStore = defineStore("tabs", () => {
    *
    * @param id - ID of the tab to remove
    */
-  function removeTab(id: string) {
+  function closeTab(id: string) {
     if (!tabsById.value.has(id)) return;
+
+    const index = tabOrder.value.indexOf(id);
 
     tabsById.value.delete(id);
     tabOrder.value = tabOrder.value.filter((tid) => tid !== id);
+
+    if (activeTabId.value === id) {
+      activeTabId.value =
+        tabOrder.value[index - 1] ?? tabOrder.value[index] ?? null;
+    }
   }
 
   /**
@@ -121,6 +128,8 @@ export const useTabsStore = defineStore("tabs", () => {
     if (moved === undefined) return;
 
     order.splice(toIndex, 0, moved);
+
+    tabOrder.value = order;
 
     console.log("tabOrder", tabOrder.value);
   }
@@ -147,13 +156,14 @@ export const useTabsStore = defineStore("tabs", () => {
   function getTabById(id: string): Tab | undefined {
     return tabsById.value.get(id);
   }
+
   return {
     addTab,
     allTabs,
-    removeTab,
+    closeTab,
     moveTab,
     activeTabId,
     selectTab,
-    getTabById,
+    getTabById
   };
 });

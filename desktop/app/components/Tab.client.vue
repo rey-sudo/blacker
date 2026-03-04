@@ -24,8 +24,14 @@ const props = defineProps({
   },
 });
 
-const menuOpen = ref(false);
+const tabsStore = useTabsStore();
 
+const useTabStore = createTabStore(props.tabId);
+const tabStore = useTabStore();
+
+const currentTab = tabStore.getCurrentTab(props.tabId);
+
+const menuOpen = ref(false);
 const menuItems: ContextMenuItem[] = [
   [
     {
@@ -36,6 +42,9 @@ const menuItems: ContextMenuItem[] = [
       label: "Delete Tab",
       color: "error" as const,
       icon: "i-lucide-x",
+      onSelect() {
+        tabsStore.closeTab(props.tabId);
+      },
     },
   ],
   [
@@ -46,11 +55,6 @@ const menuItems: ContextMenuItem[] = [
     },
   ],
 ];
-
-const useTabStore = createTabStore(props.tabId);
-const tabStore = useTabStore();
-
-const currentTab = tabStore.getCurrentTab(props.tabId);
 
 const getBorderColor = (kind: TabKind) => {
   switch (kind) {
