@@ -38,25 +38,13 @@ export const createTabStore = (tabId: string) =>
     const id: string = tabId;
 
     const symbol = ref("BTCUSDT");
-
-    const charts = ref([]);
-
-    const market = ref("crypto");
     const interval = ref("1m");
-    const window = ref(500);
-
-    const slaveId = ref("");
 
     const candles: any = ref([]);
     const candle = ref(null);
 
     const fetching = ref(false);
     const fetchError = ref(null);
-
-    const nextClose = ref(getNow());
-
-    const historyInterval = ref<NodeJS.Timeout | null>(null);
-    const lastInterval = ref<NodeJS.Timeout | null>(null);
 
     const logicalRange = ref(null);
     const crosshair = ref(null);
@@ -73,7 +61,6 @@ export const createTabStore = (tabId: string) =>
 
     const socket = ref<WebSocket | null>(null);
     const connected = ref(false);
-    const messages: any = ref([]);
     const lastPrice = ref<number | null>(0);
 
     const subscribers = new Map<string, Set<(c: LWCandle) => void>>();
@@ -231,14 +218,13 @@ export const createTabStore = (tabId: string) =>
       candle,
       subscribe,
       crosshair,
-      nextClose,
       id,
       logicalRange,
       defaultRightPriceWidth,
       getCurrentTab,
       pause,
       resume,
-      isPaused
+      isPaused,
     };
   });
 
@@ -250,13 +236,22 @@ function defaultChartSettings() {
   };
 }
 
-export function normalizeToLightweight(data: RawCandle): LWCandle;
-export function normalizeToLightweight(data: RawCandle[]): LWCandle[];
+function formatPrice(price: number): number {
+  return parseFloat(price.toFixed(2));
+}
+
+
 export function normalizeToLightweight(
-  data: RawCandle | RawCandle[],
+  data: RawCandle | BufferedCandle,
+): LWCandle;
+export function normalizeToLightweight(
+  data: (RawCandle | BufferedCandle)[],
+): LWCandle[];
+export function normalizeToLightweight(
+  data: RawCandle | BufferedCandle | (RawCandle | BufferedCandle)[],
 ): LWCandle | LWCandle[] {
-  const normalize = (c: RawCandle): LWCandle => ({
-    time: Math.floor(c.open_time / 1000), // 🔑 UNIX seconds
+  const normalize = (c: RawCandle | BufferedCandle): LWCandle => ({
+    time: Math.floor(c.open_time / 1000),
     open: c.open,
     high: c.high,
     low: c.low,
@@ -264,8 +259,4 @@ export function normalizeToLightweight(
   });
 
   return Array.isArray(data) ? data.map(normalize) : normalize(data);
-}
-
-function formatPrice(price: number): number {
-  return parseFloat(price.toFixed(2));
 }
