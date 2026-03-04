@@ -239,6 +239,7 @@ const setupChart = () => {
 
   tabStore.subscribe((candle) => {
     candleSeries.update(candle);
+    console.log("consumiendo", tabStore.id);
   });
 };
 

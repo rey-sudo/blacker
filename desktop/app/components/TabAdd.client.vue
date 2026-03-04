@@ -23,7 +23,7 @@ const visible = ref(true);
 
 const onSelect = () => {
   const newTab: TradingTab = {
-    id: `hashid${Date.now()}`,
+    id: crypto.randomUUID(),
     kind: TabKind.Trading,
     title: "tab test",
     subtitle: "tab sub",

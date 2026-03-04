@@ -168,7 +168,7 @@ export const createTabStore = (tabId: string) =>
 
     function consumeNext() {
       if (ohlcvLiveBuffer.value.length > 0) {
-        const ce = ohlcvLiveBuffer.value.shift()!;
+        const ce = ohlcvLiveBuffer.value.shift();
         if (ce) ohlcvLiveHandle(ce);
         //console.log("consumido del buffer");
       } else {
@@ -181,16 +181,18 @@ export const createTabStore = (tabId: string) =>
 
       function schedule() {
         if (!isPaused.value) {
-          while (ohlcvLiveBuffer.value.length > 0) {
-            const ce = ohlcvLiveBuffer.value.shift();
-            if (ce) ohlcvLiveHandle(ce);
-          }
+          window.requestIdleCallback((deadline) => {
+            for (let i = 1; i <= 100 && deadline.timeRemaining() > 1; i++) {
+              consumeNext();
+            }
+          });
         } else {
-          consumeNext();
+          for (let i = 1; i <= 100; i++) {
+            consumeNext();
+          }
         }
 
-        const delay = isPaused.value ? 0 : 0;
-        intervalId = setTimeout(schedule, delay);
+        intervalId = setTimeout(schedule, 0); // recursive loop event
       }
 
       schedule();
