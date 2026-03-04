@@ -237,7 +237,7 @@ const setupChart = () => {
     { deep: true },
   );
 
-  tabStore.subscribe("BTCUSDT", (candle) => {
+  tabStore.subscribe((candle) => {
     candleSeries.update(candle);
   });
 };

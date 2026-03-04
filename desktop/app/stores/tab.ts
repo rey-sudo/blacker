@@ -63,14 +63,14 @@ export const createTabStore = (tabId: string) =>
     const connected = ref(false);
     const lastPrice = ref<number | null>(0);
 
-    const subscribers = new Map<string, Set<(c: LWCandle) => void>>();
+    const subscribers = new Set<(c: LWCandle) => void>();
 
-    function subscribe(symbol: string, cb: (c: LWCandle) => void) {
-      const set = subscribers.get(symbol) ?? new Set();
-      set.add(cb);
-      subscribers.set(symbol, set);
+    function subscribe(cb: (c: LWCandle) => void) {
+      subscribers.add(cb);
 
-      return () => set.delete(cb);
+      return () => {
+        subscribers.delete(cb);
+      };
     }
 
     const getChartData = () => {
@@ -94,6 +94,7 @@ export const createTabStore = (tabId: string) =>
 
         if (data.type === "ohlcv_snapshot") {
           candles.value = normalizeToLightweight(data.data);
+          ohlcvLiveBuffer.value = [];
         }
 
         if (data.type === "ohlcv") {
@@ -150,20 +151,25 @@ export const createTabStore = (tabId: string) =>
     };
 
     function ohlcvLiveHandle(data: BufferedCandle) {
-      const set = subscribers.get(data.symbol);
-      if (!set) return;
+      if (subscribers.size === 0) return;
 
-      for (const cb of set) {
-        const ce = normalizeToLightweight(data);
-        lastPrice.value = formatPrice(ce.close);
-        cb(ce);
+      const ce = normalizeToLightweight(data);
+      const lastCandle = candles.value[candles.value.length - 1];
+
+      // Filtro de seguridad cronológica
+      if (lastCandle && ce.time < (lastCandle.time as number)) {
+        return;
       }
+
+      lastPrice.value = formatPrice(ce.close);
+
+      subscribers.forEach((cb) => cb(ce));
     }
 
     function consumeNext() {
       if (ohlcvLiveBuffer.value.length > 0) {
-        const data = ohlcvLiveBuffer.value.shift()!;
-        ohlcvLiveHandle(data);
+        const ce = ohlcvLiveBuffer.value.shift()!;
+        if (ce) ohlcvLiveHandle(ce);
         //console.log("consumido del buffer");
       } else {
         //console.log("no eventos");
@@ -174,9 +180,17 @@ export const createTabStore = (tabId: string) =>
       stopConsuming(); // evitar duplicados
 
       function schedule() {
-        consumeNext();
+        if (!isPaused.value) {
+          while (ohlcvLiveBuffer.value.length > 0) {
+            const ce = ohlcvLiveBuffer.value.shift();
+            if (ce) ohlcvLiveHandle(ce);
+          }
+        } else {
+          consumeNext();
+        }
+
         const delay = isPaused.value ? 0 : 0;
-        intervalId = setTimeout(schedule, delay); // setTimeout recursivo
+        intervalId = setTimeout(schedule, delay);
       }
 
       schedule();
@@ -240,7 +254,6 @@ function formatPrice(price: number): number {
   return parseFloat(price.toFixed(2));
 }
 
-
 export function normalizeToLightweight(
   data: RawCandle | BufferedCandle,
 ): LWCandle;
@@ -250,13 +263,19 @@ export function normalizeToLightweight(
 export function normalizeToLightweight(
   data: RawCandle | BufferedCandle | (RawCandle | BufferedCandle)[],
 ): LWCandle | LWCandle[] {
-  const normalize = (c: RawCandle | BufferedCandle): LWCandle => ({
-    time: Math.floor(c.open_time / 1000),
-    open: c.open,
-    high: c.high,
-    low: c.low,
-    close: c.close,
-  });
+  const normalize = (c: RawCandle | BufferedCandle): LWCandle => {
+    return {
+      time: Math.floor(c.open_time / 1000),
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+    };
+  };
 
-  return Array.isArray(data) ? data.map(normalize) : normalize(data);
+  if (Array.isArray(data)) {
+    return data.map(normalize);
+  }
+
+  return normalize(data);
 }
