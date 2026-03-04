@@ -21,7 +21,7 @@
 
       <USeparator orientation="vertical" class="h-6 px-1" />
 
-      <TabChartBacktestButton :tabId="tabId"/>
+      <TabChartBacktestButton :tabId="tabId" />
 
       <USeparator orientation="vertical" class="h-6 px-1" />
     </div>
@@ -118,8 +118,14 @@ const setupChart = () => {
       secondsVisible: false,
     },
     grid: {
-      vertLines: { color: chartTheme.value.grid.axis, style: LineStyle.LargeDashed },
-      horzLines: { color: chartTheme.value.grid.lines, style: LineStyle.LargeDashed },
+      vertLines: {
+        color: chartTheme.value.grid.axis,
+        style: LineStyle.LargeDashed,
+      },
+      horzLines: {
+        color: chartTheme.value.grid.lines,
+        style: LineStyle.LargeDashed,
+      },
     },
     handleScroll: true,
     handleScale: true,
@@ -232,7 +238,6 @@ const setupChart = () => {
   );
 
   tabStore.subscribe("BTCUSDT", (candle) => {
-    //console.log(candle);
     candleSeries.update(candle);
   });
 };
