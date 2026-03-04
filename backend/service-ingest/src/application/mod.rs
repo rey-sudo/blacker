@@ -126,6 +126,7 @@ pub async fn run(config: Config) -> Result<()> {
                                 info!(
                                     attempt,
                                     symbol = ?event.symbol,
+                                    ts= ?event.event_time,
                                     "Tick successfully sent to Pulsar"
                                 );
                                 sent = true;
