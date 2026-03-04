@@ -1,13 +1,23 @@
 import { defineStore } from "pinia";
 
+/**
+ * Available tab types in the application.
+ * Used as discriminant in the `Tab` union type.
+ */
 export enum TabKind {
   Backtesting = "Backtesting",
   Trading = "Trading",
-  Bots = "Bots"
+  Algo = "Algo",
 }
 
+/**
+ * Fields shared across all tab types.
+ * Not used directly — extend this interface for each specific tab kind.
+ */
 interface TabBase {
+  /** Unique identifier for the tab */
   id: string;
+  /** Determines which tab-specific fields are available */
   kind: TabKind;
   title: string;
   subtitle: string;
@@ -15,39 +25,62 @@ interface TabBase {
   color: string;
 }
 
+/** Tab used for backtesting a trading strategy on historical data */
 export interface BacktestingTab extends TabBase {
   kind: TabKind.Backtesting;
   symbol: string;
 }
 
+/** Tab used for live or paper trading on a specific symbol and timeframe */
 export interface TradingTab extends TabBase {
   kind: TabKind.Trading;
   symbol: string;
   timeframe: string;
 }
 
-export interface BotsTab extends TabBase {
-  kind: TabKind.Bots;
+/** Tab used to monitor or configure a specific bot */
+export interface AlgoTab extends TabBase {
+  kind: TabKind.Algo;
   botId: string;
   strategyName: string;
 }
 
-export type Tab = BacktestingTab | TradingTab | BotsTab;
+/**
+ * Discriminated union of all possible tab types.
+ * Narrow by checking `tab.kind` to access type-specific fields.
+ *
+ * @example
+ * if (tab.kind === TabKind.Trading) {
+ *   console.log(tab.id)
+ * }
+ */
+export type Tab = BacktestingTab | TradingTab | AlgoTab;
 
 export const useTabsStore = defineStore("tabs", () => {
+  /** Primary storage — enables O(1) lookup by tab id */
   const tabsById = ref<Map<string, Tab>>(new Map());
+
+  /** Tracks the visual order of tabs independently from the tabsById map */
   const tabOrder = ref<string[]>([]);
 
+  /** ID of the currently active tab, or null if no tabs are open */
   const activeTabId = ref<string | null>(null);
 
-  function setActiveTab(id: string) {
-    activeTabId.value = id;
-  }
-
+  /**
+   * Ordered list of all open tabs, derived from `tabOrder` and `tabsById`.
+   * Filters out any entries that may be out of sync between the two structures.
+   */
   const allTabs = computed(() =>
     tabOrder.value.map((id) => tabsById.value.get(id)!).filter(Boolean),
   );
 
+  /**
+   * Adds a new tab and immediately activates it.
+   * Does nothing and returns `false` if a tab with the same id already exists.
+   *
+   * @param tab - The tab object to add
+   * @returns `true` if the tab was added, `false` if it already existed
+   */
   function addTab(tab: Tab) {
     console.log("Adding tab:", tab.id);
 
@@ -60,6 +93,13 @@ export const useTabsStore = defineStore("tabs", () => {
     return true;
   }
 
+  /**
+   * Removes a tab by id.
+   * If the removed tab was active, the caller is responsible
+   * for setting a new active tab.
+   *
+   * @param id - ID of the tab to remove
+   */
   function removeTab(id: string) {
     if (!tabsById.value.has(id)) return;
 
@@ -67,6 +107,13 @@ export const useTabsStore = defineStore("tabs", () => {
     tabOrder.value = tabOrder.value.filter((tid) => tid !== id);
   }
 
+  /**
+   * Moves a tab from one position to another in the tab bar.
+   * Triggered by drag & drop interactions.
+   *
+   * @param fromIndex - Current index of the tab
+   * @param toIndex - Target index to move the tab to
+   */
   function moveTab(fromIndex: number, toIndex: number) {
     const order = tabOrder.value;
     const moved = order.splice(fromIndex, 1)[0];
@@ -75,9 +122,15 @@ export const useTabsStore = defineStore("tabs", () => {
 
     order.splice(toIndex, 0, moved);
 
-    console.log("tabOrder", tabOrder.value)
+    console.log("tabOrder", tabOrder.value);
   }
 
+  /**
+   * Activates a tab by id after validating it exists.
+   *
+   * @param id - ID of the tab to activate
+   * @returns `true` if the tab was found and activated, `false` otherwise
+   */
   function selectTab(id: string): boolean {
     if (!tabsById.value.has(id)) return false;
 
@@ -85,6 +138,12 @@ export const useTabsStore = defineStore("tabs", () => {
     return true;
   }
 
+  /**
+   * Retrieves a tab by its id without activating it.
+   *
+   * @param id - ID of the tab to retrieve
+   * @returns The tab object, or `undefined` if not found
+   */
   function getTabById(id: string): Tab | undefined {
     return tabsById.value.get(id);
   }
@@ -93,9 +152,8 @@ export const useTabsStore = defineStore("tabs", () => {
     allTabs,
     removeTab,
     moveTab,
-    setActiveTab,
     activeTabId,
     selectTab,
-    getTabById
+    getTabById,
   };
 });
