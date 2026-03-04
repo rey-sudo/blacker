@@ -239,6 +239,7 @@ const setupChart = () => {
 
   tabStore.subscribe((candle) => {
     candleSeries.update(candle);
+    tabStore.ohlcvLiveBufferAck = Date.now();
     console.log("consumiendo", tabStore.id);
   });
 };

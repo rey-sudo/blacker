@@ -54,6 +54,8 @@ export const createTabStore = (tabId: string) =>
     const indicators = ref([]);
 
     const ohlcvLiveBuffer = ref<BufferedCandle[]>([]);
+    let ohlcvLiveBufferAck = ref(Date.now());
+
     const isPaused = ref(false);
 
     let intervalId: ReturnType<typeof setInterval> | null = null;
@@ -178,32 +180,47 @@ export const createTabStore = (tabId: string) =>
     }
 
     function startConsuming() {
-      stopConsuming(); // evitar duplicados
+      stopConsuming();
 
       async function schedule() {
-        console.log(document.hidden);
+        const _newIterval = () => {
+          intervalId = setTimeout(schedule, 0);
+        };
 
-        const consumeBatch_ = () => {
+        const _consumeBatch = () => {
           for (let i = 1; i <= 100; i++) {
             consumeNext();
           }
         };
 
         if (document.hidden) {
-          consumeBatch_();
+          _consumeBatch();
+
+          const isOld = Date.now() - ohlcvLiveBufferAck.value > 1 * 60 * 1000;
+
+          if (isOld) {
+            console.log(isOld);
+
+            getChartData();
+
+            return _newIterval();
+          }
+        }
+
+        if (isPaused.value) {
+          _consumeBatch();
+          return _newIterval();
         }
 
         if (!isPaused.value) {
           window.requestIdleCallback((deadline) => {
-            for (deadline.timeRemaining() >) {
-             consumeBatch_();
+            if (deadline.timeRemaining() > 1) {
+              _consumeBatch();
             }
           });
-        } else {
-          consumeBatch_();
-        }
 
-        intervalId = setTimeout(schedule, 0); // recursive loop event
+          return _newIterval();
+        }
       }
 
       schedule();
@@ -252,6 +269,7 @@ export const createTabStore = (tabId: string) =>
       pause,
       resume,
       isPaused,
+      ohlcvLiveBufferAck
     };
   });
 
