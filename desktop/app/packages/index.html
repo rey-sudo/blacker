@@ -532,9 +532,10 @@ class ChartEngine {
     this._series    = new Map();
 
     // Viewport (virtual scroll)
-    this.barWidth   = DEFAULT_BAR_W;
-    this.viewStart  = 0;   // first visible bar index
-    this.viewEnd    = 0;   // last  visible bar index  (exclusive)
+    this.barWidth    = DEFAULT_BAR_W;
+    this.rightPadBars = 20;         // empty bar-slots kept to the right of the last candle
+    this.viewStart   = 0;   // first visible bar index
+    this.viewEnd     = 0;   // last  visible bar index  (exclusive; may exceed data.length)
 
     // Render state
     this.dirty      = true;
@@ -652,10 +653,10 @@ class ChartEngine {
     // Cache the close of the second-to-last bar (used by incremental RSI tick)
     this._prevClose = data.length >= 2 ? data[data.length - 2].c : (data[0]?.c ?? 0);
 
-    // Start at the right end, show last N bars
-    const barsInView = Math.floor(this.chartW / this.barWidth);
-    this.viewStart = Math.max(0, data.length - barsInView);
-    this.viewEnd   = data.length;
+    // Start at the right end — leave rightPadBars of empty space after the last candle
+    const capacity  = Math.floor(this.chartW / this.barWidth);
+    this.viewEnd    = data.length + this.rightPadBars;
+    this.viewStart  = Math.max(0, this.viewEnd - capacity);
     this.dirty = true;
     this._updatePriceDisplay();
     this._updateScrollThumb();
@@ -754,10 +755,10 @@ class ChartEngine {
   // ── VIEWPORT HELPERS ──────────────────────────────────────────────────────
   _clampView() {
     if (!this.data.length) return;
-    const barsInView = Math.floor(this.chartW / this.barWidth);
-    this.viewStart = Math.max(0, Math.min(this.viewStart, this.data.length - 1));
-    this.viewEnd   = Math.min(this.viewStart + barsInView, this.data.length);
-    if (this.viewEnd - this.viewStart < 1) this.viewEnd = this.viewStart + 1;
+    const capacity   = Math.floor(this.chartW / this.barWidth);
+    const maxViewEnd = this.data.length + this.rightPadBars;
+    this.viewEnd     = Math.min(Math.max(this.viewEnd, 1), maxViewEnd);
+    this.viewStart   = Math.max(0, this.viewEnd - capacity);
   }
 
   _barsVisible() { return this.viewEnd - this.viewStart; }
@@ -1497,10 +1498,13 @@ class ChartEngine {
     area.addEventListener('mousemove', e => {
       this.mouse = { x: e.clientX, y: e.clientY, inside: true };
       if (this.isPanning) {
-        const dx    = e.clientX - this.panOrigin.x;
-        const shift = -Math.round(dx / this.barWidth);
-        this.viewStart = Math.max(0, Math.min(this.data.length - 2, this.panOrigin.viewStart + shift));
-        this.viewEnd   = Math.min(this.data.length, this.viewStart + Math.floor(this.chartW / this.barWidth));
+        const dx       = e.clientX - this.panOrigin.x;
+        const shift    = -Math.round(dx / this.barWidth);
+        const capacity = Math.floor(this.chartW / this.barWidth);
+        const maxStart = Math.max(0, this.data.length + this.rightPadBars - capacity);
+        this.viewStart = Math.max(0, Math.min(maxStart, this.panOrigin.viewStart + shift));
+        this.viewEnd   = this.viewStart + capacity;
+        this._clampView();
         this.dirty = true;
         this._updateScrollThumb();
         this._updateStatus();
@@ -1571,11 +1575,11 @@ class ChartEngine {
       const localX    = e.clientX - this.panes.main.x;
       const focusIdx  = this._indexAtX(localX);
       this.barWidth   = newBarW;
-      const barsInView = Math.floor(this.chartW / this.barWidth);
-      // Keep focus bar in same relative position
-      const rel       = (localX - this.barWidth / 2) / this.chartW;
-      this.viewStart  = Math.max(0, Math.round(focusIdx - rel * barsInView));
-      this.viewEnd    = Math.min(this.data.length, this.viewStart + barsInView);
+      const capacity  = Math.floor(this.chartW / this.barWidth);
+      // Keep focus bar at same relative screen position
+      const rel       = localX / this.chartW;
+      this.viewStart  = Math.max(0, Math.round(focusIdx - rel * capacity));
+      this.viewEnd    = this.viewStart + capacity;
       this._clampView();
       this.dirty = true;
       this._updateScrollThumb();
@@ -1591,10 +1595,13 @@ class ChartEngine {
     area.addEventListener('touchmove', e => {
       e.preventDefault();
       if (e.touches.length === 1 && lastTouches.length === 1) {
-        const dx    = e.touches[0].clientX - lastTouches[0].clientX;
-        const shift = -Math.round(dx / this.barWidth);
-        this.viewStart = Math.max(0, Math.min(this.data.length - 2, this.viewStart + shift));
-        this.viewEnd   = Math.min(this.data.length, this.viewStart + Math.floor(this.chartW / this.barWidth));
+        const dx       = e.touches[0].clientX - lastTouches[0].clientX;
+        const shift    = -Math.round(dx / this.barWidth);
+        const capacity = Math.floor(this.chartW / this.barWidth);
+        const maxStart = Math.max(0, this.data.length + this.rightPadBars - capacity);
+        this.viewStart = Math.max(0, Math.min(maxStart, this.viewStart + shift));
+        this.viewEnd   = this.viewStart + capacity;
+        this._clampView();
         this.dirty = true;
         this._updateScrollThumb();
       } else if (e.touches.length === 2 && lastTouches.length === 2) {
@@ -1622,10 +1629,12 @@ class ChartEngine {
     window.addEventListener('mousemove', e => {
       if (!scrollDragging) return;
       const sbW    = scrollbar.offsetWidth;
+      const total  = this.data.length + this.rightPadBars;
       const ratio  = (e.clientX - scrollOriginX) / sbW;
-      const shift  = Math.round(ratio * this.data.length);
-      this.viewStart = Math.max(0, Math.min(this.data.length - 2, scrollOriginVS + shift));
-      this.viewEnd   = Math.min(this.data.length, this.viewStart + Math.floor(this.chartW / this.barWidth));
+      const shift  = Math.round(ratio * total);
+      const capacity = Math.floor(this.chartW / this.barWidth);
+      this.viewStart = Math.max(0, Math.min(this.data.length + this.rightPadBars - capacity, scrollOriginVS + shift));
+      this.viewEnd   = Math.min(this.data.length + this.rightPadBars, this.viewStart + capacity);
       this._clampView();
       this.dirty = true;
       this._updateScrollThumb();
@@ -1701,12 +1710,13 @@ class ChartEngine {
 
   _updateScrollThumb() {
     if (!this.data.length) return;
-    const thumb = document.getElementById('scrollthumb');
-    const bar   = document.getElementById('scrollbar');
-    const total = this.data.length;
-    const sbW   = bar.offsetWidth;
-    const thumbW = Math.max(20, sbW * (this._barsVisible() / total));
-    const thumbL = sbW * (this.viewStart / total);
+    const thumb   = document.getElementById('scrollthumb');
+    const bar     = document.getElementById('scrollbar');
+    const total   = this.data.length + this.rightPadBars; // logical width including padding
+    const sbW     = bar.offsetWidth;
+    const visible = this.viewEnd - this.viewStart;
+    const thumbW  = Math.max(20, sbW * (visible / total));
+    const thumbL  = sbW * (this.viewStart / total);
     thumb.style.width = thumbW + 'px';
     thumb.style.left  = thumbL + 'px';
   }
@@ -1771,7 +1781,8 @@ class ChartEngine {
     const last     = this.data[this.data.length - 1];
     const isNewBar = candle.t != null && this._isDifferentBar(candle.t, last.t);
 
-    // ── Was the viewport pinned to the live right edge before this tick? ──
+    // ── Was the viewport pinned to the live right edge before this tick?
+    // "At edge" means viewEnd was within rightPadBars slots of the old data end.
     const wasAtEdge = this.viewEnd >= this.data.length;
 
     if (isNewBar) {
@@ -1787,11 +1798,11 @@ class ChartEngine {
       this._updateRSIIncremental(true);
       this._updateSeriesIncremental(true);
 
-      // Auto-advance viewport to keep the new bar in view
+      // Auto-advance viewport — slide by 1, keeping rightPadBars of empty space
       if (wasAtEdge) {
-        const barsInView = Math.floor(this.chartW / this.barWidth);
-        this.viewEnd    = this.data.length;
-        this.viewStart  = Math.max(0, this.viewEnd - barsInView);
+        const capacity  = Math.floor(this.chartW / this.barWidth);
+        this.viewEnd    = this.data.length + this.rightPadBars;
+        this.viewStart  = Math.max(0, this.viewEnd - capacity);
       }
       this._updateScrollThumb();
       this._updateStatus();
@@ -1929,9 +1940,9 @@ class ChartEngine {
 
   resetZoom() {
     this.barWidth  = DEFAULT_BAR_W;
-    const barsInView = Math.floor(this.chartW / this.barWidth);
-    this.viewStart = Math.max(0, this.data.length - barsInView);
-    this.viewEnd   = this.data.length;
+    const capacity = Math.floor(this.chartW / this.barWidth);
+    this.viewEnd   = this.data.length + this.rightPadBars;
+    this.viewStart = Math.max(0, this.viewEnd - capacity);
     this.dirty     = true;
     this._updateScrollThumb();
     this._updateStatus();
@@ -2228,8 +2239,6 @@ function _fireTick() {
   _tickCount++;
   const isNewBar = _tickCount % TICKS_PER_BAR === 0;
   const tick = _generateTick(isNewBar);
-
-  console.log(tick)
   if (tick) chart.update(tick);
 }
 
