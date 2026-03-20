@@ -249,27 +249,6 @@
   .ohlc-label { color: var(--text-dim); }
   .ohlc-val   { color: var(--text); }
 
-  /* ── TOOLTIP ── */
-  #tooltip {
-    position: fixed;
-    background: var(--bg3);
-    border: 1px solid var(--border2);
-    border-radius: 4px;
-    padding: 8px 10px;
-    font-size: 10px;
-    line-height: 1.7;
-    pointer-events: none;
-    z-index: 100;
-    min-width: 140px;
-    display: none;
-    box-shadow: 0 4px 24px rgba(0,0,0,.6);
-  }
-  .tt-date { color: var(--text-dim); margin-bottom: 4px; font-size: 9px; letter-spacing: .08em; }
-  .tt-row  { display: flex; justify-content: space-between; gap: 16px; }
-  .tt-key  { color: var(--text-dim); }
-  .tt-val  { color: var(--text-bright); }
-  .tt-bull { color: var(--bull); }
-  .tt-bear { color: var(--bear); }
 
   /* ── SCROLL INDICATOR ── */
   #scrollbar {
@@ -415,8 +394,6 @@
   </div>
 </div>
 
-<!-- TOOLTIP -->
-<div id="tooltip"></div>
 
 <!-- LEGEND -->
 <div id="legend">
@@ -580,7 +557,6 @@ class ChartEngine {
     this.cRsi    = document.getElementById('canvas-rsi');
     this.oRsi    = document.getElementById('overlay-rsi');
     this.cTime   = document.getElementById('canvas-time');
-    this.tooltip = document.getElementById('tooltip');
     this.ohlcDiv = document.getElementById('ohlc-display');
 
     this.ctxMain  = this.cMain.getContext('2d');
@@ -1144,15 +1120,14 @@ class ChartEngine {
     // (kept as hook for extensions)
   }
 
-  // ── OVERLAY (crosshair + tooltip) ─────────────────────────────────────────
+  // ── OVERLAY (crosshair) ───────────────────────────────────────────────────
   _renderOverlay() {
     this._clearOverlay(this.ctxOMain, this.panes.main);
     this._clearOverlay(this.ctxOVol,  this.panes.vol);
     if (this.showRSI) this._clearOverlay(this.ctxORsi, this.panes.rsi);
 
     if (!this.mouse.inside || !this.data.length) {
-      this.tooltip.style.display = 'none';
-      // Still draw the live pulse even without crosshair
+      // Still draw the live price line even without crosshair
       if (this._liveMode && this.data.length) {
         const { lo, hi } = this._visiblePriceRange();
         this._drawLivePulse(this.ctxOMain, this.panes.main, lo, hi);
@@ -1233,9 +1208,6 @@ class ChartEngine {
 
     // Time label on axis
     this._drawTimeTag(barIdx);
-
-    // Tooltip
-    this._updateTooltip(d, barIdx, mx, my);
 
     // OHLC header
     this._updateOHLCDisplay(d, barIdx);
@@ -1321,47 +1293,6 @@ class ChartEngine {
     ctx.restore();
   }
 
-  _updateTooltip(d, i, mx, my) {
-    const tt  = this.tooltip;
-    const chg = d.c - d.o;
-    const pct = (chg / d.o * 100).toFixed(2);
-    const bull = d.c >= d.o;
-    const fmt  = v => v >= 1e6 ? (v/1e6).toFixed(2)+'M' : v.toLocaleString();
-
-    let html = `<div class="tt-date">${this._formatDateFull(d.t)}</div>`;
-    html += `<div class="tt-row"><span class="tt-key">O</span><span class="tt-val">${d.o.toFixed(2)}</span></div>`;
-    html += `<div class="tt-row"><span class="tt-key">H</span><span class="tt-val">${d.h.toFixed(2)}</span></div>`;
-    html += `<div class="tt-row"><span class="tt-key">L</span><span class="tt-val">${d.l.toFixed(2)}</span></div>`;
-    html += `<div class="tt-row"><span class="tt-key">C</span><span class="${bull?'tt-bull':'tt-bear'}">${d.c.toFixed(2)}</span></div>`;
-    html += `<div class="tt-row"><span class="tt-key">Δ</span><span class="${bull?'tt-bull':'tt-bear'}">${bull?'+':''}${chg.toFixed(2)} (${bull?'+':''}${pct}%)</span></div>`;
-    html += `<div class="tt-row"><span class="tt-key">VOL</span><span class="tt-val">${fmt(d.v)}</span></div>`;
-
-    // Each enabled series contributes its own tooltip row via tooltipRow()
-    this._series.forEach(({ def, values, enabled }) => {
-      if (!enabled || !def.tooltipRow) return;
-      const row = def.tooltipRow(values, i);
-      if (!row) return;
-      html += `<div class="tt-row"><span class="tt-key">${row.label}</span><span class="tt-val" style="color:${row.color || C.text}">${row.value}</span></div>`;
-    });
-
-    // RSI (built-in pane — appended last)
-    const rsiVal = this.rsiData[i];
-    if (rsiVal !== null) html += `<div class="tt-row"><span class="tt-key">RSI14</span><span class="tt-val" style="color:${C.rsi}">${rsiVal.toFixed(1)}</span></div>`;
-
-    tt.innerHTML = html;
-
-    // Position
-    const px = this.panes.main.x;
-    const py = this.panes.main.y;
-    const cw = this.chartW;
-    let tx = mx + 14;
-    let ty = my + 14;
-    if (tx + 160 > px + cw) tx = mx - 154;
-    if (ty + 200 > window.innerHeight) ty = my - 200;
-    tt.style.left    = tx + 'px';
-    tt.style.top     = ty + 'px';
-    tt.style.display = 'block';
-  }
 
   _updateOHLCDisplay(d, i) {
     const bull = d.c >= d.o;
@@ -1488,7 +1419,6 @@ class ChartEngine {
     area.addEventListener('mouseleave', () => {
       this.mouse.inside = false;
       this.overlayDirty = true;
-      this.tooltip.style.display = 'none';
     });
 
     area.addEventListener('mouseenter', () => { this.mouse.inside = true; });
