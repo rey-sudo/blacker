@@ -555,7 +555,6 @@ class ChartEngine {
 
     // Live update state
     this._liveMode   = false;   // true while receiving ticks
-    this._livePhase  = 0;       // animation phase for pulse dot (0–1)
     this._prevClose  = 0;       // close of bar before current (for RSI tick)
 
     // Perf
@@ -1286,45 +1285,32 @@ class ChartEngine {
     tCtx.restore();
   }
 
-  // Pulsing dot + price tag on the live (last) bar
+  // Dashed live-price line — spans the full chart width at the last close price
   _drawLivePulse(ctx, pane, priceMin, priceMax) {
     const last = this.data[this.data.length - 1];
     if (!last) return;
 
-    const lastIdx = this.data.length - 1;
-    // Only draw if the last bar is actually visible
-    if (lastIdx < this.viewStart || lastIdx >= this.viewEnd) return;
-
-    const x    = this._xOf(lastIdx);
     const y    = this._yOf(last.c, pane, priceMin, priceMax);
     const bull = last.c >= last.o;
     const col  = bull ? C.bull : C.bear;
-
-    // Advance pulse phase (driven by real time, not RAF count)
-    this._livePhase = (performance.now() / 900) % 1; // full cycle every 900ms
-
-    const pulse = Math.sin(this._livePhase * Math.PI * 2) * 0.5 + 0.5; // 0→1→0
-    const r1 = 3 + pulse * 6;   // expanding ring radius
+    const snapY = Math.round(y) + 0.5;
 
     ctx.save();
 
-    // Outer expanding ring
+    // Dashed horizontal line across the chart area
+    ctx.strokeStyle = bull ? 'rgba(0,200,122,0.55)' : 'rgba(255,64,96,0.55)';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([3, 3]);
     ctx.beginPath();
-    ctx.arc(x, y, r1, 0, Math.PI * 2);
-    ctx.strokeStyle = bull ? `rgba(0,200,122,${0.6 * (1 - pulse)})` : `rgba(255,64,96,${0.6 * (1 - pulse)})`;
-    ctx.lineWidth = 1.2;
+    ctx.moveTo(0, snapY);
+    ctx.lineTo(this.chartW, snapY);
     ctx.stroke();
+    ctx.setLineDash([]);
 
-    // Inner solid dot
-    ctx.beginPath();
-    ctx.arc(x, y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = col;
-    ctx.fill();
-
-    // Price tag on the scale
+    // Solid price tag on the scale
     const tw = 58, th = 16;
     const tx = this.chartW + 1;
-    const ty = y - th / 2;
+    const ty = snapY - th / 2;
     ctx.fillStyle = col;
     ctx.fillRect(tx, ty, tw, th);
     ctx.fillStyle = '#050810';
@@ -1332,26 +1318,7 @@ class ChartEngine {
     ctx.textAlign = 'center';
     ctx.fillText(last.c.toFixed(2), tx + tw / 2, ty + 11.5);
 
-    // "LIVE" badge
-    const liveX = tx + tw + 4;
-    ctx.fillStyle = bull ? 'rgba(0,200,122,0.18)' : 'rgba(255,64,96,0.18)';
-    ctx.strokeStyle = col;
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.roundRect(liveX, ty, 30, th, 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = col;
-    ctx.font = '8px IBM Plex Mono, monospace';
-    ctx.textAlign = 'center';
-    ctx.letterSpacing = '0.08em';
-    ctx.fillText('LIVE', liveX + 15, ty + 11.5);
-    ctx.letterSpacing = '0';
-
     ctx.restore();
-
-    // Keep overlay dirty while live — drives the pulse animation at 60fps
-    this.overlayDirty = true;
   }
 
   _updateTooltip(d, i, mx, my) {
@@ -1566,7 +1533,7 @@ class ChartEngine {
     // Zoom
     area.addEventListener('wheel', e => {
       e.preventDefault();
-      const delta     = e.deltaY > 0 ? 1 : -1;
+      const delta     = e.deltaY > 0 ? -1 : 1;
       const factor    = 1 + delta * SCROLL_ZOOM_FACTOR;
       const newBarW   = Math.max(MIN_BAR_W, Math.min(MAX_BAR_W, this.barWidth * factor));
       if (newBarW === this.barWidth) return;
