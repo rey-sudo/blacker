@@ -1,6 +1,6 @@
 'use strict';
 // ═══════════════════════════════════════════════════════════════════════════════
-//  FinChart — Lightweight Financial Charting Engine v1.0
+//  FinChart — Lightweight Financial Charting Engine v1.0 LICENSE GNU GPLV3
 //  Architecture:
 //    • Dirty-flag RAF loop   → only redraws when state changes (true 60fps)
 //    • Virtual viewport      → renders only visible bars (O(view) not O(n))
@@ -1649,13 +1649,6 @@ function togglePane(name) {
 }
 
 function resetZoom() { chart.resetZoom(); }
-
-function setTF(el, tf) {
-  document.querySelectorAll('.sym-tab').forEach(e => e.classList.remove('active'));
-  el.classList.add('active');
-  const samples = { '1D': 900, '1W': 200, '1M': 60 };
-  chart.load(generateOHLC(samples[tf] || 900));
-}
 
 function setTool(el, name) {
   document.querySelectorAll('.tool').forEach(e => e.classList.remove('active'));
