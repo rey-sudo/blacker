@@ -1435,7 +1435,7 @@ class ChartEngine {
     // Zoom
     area.addEventListener('wheel', e => {
       e.preventDefault();
-      const delta     = e.deltaY > 0 ? 1 : -1;
+      const delta     = e.deltaY > 0 ? -1 : 1;
       const factor    = 1 + delta * SCROLL_ZOOM_FACTOR;
       const newBarW   = Math.max(MIN_BAR_W, Math.min(MAX_BAR_W, this.barWidth * factor));
       if (newBarW === this.barWidth) return;
