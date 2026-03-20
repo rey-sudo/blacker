@@ -2145,7 +2145,7 @@ function toggleLive() {
   } else {
     _tick = null;
     _tickCount = 0;
-    _liveTimer = setInterval(_fireTick, 180); // ~5–6 ticks/sec
+    _liveTimer = setInterval(_fireTick, 200); // ~5–6 ticks/sec
     btn.classList.add('active');
     btn.style.color = 'var(--bull)';
   }
