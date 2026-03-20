@@ -2,7 +2,6 @@
 @import "@nuxt/ui";
 
 @theme static {
-  /* ---------- BRAND ---------- */
   --color-brand-50: #e6fffb;
   --color-brand-100: #b3fff3;
   --color-brand-200: #80ffea;
@@ -15,7 +14,6 @@
   --color-brand-900: #003128;
   --color-brand-950: #001915;
 
-  /* ---------- NEUTRAL ---------- */
   --color-neutral-50: #f5f7fa;
   --color-neutral-100: #e6eaf2;
   --color-neutral-200: #cfd6e4;
@@ -26,71 +24,60 @@
   --color-neutral-700: #384055;
   --color-neutral-800: #242a3a;
   --color-neutral-900: #1a1f2d;
-  --color-neutral-950: #131722; /* background */
+  --color-neutral-950: #131722;
   --color-neutral-1000: #0c1018;
 }
 
-/* ===============================
-   SEMÁNTICOS NUxt UI
-   =============================== */
 :root {
-  /* primary */
-  --ui-primary: var(--color-brand-500);
+  --ui-primary: var(--ui-color-primary-500);
+  --ui-secondary: var(--ui-color-secondary-500);
+  --ui-success: var(--ui-color-success-500);
+  --ui-info: var(--ui-color-info-500);
+  --ui-warning: var(--ui-color-warning-500);
+  --ui-error: var(--ui-color-error-500);
 
-  /* text */
-  --ui-text: var(--color-neutral-800);
-  --ui-text-muted: var(--color-neutral-500);
-  --ui-text-dimmed: var(--color-neutral-400);
-  --ui-text-highlighted: var(--color-neutral-900);
+  --ui-text-dimmed: var(--ui-color-neutral-400);
+  --ui-text-muted: var(--ui-color-neutral-500);
+  --ui-text-toned: var(--ui-color-neutral-600);
+  --ui-text: var(--ui-color-neutral-700);
+  --ui-text-highlighted: var(--ui-color-neutral-900);
   --ui-text-inverted: white;
 
-  /* background */
   --ui-bg: white;
-  --ui-bg-muted: var(--color-neutral-50);
-  --ui-bg-elevated: var(--color-neutral-100);
-  --ui-bg-accented: var(--color-neutral-200);
-  --ui-bg-inverted: var(--color-neutral-900);
+  --ui-bg-muted: var(--ui-color-neutral-50);
+  --ui-bg-elevated: var(--ui-color-neutral-100);
+  --ui-bg-accented: var(--ui-color-neutral-200);
+  --ui-bg-inverted: var(--ui-color-neutral-900);
 
-  /* border */
-  --ui-border: var(--color-neutral-200);
-  --ui-border-muted: var(--color-neutral-200);
-  --ui-border-accented: var(--color-neutral-300);
-  --ui-border-inverted: var(--color-neutral-900);
+  --ui-border: var(--ui-color-neutral-200);
+  --ui-border-muted: var(--ui-color-neutral-200);
+  --ui-border-accented: var(--ui-color-neutral-300);
+  --ui-border-inverted: var(--ui-color-neutral-900);
 
-  /* radius */
   --ui-radius: 0.25rem;
+  --ui-container: 80rem;
+
+  --ui-header-height: 4rem;
 }
 
 .dark {
-  /* primary */
-  --ui-primary: var(--color-brand-500);
-
-  /* text */
-  --ui-text: white;
-  --ui-text-muted: var(--color-neutral-400);
-  --ui-text-dimmed: var(--color-neutral-500);
+  --ui-text-dimmed: var(--ui-color-neutral-500);
+  --ui-text-muted: var(--ui-color-neutral-400);
+  --ui-text-toned: var(--ui-color-neutral-300);
+  --ui-text: var(--ui-color-neutral-200);
   --ui-text-highlighted: white;
-  --ui-text-inverted: var(--color-neutral-900);
+  --ui-text-inverted: var(--ui-color-neutral-900);
 
-  /* background */
-  --ui-bg: var(--color-neutral-950);
-  --ui-bg-muted: var(--color-neutral-900);
-  --ui-bg-elevated: var(--color-neutral-800);
-  --ui-bg-accented: var(--color-neutral-700);
+  --ui-bg: var(--ui-color-neutral-900);
+  --ui-bg-muted: var(--ui-color-neutral-800);
+  --ui-bg-elevated: var(--ui-color-neutral-800);
+  --ui-bg-accented: var(--ui-color-neutral-700);
   --ui-bg-inverted: white;
 
-  /* border */
-  --ui-border: var(--color-neutral-800);
-  --ui-border-muted: var(--color-neutral-800);
-  --ui-border-accented: var(--color-neutral-700);
+  --ui-border: var(--ui-color-neutral-800);
+  --ui-border-muted: var(--ui-color-neutral-700);
+  --ui-border-accented: var(--ui-color-neutral-700);
   --ui-border-inverted: white;
-}
-
-/* ===============================
-   BODY BASE
-   =============================== */
-body {
-  @apply antialiased text-default bg-default scheme-light dark:scheme-dark;
 }
 
 :root {
@@ -124,6 +111,10 @@ body {
   --color-violet: #7c4dff;
   --color-white: #ffffff;
   --color-yellow: #ffeb3b;
+}
+
+body {
+  @apply antialiased text-default bg-default scheme-light dark:scheme-dark;
 }
 
 ::-webkit-scrollbar {

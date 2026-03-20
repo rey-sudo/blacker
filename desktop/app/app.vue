@@ -1,13 +1,9 @@
 <template>
-  <Html>
-    <Body>
-      <UApp>
-        <NuxtLayout>
-          <NuxtPage />
-        </NuxtLayout>
-      </UApp>
-    </Body>
-  </Html>
+  <UApp>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+  </UApp>
 </template>
 
 <script setup>
