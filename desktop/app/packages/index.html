@@ -327,6 +327,8 @@
     <button class="btn" id="btn-rsi" onclick="togglePane('rsi')">RSI</button>
     <div style="width:1px;background:var(--border);margin:0 4px"></div>
     <button class="btn" onclick="resetZoom()">Reset</button>
+    <div style="width:1px;background:var(--border);margin:0 4px"></div>
+    <button class="btn" id="btn-live" onclick="toggleLive()">⬤ Live</button>
   </div>
 </div>
 
@@ -511,28 +513,9 @@ function generateOHLC(bars = 800, seed = 42) {
 }
 
 // ── INDICATORS ────────────────────────────────────────────────────────────────
-// calcMA and calcBB are no longer global functions.
-// They are defined inline inside each Series definition via addSeries().
-// calcRSI stays here because the RSI pane is still a built-in pane renderer.
-
-function calcRSI(data, period = 14) {
-  const result = new Array(data.length).fill(null);
-  if (data.length < period + 1) return result;
-  let gains = 0, losses = 0;
-  for (let i = 1; i <= period; i++) {
-    const d = data[i].c - data[i - 1].c;
-    if (d > 0) gains += d; else losses -= d;
-  }
-  let avgG = gains / period, avgL = losses / period;
-  result[period] = 100 - 100 / (1 + avgG / (avgL || 1e-10));
-  for (let i = period + 1; i < data.length; i++) {
-    const d = data[i].c - data[i - 1].c;
-    avgG = (avgG * (period - 1) + Math.max(0, d)) / period;
-    avgL = (avgL * (period - 1) + Math.max(0, -d)) / period;
-    result[i] = 100 - 100 / (1 + avgG / (avgL || 1e-10));
-  }
-  return result;
-}
+// calcMA, calcBB, and calcRSI are no longer global functions.
+// MA and BB live inside their addSeries() definitions (with incremental update hooks).
+// RSI lives inside ChartEngine._computeRSIFull() / _updateRSIIncremental().
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  CHART ENGINE
@@ -542,6 +525,7 @@ class ChartEngine {
     // Data
     this.data       = [];
     this.rsiData    = [];
+    this._rsiState  = { avgG: 0, avgL: 0, period: 14 }; // persisted for O(1) incremental updates
 
     // Series registry — populated via addSeries()
     // Map<id, { def, values, enabled }>
@@ -567,6 +551,11 @@ class ChartEngine {
     // Drawings
     this.drawings   = [];
     this.drawInProgress = null;
+
+    // Live update state
+    this._liveMode   = false;   // true while receiving ticks
+    this._livePhase  = 0;       // animation phase for pulse dot (0–1)
+    this._prevClose  = 0;       // close of bar before current (for RSI tick)
 
     // Perf
     this.fps        = 60;
@@ -657,8 +646,11 @@ class ChartEngine {
   // ── DATA LOADING ──────────────────────────────────────────────────────────
   load(data) {
     this.data    = data;
-    this.rsiData = calcRSI(data, 14);
-    this._recomputeSeries(); // recompute all registered custom series
+    this._computeRSIFull();
+    this._recomputeSeries();
+
+    // Cache the close of the second-to-last bar (used by incremental RSI tick)
+    this._prevClose = data.length >= 2 ? data[data.length - 2].c : (data[0]?.c ?? 0);
 
     // Start at the right end, show last N bars
     const barsInView = Math.floor(this.chartW / this.barWidth);
@@ -670,10 +662,92 @@ class ChartEngine {
     this._updateStatus();
   }
 
-  // Recompute values for all registered series (called on load and addSeries)
+  // Full O(n) RSI — stores running state for subsequent incremental updates
+  _computeRSIFull() {
+    const data   = this.data;
+    const period = this._rsiState.period;
+    const result = new Array(data.length).fill(null);
+    if (data.length < period + 1) { this.rsiData = result; return; }
+
+    let gains = 0, losses = 0;
+    for (let i = 1; i <= period; i++) {
+      const d = data[i].c - data[i - 1].c;
+      if (d > 0) gains += d; else losses -= d;
+    }
+    let avgG = gains / period, avgL = losses / period;
+    result[period] = 100 - 100 / (1 + avgG / (avgL || 1e-10));
+
+    for (let i = period + 1; i < data.length; i++) {
+      const d = data[i].c - data[i - 1].c;
+      avgG = (avgG * (period - 1) + Math.max(0,  d)) / period;
+      avgL = (avgL * (period - 1) + Math.max(0, -d)) / period;
+      result[i] = 100 - 100 / (1 + avgG / (avgL || 1e-10));
+    }
+
+    this.rsiData = result;
+    this._rsiState.avgG = avgG;
+    this._rsiState.avgL = avgL;
+  }
+
+  // Incremental RSI — O(1). Call after data[last] has been mutated or appended.
+  // isNewBar: true  → a new candle was pushed; extend rsiData by 1.
+  //           false → last candle ticked in place; recompute last rsiData slot only.
+  _updateRSIIncremental(isNewBar) {
+    const data   = this.data;
+    const period = this._rsiState.period;
+    const n      = data.length - 1; // index of the candle that changed
+
+    if (n < period) {
+      // Not enough history yet
+      if (isNewBar) this.rsiData.push(null);
+      return;
+    }
+
+    // The previous close for the delta depends on whether this is a new bar or a tick.
+    // For a new bar  : prev = data[n-1].c  (already committed before this call)
+    // For a same-bar tick: prev = this._prevClose (close of data[n-1], unchanged)
+    const prevClose = isNewBar ? data[n - 1].c : this._prevClose;
+    const delta     = data[n].c - prevClose;
+    const g         = Math.max(0,  delta);
+    const l         = Math.max(0, -delta);
+
+    let avgG, avgL;
+    if (isNewBar) {
+      // Wilder smoothing: advance the running averages
+      avgG = (this._rsiState.avgG * (period - 1) + g) / period;
+      avgL = (this._rsiState.avgL * (period - 1) + l) / period;
+      this._rsiState.avgG = avgG;
+      this._rsiState.avgL = avgL;
+      this.rsiData.push(100 - 100 / (1 + avgG / (avgL || 1e-10)));
+      // _prevClose now points to what was data[n-1] — i.e. the bar before the new one
+      this._prevClose = data[n - 1].c;
+    } else {
+      // Tick: recompute last slot using the *unchanged* smoothed averages from the
+      // previous confirmed bar (stored in _rsiState) and the current live delta.
+      avgG = (this._rsiState.avgG * (period - 1) + g) / period;
+      avgL = (this._rsiState.avgL * (period - 1) + l) / period;
+      this.rsiData[n] = 100 - 100 / (1 + avgG / (avgL || 1e-10));
+      // NOTE: _rsiState.avgG/L are NOT updated on ticks — only on confirmed new bars.
+    }
+  }
+
+  // Recompute values for all registered series (called on full load)
   _recomputeSeries() {
     this._series.forEach(entry => {
       entry.values = entry.def.compute(this.data);
+    });
+  }
+
+  // Incremental series update — O(period) per series, not O(n).
+  // Falls back to full compute() if the series has no updateIncremental hook.
+  _updateSeriesIncremental(isNewBar) {
+    this._series.forEach(entry => {
+      if (entry.def.updateIncremental) {
+        entry.def.updateIncremental(entry.values, this.data, isNewBar);
+      } else {
+        // Fallback: full recompute (still correct, just not O(1))
+        entry.values = entry.def.compute(this.data);
+      }
     });
   }
 
@@ -1078,6 +1152,11 @@ class ChartEngine {
 
     if (!this.mouse.inside || !this.data.length) {
       this.tooltip.style.display = 'none';
+      // Still draw the live pulse even without crosshair
+      if (this._liveMode && this.data.length) {
+        const { lo, hi } = this._visiblePriceRange();
+        this._drawLivePulse(this.ctxOMain, this.panes.main, lo, hi);
+      }
       return;
     }
 
@@ -1126,6 +1205,9 @@ class ChartEngine {
     ctx.fillStyle = C.crossPt;
     ctx.fill();
     ctx.restore();
+
+    // Live pulse on the last bar's close (only when in live mode)
+    if (this._liveMode) this._drawLivePulse(ctx, pMain, lo, hi);
 
     // Vol pane crosshair
     const ctxV = this.ctxOVol;
@@ -1201,6 +1283,74 @@ class ChartEngine {
     tCtx.textAlign = 'center';
     tCtx.fillText(label, x, 14);
     tCtx.restore();
+  }
+
+  // Pulsing dot + price tag on the live (last) bar
+  _drawLivePulse(ctx, pane, priceMin, priceMax) {
+    const last = this.data[this.data.length - 1];
+    if (!last) return;
+
+    const lastIdx = this.data.length - 1;
+    // Only draw if the last bar is actually visible
+    if (lastIdx < this.viewStart || lastIdx >= this.viewEnd) return;
+
+    const x    = this._xOf(lastIdx);
+    const y    = this._yOf(last.c, pane, priceMin, priceMax);
+    const bull = last.c >= last.o;
+    const col  = bull ? C.bull : C.bear;
+
+    // Advance pulse phase (driven by real time, not RAF count)
+    this._livePhase = (performance.now() / 900) % 1; // full cycle every 900ms
+
+    const pulse = Math.sin(this._livePhase * Math.PI * 2) * 0.5 + 0.5; // 0→1→0
+    const r1 = 3 + pulse * 6;   // expanding ring radius
+
+    ctx.save();
+
+    // Outer expanding ring
+    ctx.beginPath();
+    ctx.arc(x, y, r1, 0, Math.PI * 2);
+    ctx.strokeStyle = bull ? `rgba(0,200,122,${0.6 * (1 - pulse)})` : `rgba(255,64,96,${0.6 * (1 - pulse)})`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Inner solid dot
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = col;
+    ctx.fill();
+
+    // Price tag on the scale
+    const tw = 58, th = 16;
+    const tx = this.chartW + 1;
+    const ty = y - th / 2;
+    ctx.fillStyle = col;
+    ctx.fillRect(tx, ty, tw, th);
+    ctx.fillStyle = '#050810';
+    ctx.font = '10px IBM Plex Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(last.c.toFixed(2), tx + tw / 2, ty + 11.5);
+
+    // "LIVE" badge
+    const liveX = tx + tw + 4;
+    ctx.fillStyle = bull ? 'rgba(0,200,122,0.18)' : 'rgba(255,64,96,0.18)';
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.roundRect(liveX, ty, 30, th, 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = col;
+    ctx.font = '8px IBM Plex Mono, monospace';
+    ctx.textAlign = 'center';
+    ctx.letterSpacing = '0.08em';
+    ctx.fillText('LIVE', liveX + 15, ty + 11.5);
+    ctx.letterSpacing = '0';
+
+    ctx.restore();
+
+    // Keep overlay dirty while live — drives the pulse animation at 60fps
+    this.overlayDirty = true;
   }
 
   _updateTooltip(d, i, mx, my) {
@@ -1584,6 +1734,94 @@ class ChartEngine {
     this.dirty = true;
   }
 
+  // ─── Live Update API ─────────────────────────────────────────────────────
+  //
+  //  update(candle)
+  //
+  //  Feed a live OHLCV tick into the chart. Handles two cases automatically:
+  //
+  //  • Same-bar tick  — candle.t matches the last bar's timestamp.
+  //                     Mutates the last candle in place (H/L/C/V update).
+  //                     All indicators recompute only their last slot → O(1).
+  //
+  //  • New-bar tick   — candle.t is newer than the last bar's timestamp.
+  //                     Appends a new candle and extends all indicator arrays.
+  //                     Auto-scrolls the viewport if the user was at the right edge.
+  //
+  //  candle shape: { t: Date|string|number, o, h, l, c, v }
+  //    t  — timestamp. Any value accepted by new Date(). If omitted, treated as same-bar.
+  //    o  — open.  On same-bar ticks the open of the existing bar is preserved.
+  //    h  — high.  Merged with max(existing.h, candle.h).
+  //    l  — low.   Merged with min(existing.l, candle.l).
+  //    c  — close. Always updated.
+  //    v  — volume. Always updated (replace semantics; add yourself if needed).
+  //
+  //  Returns `this` for chaining.
+  //
+  //  Example — WebSocket feed:
+  //
+  //    ws.onmessage = ({ data }) => {
+  //      const tick = JSON.parse(data);   // { t, o, h, l, c, v }
+  //      chart.update(tick);
+  //    };
+  //
+  update(candle) {
+    if (!this.data.length) return this;
+
+    const last     = this.data[this.data.length - 1];
+    const isNewBar = candle.t != null && this._isDifferentBar(candle.t, last.t);
+
+    // ── Was the viewport pinned to the live right edge before this tick? ──
+    const wasAtEdge = this.viewEnd >= this.data.length;
+
+    if (isNewBar) {
+      // ── Append new candle ─────────────────────────────────────────────
+      this.data.push({
+        t: candle.t instanceof Date ? candle.t : new Date(candle.t),
+        o: candle.o ?? last.c,   // default open = previous close
+        h: candle.h,
+        l: candle.l,
+        c: candle.c,
+        v: candle.v ?? 0
+      });
+      this._updateRSIIncremental(true);
+      this._updateSeriesIncremental(true);
+
+      // Auto-advance viewport to keep the new bar in view
+      if (wasAtEdge) {
+        const barsInView = Math.floor(this.chartW / this.barWidth);
+        this.viewEnd    = this.data.length;
+        this.viewStart  = Math.max(0, this.viewEnd - barsInView);
+      }
+      this._updateScrollThumb();
+      this._updateStatus();
+
+    } else {
+      // ── Tick: mutate last candle in place ─────────────────────────────
+      if (candle.h != null) last.h = Math.max(last.h, candle.h);
+      if (candle.l != null) last.l = Math.min(last.l, candle.l);
+      if (candle.c != null) last.c = candle.c;
+      if (candle.v != null) last.v = candle.v;
+      this._updateRSIIncremental(false);
+      this._updateSeriesIncremental(false);
+    }
+
+    this._liveMode = true;
+    this._updatePriceDisplay();
+    this.dirty = true;
+    return this;
+  }
+
+  // Compare two timestamps at bar granularity.
+  // Two timestamps belong to the same bar if they resolve to the same date string.
+  _isDifferentBar(t1, t2) {
+    const d1 = t1 instanceof Date ? t1 : new Date(t1);
+    const d2 = t2 instanceof Date ? t2 : new Date(t2);
+    // Compare at day granularity (works for daily bars).
+    // For intraday, compare full numeric timestamps instead.
+    return d1.toDateString() !== d2.toDateString();
+  }
+
   // ─── Series API ──────────────────────────────────────────────────────────
   //
   //  addSeries(def)  — register a custom overlay series on the main pane.
@@ -1753,6 +1991,18 @@ chart.addSeries({
     ctx.stroke();
   },
 
+  // O(period) incremental update — avoids full O(n) recompute on every tick
+  updateIncremental(values, data, isNewBar) {
+    const period = 20;
+    const n = data.length - 1;
+    if (isNewBar) values.push(null);           // extend array for the new slot
+    if (n < period - 1) return;
+    // Recompute last value from the last `period` closes
+    let sum = 0;
+    for (let j = n - period + 1; j <= n; j++) sum += data[j].c;
+    values[n] = sum / period;
+  },
+
   // Tooltip contribution
   tooltipRow(values, i) {
     if (values[i] === null) return null;
@@ -1861,6 +2111,23 @@ chart.addSeries({
       value: `${values[i].upper.toFixed(2)} / ${values[i].lower.toFixed(2)}`,
       color: '#a855f7'
     };
+  },
+
+  // O(period) incremental update for BB
+  updateIncremental(values, data, isNewBar) {
+    const period = 20, mult = 2;
+    const n = data.length - 1;
+    if (isNewBar) values.push(null);
+    if (n < period - 1) return;
+    let sum = 0, sum2 = 0;
+    for (let j = n - period + 1; j <= n; j++) {
+      sum  += data[j].c;
+      sum2 += data[j].c ** 2;
+    }
+    const mean = sum / period;
+    const variance = sum2 / period - mean ** 2;
+    const std  = Math.sqrt(Math.max(0, variance));
+    values[n]  = { upper: mean + mult * std, mid: mean, lower: mean - mult * std };
   }
 });
 
@@ -1908,6 +2175,81 @@ function setTool(el, name) {
 
 // Status init
 chart._updateStatus();
+
+// ── LIVE SIMULATION ──────────────────────────────────────────────────────────
+//
+//  Demonstrates chart.update(candle) — simulates a live WebSocket feed.
+//
+//  In production, replace the setInterval with your real data source:
+//
+//    const ws = new WebSocket('wss://your-exchange.com/stream');
+//    ws.onmessage = ({ data }) => {
+//      const tick = JSON.parse(data);       // { t, o, h, l, c, v }
+//      chart.update(tick);
+//    };
+//
+let _liveTimer = null;
+let _liveSeed  = 999;
+const _liveRng = () => { _liveSeed = (_liveSeed * 1664525 + 1013904223) & 0xffffffff; return (_liveSeed >>> 0) / 0xffffffff; };
+
+// Tick state for the current live bar
+let _tick = null;
+
+function _generateTick(isNewBar) {
+  const last = chart.data[chart.data.length - 1];
+  if (!last) return null;
+
+  if (isNewBar || !_tick) {
+    // Open new bar at previous close ± tiny gap
+    const open = last.c * (1 + (_liveRng() - 0.5) * 0.002);
+    _tick = { t: null, o: open, h: open, l: open, c: open, v: 0 };
+    // Advance date by 1 trading day
+    const nextDate = new Date(last.t);
+    nextDate.setDate(nextDate.getDate() + 1);
+    while (nextDate.getDay() === 0 || nextDate.getDay() === 6)
+      nextDate.setDate(nextDate.getDate() + 1);
+    _tick.t = nextDate;
+  }
+
+  // Simulate an intra-bar price move
+  const move  = _tick.c * (_liveRng() - 0.492) * 0.005;
+  _tick.c     = Math.max(0.01, _tick.c + move);
+  _tick.h     = Math.max(_tick.h, _tick.c);
+  _tick.l     = Math.min(_tick.l, _tick.c);
+  _tick.v    += Math.round(_liveRng() * 500_000);
+
+  return { ..._tick };
+}
+
+let _tickCount    = 0;
+const TICKS_PER_BAR = 12;   // after this many ticks we open a new bar
+
+function _fireTick() {
+  _tickCount++;
+  const isNewBar = _tickCount % TICKS_PER_BAR === 0;
+  const tick = _generateTick(isNewBar);
+
+  console.log(tick)
+  if (tick) chart.update(tick);
+}
+
+function toggleLive() {
+  const btn = document.getElementById('btn-live');
+  if (_liveTimer) {
+    clearInterval(_liveTimer);
+    _liveTimer = null;
+    chart._liveMode = false;
+    chart.dirty = true;
+    btn.classList.remove('active');
+    btn.style.color = '';
+  } else {
+    _tick = null;
+    _tickCount = 0;
+    _liveTimer = setInterval(_fireTick, 180); // ~5–6 ticks/sec
+    btn.classList.add('active');
+    btn.style.color = 'var(--bull)';
+  }
+}
 
 </script>
 </body>
