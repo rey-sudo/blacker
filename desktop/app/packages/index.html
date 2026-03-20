@@ -50,7 +50,30 @@
     gap: 24px;
     flex-shrink: 0;
   }
+  .logo {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .logo span { color: var(--text-dim); }
 
+  .price-display {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  #price-main {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-bright);
+    letter-spacing: -.01em;
+  }
+  #price-change {
+    font-size: 11px;
+    font-weight: 400;
+  }
   .up   { color: var(--bull); }
   .down { color: var(--bear); }
 
@@ -287,7 +310,13 @@
 </head>
 <body>
 
+<!-- TOP BAR -->
 <div id="topbar">
+  <div class="logo">Fin<span>Chart</span></div>
+  <div class="price-display">
+    <span id="price-main">—</span>
+    <span id="price-change">—</span>
+  </div>
   <div class="toolbar">
     <button class="btn active" id="btn-candle"  onclick="setChartType('candlestick')">Candle</button>
     <button class="btn"        id="btn-line"    onclick="setChartType('line')">Line</button>
@@ -303,6 +332,7 @@
 
 <!-- SYMBOL / TF BAR -->
 <div id="symbar">
+  <div class="sym-tab active" style="font-weight:500;color:var(--text-bright);font-size:12px">AAPL</div>
   <div class="sep"></div>
   <div class="sym-tab active" onclick="setTF(this,'1D')">1D</div>
   <div class="sym-tab" onclick="setTF(this,'1W')">1W</div>
@@ -481,24 +511,9 @@ function generateOHLC(bars = 800, seed = 42) {
 }
 
 // ── INDICATORS ────────────────────────────────────────────────────────────────
-function calcMA(data, period = 20) {
-  return data.map((_, i) => {
-    if (i < period - 1) return null;
-    const sum = data.slice(i - period + 1, i + 1).reduce((s, d) => s + d.c, 0);
-    return sum / period;
-  });
-}
-
-function calcBB(data, period = 20, mult = 2) {
-  const ma = calcMA(data, period);
-  return data.map((_, i) => {
-    if (ma[i] === null) return null;
-    const slice = data.slice(i - period + 1, i + 1);
-    const mean  = ma[i];
-    const std   = Math.sqrt(slice.reduce((s, d) => s + (d.c - mean) ** 2, 0) / period);
-    return { upper: mean + mult * std, mid: mean, lower: mean - mult * std };
-  });
-}
+// calcMA and calcBB are no longer global functions.
+// They are defined inline inside each Series definition via addSeries().
+// calcRSI stays here because the RSI pane is still a built-in pane renderer.
 
 function calcRSI(data, period = 14) {
   const result = new Array(data.length).fill(null);
@@ -526,9 +541,11 @@ class ChartEngine {
   constructor() {
     // Data
     this.data       = [];
-    this.maData     = [];
-    this.bbData     = [];
     this.rsiData    = [];
+
+    // Series registry — populated via addSeries()
+    // Map<id, { def, values, enabled }>
+    this._series    = new Map();
 
     // Viewport (virtual scroll)
     this.barWidth   = DEFAULT_BAR_W;
@@ -539,8 +556,6 @@ class ChartEngine {
     this.dirty      = true;
     this.overlayDirty = true;
     this.chartType  = 'candlestick';
-    this.showMA     = false;
-    this.showBB     = false;
     this.showRSI    = false;
 
     // Interaction
@@ -642,9 +657,8 @@ class ChartEngine {
   // ── DATA LOADING ──────────────────────────────────────────────────────────
   load(data) {
     this.data    = data;
-    this.maData  = calcMA(data, 20);
-    this.bbData  = calcBB(data, 20);
     this.rsiData = calcRSI(data, 14);
+    this._recomputeSeries(); // recompute all registered custom series
 
     // Start at the right end, show last N bars
     const barsInView = Math.floor(this.chartW / this.barWidth);
@@ -654,6 +668,13 @@ class ChartEngine {
     this._updatePriceDisplay();
     this._updateScrollThumb();
     this._updateStatus();
+  }
+
+  // Recompute values for all registered series (called on load and addSeries)
+  _recomputeSeries() {
+    this._series.forEach(entry => {
+      entry.values = entry.def.compute(this.data);
+    });
   }
 
   // ── VIEWPORT HELPERS ──────────────────────────────────────────────────────
@@ -691,11 +712,13 @@ class ChartEngine {
     for (let i = vs; i < ve; i++) {
       if (this.data[i].l < lo) lo = this.data[i].l;
       if (this.data[i].h > hi) hi = this.data[i].h;
-      if (this.showBB && this.bbData[i]) {
-        if (this.bbData[i].upper > hi) hi = this.bbData[i].upper;
-        if (this.bbData[i].lower < lo) lo = this.bbData[i].lower;
-      }
     }
+    // Let enabled series extend the visible price range (e.g. BB bands)
+    this._series.forEach(({ def, values, enabled }) => {
+      if (!enabled || !def.priceExtent) return;
+      const ext = def.priceExtent(values, vs, ve);
+      if (ext) { lo = Math.min(lo, ext[0]); hi = Math.max(hi, ext[1]); }
+    });
     // Add padding
     const pad = (hi - lo) * 0.06;
     return { lo: lo - pad, hi: hi + pad };
@@ -767,22 +790,29 @@ class ChartEngine {
     // Grid
     this._drawGrid(ctx, W, H, cw, priceMin, priceMax, p);
 
-    // BB fill
-    if (this.showBB) this._drawBBFill(ctx, p, priceMin, priceMax);
+    // ── Custom series (behind candles): fill-type series like BB render here
+    this._series.forEach(({ def, values, enabled }) => {
+      if (!enabled || def.layer !== 'background') return;
+      ctx.save();
+      def.render(ctx, p, this, values, priceMin, priceMax);
+      ctx.restore();
+    });
 
     // Area fill (below close)
     if (this.chartType === 'area') this._drawArea(ctx, p, priceMin, priceMax);
 
-    // BB lines
-    if (this.showBB) this._drawBBLines(ctx, p, priceMin, priceMax);
-
-    // MA line
-    if (this.showMA) this._drawMA(ctx, p, priceMin, priceMax);
+    // ── Custom series (foreground): line-type series like MA render here
+    this._series.forEach(({ def, values, enabled }) => {
+      if (!enabled || def.layer === 'background') return;
+      ctx.save();
+      def.render(ctx, p, this, values, priceMin, priceMax);
+      ctx.restore();
+    });
 
     // Candles / line
     if (this.chartType === 'candlestick')  this._drawCandlesticks(ctx, p, priceMin, priceMax);
     else if (this.chartType === 'line')    this._drawLine(ctx, p, priceMin, priceMax);
-    else if (this.chartType === 'area')    this._drawLine(ctx, p, priceMin, priceMax); // line on top of area
+    else if (this.chartType === 'area')    this._drawLine(ctx, p, priceMin, priceMax);
 
     // Drawings
     this._renderDrawings(ctx, p, priceMin, priceMax);
@@ -910,66 +940,6 @@ class ChartEngine {
       ctx.fillStyle = grad;
       ctx.fill();
     }
-    ctx.restore();
-  }
-
-  _drawMA(ctx, p, priceMin, priceMax) {
-    ctx.save();
-    ctx.strokeStyle = C.ma;
-    ctx.lineWidth   = 1.2;
-    ctx.lineJoin    = 'round';
-    ctx.beginPath();
-    let started = false;
-    for (let i = this.viewStart; i < this.viewEnd && i < this.data.length; i++) {
-      if (this.maData[i] === null) continue;
-      const x = this._xOf(i);
-      const y = this._yOf(this.maData[i], p, priceMin, priceMax);
-      if (!started) { ctx.moveTo(x, y); started = true; }
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  _drawBBFill(ctx, p, priceMin, priceMax) {
-    ctx.save();
-    ctx.fillStyle = C.bbFill;
-    ctx.beginPath();
-    let first = true;
-    // Upper band
-    for (let i = this.viewStart; i < this.viewEnd && i < this.data.length; i++) {
-      if (!this.bbData[i]) continue;
-      const x = this._xOf(i);
-      const y = this._yOf(this.bbData[i].upper, p, priceMin, priceMax);
-      if (first) { ctx.moveTo(x, y); first = false; } else ctx.lineTo(x, y);
-    }
-    // Lower band (reverse)
-    for (let i = Math.min(this.viewEnd, this.data.length) - 1; i >= this.viewStart; i--) {
-      if (!this.bbData[i]) continue;
-      ctx.lineTo(this._xOf(i), this._yOf(this.bbData[i].lower, p, priceMin, priceMax));
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-  }
-
-  _drawBBLines(ctx, p, priceMin, priceMax) {
-    ctx.save();
-    ctx.strokeStyle = C.bb;
-    ctx.lineWidth   = 1;
-    ctx.setLineDash([3, 3]);
-    ['upper','lower'].forEach(key => {
-      ctx.beginPath();
-      let s = false;
-      for (let i = this.viewStart; i < this.viewEnd && i < this.data.length; i++) {
-        if (!this.bbData[i]) continue;
-        const x = this._xOf(i);
-        const y = this._yOf(this.bbData[i][key], p, priceMin, priceMax);
-        if (!s) { ctx.moveTo(x, y); s = true; } else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-    });
-    ctx.setLineDash([]);
     ctx.restore();
   }
 
@@ -1240,9 +1210,6 @@ class ChartEngine {
     const bull = d.c >= d.o;
     const fmt  = v => v >= 1e6 ? (v/1e6).toFixed(2)+'M' : v.toLocaleString();
 
-    let rsiVal = this.rsiData[i];
-    let maVal  = this.maData[i];
-
     let html = `<div class="tt-date">${this._formatDateFull(d.t)}</div>`;
     html += `<div class="tt-row"><span class="tt-key">O</span><span class="tt-val">${d.o.toFixed(2)}</span></div>`;
     html += `<div class="tt-row"><span class="tt-key">H</span><span class="tt-val">${d.h.toFixed(2)}</span></div>`;
@@ -1250,7 +1217,17 @@ class ChartEngine {
     html += `<div class="tt-row"><span class="tt-key">C</span><span class="${bull?'tt-bull':'tt-bear'}">${d.c.toFixed(2)}</span></div>`;
     html += `<div class="tt-row"><span class="tt-key">Δ</span><span class="${bull?'tt-bull':'tt-bear'}">${bull?'+':''}${chg.toFixed(2)} (${bull?'+':''}${pct}%)</span></div>`;
     html += `<div class="tt-row"><span class="tt-key">VOL</span><span class="tt-val">${fmt(d.v)}</span></div>`;
-    if (maVal !== null) html += `<div class="tt-row"><span class="tt-key">MA20</span><span class="tt-val" style="color:${C.ma}">${maVal.toFixed(2)}</span></div>`;
+
+    // Each enabled series contributes its own tooltip row via tooltipRow()
+    this._series.forEach(({ def, values, enabled }) => {
+      if (!enabled || !def.tooltipRow) return;
+      const row = def.tooltipRow(values, i);
+      if (!row) return;
+      html += `<div class="tt-row"><span class="tt-key">${row.label}</span><span class="tt-val" style="color:${row.color || C.text}">${row.value}</span></div>`;
+    });
+
+    // RSI (built-in pane — appended last)
+    const rsiVal = this.rsiData[i];
     if (rsiVal !== null) html += `<div class="tt-row"><span class="tt-key">RSI14</span><span class="tt-val" style="color:${C.rsi}">${rsiVal.toFixed(1)}</span></div>`;
 
     tt.innerHTML = html;
@@ -1435,7 +1412,7 @@ class ChartEngine {
     // Zoom
     area.addEventListener('wheel', e => {
       e.preventDefault();
-      const delta     = e.deltaY > 0 ? -1 : 1;
+      const delta     = e.deltaY > 0 ? 1 : -1;
       const factor    = 1 + delta * SCROLL_ZOOM_FACTOR;
       const newBarW   = Math.max(MIN_BAR_W, Math.min(MAX_BAR_W, this.barWidth * factor));
       if (newBarW === this.barWidth) return;
@@ -1596,6 +1573,9 @@ class ChartEngine {
     const chg = d.c - d0.c;
     const pct = (chg / d0.c * 100).toFixed(2);
     const bull = chg >= 0;
+    document.getElementById('price-main').textContent   = d.c.toFixed(2);
+    document.getElementById('price-change').textContent = `${bull?'+':''}${chg.toFixed(2)} (${bull?'+':''}${pct}%)`;
+    document.getElementById('price-change').className   = bull ? 'up' : 'down';
   }
 
   // ── PUBLIC API ────────────────────────────────────────────────────────────
@@ -1604,16 +1584,100 @@ class ChartEngine {
     this.dirty = true;
   }
 
-  toggleSeries(name) {
-    if (name === 'ma') {
-      this.showMA = !this.showMA;
-      document.getElementById('leg-ma').style.display = this.showMA ? 'flex' : 'none';
-    }
-    if (name === 'bb') {
-      this.showBB = !this.showBB;
-      document.getElementById('leg-bb').style.display = this.showBB ? 'flex' : 'none';
-    }
+  // ─── Series API ──────────────────────────────────────────────────────────
+  //
+  //  addSeries(def)  — register a custom overlay series on the main pane.
+  //
+  //  def shape:
+  //  {
+  //    id:           string           — unique key (e.g. 'ma20', 'bb')
+  //    label:        string           — legend label
+  //    color:        string           — legend swatch color
+  //    layer:        'background'|undefined
+  //                                   — 'background' renders BEFORE candles
+  //                                     (use for fills like BB envelope).
+  //                                     Omit or set anything else → renders
+  //                                     AFTER candles (lines, dots, etc.)
+  //    compute(data) → values[]       — called on load(); result stored in
+  //                                     entry.values. Can return anything:
+  //                                     numbers, objects, nulls…
+  //    priceExtent(values, vs, ve)    — optional. Return [lo, hi] to extend
+  //      → [number, number] | null      the auto-scale for your series.
+  //    render(ctx, pane, engine,       — draw your series. Called inside a
+  //           values, pMin, pMax)        save/restore block. engine exposes:
+  //                                       engine.viewStart / viewEnd
+  //                                       engine._xOf(i)
+  //                                       engine._yOf(price, pane, lo, hi)
+  //                                       engine.data[i]
+  //    tooltipRow(values, i)          — optional. Called when crosshair is
+  //      → { label, value, color }|null  at bar i. Return an object to append
+  //                                      a row to the tooltip.
+  //  }
+  //
+  //  Example — 50-period EMA:
+  //
+  //    chart.addSeries({
+  //      id: 'ema50', label: 'EMA 50', color: '#00d9a3',
+  //      compute(data) {
+  //        const k = 2 / 51;
+  //        return data.reduce((acc, d, i) => {
+  //          acc.push(i === 0 ? d.c : d.c * k + acc[i-1] * (1 - k));
+  //          return acc;
+  //        }, []);
+  //      },
+  //      render(ctx, pane, engine, values, lo, hi) {
+  //        ctx.strokeStyle = '#00d9a3'; ctx.lineWidth = 1.3; ctx.lineJoin = 'round';
+  //        ctx.beginPath();
+  //        let s = false;
+  //        for (let i = engine.viewStart; i < engine.viewEnd; i++) {
+  //          const x = engine._xOf(i), y = engine._yOf(values[i], pane, lo, hi);
+  //          s ? ctx.lineTo(x, y) : (ctx.moveTo(x, y), s = true);
+  //        }
+  //        ctx.stroke();
+  //      },
+  //      tooltipRow: (values, i) => ({ label: 'EMA50', value: values[i].toFixed(2), color: '#00d9a3' })
+  //    });
+  //
+  addSeries(def) {
+    const entry = { def, values: [], enabled: false };
+    if (this.data.length) entry.values = def.compute(this.data);
+    this._series.set(def.id, entry);
+    return this; // chainable
+  }
+
+  // Remove a series by id
+  removeSeries(id) {
+    this._series.delete(id);
     this.dirty = true;
+    return this;
+  }
+
+  // Toggle enabled/disabled for a series by id
+  toggleSeries(id) {
+    const entry = this._series.get(id);
+    if (!entry) return this;
+    entry.enabled = !entry.enabled;
+    this.dirty = true;
+    return this;
+  }
+
+  // Explicitly enable a series
+  enableSeries(id) {
+    const entry = this._series.get(id);
+    if (entry) { entry.enabled = true; this.dirty = true; }
+    return this;
+  }
+
+  // Explicitly disable a series
+  disableSeries(id) {
+    const entry = this._series.get(id);
+    if (entry) { entry.enabled = false; this.dirty = true; }
+    return this;
+  }
+
+  // Is a series currently enabled?
+  isSeriesEnabled(id) {
+    return this._series.get(id)?.enabled ?? false;
   }
 
   togglePane(name) {
@@ -1639,14 +1703,6 @@ class ChartEngine {
     this.activeTool = toolName;
   }
 
-  // Custom series / drawing API
-  addCustomSeries(renderFn) {
-    // renderFn(ctx, pane, engine) — full custom control
-    this._customSeries = this._customSeries || [];
-    this._customSeries.push(renderFn);
-    this.dirty = true;
-  }
-
   clearDrawings() {
     this.drawings = [];
     this.dirty = true;
@@ -1658,6 +1714,157 @@ class ChartEngine {
 // ═══════════════════════════════════════════════════════════════════════════════
 const chart = new ChartEngine();
 const rawData = generateOHLC(900);
+
+// ── REGISTER MA via addSeries() ───────────────────────────────────────────────
+chart.addSeries({
+  id:    'ma',
+  label: 'MA 20',
+  color: '#ffb830',
+  layer: 'foreground', // renders after candles
+
+  // Compute full MA array once on data load
+  compute(data) {
+    const period = 20;
+    const out = new Array(data.length).fill(null);
+    let sum = 0;
+    for (let i = 0; i < data.length; i++) {
+      sum += data[i].c;
+      if (i >= period) sum -= data[i - period].c;
+      if (i >= period - 1) out[i] = sum / period;
+    }
+    return out;
+  },
+
+  // MA values don't push the price range beyond OHLC, so no priceExtent needed.
+
+  // Render a single golden line
+  render(ctx, pane, engine, values, priceMin, priceMax) {
+    ctx.strokeStyle = '#ffb830';
+    ctx.lineWidth   = 1.3;
+    ctx.lineJoin    = 'round';
+    ctx.beginPath();
+    let started = false;
+    for (let i = engine.viewStart; i < engine.viewEnd && i < engine.data.length; i++) {
+      if (values[i] === null) continue;
+      const x = engine._xOf(i);
+      const y = engine._yOf(values[i], pane, priceMin, priceMax);
+      if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  },
+
+  // Tooltip contribution
+  tooltipRow(values, i) {
+    if (values[i] === null) return null;
+    return { label: 'MA20', value: values[i].toFixed(2), color: '#ffb830' };
+  }
+});
+
+// ── REGISTER BB via addSeries() ───────────────────────────────────────────────
+chart.addSeries({
+  id:    'bb',
+  label: 'BB 20',
+  color: '#a855f7',
+  layer: 'background', // fill renders BEFORE candles; lines after is handled below
+
+  // Compute full BB array once on data load
+  compute(data) {
+    const period = 20, mult = 2;
+    const out = new Array(data.length).fill(null);
+    let sum = 0, sum2 = 0;
+    for (let i = 0; i < data.length; i++) {
+      sum  += data[i].c;
+      sum2 += data[i].c ** 2;
+      if (i >= period) {
+        sum  -= data[i - period].c;
+        sum2 -= data[i - period].c ** 2;
+      }
+      if (i >= period - 1) {
+        const mean = sum / period;
+        const variance = sum2 / period - mean ** 2;
+        const std = Math.sqrt(Math.max(0, variance));
+        out[i] = { upper: mean + mult * std, mid: mean, lower: mean - mult * std };
+      }
+    }
+    return out;
+  },
+
+  // BB bands may exceed OHLC range — extend the scale
+  priceExtent(values, vs, ve) {
+    let lo = Infinity, hi = -Infinity;
+    for (let i = vs; i < ve; i++) {
+      if (!values[i]) continue;
+      if (values[i].upper > hi) hi = values[i].upper;
+      if (values[i].lower < lo) lo = values[i].lower;
+    }
+    return lo === Infinity ? null : [lo, hi];
+  },
+
+  // Render fill + dashed bands (fill behind candles via layer:'background')
+  render(ctx, pane, engine, values, priceMin, priceMax) {
+    const ve = engine.viewEnd, vs = engine.viewStart;
+
+    // ── Envelope fill
+    ctx.fillStyle = 'rgba(168,85,247,0.07)';
+    ctx.beginPath();
+    let first = true;
+    for (let i = vs; i < ve && i < engine.data.length; i++) {
+      if (!values[i]) continue;
+      const x = engine._xOf(i);
+      const y = engine._yOf(values[i].upper, pane, priceMin, priceMax);
+      first ? (ctx.moveTo(x, y), first = false) : ctx.lineTo(x, y);
+    }
+    for (let i = Math.min(ve, engine.data.length) - 1; i >= vs; i--) {
+      if (!values[i]) continue;
+      ctx.lineTo(engine._xOf(i), engine._yOf(values[i].lower, pane, priceMin, priceMax));
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // ── Upper & lower bands
+    ctx.strokeStyle = 'rgba(168,85,247,0.65)';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([3, 3]);
+    ['upper', 'lower'].forEach(key => {
+      ctx.beginPath();
+      let s = false;
+      for (let i = vs; i < ve && i < engine.data.length; i++) {
+        if (!values[i]) continue;
+        const x = engine._xOf(i);
+        const y = engine._yOf(values[i][key], pane, priceMin, priceMax);
+        s ? ctx.lineTo(x, y) : (ctx.moveTo(x, y), s = true);
+      }
+      ctx.stroke();
+    });
+
+    // ── Middle band (lighter)
+    ctx.strokeStyle = 'rgba(168,85,247,0.35)';
+    ctx.lineWidth   = 0.8;
+    ctx.setLineDash([2, 4]);
+    ctx.beginPath();
+    let sm = false;
+    for (let i = vs; i < ve && i < engine.data.length; i++) {
+      if (!values[i]) continue;
+      const x = engine._xOf(i);
+      const y = engine._yOf(values[i].mid, pane, priceMin, priceMax);
+      sm ? ctx.lineTo(x, y) : (ctx.moveTo(x, y), sm = true);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  },
+
+  // Tooltip contribution — show upper/lower spread
+  tooltipRow(values, i) {
+    if (!values[i]) return null;
+    return {
+      label: 'BB',
+      value: `${values[i].upper.toFixed(2)} / ${values[i].lower.toFixed(2)}`,
+      color: '#a855f7'
+    };
+  }
+});
+
+// Load data after series are registered so compute() runs immediately
 chart.load(rawData);
 
 // ── UI BINDINGS ──────────────────────────────────────────────────────────────
@@ -1670,9 +1877,13 @@ function setChartType(type) {
   document.getElementById('btn-'+map[type]).classList.add('active');
 }
 
-function toggleSeries(name) {
-  chart.toggleSeries(name);
-  document.getElementById('btn-'+name).classList.toggle('active');
+function toggleSeries(id) {
+  chart.toggleSeries(id);
+  // Sync toolbar button state
+  document.getElementById('btn-'+id).classList.toggle('active');
+  // Sync legend pill
+  const legEl = document.getElementById('leg-'+id);
+  if (legEl) legEl.style.display = chart.isSeriesEnabled(id) ? 'flex' : 'none';
 }
 
 function togglePane(name) {
@@ -1685,7 +1896,6 @@ function resetZoom() { chart.resetZoom(); }
 function setTF(el, tf) {
   document.querySelectorAll('.sym-tab').forEach(e => e.classList.remove('active'));
   el.classList.add('active');
-  // Resample (for demo we just zoom)
   const samples = { '1D': 900, '1W': 200, '1M': 60 };
   chart.load(generateOHLC(samples[tf] || 900));
 }
@@ -1699,20 +1909,6 @@ function setTool(el, name) {
 // Status init
 chart._updateStatus();
 
-// ── CUSTOM SERIES EXAMPLE (VWAP-style band) ─────────────────────────────────
-// Demonstrates the addCustomSeries API:
-// chart.addCustomSeries((ctx, pane, engine) => {
-//   // Draw anything you want on the main pane canvas
-//   ctx.strokeStyle = 'cyan'; ctx.lineWidth = 1;
-//   ctx.beginPath();
-//   for (let i = engine.viewStart; i < engine.viewEnd; i++) {
-//     const d = engine.data[i];
-//     const x = engine._xOf(i);
-//     const y = engine._yOf((d.h + d.l) / 2, pane, ...range);
-//     if (i === engine.viewStart) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-//   }
-//   ctx.stroke();
-// });
 </script>
 </body>
 </html>
