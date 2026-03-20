@@ -1147,10 +1147,14 @@ class ChartEngine {
     // Bar index under cursor
     const localX = mx - pMain.x;
     const barIdx = Math.max(this.viewStart, Math.min(this.viewEnd - 1, this._indexAtX(localX)));
-    const d      = this.data[barIdx];
-    if (!d) return;
+    const d      = this.data[barIdx]; // may be undefined in right-padding zone
 
     const { lo, hi } = this._visiblePriceRange();
+
+    // Live price dash — drawn unconditionally so it survives the !d early-exit below
+    if (this._liveMode) this._drawLivePulse(this.ctxOMain, pMain, lo, hi);
+
+    if (!d) return; // cursor is in the empty right-padding zone — crosshair stops here
 
     // Crosshair X (shared across panes)
     const snapX = Math.round(this._xOf(barIdx)) + 0.5;
@@ -1181,9 +1185,6 @@ class ChartEngine {
     ctx.fill();
     ctx.restore();
 
-    // Live pulse on the last bar's close (only when in live mode)
-    if (this._liveMode) this._drawLivePulse(ctx, pMain, lo, hi);
-
     // Vol pane crosshair
     const ctxV = this.ctxOVol;
     ctxV.save();
@@ -1211,13 +1212,6 @@ class ChartEngine {
 
     // OHLC header
     this._updateOHLCDisplay(d, barIdx);
-
-    // Current last bar price tag
-    if (barIdx === this.data.length - 1 || true) {
-      const lastD = this.data[this.viewEnd - 1] || d;
-      const lastY = this._yOf(lastD.c, pMain, lo, hi);
-      this._drawPriceTag(ctx, lastD.c, lastY, pMain, lastD.c >= lastD.o ? C.bull : C.bear, '#050810');
-    }
   }
 
   _clearOverlay(ctx, pane) {
