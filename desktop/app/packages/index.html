@@ -462,14 +462,17 @@ function generateOHLC(bars = 800, seed = 42) {
   const data = [];
   let price  = 180;
   let vol    = 45e6;
-  let date   = new Date('2022-01-03');
+  // Start timestamp: 2022-01-03 00:00:00 UTC in seconds
+  let ts     = 1641168000;
   let rng    = seed;
   const rand = () => { rng = (rng * 1664525 + 1013904223) & 0xffffffff; return (rng >>> 0) / 0xffffffff; };
+  const DAY  = 86400;
+
+  // Skip to first weekday
+  const dow  = (ts) => Math.floor(ts / DAY + 4) % 7; // 0=Sun,1=Mon…6=Sat
+  while (dow(ts) === 0 || dow(ts) === 6) ts += DAY;
 
   for (let i = 0; i < bars; i++) {
-    // Skip weekends
-    while (date.getDay() === 0 || date.getDay() === 6) date.setDate(date.getDate() + 1);
-
     const trend   = Math.sin(i / 120) * 0.0003 + 0.00008;
     const noise   = (rand() - 0.49) * 0.025;
     const gap     = price * (trend + noise);
@@ -481,10 +484,12 @@ function generateOHLC(bars = 800, seed = 42) {
     const low     = Math.min(open, close) - loRange;
     vol = Math.max(1e6, vol * (0.85 + rand() * 0.3));
 
-    data.push({ t: new Date(date), o: +open.toFixed(2), h: +high.toFixed(2), l: +low.toFixed(2), c: +close.toFixed(2), v: Math.round(vol) });
+    data.push({ t: ts, o: +open.toFixed(2), h: +high.toFixed(2), l: +low.toFixed(2), c: +close.toFixed(2), v: Math.round(vol) });
     price = close;
-    date  = new Date(date);
-    date.setDate(date.getDate() + 1);
+
+    // Advance to next weekday
+    ts += DAY;
+    while (dow(ts) === 0 || dow(ts) === 6) ts += DAY;
   }
   return data;
 }
@@ -1575,28 +1580,39 @@ class ChartEngine {
   }
 
   _isTimeGridLine(i, step) {
-    const d = this.data[i];
-    if (!d) return false;
-    const t  = d.t;
-    const d0 = i > 0 ? this.data[i-1].t : null;
-    if (step === 'week')    return t.getDay() === 1 || (d0 && t.getMonth() !== d0.getMonth());
-    if (step === 'month')   return d0 && t.getMonth() !== d0.getMonth();
-    if (step === 'quarter') return d0 && Math.floor(t.getMonth()/3) !== Math.floor(d0.getMonth()/3);
-    if (step === 'year')    return d0 && t.getFullYear() !== d0.getFullYear();
+    if (i === 0 || i >= this.data.length) return false;
+    const t  = this.data[i].t;
+    const t0 = this.data[i - 1].t;
+    const DAY = 86400;
+    // Derive UTC calendar fields from seconds without allocating Date objects
+    const dayOf    = ts => Math.floor(ts / DAY);
+    const yearOf   = ts => { const d = new Date(ts * 1000); return d.getUTCFullYear(); };
+    const monthOf  = ts => { const d = new Date(ts * 1000); return d.getUTCMonth(); };
+    const dowOf    = ts => Math.floor(ts / DAY + 4) % 7; // 0=Sun
+    if (step === 'week')    return dowOf(t) === 1 && dowOf(t0) !== 1;
+    if (step === 'month')   return monthOf(t) !== monthOf(t0);
+    if (step === 'quarter') return Math.floor(monthOf(t) / 3) !== Math.floor(monthOf(t0) / 3);
+    if (step === 'year')    return yearOf(t) !== yearOf(t0);
     return false;
   }
 
+  // t is an integer (Unix seconds). Convert once, only for display.
+  _tsToDate(t) { return new Date(t * 1000); }
+
   _formatDate(t, step) {
+    const d = this._tsToDate(t);
     const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    if (step === 'week')    return `${m[t.getMonth()]} ${t.getDate()}`;
-    if (step === 'month')   return `${m[t.getMonth()]} ${t.getFullYear().toString().slice(2)}`;
-    if (step === 'quarter') return `Q${Math.floor(t.getMonth()/3)+1} ${t.getFullYear().toString().slice(2)}`;
-    return `${t.getFullYear()}`;
+    const mo = d.getUTCMonth(), yr = d.getUTCFullYear();
+    if (step === 'week')    return `${m[mo]} ${d.getUTCDate()}`;
+    if (step === 'month')   return `${m[mo]} ${String(yr).slice(2)}`;
+    if (step === 'quarter') return `Q${Math.floor(mo / 3) + 1} ${String(yr).slice(2)}`;
+    return `${yr}`;
   }
 
   _formatDateFull(t) {
+    const d = this._tsToDate(t);
     const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${m[t.getMonth()]} ${String(t.getDate()).padStart(2,'0')}, ${t.getFullYear()}`;
+    return `${m[d.getUTCMonth()]} ${String(d.getUTCDate()).padStart(2,'0')}, ${d.getUTCFullYear()}`;
   }
 
   _updateScrollThumb() {
@@ -1679,8 +1695,8 @@ class ChartEngine {
     if (isNewBar) {
       // ── Append new candle ─────────────────────────────────────────────
       this.data.push({
-        t: candle.t instanceof Date ? candle.t : new Date(candle.t),
-        o: candle.o ?? last.c,   // default open = previous close
+        t: typeof candle.t === 'number' ? candle.t : Math.floor(new Date(candle.t).getTime() / 1000),
+        o: candle.o ?? last.c,
         h: candle.h,
         l: candle.l,
         c: candle.c,
@@ -1714,14 +1730,10 @@ class ChartEngine {
     return this;
   }
 
-  // Compare two timestamps at bar granularity.
-  // Two timestamps belong to the same bar if they resolve to the same date string.
+  // Compare two integer-second timestamps at day granularity.
+  // For intraday bars change 86400 to the bar interval in seconds.
   _isDifferentBar(t1, t2) {
-    const d1 = t1 instanceof Date ? t1 : new Date(t1);
-    const d2 = t2 instanceof Date ? t2 : new Date(t2);
-    // Compare at day granularity (works for daily bars).
-    // For intraday, compare full numeric timestamps instead.
-    return d1.toDateString() !== d2.toDateString();
+    return Math.floor(t1 / 86400) !== Math.floor(t2 / 86400);
   }
 
   // ─── Series API ──────────────────────────────────────────────────────────
@@ -2102,18 +2114,16 @@ function _generateTick(isNewBar) {
   if (!last) return null;
 
   if (isNewBar || !_tick) {
-    // Open new bar at previous close ± tiny gap
     const open = last.c * (1 + (_liveRng() - 0.5) * 0.002);
     _tick = { t: null, o: open, h: open, l: open, c: open, v: 0 };
-    // Advance date by 1 trading day
-    const nextDate = new Date(last.t);
-    nextDate.setDate(nextDate.getDate() + 1);
-    while (nextDate.getDay() === 0 || nextDate.getDay() === 6)
-      nextDate.setDate(nextDate.getDate() + 1);
-    _tick.t = nextDate;
+    // Advance timestamp by 1 trading day (integer seconds)
+    const DAY = 86400;
+    const dow  = ts => Math.floor(ts / DAY + 4) % 7; // 0=Sun
+    let next = last.t + DAY;
+    while (dow(next) === 0 || dow(next) === 6) next += DAY;
+    _tick.t = next;
   }
 
-  // Simulate an intra-bar price move
   const move  = _tick.c * (_liveRng() - 0.492) * 0.005;
   _tick.c     = Math.max(0.01, _tick.c + move);
   _tick.h     = Math.max(_tick.h, _tick.c);
@@ -2145,7 +2155,7 @@ function toggleLive() {
   } else {
     _tick = null;
     _tickCount = 0;
-    _liveTimer = setInterval(_fireTick, 200); // ~5–6 ticks/sec
+    _liveTimer = setInterval(_fireTick, 180); // ~5–6 ticks/sec
     btn.classList.add('active');
     btn.style.color = 'var(--bull)';
   }
