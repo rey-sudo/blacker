@@ -228,7 +228,6 @@ class ChartEngine {
     this.viewEnd    = data.length + this.rightPadBars;
     this.viewStart  = Math.max(0, this.viewEnd - capacity);
     this.dirty = true;
-    this._updatePriceDisplay();
     this._updateScrollThumb();
     this._updateStatus();
   }
@@ -1223,18 +1222,6 @@ class ChartEngine {
     document.getElementById('status-zoom').textContent = `×${this.barWidth.toFixed(1)}`;
   }
 
-  _updatePriceDisplay() {
-    if (!this.data.length) return;
-    const d   = this.data[this.data.length - 1];
-    const d0  = this.data[this.data.length - 2] || d;
-    const chg = d.c - d0.c;
-    const pct = (chg / d0.c * 100).toFixed(2);
-    const bull = chg >= 0;
-    //document.getElementById('price-main').textContent   = d.c.toFixed(2);
-    //document.getElementById('price-change').textContent = `${bull?'+':''}${chg.toFixed(2)} (${bull?'+':''}${pct}%)`;
-    //document.getElementById('price-change').className   = bull ? 'up' : 'down';
-  }
-
   // ── PUBLIC API ────────────────────────────────────────────────────────────
   setChartType(type) {
     this.chartType = type;
@@ -1315,7 +1302,6 @@ class ChartEngine {
     }
 
     this._liveMode = true;
-    this._updatePriceDisplay();
     this.dirty = true;
     return this;
   }
