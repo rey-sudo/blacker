@@ -856,18 +856,18 @@ class ChartEngine {
     // Area fill (below close)
     if (this.chartType === 'area') this._drawArea(ctx, p, priceMin, priceMax);
 
-    // ── Custom series (foreground): line-type series like MA render here
+    // Candles / line
+    if (this.chartType === 'candlestick')  this._drawCandlesticks(ctx, p, priceMin, priceMax);
+    else if (this.chartType === 'line')    this._drawLine(ctx, p, priceMin, priceMax);
+    else if (this.chartType === 'area')    this._drawLine(ctx, p, priceMin, priceMax);
+
+    // ── Custom series (foreground): line-type series like MA render here — above candles
     this._series.forEach(({ def, values, enabled }) => {
       if (!enabled || def.layer === 'background') return;
       ctx.save();
       def.render(ctx, p, this, values, priceMin, priceMax);
       ctx.restore();
     });
-
-    // Candles / line
-    if (this.chartType === 'candlestick')  this._drawCandlesticks(ctx, p, priceMin, priceMax);
-    else if (this.chartType === 'line')    this._drawLine(ctx, p, priceMin, priceMax);
-    else if (this.chartType === 'area')    this._drawLine(ctx, p, priceMin, priceMax);
 
     // Drawings
     this._renderDrawings(ctx, p, priceMin, priceMax);
