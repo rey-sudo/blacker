@@ -11,20 +11,14 @@
 }
 
 :root {
-  --default-ema-color-0: var(--color-red);
-  --default-ema-color-1: var(--color-yellow);
+  --default-line-color-0: var(--color-red);
+  --default-line-color-1: var(--color-yellow);
   --default-up-color: var(--color-green);
   --default-down-color: var(--color-red);
 }
 
 :root {
   --header-height: 2.25rem;
-
-  --chart-background: var(--color-neutral-1000);
-  --chart-header-background: var(--ui-bg);
-  --chart-header-height: 2.5rem;
-  --chart-radius: var(--ui-radius);
-  --chart-text-color: var(--color-neutral-500);
 
   --main-background: var(--ui-bg-accented);
 
@@ -35,9 +29,16 @@
   --tab-content-padding: 0.2rem;
 }
 
+:root {
+  --chart-background: var(--ui-color-neutral-950);
+  --chart-header-background: var(--ui-bg);
+  --chart-header-height: 2.5rem;
+  --chart-radius: var(--ui-radius);
+}
+
 
 * {
-  font-family: "Inter", sans-serif;
+  font-family: "Arial", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
 }

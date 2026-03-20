@@ -98,7 +98,7 @@ const setupChart = () => {
   candleChart = createChart(chartContainer.value, {
     layout: {
       background: { color: "transparent" },
-      textColor: getCssVariable("--chart-text-color"),
+      textColor: getCssVariableAsHex("--ui-text-muted"),
     },
     rightPriceScale: {
       visible: true,
@@ -163,25 +163,25 @@ const setupChart = () => {
   });
 
   const defaultTheme = {
-    upColor: getCssVariable("--default-up-color"),
-    borderUpColor: getCssVariable("--default-up-color"),
-    wickUpColor: getCssVariable("--default-up-color"),
-    downColor: getCssVariable("--default-down-color"),
-    borderDownColor: getCssVariable("--default-down-color"),
-    wickDownColor: getCssVariable("--default-down-color"),
+    upColor: getCssVariableAsHex("--default-up-color"),
+    borderUpColor: getCssVariableAsHex("--default-up-color"),
+    wickUpColor: getCssVariableAsHex("--default-up-color"),
+    downColor: getCssVariableAsHex("--default-down-color"),
+    borderDownColor: getCssVariableAsHex("--default-down-color"),
+    wickDownColor: getCssVariableAsHex("--default-down-color"),
     borderVisible: true,
   };
 
   const candleSeries = candleChart.addSeries(CandlestickSeries, defaultTheme);
 
   const ema55series = candleChart.addSeries(LineSeries, {
-    color: getCssVariable("--default-ema-color-0"),
+    color: getCssVariableAsHex("--default-line-color-0"),
     lineWidth: 2,
     priceLineVisible: false,
   });
 
   const ema25series = candleChart.addSeries(LineSeries, {
-    color: getCssVariable("--default-ema-color-1"),
+    color: getCssVariableAsHex("--default-line-color-1"),
     lineWidth: 1,
     priceLineVisible: false,
   });
