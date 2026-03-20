@@ -6,10 +6,9 @@
     </div>
 
     <div class="header__right">
-      <USeparator orientation="vertical" class="h-6 pl-0 pr-0" />
+      <HeaderAvatar />
       <HeaderThemeButton />
       <HeaderSettingsButton style="margin-left: auto" />
-      <HeaderAvatar />
     </div>
   </div>
 </template>
@@ -41,6 +40,6 @@
   gap: 1rem;
   display: flex;
   align-items: center;
-  padding-right: 1rem;
+  padding-right: 0.5rem;
 }
 </style>
