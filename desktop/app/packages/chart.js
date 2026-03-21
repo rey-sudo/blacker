@@ -94,6 +94,7 @@ class ChartEngine {
 
   // ── DOM SETUP ──────────────────────────────────────────────────────────────
   _grabCanvases() {
+    //impl verification
     this.legendDiv = document.getElementById("chart-legend");
 
     this.cMain = document.getElementById("canvas-main");
@@ -777,7 +778,7 @@ class ChartEngine {
     this._drawTimeTag(barIdx);
 
     // OHLC header
-    this._updateLegendDisplay(d, barIdx);
+    this._updateOHLCVlegend(d, barIdx);
   }
 
   _clearOverlay(ctx, pane) {
@@ -854,7 +855,7 @@ class ChartEngine {
     ctx.restore();
   }
 
-  _updateLegendDisplay(d, i) {
+  _updateOHLCVlegend(d, i) {
     //----------------------------------------------------------
     const bull = d.c >= d.o;
     const chg = d.c - d.o;
@@ -868,6 +869,9 @@ class ChartEngine {
       `<span class="ohlc-item"><span class="ohlc-label">H</span><span class="ohlc-val">${d.h.toFixed(2)}</span></span>` +
       `<span class="ohlc-item"><span class="ohlc-label">L</span><span class="ohlc-val">${d.l.toFixed(2)}</span></span>` +
       `<span class="ohlc-item"><span class="ohlc-label">C</span><span class="ohlc-val" style="color:${col}">${d.c.toFixed(2)}</span></span>` +
+      `<span class="ohlc-item"><span class="ohlc-label">V</span><span class="ohlc-val">${d.v.toFixed(2)}</span></span>` +
+      `<span class="ohlc-item"><span class="ohlc-label">T</span><span class="ohlc-val">${d.t}</span></span>` +
+      
       `<span class="ohlc-item" style="color:${col}">${bull ? "+" : ""}${chg.toFixed(2)} (${bull ? "+" : ""}${pct}%)</span>`;
 
     if (ohlcContainer) {
