@@ -97,6 +97,9 @@ class ChartEngine {
     this.cMain = document.getElementById("canvas-main");
     this.oMain = document.getElementById("overlay-main");
 
+    this.cScale = document.getElementById("canvas-pricescale");
+    this.ctxScale = this.cScale.getContext("2d");
+
     this.cDrawings = document.getElementById("canvas-drawings");
     this.ctxDrawings = this.cDrawings.getContext("2d");
 
@@ -143,6 +146,13 @@ class ChartEngine {
     const mainR = pMain.getBoundingClientRect();
     const timeR = tAxis.getBoundingClientRect();
 
+    this.cScale.width = PRICE_SCALE_W * dpr;
+    this.cScale.height = mainR.height * dpr;
+    this.cScale.style.width = PRICE_SCALE_W + "px";
+    this.cScale.style.height = mainR.height + "px";
+    this.ctxScale.setTransform(1, 0, 0, 1, 0, 0);
+    this.ctxScale.scale(dpr, dpr);
+
     this.panes.main = {
       x: mainR.left,
       y: mainR.top,
@@ -152,6 +162,9 @@ class ChartEngine {
       ctx: this.ctxMain,
       oCtx: this.ctxOMain,
     };
+
+    this.panes.scale = { w: PRICE_SCALE_W, h: mainR.height };
+
     this.panes.time = {
       x: timeR.left,
       y: timeR.top,
@@ -302,8 +315,8 @@ class ChartEngine {
     if (!this.data.length) return;
     const { lo, hi } = this._visiblePriceRange();
     this._renderMain(lo, hi);
-    this._renderTimeAxis();
     this._renderPriceScale(lo, hi);
+    this._renderTimeAxis();
   }
 
   // ── MAIN PANE ─────────────────────────────────────────────────────────────
@@ -350,10 +363,6 @@ class ChartEngine {
       ctx.restore();
     });
 
-    // Price scale border
-    ctx.fillStyle = C.bg2;
-    ctx.fillRect(cw, 0, PRICE_SCALE_W, H);
-    ctx.strokeStyle = C.grid;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(cw, 0);
@@ -374,11 +383,6 @@ class ChartEngine {
       ctx.moveTo(0, y);
       ctx.lineTo(cw, y);
       ctx.stroke();
-      // Label
-      ctx.fillStyle = C.textDim;
-      ctx.font = "10px IBM Plex Mono, monospace";
-      ctx.textAlign = "right";
-      ctx.fillText(price.toFixed(2), cw + PRICE_SCALE_W - 8, y + 3.5);
     });
 
     // Vertical time grid lines
@@ -537,10 +541,47 @@ class ChartEngine {
     }
   }
 
-  // ── PRICE SCALE ───────────────────────────────────────────────────────────
   _renderPriceScale(priceMin, priceMax) {
-    // Already drawn inline in _renderMain grid pass — this is a no-op
-    // (kept as hook for extensions)
+    const ctx = this.ctxScale;
+    const W = PRICE_SCALE_W;
+    const H = this.panes.scale.h;
+    const p = this.panes.main; // yOf necesita el pane main para el height
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Fondo
+    ctx.fillStyle = C.bg2;
+    ctx.fillRect(0, 0, W, H);
+
+    // Línea separadora izquierda
+    ctx.strokeStyle = C.grid;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0.5, 0);
+    ctx.lineTo(0.5, H);
+    ctx.stroke();
+
+    // Labels en cada grid step
+    const steps = this._nicePriceSteps(priceMin, priceMax, 6);
+    ctx.fillStyle = C.textDim;
+    ctx.font = "10px IBM Plex Mono, monospace";
+    ctx.textAlign = "right";
+    steps.forEach((price) => {
+      const y = Math.round(this._yOf(price, p, priceMin, priceMax)) + 0.5;
+      ctx.fillText(price.toFixed(2), W - 8, y + 3.5);
+    });
+
+    // Tag del último close — estático, no es el crosshair
+    if (!this.data.length) return;
+    const last = this.data[this.data.length - 1];
+    const y = this._yOf(last.c, p, priceMin, priceMax);
+    const bull = last.c >= last.o;
+    ctx.fillStyle = bull ? C.bull : C.bear;
+    ctx.fillRect(1, y - 8, W - 2, 16);
+    ctx.fillStyle = "#050810";
+    ctx.font = "10px IBM Plex Mono, monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(last.c.toFixed(2), W / 2, y + 3.5);
   }
 
   _renderDrawingModules() {

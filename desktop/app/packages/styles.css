@@ -256,3 +256,12 @@ canvas.drawings-canvas {
   display: block;
   pointer-events: none; /* los eventos los gestiona el engine, no el canvas */
 }
+
+canvas.pricescale-canvas {
+  position: absolute;
+  top: 0;
+  right: 0;                  /* pegado al borde derecho del pane */
+  width: 72px;               /* = PRICE_SCALE_W */
+  display: block;
+  pointer-events: none;
+}
