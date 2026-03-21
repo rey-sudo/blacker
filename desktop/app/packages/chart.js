@@ -96,6 +96,7 @@ class ChartEngine {
   _grabCanvases() {
     //impl verification
     this.legendDiv = document.getElementById("chart-legend");
+    this.indicatorsDiv = document.getElementById("chart-indicators");
 
     this.cMain = document.getElementById("canvas-main");
     this.ctxMain = this.cMain.getContext("2d");
@@ -862,23 +863,23 @@ class ChartEngine {
     const pct = ((chg / d.o) * 100).toFixed(2);
     const col = bull ? "var(--bull)" : "var(--bear)";
 
-    let ohlcContainer = document.getElementById("ohlc-display");
+    let ohlcContainer = document.getElementById("chart-legend-content");
 
     const content =
-      `<span class="ohlc-item"><span class="ohlc-label">O</span><span class="ohlc-val">${d.o.toFixed(2)}</span></span>` +
-      `<span class="ohlc-item"><span class="ohlc-label">H</span><span class="ohlc-val">${d.h.toFixed(2)}</span></span>` +
-      `<span class="ohlc-item"><span class="ohlc-label">L</span><span class="ohlc-val">${d.l.toFixed(2)}</span></span>` +
-      `<span class="ohlc-item"><span class="ohlc-label">C</span><span class="ohlc-val" style="color:${col}">${d.c.toFixed(2)}</span></span>` +
-      `<span class="ohlc-item"><span class="ohlc-label">V</span><span class="ohlc-val">${d.v.toFixed(2)}</span></span>` +
-      `<span class="ohlc-item"><span class="ohlc-label">T</span><span class="ohlc-val">${d.t}</span></span>` +
-      
-      `<span class="ohlc-item" style="color:${col}">${bull ? "+" : ""}${chg.toFixed(2)} (${bull ? "+" : ""}${pct}%)</span>`;
+      `<span class="chart-legend-item"><span class="chart-legend-label">Bitcoin / Tether USD · SPOT · CRYPTO­</span></span>` +
+      `<span class="chart-legend-item"><span class="chart-legend-label">O</span><span class="chart-legend-val">${d.o.toFixed(2)}</span></span>` +
+      `<span class="chart-legend-item"><span class="chart-legend-label">H</span><span class="chart-legend-val">${d.h.toFixed(2)}</span></span>` +
+      `<span class="chart-legend-item"><span class="chart-legend-label">L</span><span class="chart-legend-val">${d.l.toFixed(2)}</span></span>` +
+      `<span class="chart-legend-item"><span class="chart-legend-label">C</span><span class="chart-legend-val" style="color:${col}">${d.c.toFixed(2)}</span></span>` +
+      `<span class="chart-legend-item"><span class="chart-legend-label">V</span><span class="chart-legend-val">${d.v.toFixed(2)}</span></span>` +
+      `<span class="chart-legend-item"><span class="chart-legend-label">T</span><span class=".chart-legend-val">${d.t}</span></span>` +
+      `<span class="chart-legend-item" style="color:${col}">${bull ? "+" : ""}${chg.toFixed(2)} (${bull ? "+" : ""}${pct}%)</span>`;
 
     if (ohlcContainer) {
       ohlcContainer.innerHTML = content;
     } else {
       ohlcContainer = document.createElement("div");
-      ohlcContainer.id = "ohlc-display";
+      ohlcContainer.id = "chart-legend-content";
       ohlcContainer.innerHTML = content;
       this.legendDiv.appendChild(ohlcContainer);
     }
@@ -1188,6 +1189,45 @@ class ChartEngine {
       `×${this.barWidth.toFixed(1)}`;
   }
 
+  _updateLegend() {
+    if (!this.indicatorsDiv) return;
+
+    this._series.forEach(({ def, enabled }) => {
+
+      const itemId = `chart-indicators-item-${def.id}`;
+      let item = document.getElementById(itemId);
+
+
+      const opacity = enabled ? "1" : "0.4";
+      const title = enabled ? "click to hide" : "click to show";
+      const innerHTML =
+        `<div class="chart-indicators-item-dot" style="background:${def.color}"></div>` +
+        `<span>${def.label}</span>`;
+
+      if (item) {
+
+        item.style.opacity = opacity;
+        item.title = title;
+        item.innerHTML = innerHTML;
+      } else {
+
+        item = document.createElement("div");
+        item.id = itemId; 
+        item.className = "chart-indicators-item";
+        item.style.cursor = "pointer";
+        item.style.opacity = opacity;
+        item.title = title;
+        item.innerHTML = innerHTML;
+
+        item.addEventListener("click", () => {
+          this.toggleSeries(def.id);
+        });
+
+        this.indicatorsDiv.appendChild(item);
+      }
+    });
+  }
+
   // ── PUBLIC API ────────────────────────────────────────────────────────────
   setChartType(type) {
     this.chartType = type;
@@ -1255,6 +1295,7 @@ class ChartEngine {
     const entry = { def, values: [], enabled: true };
     if (this.data.length) entry.values = def.compute(this.data);
     this._series.set(def.id, entry);
+    this._updateLegend();
     return this; // chainable
   }
 
@@ -1270,6 +1311,7 @@ class ChartEngine {
     const entry = this._series.get(id);
     if (!entry) return this;
     entry.enabled = !entry.enabled;
+    this._updateLegend();
     this.dirty = true;
     return this;
   }
@@ -1279,6 +1321,7 @@ class ChartEngine {
     const entry = this._series.get(id);
     if (entry) {
       entry.enabled = true;
+      this._updateLegend();
       this.dirty = true;
     }
     return this;
@@ -1289,6 +1332,7 @@ class ChartEngine {
     const entry = this._series.get(id);
     if (entry) {
       entry.enabled = false;
+      this._updateLegend();
       this.dirty = true;
     }
     return this;

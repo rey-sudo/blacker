@@ -25,8 +25,8 @@
   --bear-dim: rgba(255, 64, 96, 0.18);
   --gold: #ffb830;
   --purple: #a855f7;
-  --mono: "IBM Plex Mono", monospace;
-  --sans: "IBM Plex Sans", sans-serif;
+  --mono: "Inter", monospace;
+  --sans: "Inter", sans-serif;
 }
 
 html,
@@ -223,46 +223,61 @@ canvas.pricescale-canvas {
 }
 
 #chart-legend {
-  position: absolute;
   top: 1rem;
+  gap: 1rem;
   left: 1rem;
+  z-index: 10;
+  display: flex;
+  font-size: 13px;
+  position: absolute;
+  pointer-events: none;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+#chart-legend-content {
+  pointer-events: none;
+  align-items: center;
   display: flex;
   gap: 1rem;
-  z-index: 10;
-  pointer-events: none;
-  height: 100px;
-  box-sizing: border-box;
-  background: rgba(255, 0, 0, 0.226);
 }
 
-.legend-item {
-  display: flex;
+.chart-legend-item {
+  color: var(--text-dim);
   align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  color: var(--text-dim);
-}
-.legend-dot {
-  width: 8px;
-  height: 2px;
-  border-radius: 1px;
+  display: flex;
+  gap: 0.25rem;
 }
 
-#ohlc-display {
-  font-size: 10px;
+.chart-legend-label {
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.chart-legend-val {
   color: var(--text-dim);
-  pointer-events: none;
+}
+
+#chart-indicators {
+  top: 3rem;
+  left: 1rem;
+  gap: 1rem;
   z-index: 10;
   display: flex;
-  gap: 12px;
+  font-size: 13px;
+  position: absolute;
+  flex-direction: column;
+  box-sizing: border-box;
 }
-.ohlc-item {
-  display: flex;
-  gap: 4px;
-}
-.ohlc-label {
-  color: var(--text-dim);
-}
-.ohlc-val {
+
+.chart-indicators-item {
+  align-items: center;
   color: var(--text);
+  display: flex;
+  gap: 0.25rem;
+}
+
+.chart-indicators-item-dot {
+  width: 0.5rem;
+  height: 0.25rem;
 }
