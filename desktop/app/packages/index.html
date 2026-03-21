@@ -9,14 +9,12 @@
   <body>
     <!-- TOP BAR -->
     <div id="topbar">
-
       <div id="statusbar">
-          <span id="status-fps">60 FPS</span>
-          <span id="status-bars"></span>
-          <span id="status-zoom"></span>
-          <span id="status-cursor"></span>
-        </div>
-     
+        <span id="status-fps">60 FPS</span>
+        <span id="status-bars"></span>
+        <span id="status-zoom"></span>
+        <span id="status-cursor"></span>
+      </div>
 
       <div class="toolbar">
         <button
@@ -48,8 +46,22 @@
     <div id="layout">
       <!-- CHART AREA START -->
       <div id="chart-area">
+        <!-- CHART LEGEND -->
+        <div id="chart-legend">
+          <div id="ohlc-display" />
+
+          <div class="legend-item" id="leg-ma">
+            <div class="legend-dot" style="background: var(--gold)"></div>
+            <span>MA 20</span>
+          </div>
+          
+          <div class="legend-item" id="leg-bb">
+            <div class="legend-dot" style="background: var(--purple)"></div>
+            <span>BB 20</span>
+          </div>
+        </div>
+
         <!-- OHLC DISPLAY -->
-        <div id="ohlc-display"></div>
 
         <!-- MAIN PANE -->
         <div class="pane" id="pane-main">
@@ -68,19 +80,6 @@
         <div id="scrollbar">
           <div id="scrollthumb"></div>
         </div>
-
-    </div>
-    <!-- CHART AREA END -->
-
-    <!-- LEGEND -->
-    <div id="legend">
-      <div class="legend-item" id="leg-ma" style="display: none">
-        <div class="legend-dot" style="background: var(--gold)"></div>
-        <span>MA 20</span>
-      </div>
-      <div class="legend-item" id="leg-bb" style="display: none">
-        <div class="legend-dot" style="background: var(--purple)"></div>
-        <span>BB 20</span>
       </div>
     </div>
 

@@ -161,50 +161,6 @@ canvas.overlay-canvas {
   left: 0;
 }
 
-/* ── LEGEND ── */
-#legend {
-  position: absolute;
-  top: 6px;
-  left: 62px;
-  display: flex;
-  gap: 14px;
-  z-index: 10;
-  pointer-events: none;
-}
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  color: var(--text-dim);
-}
-.legend-dot {
-  width: 8px;
-  height: 2px;
-  border-radius: 1px;
-}
-#ohlc-display {
-  position: absolute;
-  top: 6px;
-  left: 62px;
-  font-size: 10px;
-  color: var(--text-dim);
-  pointer-events: none;
-  z-index: 10;
-  display: flex;
-  gap: 12px;
-}
-.ohlc-item {
-  display: flex;
-  gap: 4px;
-}
-.ohlc-label {
-  color: var(--text-dim);
-}
-.ohlc-val {
-  color: var(--text);
-}
-
 /* ── SCROLL INDICATOR ── */
 #scrollbar {
   height: 4px;
@@ -260,8 +216,53 @@ canvas.drawings-canvas {
 canvas.pricescale-canvas {
   position: absolute;
   top: 0;
-  right: 0;                  /* pegado al borde derecho del pane */
-  width: 72px;               /* = PRICE_SCALE_W */
+  right: 0; /* pegado al borde derecho del pane */
+  width: 72px; /* = PRICE_SCALE_W */
   display: block;
   pointer-events: none;
+}
+
+#chart-legend {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  gap: 1rem;
+  z-index: 10;
+  pointer-events: none;
+  height: 100px;
+  box-sizing: border-box;
+  background: rgba(255, 0, 0, 0.226);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.legend-dot {
+  width: 8px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+#ohlc-display {
+  font-size: 10px;
+  color: var(--text-dim);
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  gap: 12px;
+}
+.ohlc-item {
+  display: flex;
+  gap: 4px;
+}
+.ohlc-label {
+  color: var(--text-dim);
+}
+.ohlc-val {
+  color: var(--text);
 }
