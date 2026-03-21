@@ -520,7 +520,7 @@ class ChartEngine {
     if (!this.data.length) return;
     const step = this._timeGridStep();
     ctx.fillStyle = colors.textDim;
-    ctx.font = "9px IBM Plex Mono, monospace";
+    ctx.font = "9px Inter, sans-serif";
     ctx.textAlign = "center";
 
     for (
@@ -558,7 +558,7 @@ class ChartEngine {
     // Labels en cada grid step
     const steps = this._nicePriceSteps(priceMin, priceMax, 6);
     ctx.fillStyle = colors.textDim;
-    ctx.font = "10px IBM Plex Mono, monospace";
+    ctx.font = "10px Inter, sans-serif";
     ctx.textAlign = "right";
     steps.forEach((price) => {
       const y = Math.round(this._yOf(price, p, priceMin, priceMax)) + 0.5;
@@ -573,7 +573,7 @@ class ChartEngine {
     ctx.fillStyle = bull ? colors.bull : colors.bear;
     ctx.fillRect(1, y - 8, W - 2, 16);
     ctx.fillStyle = "#050810";
-    ctx.font = "10px IBM Plex Mono, monospace";
+    ctx.font = "10px Inter, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(last.c.toFixed(2), W / 2, y + 3.5);
   }
@@ -794,7 +794,7 @@ class ChartEngine {
     ctx.fillStyle = bgColor;
     ctx.fillRect(tx, ty, tw, th);
     ctx.fillStyle = textColor === "#050810" ? "#050810" : colors.bg;
-    ctx.font = "10px IBM Plex Mono, monospace";
+    ctx.font = "10px Inter, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(label, tx + tw / 2, ty + 11.5);
     ctx.restore();
@@ -811,7 +811,7 @@ class ChartEngine {
     tCtx.fillStyle = colors.cross;
     tCtx.fillRect(x - tw / 2, 0, tw, this.panes.time.h);
     tCtx.fillStyle = colors.bg;
-    tCtx.font = "9px IBM Plex Mono, monospace";
+    tCtx.font = "9px Inter, sans-serif";
     tCtx.textAlign = "center";
     tCtx.fillText(label, x, 14);
     tCtx.restore();
@@ -847,7 +847,7 @@ class ChartEngine {
     ctx.fillStyle = col;
     ctx.fillRect(tx, ty, tw, th);
     ctx.fillStyle = "#050810";
-    ctx.font = "10px IBM Plex Mono, monospace";
+    ctx.font = "10px Inter, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(last.c.toFixed(2), tx + tw / 2, ty + 11.5);
 
