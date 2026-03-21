@@ -261,7 +261,7 @@ canvas.pricescale-canvas {
 #chart-indicators {
   top: 3rem;
   left: 1rem;
-  gap: 1rem;
+  gap: 0.5rem;
   z-index: 10;
   display: flex;
   font-size: 13px;
