@@ -94,8 +94,13 @@ class ChartEngine {
 
   // ── DOM SETUP ──────────────────────────────────────────────────────────────
   _grabCanvases() {
+    this.legendDiv = document.getElementById("chart-legend");
+
     this.cMain = document.getElementById("canvas-main");
+    this.ctxMain = this.cMain.getContext("2d");
+
     this.oMain = document.getElementById("overlay-main");
+    this.ctxOMain = this.oMain.getContext("2d");
 
     this.cScale = document.getElementById("canvas-pricescale");
     this.ctxScale = this.cScale.getContext("2d");
@@ -104,11 +109,6 @@ class ChartEngine {
     this.ctxDrawings = this.cDrawings.getContext("2d");
 
     this.cTime = document.getElementById("canvas-time");
-
-    this.ohlcDiv = document.getElementById("ohlc-display");
-
-    this.ctxMain = this.cMain.getContext("2d");
-    this.ctxOMain = this.oMain.getContext("2d");
     this.ctxTime = this.cTime.getContext("2d");
   }
 
@@ -362,8 +362,6 @@ class ChartEngine {
       def.render(ctx, p, this, values, priceMin, priceMax);
       ctx.restore();
     });
-
-
   }
 
   _drawGrid(ctx, W, H, cw, priceMin, priceMax, p) {
@@ -756,7 +754,14 @@ class ChartEngine {
       // Price label on scale
       const crossPrice =
         lo + ((hi - lo) * (pMain.h * 0.96 - localY)) / (pMain.h * 0.92);
-      this._drawPriceTag(ctx, crossPrice, localY, pMain, colors.cross, colors.textDim);
+      this._drawPriceTag(
+        ctx,
+        crossPrice,
+        localY,
+        pMain,
+        colors.cross,
+        colors.textDim,
+      );
     }
     ctx.setLineDash([]);
 
@@ -854,7 +859,7 @@ class ChartEngine {
     const chg = d.c - d.o;
     const pct = ((chg / d.o) * 100).toFixed(2);
     const col = bull ? "var(--bull)" : "var(--bear)";
-    this.ohlcDiv.innerHTML =
+    this.legendDiv.innerHTML =
       `<span class="ohlc-item"><span class="ohlc-label">O</span><span class="ohlc-val">${d.o.toFixed(2)}</span></span>` +
       `<span class="ohlc-item"><span class="ohlc-label">H</span><span class="ohlc-val">${d.h.toFixed(2)}</span></span>` +
       `<span class="ohlc-item"><span class="ohlc-label">L</span><span class="ohlc-val">${d.l.toFixed(2)}</span></span>` +
