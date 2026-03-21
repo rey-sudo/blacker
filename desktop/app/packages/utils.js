@@ -260,10 +260,9 @@ function resetZoom() { chart.resetZoom(); }
 
 
 
-const pencil = chart.addDrawingModule(PencilModule);
+const pencil = chart.addDrawingModule(StraightLineModule);
 
 pencil.setColor('#ff4060');  // opcional — default '#e8c842'
-pencil.setWidth(2);          // opcional — default 1.5
 
 //pencil.activate();   // empieza a dibujar
 

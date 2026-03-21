@@ -408,7 +408,7 @@ class ChartEngine {
     const xOf = (i) => this._xOf(i);
     const yOf = (price) => this._yOf(price, p, lo, hi);
     const indexAtX = (x) => this._indexAtX(x);
-    const priceAtY = (y) => lo + (1 - y / p.h) * (hi - lo);
+    const priceAtY = (y) => lo + ((hi - lo) * (p.h * 0.96 - y)) / (p.h * 0.92);
 
     this.ctxDrawings.clearRect(
       0,
@@ -463,7 +463,7 @@ class ChartEngine {
       xOf(i) {
         return engine._xOf(i);
       },
-      
+
       yOf(price) {
         const { lo, hi } = engine._visiblePriceRange();
         return engine._yOf(price, engine.panes.main, lo, hi);
@@ -471,9 +471,11 @@ class ChartEngine {
       indexAtX(x) {
         return engine._indexAtX(x);
       },
+
       priceAtY(y) {
         const { lo, hi } = engine._visiblePriceRange();
-        return lo + (1 - y / engine.panes.main.h) * (hi - lo);
+        const h = engine.panes.main.h;
+        return lo + ((hi - lo) * (h * 0.96 - y)) / (h * 0.92);
       },
 
       requestRedraw() {
@@ -498,7 +500,7 @@ class ChartEngine {
           const localX = e.clientX - p.x;
           const localY = e.clientY - p.y;
           const barIdx = engine._indexAtX(localX);
-          const price = lo + (1 - localY / p.h) * (hi - lo);
+          const price = lo + (hi - lo) * (p.h * 0.96 - localY) / (p.h * 0.92);
           fn({
             localX,
             localY,
@@ -715,7 +717,7 @@ class ChartEngine {
       ctx.lineTo(this.chartW, localY + 0.5);
       ctx.stroke();
       // Price label on scale
-      const crossPrice = lo + (1 - localY / pMain.h) * (hi - lo);
+      const crossPrice = lo + ((hi - lo) * (pMain.h * 0.96 - localY)) / (pMain.h * 0.92);
       this._drawPriceTag(ctx, crossPrice, localY, pMain, C.cross, C.textDim);
     }
     ctx.setLineDash([]);
