@@ -330,7 +330,7 @@ class ChartEngine {
     ctx.clearRect(0, 0, W, H);
 
     // Background
-    ctx.fillStyle = C.bg;
+    ctx.fillStyle = colors.bg;
     ctx.fillRect(0, 0, W, H);
 
     // Grid
@@ -363,16 +363,12 @@ class ChartEngine {
       ctx.restore();
     });
 
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(cw, 0);
-    ctx.lineTo(cw, H);
-    ctx.stroke();
+
   }
 
   _drawGrid(ctx, W, H, cw, priceMin, priceMax, p) {
     ctx.save();
-    ctx.strokeStyle = C.grid;
+    ctx.strokeStyle = colors.grid;
     ctx.lineWidth = 1;
 
     // Horizontal price grid lines
@@ -394,7 +390,7 @@ class ChartEngine {
     ) {
       if (this._isTimeGridLine(i, timeStep)) {
         const x = Math.round(this._xOf(i)) + 0.5;
-        ctx.strokeStyle = C.grid;
+        ctx.strokeStyle = colors.grid;
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, H);
@@ -421,7 +417,7 @@ class ChartEngine {
       const yH = this._yOf(d.h, p, priceMin, priceMax);
       const yL = this._yOf(d.l, p, priceMin, priceMax);
       const bull = d.c >= d.o;
-      const col = bull ? C.bull : C.bear;
+      const col = bull ? colors.bull : colors.bear;
 
       // Wick
       ctx.strokeStyle = col;
@@ -458,7 +454,7 @@ class ChartEngine {
 
   _drawLine(ctx, p, priceMin, priceMax) {
     ctx.save();
-    ctx.strokeStyle = C.line;
+    ctx.strokeStyle = colors.line;
     ctx.lineWidth = 1.5;
     ctx.lineJoin = "round";
     ctx.beginPath();
@@ -504,8 +500,8 @@ class ChartEngine {
       ctx.lineTo(firstX, baseY);
       ctx.closePath();
       const grad = ctx.createLinearGradient(0, 0, 0, p.h);
-      grad.addColorStop(0, C.area1);
-      grad.addColorStop(1, C.area2);
+      grad.addColorStop(0, colors.area1);
+      grad.addColorStop(1, colors.area2);
       ctx.fillStyle = grad;
       ctx.fill();
     }
@@ -520,12 +516,12 @@ class ChartEngine {
     const cw = this.chartW;
 
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = C.bg2;
+    ctx.fillStyle = colors.bg2;
     ctx.fillRect(0, 0, W, H);
 
     if (!this.data.length) return;
     const step = this._timeGridStep();
-    ctx.fillStyle = C.textDim;
+    ctx.fillStyle = colors.textDim;
     ctx.font = "9px IBM Plex Mono, monospace";
     ctx.textAlign = "center";
 
@@ -550,11 +546,11 @@ class ChartEngine {
     ctx.clearRect(0, 0, W, H);
 
     // Fondo
-    ctx.fillStyle = C.bg2;
+    ctx.fillStyle = colors.bg2;
     ctx.fillRect(0, 0, W, H);
 
     // Línea separadora izquierda
-    ctx.strokeStyle = C.grid;
+    ctx.strokeStyle = colors.grid;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0.5, 0);
@@ -563,7 +559,7 @@ class ChartEngine {
 
     // Labels en cada grid step
     const steps = this._nicePriceSteps(priceMin, priceMax, 6);
-    ctx.fillStyle = C.textDim;
+    ctx.fillStyle = colors.textDim;
     ctx.font = "10px IBM Plex Mono, monospace";
     ctx.textAlign = "right";
     steps.forEach((price) => {
@@ -576,7 +572,7 @@ class ChartEngine {
     const last = this.data[this.data.length - 1];
     const y = this._yOf(last.c, p, priceMin, priceMax);
     const bull = last.c >= last.o;
-    ctx.fillStyle = bull ? C.bull : C.bear;
+    ctx.fillStyle = bull ? colors.bull : colors.bear;
     ctx.fillRect(1, y - 8, W - 2, 16);
     ctx.fillStyle = "#050810";
     ctx.font = "10px IBM Plex Mono, monospace";
@@ -742,7 +738,7 @@ class ChartEngine {
     // Main pane crosshair
     const ctx = this.ctxOMain;
     ctx.save();
-    ctx.strokeStyle = C.cross;
+    ctx.strokeStyle = colors.cross;
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
 
@@ -760,7 +756,7 @@ class ChartEngine {
       // Price label on scale
       const crossPrice =
         lo + ((hi - lo) * (pMain.h * 0.96 - localY)) / (pMain.h * 0.92);
-      this._drawPriceTag(ctx, crossPrice, localY, pMain, C.cross, C.textDim);
+      this._drawPriceTag(ctx, crossPrice, localY, pMain, colors.cross, colors.textDim);
     }
     ctx.setLineDash([]);
 
@@ -768,7 +764,7 @@ class ChartEngine {
     const dotY = this._yOf(d.c, pMain, lo, hi);
     ctx.beginPath();
     ctx.arc(snapX - 0.5, dotY, 3, 0, Math.PI * 2);
-    ctx.fillStyle = C.crossPt;
+    ctx.fillStyle = colors.crossPt;
     ctx.fill();
     ctx.restore();
 
@@ -792,7 +788,7 @@ class ChartEngine {
     ctx.save();
     ctx.fillStyle = bgColor;
     ctx.fillRect(tx, ty, tw, th);
-    ctx.fillStyle = textColor === "#050810" ? "#050810" : C.bg;
+    ctx.fillStyle = textColor === "#050810" ? "#050810" : colors.bg;
     ctx.font = "10px IBM Plex Mono, monospace";
     ctx.textAlign = "center";
     ctx.fillText(label, tx + tw / 2, ty + 11.5);
@@ -807,9 +803,9 @@ class ChartEngine {
     const label = this._formatDateFull(d.t);
     const tw = 90;
     tCtx.save();
-    tCtx.fillStyle = C.cross;
+    tCtx.fillStyle = colors.cross;
     tCtx.fillRect(x - tw / 2, 0, tw, this.panes.time.h);
-    tCtx.fillStyle = C.bg;
+    tCtx.fillStyle = colors.bg;
     tCtx.font = "9px IBM Plex Mono, monospace";
     tCtx.textAlign = "center";
     tCtx.fillText(label, x, 14);
@@ -823,7 +819,7 @@ class ChartEngine {
 
     const y = this._yOf(last.c, pane, priceMin, priceMax);
     const bull = last.c >= last.o;
-    const col = bull ? C.bull : C.bear;
+    const col = bull ? colors.bull : colors.bear;
     const snapY = Math.round(y) + 0.5;
 
     ctx.save();
