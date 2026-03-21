@@ -16,7 +16,7 @@ const DEFAULT_BAR_W = 8;
 const SCROLL_ZOOM_FACTOR = 0.12;
 
 // ── COLOR PALETTE ─────────────────────────────────────────────────────────────
-const C = {
+const colors = {
   bg: "#050810",
   bg2: "#080d1a",
   bg3: "#0d1526",
