@@ -400,123 +400,6 @@ class ChartEngine {
     ctx.restore();
   }
 
-  _renderDrawingModules() {
-    const { lo, hi } = this._visiblePriceRange();
-    const p = this.panes.main;
-
-    // Funciones de conversión frescas para este frame
-    const xOf = (i) => this._xOf(i);
-    const yOf = (price) => this._yOf(price, p, lo, hi);
-    const indexAtX = (x) => this._indexAtX(x);
-    const priceAtY = (y) => lo + ((hi - lo) * (p.h * 0.96 - y)) / (p.h * 0.92);
-
-    this.ctxDrawings.clearRect(
-      0,
-      0,
-      this.cDrawings.width,
-      this.cDrawings.height,
-    );
-
-    this._drawingModules.forEach((handle) => {
-      if (!handle._render) return;
-      this.ctxDrawings.save();
-      handle._render({ lo, hi, xOf, yOf, indexAtX, priceAtY });
-      this.ctxDrawings.restore();
-    });
-  }
-
-  _buildDrawingApi() {
-    const engine = this;
-    const area = document.getElementById("chart-area");
-
-    return {
-      get canvas() {
-        return engine.cDrawings;
-      },
-      get ctx() {
-        return engine.ctxDrawings;
-      },
-      get viewStart() {
-        return engine.viewStart;
-      },
-      get viewEnd() {
-        return engine.viewEnd;
-      },
-      get barWidth() {
-        return engine.barWidth;
-      },
-      get chartW() {
-        return engine.chartW;
-      },
-      get data() {
-        return engine.data;
-      },
-      get pane() {
-        return engine.panes.main;
-      },
-      get bus() {
-        return engine._bus;
-      },
-
-      // Conversiones — siempre frescas, no capturadas al mount
-      // Después — directo
-      xOf(i) {
-        return engine._xOf(i);
-      },
-
-      yOf(price) {
-        const { lo, hi } = engine._visiblePriceRange();
-        return engine._yOf(price, engine.panes.main, lo, hi);
-      },
-      indexAtX(x) {
-        return engine._indexAtX(x);
-      },
-
-      priceAtY(y) {
-        const { lo, hi } = engine._visiblePriceRange();
-        const h = engine.panes.main.h;
-        return lo + ((hi - lo) * (h * 0.96 - y)) / (h * 0.92);
-      },
-
-      requestRedraw() {
-        engine.drawingsDirty = true;
-      },
-
-      claimPointer(v) {
-        engine._pointerClaimed = !!v;
-        document.getElementById("chart-area").style.cursor = v
-          ? "crosshair"
-          : "";
-      },
-
-      // Suscripción normalizada a eventos del chart area
-      // payload: { localX, localY, barIdx, price, button, original }
-      on(event, fn) {
-        const target = event === "mouseup" ? window : area;
-
-        const handler = (e) => {
-          const { lo, hi } = engine._visiblePriceRange();
-          const p = engine.panes.main;
-          const localX = e.clientX - p.x;
-          const localY = e.clientY - p.y;
-          const barIdx = engine._indexAtX(localX);
-          const price = lo + (hi - lo) * (p.h * 0.96 - localY) / (p.h * 0.92);
-          fn({
-            localX,
-            localY,
-            barIdx,
-            price,
-            button: e.button ?? 0,
-            original: e,
-          });
-        };
-
-        target.addEventListener(event, handler);
-        return () => target.removeEventListener(event, handler);
-      },
-    };
-  }
-
   _drawCandlesticks(ctx, p, priceMin, priceMax) {
     const bw = Math.max(1, this.barWidth - 1);
     const hw = Math.max(1, Math.floor(bw / 2));
@@ -660,6 +543,123 @@ class ChartEngine {
     // (kept as hook for extensions)
   }
 
+  _renderDrawingModules() {
+    const { lo, hi } = this._visiblePriceRange();
+    const p = this.panes.main;
+
+    // Funciones de conversión frescas para este frame
+    const xOf = (i) => this._xOf(i);
+    const yOf = (price) => this._yOf(price, p, lo, hi);
+    const indexAtX = (x) => this._indexAtX(x);
+    const priceAtY = (y) => lo + ((hi - lo) * (p.h * 0.96 - y)) / (p.h * 0.92);
+
+    this.ctxDrawings.clearRect(
+      0,
+      0,
+      this.cDrawings.width,
+      this.cDrawings.height,
+    );
+
+    this._drawingModules.forEach((handle) => {
+      if (!handle._render) return;
+      this.ctxDrawings.save();
+      handle._render({ lo, hi, xOf, yOf, indexAtX, priceAtY });
+      this.ctxDrawings.restore();
+    });
+  }
+
+  _buildDrawingApi() {
+    const engine = this;
+    const area = document.getElementById("chart-area");
+
+    return {
+      get canvas() {
+        return engine.cDrawings;
+      },
+      get ctx() {
+        return engine.ctxDrawings;
+      },
+      get viewStart() {
+        return engine.viewStart;
+      },
+      get viewEnd() {
+        return engine.viewEnd;
+      },
+      get barWidth() {
+        return engine.barWidth;
+      },
+      get chartW() {
+        return engine.chartW;
+      },
+      get data() {
+        return engine.data;
+      },
+      get pane() {
+        return engine.panes.main;
+      },
+      get bus() {
+        return engine._bus;
+      },
+
+      // Conversiones — siempre frescas, no capturadas al mount
+      // Después — directo
+      xOf(i) {
+        return engine._xOf(i);
+      },
+
+      yOf(price) {
+        const { lo, hi } = engine._visiblePriceRange();
+        return engine._yOf(price, engine.panes.main, lo, hi);
+      },
+      indexAtX(x) {
+        return engine._indexAtX(x);
+      },
+
+      priceAtY(y) {
+        const { lo, hi } = engine._visiblePriceRange();
+        const h = engine.panes.main.h;
+        return lo + ((hi - lo) * (h * 0.96 - y)) / (h * 0.92);
+      },
+
+      requestRedraw() {
+        engine.drawingsDirty = true;
+      },
+
+      claimPointer(v) {
+        engine._pointerClaimed = !!v;
+        document.getElementById("chart-area").style.cursor = v
+          ? "crosshair"
+          : "";
+      },
+
+      // Suscripción normalizada a eventos del chart area
+      // payload: { localX, localY, barIdx, price, button, original }
+      on(event, fn) {
+        const target = event === "mouseup" ? window : area;
+
+        const handler = (e) => {
+          const { lo, hi } = engine._visiblePriceRange();
+          const p = engine.panes.main;
+          const localX = e.clientX - p.x;
+          const localY = e.clientY - p.y;
+          const barIdx = engine._indexAtX(localX);
+          const price = lo + ((hi - lo) * (p.h * 0.96 - localY)) / (p.h * 0.92);
+          fn({
+            localX,
+            localY,
+            barIdx,
+            price,
+            button: e.button ?? 0,
+            original: e,
+          });
+        };
+
+        target.addEventListener(event, handler);
+        return () => target.removeEventListener(event, handler);
+      },
+    };
+  }
+
   // ── OVERLAY (crosshair) ───────────────────────────────────────────────────
   _renderOverlay() {
     this._clearOverlay(this.ctxOMain, this.panes.main);
@@ -717,7 +717,8 @@ class ChartEngine {
       ctx.lineTo(this.chartW, localY + 0.5);
       ctx.stroke();
       // Price label on scale
-      const crossPrice = lo + ((hi - lo) * (pMain.h * 0.96 - localY)) / (pMain.h * 0.92);
+      const crossPrice =
+        lo + ((hi - lo) * (pMain.h * 0.96 - localY)) / (pMain.h * 0.92);
       this._drawPriceTag(ctx, crossPrice, localY, pMain, C.cross, C.textDim);
     }
     ctx.setLineDash([]);
