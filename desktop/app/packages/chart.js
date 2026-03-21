@@ -73,6 +73,11 @@ class ChartEngine {
     this._liveMode = false; // true while receiving ticks
     this._prevClose = 0; // close of bar before current (for RSI tick)
 
+    this._drawingModules = new Map(); // Map<id, handle>
+    this._pointerClaimed = false;
+    this.drawingsDirty = false; // flag para el RAF loop
+    this._dmEventHandlers = {}; // listeners internos del engine hacia los módulos
+
     // Perf
     this.fps = 60;
     this._fpsFrames = 0;
@@ -91,6 +96,9 @@ class ChartEngine {
   _grabCanvases() {
     this.cMain = document.getElementById("canvas-main");
     this.oMain = document.getElementById("overlay-main");
+
+    this.cDrawings = document.getElementById("canvas-drawings");
+    this.ctxDrawings = this.cDrawings.getContext("2d");
 
     this.cTime = document.getElementById("canvas-time");
 
@@ -129,6 +137,7 @@ class ChartEngine {
     resetScale(this.oMain);
     setCanvas(this.oMain, pMain);
     resetScale(this.oMain);
+    setCanvas(this.cDrawings, pMain);
     setCanvas(this.cTime, tAxis);
 
     const mainR = pMain.getBoundingClientRect();
@@ -269,8 +278,15 @@ class ChartEngine {
       if (this.dirty) {
         this._render();
         this.dirty = false;
+        this.drawingsDirty = true;
         this.overlayDirty = true; // overlay needs redraw after data repaint
       }
+
+      if (this.drawingsDirty) {
+        this._renderDrawingModules();
+        this.drawingsDirty = false;
+      }
+
       if (this.overlayDirty) {
         this._renderOverlay();
         this.overlayDirty = false;
@@ -382,6 +398,121 @@ class ChartEngine {
       }
     }
     ctx.restore();
+  }
+
+  _renderDrawingModules() {
+    const { lo, hi } = this._visiblePriceRange();
+    const p = this.panes.main;
+
+    // Funciones de conversión frescas para este frame
+    const xOf = (i) => this._xOf(i);
+    const yOf = (price) => this._yOf(price, p, lo, hi);
+    const indexAtX = (x) => this._indexAtX(x);
+    const priceAtY = (y) => lo + (1 - y / p.h) * (hi - lo);
+
+    this.ctxDrawings.clearRect(
+      0,
+      0,
+      this.cDrawings.width,
+      this.cDrawings.height,
+    );
+
+    this._drawingModules.forEach((handle) => {
+      if (!handle._render) return;
+      this.ctxDrawings.save();
+      handle._render({ lo, hi, xOf, yOf, indexAtX, priceAtY });
+      this.ctxDrawings.restore();
+    });
+  }
+
+  _buildDrawingApi() {
+    const engine = this;
+    const area = document.getElementById("chart-area");
+
+    return {
+      get canvas() {
+        return engine.cDrawings;
+      },
+      get ctx() {
+        return engine.ctxDrawings;
+      },
+      get viewStart() {
+        return engine.viewStart;
+      },
+      get viewEnd() {
+        return engine.viewEnd;
+      },
+      get barWidth() {
+        return engine.barWidth;
+      },
+      get chartW() {
+        return engine.chartW;
+      },
+      get data() {
+        return engine.data;
+      },
+      get pane() {
+        return engine.panes.main;
+      },
+      get bus() {
+        return engine._bus;
+      },
+
+      // Conversiones — siempre frescas, no capturadas al mount
+      // Después — directo
+      xOf(i) {
+        return engine._xOf(i);
+      },
+      
+      yOf(price) {
+        const { lo, hi } = engine._visiblePriceRange();
+        return engine._yOf(price, engine.panes.main, lo, hi);
+      },
+      indexAtX(x) {
+        return engine._indexAtX(x);
+      },
+      priceAtY(y) {
+        const { lo, hi } = engine._visiblePriceRange();
+        return lo + (1 - y / engine.panes.main.h) * (hi - lo);
+      },
+
+      requestRedraw() {
+        engine.drawingsDirty = true;
+      },
+
+      claimPointer(v) {
+        engine._pointerClaimed = !!v;
+        document.getElementById("chart-area").style.cursor = v
+          ? "crosshair"
+          : "";
+      },
+
+      // Suscripción normalizada a eventos del chart area
+      // payload: { localX, localY, barIdx, price, button, original }
+      on(event, fn) {
+        const target = event === "mouseup" ? window : area;
+
+        const handler = (e) => {
+          const { lo, hi } = engine._visiblePriceRange();
+          const p = engine.panes.main;
+          const localX = e.clientX - p.x;
+          const localY = e.clientY - p.y;
+          const barIdx = engine._indexAtX(localX);
+          const price = lo + (1 - localY / p.h) * (hi - lo);
+          fn({
+            localX,
+            localY,
+            barIdx,
+            price,
+            button: e.button ?? 0,
+            original: e,
+          });
+        };
+
+        target.addEventListener(event, handler);
+        return () => target.removeEventListener(event, handler);
+      },
+    };
   }
 
   _drawCandlesticks(ctx, p, priceMin, priceMax) {
@@ -731,6 +862,7 @@ class ChartEngine {
 
     // Pan
     area.addEventListener("mousedown", (e) => {
+      if (this._pointerClaimed) return;
       this.isPanning = true;
       this.panOrigin = { x: e.clientX, viewStart: this.viewStart };
       area.style.cursor = "grabbing";
@@ -1114,4 +1246,38 @@ class ChartEngine {
     this._updateStatus();
   }
 
+  addDrawingModule(moduleDef) {
+    if (this._drawingModules.has(moduleDef.id)) {
+      this.removeDrawingModule(moduleDef.id);
+    }
+
+    const api = this._buildDrawingApi();
+    const result = moduleDef.mount(api); // módulo devuelve { render, destroy }
+
+    const handle = {
+      id: moduleDef.id,
+      module: moduleDef,
+      _render: result.render ?? null,
+      destroy: () => {
+        result.destroy?.();
+        this._drawingModules.delete(moduleDef.id);
+        this.drawingsDirty = true;
+      },
+      redraw: () => {
+        this.drawingsDirty = true;
+      },
+    };
+
+    Object.keys(result).forEach((k) => {
+      if (!["render", "destroy"].includes(k)) handle[k] = result[k];
+    });
+
+    this._drawingModules.set(moduleDef.id, handle);
+    this.drawingsDirty = true;
+    return handle;
+  }
+
+  removeDrawingModule(id) {
+    this._drawingModules.get(id)?.destroy();
+  }
 }
