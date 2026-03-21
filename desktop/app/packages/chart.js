@@ -39,10 +39,7 @@ const C = {
   crossPt:  '#3d7aff',
   vol:      'rgba(61,122,255,0.35)',
   volBull:  'rgba(0,200,122,0.35)',
-  volBear:  'rgba(255,64,96,0.35)',
-  rsi:      '#00d9a3',
-  rsiOB:    'rgba(255,64,96,0.15)',
-  rsiOS:    'rgba(0,200,122,0.15)',
+  volBear:  'rgba(255,64,96,0.35)'
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -84,11 +81,6 @@ function generateOHLC(bars = 800, seed = 42) {
   return data;
 }
 
-// ── INDICATORS ────────────────────────────────────────────────────────────────
-// calcMA, calcBB, and calcRSI are no longer global functions.
-// MA and BB live inside their addSeries() definitions (with incremental update hooks).
-// RSI lives inside ChartEngine._computeRSIFull() / _updateRSIIncremental().
-
 // ═══════════════════════════════════════════════════════════════════════════════
 //  CHART ENGINE
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -96,8 +88,6 @@ class ChartEngine {
   constructor() {
     // Data
     this.data       = [];
-    this.rsiData    = [];
-    this._rsiState  = { avgG: 0, avgL: 0, period: 14 }; // persisted for O(1) incremental updates
 
     // Series registry — populated via addSeries()
     // Map<id, { def, values, enabled }>
@@ -113,7 +103,6 @@ class ChartEngine {
     this.dirty      = true;
     this.overlayDirty = true;
     this.chartType  = 'candlestick';
-    this.showRSI    = false;
 
     // Interaction
     this.mouse      = { x: 0, y: 0, inside: false };
@@ -148,16 +137,12 @@ class ChartEngine {
     this.cMain   = document.getElementById('canvas-main');
     this.oMain   = document.getElementById('overlay-main');
 
-    this.cRsi    = document.getElementById('canvas-rsi');
-    this.oRsi    = document.getElementById('overlay-rsi');
     this.cTime   = document.getElementById('canvas-time');
     this.ohlcDiv = document.getElementById('ohlc-display');
 
     this.ctxMain  = this.cMain.getContext('2d');
     this.ctxOMain = this.oMain.getContext('2d');
 
-    this.ctxRsi   = this.cRsi.getContext('2d');
-    this.ctxORsi  = this.oRsi.getContext('2d');
     this.ctxTime  = this.cTime.getContext('2d');
   }
 
@@ -183,21 +168,16 @@ class ChartEngine {
     };
 
     const pMain = document.getElementById('pane-main');
-    const pRsi  = document.getElementById('pane-rsi');
     const tAxis = document.getElementById('time-axis');
 
     setCanvas(this.cMain,  pMain);  resetScale(this.oMain);
     setCanvas(this.oMain,  pMain);  resetScale(this.oMain);
-    setCanvas(this.cRsi,   pRsi);   resetScale(this.oRsi);
-    setCanvas(this.oRsi,   pRsi);   resetScale(this.oRsi);
     setCanvas(this.cTime,  tAxis);  
 
     const mainR = pMain.getBoundingClientRect();
-    const rsiR  = pRsi.getBoundingClientRect();
     const timeR = tAxis.getBoundingClientRect();
 
     this.panes.main = { x: mainR.left, y: mainR.top, w: mainR.width,  h: mainR.height,  canvas: this.cMain,  ctx: this.ctxMain,  oCtx: this.ctxOMain };
-    this.panes.rsi  = { x: rsiR.left,  y: rsiR.top,  w: rsiR.width,   h: rsiR.height,   canvas: this.cRsi,   ctx: this.ctxRsi,   oCtx: this.ctxORsi  };
     this.panes.time = { x: timeR.left, y: timeR.top, w: timeR.width,  h: timeR.height };
 
     this.chartW = mainR.width - PRICE_SCALE_W;
@@ -210,7 +190,7 @@ class ChartEngine {
   // ── DATA LOADING ──────────────────────────────────────────────────────────
   load(data) {
     this.data    = data;
-    this._computeRSIFull();
+    
     this._recomputeSeries();
 
     // Cache the close of the second-to-last bar (used by incremental RSI tick)
@@ -223,75 +203,6 @@ class ChartEngine {
     this.dirty = true;
     this._updateScrollThumb();
     this._updateStatus();
-  }
-
-  // Full O(n) RSI — stores running state for subsequent incremental updates
-  _computeRSIFull() {
-    const data   = this.data;
-    const period = this._rsiState.period;
-    const result = new Array(data.length).fill(null);
-    if (data.length < period + 1) { this.rsiData = result; return; }
-
-    let gains = 0, losses = 0;
-    for (let i = 1; i <= period; i++) {
-      const d = data[i].c - data[i - 1].c;
-      if (d > 0) gains += d; else losses -= d;
-    }
-    let avgG = gains / period, avgL = losses / period;
-    result[period] = 100 - 100 / (1 + avgG / (avgL || 1e-10));
-
-    for (let i = period + 1; i < data.length; i++) {
-      const d = data[i].c - data[i - 1].c;
-      avgG = (avgG * (period - 1) + Math.max(0,  d)) / period;
-      avgL = (avgL * (period - 1) + Math.max(0, -d)) / period;
-      result[i] = 100 - 100 / (1 + avgG / (avgL || 1e-10));
-    }
-
-    this.rsiData = result;
-    this._rsiState.avgG = avgG;
-    this._rsiState.avgL = avgL;
-  }
-
-  // Incremental RSI — O(1). Call after data[last] has been mutated or appended.
-  // isNewBar: true  → a new candle was pushed; extend rsiData by 1.
-  //           false → last candle ticked in place; recompute last rsiData slot only.
-  _updateRSIIncremental(isNewBar) {
-    const data   = this.data;
-    const period = this._rsiState.period;
-    const n      = data.length - 1; // index of the candle that changed
-
-    if (n < period) {
-      // Not enough history yet
-      if (isNewBar) this.rsiData.push(null);
-      return;
-    }
-
-    // The previous close for the delta depends on whether this is a new bar or a tick.
-    // For a new bar  : prev = data[n-1].c  (already committed before this call)
-    // For a same-bar tick: prev = this._prevClose (close of data[n-1], unchanged)
-    const prevClose = isNewBar ? data[n - 1].c : this._prevClose;
-    const delta     = data[n].c - prevClose;
-    const g         = Math.max(0,  delta);
-    const l         = Math.max(0, -delta);
-
-    let avgG, avgL;
-    if (isNewBar) {
-      // Wilder smoothing: advance the running averages
-      avgG = (this._rsiState.avgG * (period - 1) + g) / period;
-      avgL = (this._rsiState.avgL * (period - 1) + l) / period;
-      this._rsiState.avgG = avgG;
-      this._rsiState.avgL = avgL;
-      this.rsiData.push(100 - 100 / (1 + avgG / (avgL || 1e-10)));
-      // _prevClose now points to what was data[n-1] — i.e. the bar before the new one
-      this._prevClose = data[n - 1].c;
-    } else {
-      // Tick: recompute last slot using the *unchanged* smoothed averages from the
-      // previous confirmed bar (stored in _rsiState) and the current live delta.
-      avgG = (this._rsiState.avgG * (period - 1) + g) / period;
-      avgL = (this._rsiState.avgL * (period - 1) + l) / period;
-      this.rsiData[n] = 100 - 100 / (1 + avgG / (avgL || 1e-10));
-      // NOTE: _rsiState.avgG/L are NOT updated on ticks — only on confirmed new bars.
-    }
   }
 
   // Recompute values for all registered series (called on full load)
@@ -396,7 +307,6 @@ class ChartEngine {
     if (!this.data.length) return;
     const { lo, hi } = this._visiblePriceRange();
     this._renderMain(lo, hi);
-    if (this.showRSI) this._renderRSI();
     this._renderTimeAxis();
     this._renderPriceScale(lo, hi);
   }
@@ -571,63 +481,6 @@ class ChartEngine {
     ctx.restore();
   }
 
-  // ── RSI PANE ──────────────────────────────────────────────────────────────
-  _renderRSI() {
-    const p   = this.panes.rsi;
-    const ctx = p.ctx;
-    const W   = p.w; const H = p.h;
-    const cw  = this.chartW;
-
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = C.bg;
-    ctx.fillRect(0, 0, W, H);
-
-    const yOf = v => H - (v / 100) * H * 0.9 - H * 0.05;
-
-    // OB/OS zones
-    ctx.fillStyle = C.rsiOB;
-    const yOB = yOf(70);
-    ctx.fillRect(0, yOB, cw, yOf(100) - yOB);
-
-    ctx.fillStyle = C.rsiOS;
-    const yOS = yOf(30);
-    ctx.fillRect(0, yOS, cw, yOf(0) - yOS);
-
-    // Level lines
-    [30, 50, 70].forEach(lv => {
-      const y = Math.round(yOf(lv)) + 0.5;
-      ctx.strokeStyle = lv === 50 ? C.grid : 'rgba(255,64,96,0.25)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash(lv === 50 ? [] : [3,3]);
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cw, y); ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = C.textDim;
-      ctx.font = '9px IBM Plex Mono, monospace';
-      ctx.textAlign = 'right';
-      ctx.fillText(lv, cw + PRICE_SCALE_W - 8, y + 3);
-    });
-
-    // RSI line
-    ctx.strokeStyle = C.rsi;
-    ctx.lineWidth   = 1.2;
-    ctx.lineJoin    = 'round';
-    ctx.beginPath();
-    let started = false;
-    for (let i = this.viewStart; i < this.viewEnd && i < this.data.length; i++) {
-      if (this.rsiData[i] === null) continue;
-      const x = this._xOf(i);
-      const y = yOf(this.rsiData[i]);
-      if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-
-    ctx.fillStyle = C.bg2;
-    ctx.fillRect(cw, 0, PRICE_SCALE_W, H);
-    ctx.strokeStyle = C.grid;
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(cw, 0); ctx.lineTo(cw, H); ctx.stroke();
-  }
-
   // ── TIME AXIS ─────────────────────────────────────────────────────────────
   _renderTimeAxis() {
     const ctx = this.ctxTime;
@@ -662,7 +515,6 @@ class ChartEngine {
   // ── OVERLAY (crosshair) ───────────────────────────────────────────────────
   _renderOverlay() {
     this._clearOverlay(this.ctxOMain, this.panes.main);
-    if (this.showRSI) this._clearOverlay(this.ctxORsi, this.panes.rsi);
 
     if (!this.mouse.inside || !this.data.length) {
       // Still draw the live price line even without crosshair
@@ -720,18 +572,6 @@ class ChartEngine {
     ctx.fillStyle = C.crossPt;
     ctx.fill();
     ctx.restore();
-
-    // RSI crosshair
-    if (this.showRSI) {
-      const ctxR = this.ctxORsi;
-      ctxR.save();
-      ctxR.strokeStyle = C.cross;
-      ctxR.lineWidth = 1;
-      ctxR.setLineDash([4,4]);
-      ctxR.beginPath(); ctxR.moveTo(snapX, 0); ctxR.lineTo(snapX, this.panes.rsi.h); ctxR.stroke();
-      ctxR.setLineDash([]);
-      ctxR.restore();
-    }
 
     // Time label on axis
     this._drawTimeTag(barIdx);
@@ -1211,7 +1051,7 @@ class ChartEngine {
         c: candle.c,
         v: candle.v ?? 0
       });
-      this._updateRSIIncremental(true);
+
       this._updateSeriesIncremental(true);
 
       // Auto-advance viewport — slide by 1, keeping rightPadBars of empty space
@@ -1229,7 +1069,7 @@ class ChartEngine {
       if (candle.l != null) last.l = Math.min(last.l, candle.l);
       if (candle.c != null) last.c = candle.c;
       if (candle.v != null) last.v = candle.v;
-      this._updateRSIIncremental(false);
+
       this._updateSeriesIncremental(false);
     }
 
@@ -1341,10 +1181,6 @@ class ChartEngine {
   }
 
   togglePane(name) {
-    if (name === 'rsi') {
-      this.showRSI = !this.showRSI;
-      document.getElementById('pane-rsi').style.display = this.showRSI ? 'block' : 'none';
-    }
     this._resize();
     this.dirty = true;
   }
