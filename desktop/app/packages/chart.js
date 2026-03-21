@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 // ═══════════════════════════════════════════════════════════════════════════════
 //  FinChart — Lightweight Financial Charting Engine v1.0 LICENSE GNU GPLV3
 //  Architecture:
@@ -10,35 +10,35 @@
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const PRICE_SCALE_W = 72;
-const MIN_BAR_W     = 1;
-const MAX_BAR_W     = 40;
+const MIN_BAR_W = 1;
+const MAX_BAR_W = 40;
 const DEFAULT_BAR_W = 8;
 const SCROLL_ZOOM_FACTOR = 0.12;
 
 // ── COLOR PALETTE ─────────────────────────────────────────────────────────────
 const C = {
-  bg:       '#050810',
-  bg2:      '#080d1a',
-  bg3:      '#0d1526',
-  grid:     'rgba(26,37,64,0.9)',
-  gridAlt:  'rgba(26,37,64,0.4)',
-  text:     '#c8d4e8',
-  textDim:  '#4a5a7a',
-  bull:     '#00c87a',
-  bear:     '#ff4060',
-  bullDim:  'rgba(0,200,122,0.15)',
-  bearDim:  'rgba(255,64,96,0.15)',
-  line:     '#3d7aff',
-  area1:    'rgba(61,122,255,0.25)',
-  area2:    'rgba(61,122,255,0.0)',
-  ma:       '#ffb830',
-  bb:       '#a855f7',
-  bbFill:   'rgba(168,85,247,0.07)',
-  cross:    'rgba(200,212,232,0.3)',
-  crossPt:  '#3d7aff',
-  vol:      'rgba(61,122,255,0.35)',
-  volBull:  'rgba(0,200,122,0.35)',
-  volBear:  'rgba(255,64,96,0.35)'
+  bg: "#050810",
+  bg2: "#080d1a",
+  bg3: "#0d1526",
+  grid: "rgba(26,37,64,0.9)",
+  gridAlt: "rgba(26,37,64,0.4)",
+  text: "#c8d4e8",
+  textDim: "#4a5a7a",
+  bull: "#00c87a",
+  bear: "#ff4060",
+  bullDim: "rgba(0,200,122,0.15)",
+  bearDim: "rgba(255,64,96,0.15)",
+  line: "#3d7aff",
+  area1: "rgba(61,122,255,0.25)",
+  area2: "rgba(61,122,255,0.0)",
+  ma: "#ffb830",
+  bb: "#a855f7",
+  bbFill: "rgba(168,85,247,0.07)",
+  cross: "rgba(200,212,232,0.3)",
+  crossPt: "#3d7aff",
+  vol: "rgba(61,122,255,0.35)",
+  volBull: "rgba(0,200,122,0.35)",
+  volBear: "rgba(255,64,96,0.35)",
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -47,44 +47,39 @@ const C = {
 class ChartEngine {
   constructor() {
     // Data
-    this.data       = [];
+    this.data = [];
 
     // Series registry — populated via addSeries()
     // Map<id, { def, values, enabled }>
-    this._series    = new Map();
+    this._series = new Map();
 
     // Viewport (virtual scroll)
-    this.barWidth    = DEFAULT_BAR_W;
-    this.rightPadBars = 20;         // empty bar-slots kept to the right of the last candle
-    this.viewStart   = 0;   // first visible bar index
-    this.viewEnd     = 0;   // last  visible bar index  (exclusive; may exceed data.length)
+    this.barWidth = DEFAULT_BAR_W;
+    this.rightPadBars = 20; // empty bar-slots kept to the right of the last candle
+    this.viewStart = 0; // first visible bar index
+    this.viewEnd = 0; // last  visible bar index  (exclusive; may exceed data.length)
 
     // Render state
-    this.dirty      = true;
+    this.dirty = true;
     this.overlayDirty = true;
-    this.chartType  = 'candlestick';
+    this.chartType = "candlestick";
 
     // Interaction
-    this.mouse      = { x: 0, y: 0, inside: false };
-    this.isPanning  = false;
-    this.panOrigin  = { x: 0, viewStart: 0 };
-    this.activeTool = 'cursor';
-
-    // Drawings
-    this.drawings   = [];
-    this.drawInProgress = null;
+    this.mouse = { x: 0, y: 0, inside: false };
+    this.isPanning = false;
+    this.panOrigin = { x: 0, viewStart: 0 };
 
     // Live update state
-    this._liveMode   = false;   // true while receiving ticks
-    this._prevClose  = 0;       // close of bar before current (for RSI tick)
+    this._liveMode = false; // true while receiving ticks
+    this._prevClose = 0; // close of bar before current (for RSI tick)
 
     // Perf
-    this.fps        = 60;
+    this.fps = 60;
     this._fpsFrames = 0;
-    this._fpsTime   = performance.now();
+    this._fpsTime = performance.now();
 
     // Panes geometry (computed in resize)
-    this.panes      = {};
+    this.panes = {};
 
     this._grabCanvases();
     this._resize();
@@ -94,16 +89,16 @@ class ChartEngine {
 
   // ── DOM SETUP ──────────────────────────────────────────────────────────────
   _grabCanvases() {
-    this.cMain   = document.getElementById('canvas-main');
-    this.oMain   = document.getElementById('overlay-main');
+    this.cMain = document.getElementById("canvas-main");
+    this.oMain = document.getElementById("overlay-main");
 
-    this.cTime   = document.getElementById('canvas-time');
+    this.cTime = document.getElementById("canvas-time");
 
-    this.ohlcDiv = document.getElementById('ohlc-display');
+    this.ohlcDiv = document.getElementById("ohlc-display");
 
-    this.ctxMain  = this.cMain.getContext('2d');
-    this.ctxOMain = this.oMain.getContext('2d');
-    this.ctxTime  = this.cTime.getContext('2d');
+    this.ctxMain = this.cMain.getContext("2d");
+    this.ctxOMain = this.oMain.getContext("2d");
+    this.ctxTime = this.cTime.getContext("2d");
   }
 
   _resize() {
@@ -111,34 +106,49 @@ class ChartEngine {
 
     const setCanvas = (canvas, container) => {
       const r = container.getBoundingClientRect();
-      canvas.width  = r.width  * dpr;
+      canvas.width = r.width * dpr;
       canvas.height = r.height * dpr;
-      canvas.style.width  = r.width  + 'px';
-      canvas.style.height = r.height + 'px';
-      const ctx = canvas.getContext('2d');
+      canvas.style.width = r.width + "px";
+      canvas.style.height = r.height + "px";
+      const ctx = canvas.getContext("2d");
       ctx.scale(dpr, dpr);
       return { w: r.width, h: r.height };
     };
 
     const dpr2 = window.devicePixelRatio || 1;
     const resetScale = (canvas) => {
-      const ctx = canvas.getContext('2d');
-      ctx.setTransform(1,0,0,1,0,0);
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr2, dpr2);
     };
 
-    const pMain = document.getElementById('pane-main');
-    const tAxis = document.getElementById('time-axis');
+    const pMain = document.getElementById("pane-main");
+    const tAxis = document.getElementById("time-axis");
 
-    setCanvas(this.cMain,  pMain);  resetScale(this.oMain);
-    setCanvas(this.oMain,  pMain);  resetScale(this.oMain);
-    setCanvas(this.cTime,  tAxis);  
+    setCanvas(this.cMain, pMain);
+    resetScale(this.oMain);
+    setCanvas(this.oMain, pMain);
+    resetScale(this.oMain);
+    setCanvas(this.cTime, tAxis);
 
     const mainR = pMain.getBoundingClientRect();
     const timeR = tAxis.getBoundingClientRect();
 
-    this.panes.main = { x: mainR.left, y: mainR.top, w: mainR.width,  h: mainR.height,  canvas: this.cMain,  ctx: this.ctxMain,  oCtx: this.ctxOMain };
-    this.panes.time = { x: timeR.left, y: timeR.top, w: timeR.width,  h: timeR.height };
+    this.panes.main = {
+      x: mainR.left,
+      y: mainR.top,
+      w: mainR.width,
+      h: mainR.height,
+      canvas: this.cMain,
+      ctx: this.ctxMain,
+      oCtx: this.ctxOMain,
+    };
+    this.panes.time = {
+      x: timeR.left,
+      y: timeR.top,
+      w: timeR.width,
+      h: timeR.height,
+    };
 
     this.chartW = mainR.width - PRICE_SCALE_W;
     this.dirty = true;
@@ -149,17 +159,18 @@ class ChartEngine {
 
   // ── DATA LOADING ──────────────────────────────────────────────────────────
   load(data) {
-    this.data    = data;
-    
+    this.data = data;
+
     this._recomputeSeries();
 
     // Cache the close of the second-to-last bar (used by incremental RSI tick)
-    this._prevClose = data.length >= 2 ? data[data.length - 2].c : (data[0]?.c ?? 0);
+    this._prevClose =
+      data.length >= 2 ? data[data.length - 2].c : (data[0]?.c ?? 0);
 
     // Start at the right end — leave rightPadBars of empty space after the last candle
-    const capacity  = Math.floor(this.chartW / this.barWidth);
-    this.viewEnd    = data.length + this.rightPadBars;
-    this.viewStart  = Math.max(0, this.viewEnd - capacity);
+    const capacity = Math.floor(this.chartW / this.barWidth);
+    this.viewEnd = data.length + this.rightPadBars;
+    this.viewStart = Math.max(0, this.viewEnd - capacity);
     this.dirty = true;
     this._updateScrollThumb();
     this._updateStatus();
@@ -167,7 +178,7 @@ class ChartEngine {
 
   // Recompute values for all registered series (called on full load)
   _recomputeSeries() {
-    this._series.forEach(entry => {
+    this._series.forEach((entry) => {
       entry.values = entry.def.compute(this.data);
     });
   }
@@ -175,7 +186,7 @@ class ChartEngine {
   // Incremental series update — O(period) per series, not O(n).
   // Falls back to full compute() if the series has no updateIncremental hook.
   _updateSeriesIncremental(isNewBar) {
-    this._series.forEach(entry => {
+    this._series.forEach((entry) => {
       if (entry.def.updateIncremental) {
         entry.def.updateIncremental(entry.values, this.data, isNewBar);
       } else {
@@ -188,13 +199,15 @@ class ChartEngine {
   // ── VIEWPORT HELPERS ──────────────────────────────────────────────────────
   _clampView() {
     if (!this.data.length) return;
-    const capacity   = Math.floor(this.chartW / this.barWidth);
+    const capacity = Math.floor(this.chartW / this.barWidth);
     const maxViewEnd = this.data.length + this.rightPadBars;
-    this.viewEnd     = Math.min(Math.max(this.viewEnd, 1), maxViewEnd);
-    this.viewStart   = Math.max(0, this.viewEnd - capacity);
+    this.viewEnd = Math.min(Math.max(this.viewEnd, 1), maxViewEnd);
+    this.viewStart = Math.max(0, this.viewEnd - capacity);
   }
 
-  _barsVisible() { return this.viewEnd - this.viewStart; }
+  _barsVisible() {
+    return this.viewEnd - this.viewStart;
+  }
 
   // Data index → X pixel in chart area
   _xOf(i) {
@@ -209,12 +222,15 @@ class ChartEngine {
   // Price → Y pixel in a pane
   _yOf(price, pane, priceMin, priceMax) {
     const range = priceMax - priceMin || 1;
-    return pane.h - ((price - priceMin) / range) * pane.h * 0.92 - pane.h * 0.04;
+    return (
+      pane.h - ((price - priceMin) / range) * pane.h * 0.92 - pane.h * 0.04
+    );
   }
 
   // ── PRICE RANGE ──────────────────────────────────────────────────────────
   _visiblePriceRange() {
-    let lo = Infinity, hi = -Infinity;
+    let lo = Infinity,
+      hi = -Infinity;
     const vs = Math.max(0, this.viewStart);
     const ve = Math.min(this.data.length, this.viewEnd);
     for (let i = vs; i < ve; i++) {
@@ -225,7 +241,10 @@ class ChartEngine {
     this._series.forEach(({ def, values, enabled }) => {
       if (!enabled || !def.priceExtent) return;
       const ext = def.priceExtent(values, vs, ve);
-      if (ext) { lo = Math.min(lo, ext[0]); hi = Math.max(hi, ext[1]); }
+      if (ext) {
+        lo = Math.min(lo, ext[0]);
+        hi = Math.max(hi, ext[1]);
+      }
     });
     // Add padding
     const pad = (hi - lo) * 0.06;
@@ -243,8 +262,8 @@ class ChartEngine {
       if (now - this._fpsTime >= 800) {
         this.fps = Math.round(this._fpsFrames / ((now - this._fpsTime) / 1000));
         this._fpsFrames = 0;
-        this._fpsTime   = now;
-        document.getElementById('status-fps').textContent = this.fps + ' FPS';
+        this._fpsTime = now;
+        document.getElementById("status-fps").textContent = this.fps + " FPS";
       }
 
       if (this.dirty) {
@@ -273,11 +292,11 @@ class ChartEngine {
 
   // ── MAIN PANE ─────────────────────────────────────────────────────────────
   _renderMain(priceMin, priceMax) {
-    const p   = this.panes.main;
+    const p = this.panes.main;
     const ctx = p.ctx;
-    const W   = p.w;
-    const H   = p.h;
-    const cw  = this.chartW;
+    const W = p.w;
+    const H = p.h;
+    const cw = this.chartW;
 
     ctx.clearRect(0, 0, W, H);
 
@@ -290,47 +309,50 @@ class ChartEngine {
 
     // ── Custom series (behind candles): fill-type series like BB render here
     this._series.forEach(({ def, values, enabled }) => {
-      if (!enabled || def.layer !== 'background') return;
+      if (!enabled || def.layer !== "background") return;
       ctx.save();
       def.render(ctx, p, this, values, priceMin, priceMax);
       ctx.restore();
     });
 
     // Area fill (below close)
-    if (this.chartType === 'area') this._drawArea(ctx, p, priceMin, priceMax);
+    if (this.chartType === "area") this._drawArea(ctx, p, priceMin, priceMax);
 
     // Candles / line
-    if (this.chartType === 'candlestick')  this._drawCandlesticks(ctx, p, priceMin, priceMax);
-    else if (this.chartType === 'line')    this._drawLine(ctx, p, priceMin, priceMax);
-    else if (this.chartType === 'area')    this._drawLine(ctx, p, priceMin, priceMax);
+    if (this.chartType === "candlestick")
+      this._drawCandlesticks(ctx, p, priceMin, priceMax);
+    else if (this.chartType === "line")
+      this._drawLine(ctx, p, priceMin, priceMax);
+    else if (this.chartType === "area")
+      this._drawLine(ctx, p, priceMin, priceMax);
 
     // ── Custom series (foreground): line-type series like MA render here — above candles
     this._series.forEach(({ def, values, enabled }) => {
-      if (!enabled || def.layer === 'background') return;
+      if (!enabled || def.layer === "background") return;
       ctx.save();
       def.render(ctx, p, this, values, priceMin, priceMax);
       ctx.restore();
     });
-
-    // Drawings
-    this._renderDrawings(ctx, p, priceMin, priceMax);
 
     // Price scale border
     ctx.fillStyle = C.bg2;
     ctx.fillRect(cw, 0, PRICE_SCALE_W, H);
     ctx.strokeStyle = C.grid;
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(cw, 0); ctx.lineTo(cw, H); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cw, 0);
+    ctx.lineTo(cw, H);
+    ctx.stroke();
   }
 
   _drawGrid(ctx, W, H, cw, priceMin, priceMax, p) {
     ctx.save();
     ctx.strokeStyle = C.grid;
-    ctx.lineWidth   = 1;
+    ctx.lineWidth = 1;
 
     // Horizontal price grid lines
-    const steps  = this._nicePriceSteps(priceMin, priceMax, 6);
-    steps.forEach(price => {
+    const steps = this._nicePriceSteps(priceMin, priceMax, 6);
+    steps.forEach((price) => {
       const y = Math.round(this._yOf(price, p, priceMin, priceMax)) + 0.5;
       ctx.beginPath();
       ctx.moveTo(0, y);
@@ -338,41 +360,52 @@ class ChartEngine {
       ctx.stroke();
       // Label
       ctx.fillStyle = C.textDim;
-      ctx.font = '10px IBM Plex Mono, monospace';
-      ctx.textAlign = 'right';
+      ctx.font = "10px IBM Plex Mono, monospace";
+      ctx.textAlign = "right";
       ctx.fillText(price.toFixed(2), cw + PRICE_SCALE_W - 8, y + 3.5);
     });
 
     // Vertical time grid lines
     const timeStep = this._timeGridStep();
-    for (let i = this.viewStart; i < this.viewEnd && i < this.data.length; i++) {
+    for (
+      let i = this.viewStart;
+      i < this.viewEnd && i < this.data.length;
+      i++
+    ) {
       if (this._isTimeGridLine(i, timeStep)) {
         const x = Math.round(this._xOf(i)) + 0.5;
         ctx.strokeStyle = C.grid;
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
       }
     }
     ctx.restore();
   }
 
   _drawCandlesticks(ctx, p, priceMin, priceMax) {
-    const bw  = Math.max(1, this.barWidth - 1);
-    const hw  = Math.max(1, Math.floor(bw / 2));
+    const bw = Math.max(1, this.barWidth - 1);
+    const hw = Math.max(1, Math.floor(bw / 2));
 
     ctx.save();
-    for (let i = this.viewStart; i < this.viewEnd && i < this.data.length; i++) {
-      const d    = this.data[i];
-      const x    = Math.round(this._xOf(i));
-      const yO   = this._yOf(d.o, p, priceMin, priceMax);
-      const yC   = this._yOf(d.c, p, priceMin, priceMax);
-      const yH   = this._yOf(d.h, p, priceMin, priceMax);
-      const yL   = this._yOf(d.l, p, priceMin, priceMax);
+    for (
+      let i = this.viewStart;
+      i < this.viewEnd && i < this.data.length;
+      i++
+    ) {
+      const d = this.data[i];
+      const x = Math.round(this._xOf(i));
+      const yO = this._yOf(d.o, p, priceMin, priceMax);
+      const yC = this._yOf(d.c, p, priceMin, priceMax);
+      const yH = this._yOf(d.h, p, priceMin, priceMax);
+      const yL = this._yOf(d.l, p, priceMin, priceMax);
       const bull = d.c >= d.o;
-      const col  = bull ? C.bull : C.bear;
+      const col = bull ? C.bull : C.bear;
 
       // Wick
       ctx.strokeStyle = col;
-      ctx.lineWidth   = 1;
+      ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(x + 0.5, yH);
       ctx.lineTo(x + 0.5, yL);
@@ -380,19 +413,24 @@ class ChartEngine {
 
       // Body
       const bodyTop = Math.min(yO, yC);
-      const bodyH   = Math.max(1, Math.abs(yC - yO));
+      const bodyH = Math.max(1, Math.abs(yC - yO));
       if (bw >= 2) {
         ctx.fillStyle = col;
         ctx.fillRect(x - hw + 1, bodyTop, bw - 1, bodyH);
         // Inner glow on large candles
         if (bw >= 5 && bodyH > 2) {
-          ctx.fillStyle = bull ? 'rgba(0,200,122,0.25)' : 'rgba(255,64,96,0.25)';
+          ctx.fillStyle = bull
+            ? "rgba(0,200,122,0.25)"
+            : "rgba(255,64,96,0.25)";
           ctx.fillRect(x - hw + 2, bodyTop + 1, bw - 3, bodyH - 2);
         }
       } else {
         ctx.strokeStyle = col;
         ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(x, bodyTop); ctx.lineTo(x, bodyTop + bodyH); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, bodyTop);
+        ctx.lineTo(x, bodyTop + bodyH);
+        ctx.stroke();
       }
     }
     ctx.restore();
@@ -401,15 +439,21 @@ class ChartEngine {
   _drawLine(ctx, p, priceMin, priceMax) {
     ctx.save();
     ctx.strokeStyle = C.line;
-    ctx.lineWidth   = 1.5;
-    ctx.lineJoin    = 'round';
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = "round";
     ctx.beginPath();
     let started = false;
-    for (let i = this.viewStart; i < this.viewEnd && i < this.data.length; i++) {
+    for (
+      let i = this.viewStart;
+      i < this.viewEnd && i < this.data.length;
+      i++
+    ) {
       const x = this._xOf(i);
       const y = this._yOf(this.data[i].c, p, priceMin, priceMax);
-      if (!started) { ctx.moveTo(x, y); started = true; }
-      else ctx.lineTo(x, y);
+      if (!started) {
+        ctx.moveTo(x, y);
+        started = true;
+      } else ctx.lineTo(x, y);
     }
     ctx.stroke();
     ctx.restore();
@@ -421,11 +465,18 @@ class ChartEngine {
     ctx.beginPath();
     let started = false;
     let firstX, lastX;
-    for (let i = this.viewStart; i < this.viewEnd && i < this.data.length; i++) {
+    for (
+      let i = this.viewStart;
+      i < this.viewEnd && i < this.data.length;
+      i++
+    ) {
       const x = this._xOf(i);
       const y = this._yOf(this.data[i].c, p, priceMin, priceMax);
-      if (!started) { ctx.moveTo(x, y); firstX = x; started = true; }
-      else ctx.lineTo(x, y);
+      if (!started) {
+        ctx.moveTo(x, y);
+        firstX = x;
+        started = true;
+      } else ctx.lineTo(x, y);
       lastX = x;
     }
     if (started) {
@@ -444,9 +495,9 @@ class ChartEngine {
   // ── TIME AXIS ─────────────────────────────────────────────────────────────
   _renderTimeAxis() {
     const ctx = this.ctxTime;
-    const W   = this.panes.time.w;
-    const H   = this.panes.time.h;
-    const cw  = this.chartW;
+    const W = this.panes.time.w;
+    const H = this.panes.time.h;
+    const cw = this.chartW;
 
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = C.bg2;
@@ -455,10 +506,14 @@ class ChartEngine {
     if (!this.data.length) return;
     const step = this._timeGridStep();
     ctx.fillStyle = C.textDim;
-    ctx.font = '9px IBM Plex Mono, monospace';
-    ctx.textAlign = 'center';
+    ctx.font = "9px IBM Plex Mono, monospace";
+    ctx.textAlign = "center";
 
-    for (let i = this.viewStart; i < this.viewEnd && i < this.data.length; i++) {
+    for (
+      let i = this.viewStart;
+      i < this.viewEnd && i < this.data.length;
+      i++
+    ) {
       if (!this._isTimeGridLine(i, step)) continue;
       const x = this._xOf(i);
       if (x < 16 || x > cw - 16) continue;
@@ -485,8 +540,8 @@ class ChartEngine {
       return;
     }
 
-    const mx    = this.mouse.x;
-    const my    = this.mouse.y;
+    const mx = this.mouse.x;
+    const my = this.mouse.y;
     const pMain = this.panes.main;
 
     // Determine which pane mouse is in
@@ -494,8 +549,11 @@ class ChartEngine {
 
     // Bar index under cursor
     const localX = mx - pMain.x;
-    const barIdx = Math.max(this.viewStart, Math.min(this.viewEnd - 1, this._indexAtX(localX)));
-    const d      = this.data[barIdx]; // may be undefined in right-padding zone
+    const barIdx = Math.max(
+      this.viewStart,
+      Math.min(this.viewEnd - 1, this._indexAtX(localX)),
+    );
+    const d = this.data[barIdx]; // may be undefined in right-padding zone
 
     const { lo, hi } = this._visiblePriceRange();
 
@@ -511,16 +569,22 @@ class ChartEngine {
     const ctx = this.ctxOMain;
     ctx.save();
     ctx.strokeStyle = C.cross;
-    ctx.lineWidth   = 1;
+    ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
 
-    ctx.beginPath(); ctx.moveTo(snapX, 0); ctx.lineTo(snapX, pMain.h); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(snapX, 0);
+    ctx.lineTo(snapX, pMain.h);
+    ctx.stroke();
 
     if (inMain) {
       const localY = my - pMain.y;
-      ctx.beginPath(); ctx.moveTo(0, localY + 0.5); ctx.lineTo(this.chartW, localY + 0.5); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(0, localY + 0.5);
+      ctx.lineTo(this.chartW, localY + 0.5);
+      ctx.stroke();
       // Price label on scale
-      const crossPrice = lo + (1 - (localY / pMain.h)) * (hi - lo);
+      const crossPrice = lo + (1 - localY / pMain.h) * (hi - lo);
       this._drawPriceTag(ctx, crossPrice, localY, pMain, C.cross, C.textDim);
     }
     ctx.setLineDash([]);
@@ -546,33 +610,33 @@ class ChartEngine {
 
   _drawPriceTag(ctx, price, y, pane, bgColor, textColor) {
     const label = price.toFixed(2);
-    const tw    = 58;
-    const th    = 16;
-    const tx    = this.chartW + 1;
-    const ty    = y - th / 2;
+    const tw = 58;
+    const th = 16;
+    const tx = this.chartW + 1;
+    const ty = y - th / 2;
     ctx.save();
     ctx.fillStyle = bgColor;
     ctx.fillRect(tx, ty, tw, th);
-    ctx.fillStyle = textColor === '#050810' ? '#050810' : C.bg;
-    ctx.font      = '10px IBM Plex Mono, monospace';
-    ctx.textAlign = 'center';
+    ctx.fillStyle = textColor === "#050810" ? "#050810" : C.bg;
+    ctx.font = "10px IBM Plex Mono, monospace";
+    ctx.textAlign = "center";
     ctx.fillText(label, tx + tw / 2, ty + 11.5);
     ctx.restore();
   }
 
   _drawTimeTag(idx) {
     const tCtx = this.ctxTime;
-    const d    = this.data[idx];
+    const d = this.data[idx];
     if (!d) return;
-    const x  = this._xOf(idx);
+    const x = this._xOf(idx);
     const label = this._formatDateFull(d.t);
-    const tw  = 90;
+    const tw = 90;
     tCtx.save();
     tCtx.fillStyle = C.cross;
     tCtx.fillRect(x - tw / 2, 0, tw, this.panes.time.h);
     tCtx.fillStyle = C.bg;
-    tCtx.font = '9px IBM Plex Mono, monospace';
-    tCtx.textAlign = 'center';
+    tCtx.font = "9px IBM Plex Mono, monospace";
+    tCtx.textAlign = "center";
     tCtx.fillText(label, x, 14);
     tCtx.restore();
   }
@@ -582,16 +646,16 @@ class ChartEngine {
     const last = this.data[this.data.length - 1];
     if (!last) return;
 
-    const y    = this._yOf(last.c, pane, priceMin, priceMax);
+    const y = this._yOf(last.c, pane, priceMin, priceMax);
     const bull = last.c >= last.o;
-    const col  = bull ? C.bull : C.bear;
+    const col = bull ? C.bull : C.bear;
     const snapY = Math.round(y) + 0.5;
 
     ctx.save();
 
     // Dashed horizontal line across the chart area
-    ctx.strokeStyle = bull ? 'rgba(0,200,122,0.55)' : 'rgba(255,64,96,0.55)';
-    ctx.lineWidth   = 1;
+    ctx.strokeStyle = bull ? "rgba(0,200,122,0.55)" : "rgba(255,64,96,0.55)";
+    ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
     ctx.moveTo(0, snapY);
@@ -600,358 +664,333 @@ class ChartEngine {
     ctx.setLineDash([]);
 
     // Solid price tag on the scale
-    const tw = 58, th = 16;
+    const tw = 58,
+      th = 16;
     const tx = this.chartW + 1;
     const ty = snapY - th / 2;
     ctx.fillStyle = col;
     ctx.fillRect(tx, ty, tw, th);
-    ctx.fillStyle = '#050810';
-    ctx.font = '10px IBM Plex Mono, monospace';
-    ctx.textAlign = 'center';
+    ctx.fillStyle = "#050810";
+    ctx.font = "10px IBM Plex Mono, monospace";
+    ctx.textAlign = "center";
     ctx.fillText(last.c.toFixed(2), tx + tw / 2, ty + 11.5);
 
     ctx.restore();
   }
 
-
   _updateOHLCDisplay(d, i) {
     const bull = d.c >= d.o;
-    const chg  = d.c - d.o;
-    const pct  = (chg / d.o * 100).toFixed(2);
-    const col  = bull ? 'var(--bull)' : 'var(--bear)';
+    const chg = d.c - d.o;
+    const pct = ((chg / d.o) * 100).toFixed(2);
+    const col = bull ? "var(--bull)" : "var(--bear)";
     this.ohlcDiv.innerHTML =
       `<span class="ohlc-item"><span class="ohlc-label">O</span><span class="ohlc-val">${d.o.toFixed(2)}</span></span>` +
       `<span class="ohlc-item"><span class="ohlc-label">H</span><span class="ohlc-val">${d.h.toFixed(2)}</span></span>` +
       `<span class="ohlc-item"><span class="ohlc-label">L</span><span class="ohlc-val">${d.l.toFixed(2)}</span></span>` +
       `<span class="ohlc-item"><span class="ohlc-label">C</span><span class="ohlc-val" style="color:${col}">${d.c.toFixed(2)}</span></span>` +
-      `<span class="ohlc-item" style="color:${col}">${bull?'+':''}${chg.toFixed(2)} (${bull?'+':''}${pct}%)</span>`;
-  }
-
-  // ── DRAWING TOOLS ─────────────────────────────────────────────────────────
-  _renderDrawings(ctx, pane, priceMin, priceMax) {
-    const allDrawings = [...this.drawings];
-    if (this.drawInProgress) allDrawings.push(this.drawInProgress);
-
-    allDrawings.forEach(dr => {
-      ctx.save();
-      ctx.strokeStyle = '#e8c842';
-      ctx.lineWidth   = 1.2;
-      ctx.fillStyle   = 'rgba(232,200,66,0.08)';
-
-      switch (dr.type) {
-        case 'trendline': {
-          const x1 = this._xOf(dr.i1), y1 = this._yOf(dr.p1, pane, priceMin, priceMax);
-          const x2 = this._xOf(dr.i2), y2 = this._yOf(dr.p2, pane, priceMin, priceMax);
-          // Extend to edges
-          const slope = (y2 - y1) / ((x2 - x1) || 1);
-          const yLeft  = y1 + slope * (0 - x1);
-          const yRight = y1 + slope * (this.chartW - x1);
-          ctx.setLineDash([]);
-          ctx.beginPath(); ctx.moveTo(0, yLeft); ctx.lineTo(this.chartW, yRight); ctx.stroke();
-          ctx.setLineDash([]);
-          // Endpoint dots
-          ctx.fillStyle = '#e8c842';
-          [x1,x2].forEach((x,n) => {
-            const y = n === 0 ? y1 : y2;
-            ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fill();
-          });
-          break;
-        }
-        case 'hline': {
-          const y = this._yOf(dr.price, pane, priceMin, priceMax);
-          ctx.setLineDash([5, 4]);
-          ctx.strokeStyle = 'rgba(232,200,66,0.8)';
-          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.chartW, y); ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.fillStyle = 'rgba(232,200,66,0.7)';
-          ctx.font = '9px IBM Plex Mono, monospace';
-          ctx.textAlign = 'left';
-          ctx.fillText(dr.price.toFixed(2), 8, y - 3);
-          break;
-        }
-        case 'rect': {
-          const x1 = this._xOf(dr.i1), y1 = this._yOf(dr.p1, pane, priceMin, priceMax);
-          const x2 = this._xOf(dr.i2), y2 = this._yOf(dr.p2, pane, priceMin, priceMax);
-          ctx.strokeStyle = 'rgba(232,200,66,0.7)';
-          ctx.fillStyle   = 'rgba(232,200,66,0.06)';
-          ctx.beginPath();
-          ctx.rect(Math.min(x1,x2), Math.min(y1,y2), Math.abs(x2-x1), Math.abs(y2-y1));
-          ctx.fill(); ctx.stroke();
-          break;
-        }
-        case 'fib': {
-          const x1 = this._xOf(dr.i1), y1 = this._yOf(dr.p1, pane, priceMin, priceMax);
-          const x2 = this._xOf(dr.i2), y2 = this._yOf(dr.p2, pane, priceMin, priceMax);
-          const levels = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
-          const colors = ['#e8c842','#3d7aff','#a855f7','#00d9a3','#ff4060','#00c87a','#e8c842'];
-          levels.forEach((lv,li) => {
-            const y = y1 + (y2 - y1) * lv;
-            ctx.strokeStyle = colors[li];
-            ctx.lineWidth = 0.8;
-            ctx.setLineDash([4,3]);
-            ctx.beginPath(); ctx.moveTo(Math.min(x1,x2), y); ctx.lineTo(this.chartW, y); ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.fillStyle = colors[li];
-            ctx.font = '8px IBM Plex Mono, monospace';
-            ctx.textAlign = 'left';
-            ctx.fillText(`${(lv*100).toFixed(1)}%`, Math.min(x1,x2) + 2, y - 2);
-          });
-          break;
-        }
-      }
-      ctx.restore();
-    });
-  }
-
-  _priceAtY(localY, priceMin, priceMax) {
-    const p = this.panes.main;
-    return priceMax - (localY / p.h) * (priceMax - priceMin);
+      `<span class="ohlc-item" style="color:${col}">${bull ? "+" : ""}${chg.toFixed(2)} (${bull ? "+" : ""}${pct}%)</span>`;
   }
 
   // ── INTERACTION ──────────────────────────────────────────────────────────
   _bindEvents() {
-    const area = document.getElementById('chart-area');
+    const area = document.getElementById("chart-area");
 
     // Mouse move
-    area.addEventListener('mousemove', e => {
+    area.addEventListener("mousemove", (e) => {
       this.mouse = { x: e.clientX, y: e.clientY, inside: true };
       if (this.isPanning) {
-        const dx       = e.clientX - this.panOrigin.x;
-        const shift    = -Math.round(dx / this.barWidth);
+        const dx = e.clientX - this.panOrigin.x;
+        const shift = -Math.round(dx / this.barWidth);
         const capacity = Math.floor(this.chartW / this.barWidth);
-        const maxStart = Math.max(0, this.data.length + this.rightPadBars - capacity);
-        this.viewStart = Math.max(0, Math.min(maxStart, this.panOrigin.viewStart + shift));
-        this.viewEnd   = this.viewStart + capacity;
+        const maxStart = Math.max(
+          0,
+          this.data.length + this.rightPadBars - capacity,
+        );
+        this.viewStart = Math.max(
+          0,
+          Math.min(maxStart, this.panOrigin.viewStart + shift),
+        );
+        this.viewEnd = this.viewStart + capacity;
         this._clampView();
         this.dirty = true;
         this._updateScrollThumb();
         this._updateStatus();
-      } else if (this.drawInProgress) {
-        const { lo, hi } = this._visiblePriceRange();
-        const localX = e.clientX - this.panes.main.x;
-        const localY = e.clientY - this.panes.main.y;
-        this.drawInProgress.i2 = this._indexAtX(localX);
-        this.drawInProgress.p2 = this._priceAtY(localY, lo, hi);
       }
+
       this.overlayDirty = true;
     });
 
-    area.addEventListener('mouseleave', () => {
+    area.addEventListener("mouseleave", () => {
       this.mouse.inside = false;
       this.overlayDirty = true;
     });
 
-    area.addEventListener('mouseenter', () => { this.mouse.inside = true; });
-
-    // Pan
-    area.addEventListener('mousedown', e => {
-      if (this.activeTool === 'cursor' || this.activeTool === 'crosshair') {
-        this.isPanning    = true;
-        this.panOrigin    = { x: e.clientX, viewStart: this.viewStart };
-        area.style.cursor = 'grabbing';
-      } else {
-        // Start drawing
-        const { lo, hi } = this._visiblePriceRange();
-        const localX = e.clientX - this.panes.main.x;
-        const localY = e.clientY - this.panes.main.y;
-        const i = this._indexAtX(localX);
-        const p = this._priceAtY(localY, lo, hi);
-        this.drawInProgress = { type: this.activeTool, i1: i, p1: p, i2: i, p2: p };
-        if (this.activeTool === 'hline') {
-          this.drawInProgress.price = p;
-          this.drawings.push(this.drawInProgress);
-          this.drawInProgress = null;
-          this.dirty = true;
-        }
-      }
+    area.addEventListener("mouseenter", () => {
+      this.mouse.inside = true;
     });
 
-    window.addEventListener('mouseup', e => {
+    // Pan
+    area.addEventListener("mousedown", (e) => {
+      this.isPanning = true;
+      this.panOrigin = { x: e.clientX, viewStart: this.viewStart };
+      area.style.cursor = "grabbing";
+    });
+
+    window.addEventListener("mouseup", (e) => {
       if (this.isPanning) {
-        this.isPanning    = false;
-        area.style.cursor = '';
-      }
-      if (this.drawInProgress) {
-        if (this.drawInProgress.type !== 'hline') {
-          this.drawings.push(this.drawInProgress);
-        }
-        this.drawInProgress = null;
-        this.dirty = true;
+        this.isPanning = false;
+        area.style.cursor = "";
       }
     });
 
     // Zoom
-    area.addEventListener('wheel', e => {
-      e.preventDefault();
-      const delta     = e.deltaY > 0 ? -1 : 1;
-      const factor    = 1 + delta * SCROLL_ZOOM_FACTOR;
-      const newBarW   = Math.max(MIN_BAR_W, Math.min(MAX_BAR_W, this.barWidth * factor));
-      if (newBarW === this.barWidth) return;
+    area.addEventListener(
+      "wheel",
+      (e) => {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -1 : 1;
+        const factor = 1 + delta * SCROLL_ZOOM_FACTOR;
+        const newBarW = Math.max(
+          MIN_BAR_W,
+          Math.min(MAX_BAR_W, this.barWidth * factor),
+        );
+        if (newBarW === this.barWidth) return;
 
-      // Zoom toward mouse X
-      const localX    = e.clientX - this.panes.main.x;
-      const focusIdx  = this._indexAtX(localX);
-      this.barWidth   = newBarW;
-      const capacity  = Math.floor(this.chartW / this.barWidth);
-      // Keep focus bar at same relative screen position
-      const rel       = localX / this.chartW;
-      this.viewStart  = Math.max(0, Math.round(focusIdx - rel * capacity));
-      this.viewEnd    = this.viewStart + capacity;
-      this._clampView();
-      this.dirty = true;
-      this._updateScrollThumb();
-      this._updateStatus();
-    }, { passive: false });
+        // Zoom toward mouse X
+        const localX = e.clientX - this.panes.main.x;
+        const focusIdx = this._indexAtX(localX);
+        this.barWidth = newBarW;
+        const capacity = Math.floor(this.chartW / this.barWidth);
+        // Keep focus bar at same relative screen position
+        const rel = localX / this.chartW;
+        this.viewStart = Math.max(0, Math.round(focusIdx - rel * capacity));
+        this.viewEnd = this.viewStart + capacity;
+        this._clampView();
+        this.dirty = true;
+        this._updateScrollThumb();
+        this._updateStatus();
+      },
+      { passive: false },
+    );
 
     // Touch (mobile pan/pinch)
     let lastTouches = [];
-    area.addEventListener('touchstart', e => {
-      lastTouches = [...e.touches];
-    }, { passive: true });
+    area.addEventListener(
+      "touchstart",
+      (e) => {
+        lastTouches = [...e.touches];
+      },
+      { passive: true },
+    );
 
-    area.addEventListener('touchmove', e => {
-      e.preventDefault();
-      if (e.touches.length === 1 && lastTouches.length === 1) {
-        const dx       = e.touches[0].clientX - lastTouches[0].clientX;
-        const shift    = -Math.round(dx / this.barWidth);
-        const capacity = Math.floor(this.chartW / this.barWidth);
-        const maxStart = Math.max(0, this.data.length + this.rightPadBars - capacity);
-        this.viewStart = Math.max(0, Math.min(maxStart, this.viewStart + shift));
-        this.viewEnd   = this.viewStart + capacity;
-        this._clampView();
-        this.dirty = true;
-        this._updateScrollThumb();
-      } else if (e.touches.length === 2 && lastTouches.length === 2) {
-        const prev = Math.hypot(lastTouches[0].clientX - lastTouches[1].clientX, lastTouches[0].clientY - lastTouches[1].clientY);
-        const curr = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-        const scale = curr / prev;
-        this.barWidth = Math.max(MIN_BAR_W, Math.min(MAX_BAR_W, this.barWidth * scale));
-        const barsInView = Math.floor(this.chartW / this.barWidth);
-        this.viewEnd = Math.min(this.data.length, this.viewStart + barsInView);
-        this._clampView();
-        this.dirty = true;
-        this._updateScrollThumb();
-      }
-      lastTouches = [...e.touches];
-    }, { passive: false });
+    area.addEventListener(
+      "touchmove",
+      (e) => {
+        e.preventDefault();
+        if (e.touches.length === 1 && lastTouches.length === 1) {
+          const dx = e.touches[0].clientX - lastTouches[0].clientX;
+          const shift = -Math.round(dx / this.barWidth);
+          const capacity = Math.floor(this.chartW / this.barWidth);
+          const maxStart = Math.max(
+            0,
+            this.data.length + this.rightPadBars - capacity,
+          );
+          this.viewStart = Math.max(
+            0,
+            Math.min(maxStart, this.viewStart + shift),
+          );
+          this.viewEnd = this.viewStart + capacity;
+          this._clampView();
+          this.dirty = true;
+          this._updateScrollThumb();
+        } else if (e.touches.length === 2 && lastTouches.length === 2) {
+          const prev = Math.hypot(
+            lastTouches[0].clientX - lastTouches[1].clientX,
+            lastTouches[0].clientY - lastTouches[1].clientY,
+          );
+          const curr = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY,
+          );
+          const scale = curr / prev;
+          this.barWidth = Math.max(
+            MIN_BAR_W,
+            Math.min(MAX_BAR_W, this.barWidth * scale),
+          );
+          const barsInView = Math.floor(this.chartW / this.barWidth);
+          this.viewEnd = Math.min(
+            this.data.length,
+            this.viewStart + barsInView,
+          );
+          this._clampView();
+          this.dirty = true;
+          this._updateScrollThumb();
+        }
+        lastTouches = [...e.touches];
+      },
+      { passive: false },
+    );
 
     // Scrollbar drag
-    const thumb    = document.getElementById('scrollthumb');
-    const scrollbar = document.getElementById('scrollbar');
-    let scrollDragging = false, scrollOriginX = 0, scrollOriginVS = 0;
+    const thumb = document.getElementById("scrollthumb");
+    const scrollbar = document.getElementById("scrollbar");
+    let scrollDragging = false,
+      scrollOriginX = 0,
+      scrollOriginVS = 0;
 
-    thumb.addEventListener('mousedown', e => {
-      scrollDragging = true; scrollOriginX = e.clientX; scrollOriginVS = this.viewStart; e.stopPropagation();
+    thumb.addEventListener("mousedown", (e) => {
+      scrollDragging = true;
+      scrollOriginX = e.clientX;
+      scrollOriginVS = this.viewStart;
+      e.stopPropagation();
     });
-    window.addEventListener('mousemove', e => {
+    window.addEventListener("mousemove", (e) => {
       if (!scrollDragging) return;
-      const sbW    = scrollbar.offsetWidth;
-      const total  = this.data.length + this.rightPadBars;
-      const ratio  = (e.clientX - scrollOriginX) / sbW;
-      const shift  = Math.round(ratio * total);
+      const sbW = scrollbar.offsetWidth;
+      const total = this.data.length + this.rightPadBars;
+      const ratio = (e.clientX - scrollOriginX) / sbW;
+      const shift = Math.round(ratio * total);
       const capacity = Math.floor(this.chartW / this.barWidth);
-      this.viewStart = Math.max(0, Math.min(this.data.length + this.rightPadBars - capacity, scrollOriginVS + shift));
-      this.viewEnd   = Math.min(this.data.length + this.rightPadBars, this.viewStart + capacity);
+      this.viewStart = Math.max(
+        0,
+        Math.min(
+          this.data.length + this.rightPadBars - capacity,
+          scrollOriginVS + shift,
+        ),
+      );
+      this.viewEnd = Math.min(
+        this.data.length + this.rightPadBars,
+        this.viewStart + capacity,
+      );
       this._clampView();
       this.dirty = true;
       this._updateScrollThumb();
       this._updateStatus();
     });
-    window.addEventListener('mouseup', () => { scrollDragging = false; });
-
-    // Resize
-    window.addEventListener('resize', () => { this._resize(); this.dirty = true; });
-
-    // Double-click to add horizontal line
-    area.addEventListener('dblclick', e => {
-      if (this.activeTool === 'cursor') {
-        const { lo, hi } = this._visiblePriceRange();
-        const localY = e.clientY - this.panes.main.y;
-        const price  = this._priceAtY(localY, lo, hi);
-        this.drawings.push({ type: 'hline', price });
-        this.dirty = true;
-      }
+    window.addEventListener("mouseup", () => {
+      scrollDragging = false;
     });
 
-    // Right-click to clear drawings
-    area.addEventListener('contextmenu', e => {
-      e.preventDefault();
-      if (this.drawings.length) { this.drawings.pop(); this.dirty = true; }
+    // Resize
+    window.addEventListener("resize", () => {
+      this._resize();
+      this.dirty = true;
     });
   }
 
   // ── HELPERS ───────────────────────────────────────────────────────────────
   _nicePriceSteps(min, max, count) {
-    const range  = max - min;
-    const rough  = range / count;
-    const mag    = Math.pow(10, Math.floor(Math.log10(rough)));
-    const step   = [1, 2, 2.5, 5, 10].map(s => s * mag).find(s => s >= rough) || mag * 10;
-    const start  = Math.ceil(min / step) * step;
-    const steps  = [];
+    const range = max - min;
+    const rough = range / count;
+    const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+    const step =
+      [1, 2, 2.5, 5, 10].map((s) => s * mag).find((s) => s >= rough) ||
+      mag * 10;
+    const start = Math.ceil(min / step) * step;
+    const steps = [];
     for (let v = start; v <= max; v += step) steps.push(+v.toFixed(10));
     return steps;
   }
 
   _timeGridStep() {
     const bars = this._barsVisible();
-    if (bars <= 30)  return 'week';
-    if (bars <= 90)  return 'month';
-    if (bars <= 365) return 'quarter';
-    return 'year';
+    if (bars <= 30) return "week";
+    if (bars <= 90) return "month";
+    if (bars <= 365) return "quarter";
+    return "year";
   }
 
   _isTimeGridLine(i, step) {
     if (i === 0 || i >= this.data.length) return false;
-    const t  = this.data[i].t;
+    const t = this.data[i].t;
     const t0 = this.data[i - 1].t;
     const DAY = 86400;
     // Derive UTC calendar fields from seconds without allocating Date objects
-    const dayOf    = ts => Math.floor(ts / DAY);
-    const yearOf   = ts => { const d = new Date(ts * 1000); return d.getUTCFullYear(); };
-    const monthOf  = ts => { const d = new Date(ts * 1000); return d.getUTCMonth(); };
-    const dowOf    = ts => Math.floor(ts / DAY + 4) % 7; // 0=Sun
-    if (step === 'week')    return dowOf(t) === 1 && dowOf(t0) !== 1;
-    if (step === 'month')   return monthOf(t) !== monthOf(t0);
-    if (step === 'quarter') return Math.floor(monthOf(t) / 3) !== Math.floor(monthOf(t0) / 3);
-    if (step === 'year')    return yearOf(t) !== yearOf(t0);
+    const dayOf = (ts) => Math.floor(ts / DAY);
+    const yearOf = (ts) => {
+      const d = new Date(ts * 1000);
+      return d.getUTCFullYear();
+    };
+    const monthOf = (ts) => {
+      const d = new Date(ts * 1000);
+      return d.getUTCMonth();
+    };
+    const dowOf = (ts) => Math.floor(ts / DAY + 4) % 7; // 0=Sun
+    if (step === "week") return dowOf(t) === 1 && dowOf(t0) !== 1;
+    if (step === "month") return monthOf(t) !== monthOf(t0);
+    if (step === "quarter")
+      return Math.floor(monthOf(t) / 3) !== Math.floor(monthOf(t0) / 3);
+    if (step === "year") return yearOf(t) !== yearOf(t0);
     return false;
   }
 
   // t is an integer (Unix seconds). Convert once, only for display.
-  _tsToDate(t) { return new Date(t * 1000); }
+  _tsToDate(t) {
+    return new Date(t * 1000);
+  }
 
   _formatDate(t, step) {
     const d = this._tsToDate(t);
-    const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const mo = d.getUTCMonth(), yr = d.getUTCFullYear();
-    if (step === 'week')    return `${m[mo]} ${d.getUTCDate()}`;
-    if (step === 'month')   return `${m[mo]} ${String(yr).slice(2)}`;
-    if (step === 'quarter') return `Q${Math.floor(mo / 3) + 1} ${String(yr).slice(2)}`;
+    const m = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const mo = d.getUTCMonth(),
+      yr = d.getUTCFullYear();
+    if (step === "week") return `${m[mo]} ${d.getUTCDate()}`;
+    if (step === "month") return `${m[mo]} ${String(yr).slice(2)}`;
+    if (step === "quarter")
+      return `Q${Math.floor(mo / 3) + 1} ${String(yr).slice(2)}`;
     return `${yr}`;
   }
 
   _formatDateFull(t) {
     const d = this._tsToDate(t);
-    const m = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${m[d.getUTCMonth()]} ${String(d.getUTCDate()).padStart(2,'0')}, ${d.getUTCFullYear()}`;
+    const m = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${m[d.getUTCMonth()]} ${String(d.getUTCDate()).padStart(2, "0")}, ${d.getUTCFullYear()}`;
   }
 
   _updateScrollThumb() {
     if (!this.data.length) return;
-    const thumb   = document.getElementById('scrollthumb');
-    const bar     = document.getElementById('scrollbar');
-    const total   = this.data.length + this.rightPadBars; // logical width including padding
-    const sbW     = bar.offsetWidth;
+    const thumb = document.getElementById("scrollthumb");
+    const bar = document.getElementById("scrollbar");
+    const total = this.data.length + this.rightPadBars; // logical width including padding
+    const sbW = bar.offsetWidth;
     const visible = this.viewEnd - this.viewStart;
-    const thumbW  = Math.max(20, sbW * (visible / total));
-    const thumbL  = sbW * (this.viewStart / total);
-    thumb.style.width = thumbW + 'px';
-    thumb.style.left  = thumbL + 'px';
+    const thumbW = Math.max(20, sbW * (visible / total));
+    const thumbL = sbW * (this.viewStart / total);
+    thumb.style.width = thumbW + "px";
+    thumb.style.left = thumbL + "px";
   }
 
   _updateStatus() {
-    document.getElementById('status-bars').textContent = `${this._barsVisible()} bars`;
-    document.getElementById('status-zoom').textContent = `×${this.barWidth.toFixed(1)}`;
+    document.getElementById("status-bars").textContent =
+      `${this._barsVisible()} bars`;
+    document.getElementById("status-zoom").textContent =
+      `×${this.barWidth.toFixed(1)}`;
   }
 
   // ── PUBLIC API ────────────────────────────────────────────────────────────
@@ -963,7 +1002,7 @@ class ChartEngine {
   update(candle) {
     if (!this.data.length) return this;
 
-    const last     = this.data[this.data.length - 1];
+    const last = this.data[this.data.length - 1];
     const isNewBar = candle.t != null && this._isDifferentBar(candle.t, last.t);
 
     // ── Was the viewport pinned to the live right edge before this tick?
@@ -973,25 +1012,27 @@ class ChartEngine {
     if (isNewBar) {
       // ── Append new candle ─────────────────────────────────────────────
       this.data.push({
-        t: typeof candle.t === 'number' ? candle.t : Math.floor(new Date(candle.t).getTime() / 1000),
+        t:
+          typeof candle.t === "number"
+            ? candle.t
+            : Math.floor(new Date(candle.t).getTime() / 1000),
         o: candle.o ?? last.c,
         h: candle.h,
         l: candle.l,
         c: candle.c,
-        v: candle.v ?? 0
+        v: candle.v ?? 0,
       });
 
       this._updateSeriesIncremental(true);
 
       // Auto-advance viewport — slide by 1, keeping rightPadBars of empty space
       if (wasAtEdge) {
-        const capacity  = Math.floor(this.chartW / this.barWidth);
-        this.viewEnd    = this.data.length + this.rightPadBars;
-        this.viewStart  = Math.max(0, this.viewEnd - capacity);
+        const capacity = Math.floor(this.chartW / this.barWidth);
+        this.viewEnd = this.data.length + this.rightPadBars;
+        this.viewStart = Math.max(0, this.viewEnd - capacity);
       }
       this._updateScrollThumb();
       this._updateStatus();
-
     } else {
       // ── Tick: mutate last candle in place ─────────────────────────────
       if (candle.h != null) last.h = Math.max(last.h, candle.h);
@@ -1041,14 +1082,20 @@ class ChartEngine {
   // Explicitly enable a series
   enableSeries(id) {
     const entry = this._series.get(id);
-    if (entry) { entry.enabled = true; this.dirty = true; }
+    if (entry) {
+      entry.enabled = true;
+      this.dirty = true;
+    }
     return this;
   }
 
   // Explicitly disable a series
   disableSeries(id) {
     const entry = this._series.get(id);
-    if (entry) { entry.enabled = false; this.dirty = true; }
+    if (entry) {
+      entry.enabled = false;
+      this.dirty = true;
+    }
     return this;
   }
 
@@ -1056,23 +1103,15 @@ class ChartEngine {
   isSeriesEnabled(id) {
     return this._series.get(id)?.enabled ?? false;
   }
-  
+
   resetZoom() {
-    this.barWidth  = DEFAULT_BAR_W;
+    this.barWidth = DEFAULT_BAR_W;
     const capacity = Math.floor(this.chartW / this.barWidth);
-    this.viewEnd   = this.data.length + this.rightPadBars;
+    this.viewEnd = this.data.length + this.rightPadBars;
     this.viewStart = Math.max(0, this.viewEnd - capacity);
-    this.dirty     = true;
+    this.dirty = true;
     this._updateScrollThumb();
     this._updateStatus();
   }
 
-  setTool(toolName) {
-    this.activeTool = toolName;
-  }
-
-  clearDrawings() {
-    this.drawings = [];
-    this.dirty = true;
-  }
 }

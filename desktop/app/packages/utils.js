@@ -241,12 +241,6 @@ function toggleSeries(id) {
 
 function resetZoom() { chart.resetZoom(); }
 
-function setTool(el, name) {
-  document.querySelectorAll('.tool').forEach(e => e.classList.remove('active'));
-  el.classList.add('active');
-  chart.setTool(name);
-}
-
 // Status init
 chart._updateStatus();
 
