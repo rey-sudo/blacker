@@ -152,10 +152,7 @@
       #pane-main {
         flex: 1;
       }
-      #pane-vol {
-        height: 70px;
-        border-top: 1px solid var(--border);
-      }
+
       #pane-rsi {
         height: 90px;
         border-top: 1px solid var(--border);

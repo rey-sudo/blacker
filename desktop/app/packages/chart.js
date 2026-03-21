@@ -5,7 +5,7 @@
 //    • Dirty-flag RAF loop   → only redraws when state changes (true 60fps)
 //    • Virtual viewport      → renders only visible bars (O(view) not O(n))
 //    • Layered canvases      → data layer + overlay layer (crosshair redraws cheaply)
-//    • Multi-pane            → main / volume / custom indicators
+//    • Multi-pane            → main / custom indicators
 //    • Drawing tools         → trendlines, h-lines, rectangles, fib, text
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -147,8 +147,7 @@ class ChartEngine {
   _grabCanvases() {
     this.cMain   = document.getElementById('canvas-main');
     this.oMain   = document.getElementById('overlay-main');
-    this.cVol    = document.getElementById('canvas-vol');
-    this.oVol    = document.getElementById('overlay-vol');
+
     this.cRsi    = document.getElementById('canvas-rsi');
     this.oRsi    = document.getElementById('overlay-rsi');
     this.cTime   = document.getElementById('canvas-time');
@@ -156,8 +155,7 @@ class ChartEngine {
 
     this.ctxMain  = this.cMain.getContext('2d');
     this.ctxOMain = this.oMain.getContext('2d');
-    this.ctxVol   = this.cVol.getContext('2d');
-    this.ctxOVol  = this.oVol.getContext('2d');
+
     this.ctxRsi   = this.cRsi.getContext('2d');
     this.ctxORsi  = this.oRsi.getContext('2d');
     this.ctxTime  = this.cTime.getContext('2d');
@@ -185,25 +183,20 @@ class ChartEngine {
     };
 
     const pMain = document.getElementById('pane-main');
-    const pVol  = document.getElementById('pane-vol');
     const pRsi  = document.getElementById('pane-rsi');
     const tAxis = document.getElementById('time-axis');
 
     setCanvas(this.cMain,  pMain);  resetScale(this.oMain);
     setCanvas(this.oMain,  pMain);  resetScale(this.oMain);
-    setCanvas(this.cVol,   pVol);   resetScale(this.oVol);
-    setCanvas(this.oVol,   pVol);   resetScale(this.oVol);
     setCanvas(this.cRsi,   pRsi);   resetScale(this.oRsi);
     setCanvas(this.oRsi,   pRsi);   resetScale(this.oRsi);
     setCanvas(this.cTime,  tAxis);  
 
     const mainR = pMain.getBoundingClientRect();
-    const volR  = pVol.getBoundingClientRect();
     const rsiR  = pRsi.getBoundingClientRect();
     const timeR = tAxis.getBoundingClientRect();
 
     this.panes.main = { x: mainR.left, y: mainR.top, w: mainR.width,  h: mainR.height,  canvas: this.cMain,  ctx: this.ctxMain,  oCtx: this.ctxOMain };
-    this.panes.vol  = { x: volR.left,  y: volR.top,  w: volR.width,   h: volR.height,   canvas: this.cVol,   ctx: this.ctxVol,   oCtx: this.ctxOVol  };
     this.panes.rsi  = { x: rsiR.left,  y: rsiR.top,  w: rsiR.width,   h: rsiR.height,   canvas: this.cRsi,   ctx: this.ctxRsi,   oCtx: this.ctxORsi  };
     this.panes.time = { x: timeR.left, y: timeR.top, w: timeR.width,  h: timeR.height };
 
@@ -368,14 +361,6 @@ class ChartEngine {
     return { lo: lo - pad, hi: hi + pad };
   }
 
-  _visibleVolRange() {
-    let max = 0;
-    for (let i = this.viewStart; i < this.viewEnd && i < this.data.length; i++) {
-      if (this.data[i].v > max) max = this.data[i].v;
-    }
-    return max * 1.15;
-  }
-
   // ── MAIN RAF LOOP ─────────────────────────────────────────────────────────
   _startLoop() {
     let lastT = performance.now();
@@ -411,7 +396,6 @@ class ChartEngine {
     if (!this.data.length) return;
     const { lo, hi } = this._visiblePriceRange();
     this._renderMain(lo, hi);
-    this._renderVol();
     if (this.showRSI) this._renderRSI();
     this._renderTimeAxis();
     this._renderPriceScale(lo, hi);
@@ -587,45 +571,6 @@ class ChartEngine {
     ctx.restore();
   }
 
-  // ── VOLUME PANE ───────────────────────────────────────────────────────────
-  _renderVol() {
-    const p   = this.panes.vol;
-    const ctx = p.ctx;
-    const W   = p.w;
-    const H   = p.h;
-    const cw  = this.chartW;
-    const maxV = this._visibleVolRange();
-
-    ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = C.bg;
-    ctx.fillRect(0, 0, W, H);
-
-    const bw = Math.max(1, this.barWidth - 1);
-    const hw = Math.max(1, Math.floor(bw / 2));
-
-    for (let i = this.viewStart; i < this.viewEnd && i < this.data.length; i++) {
-      const d    = this.data[i];
-      const x    = Math.round(this._xOf(i));
-      const barH = Math.max(1, (d.v / maxV) * H * 0.9);
-      ctx.fillStyle = d.c >= d.o ? C.volBull : C.volBear;
-      ctx.fillRect(x - hw + 1, H - barH, Math.max(1, bw - 1), barH);
-    }
-
-    // Scale border
-    ctx.fillStyle = C.bg2;
-    ctx.fillRect(cw, 0, PRICE_SCALE_W, H);
-    ctx.strokeStyle = C.grid;
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(cw, 0); ctx.lineTo(cw, H); ctx.stroke();
-
-    // Vol label on scale
-    ctx.fillStyle = C.textDim;
-    ctx.font = '9px IBM Plex Mono, monospace';
-    ctx.textAlign = 'right';
-    const fmt = v => v >= 1e9 ? (v/1e9).toFixed(1)+'B' : v >= 1e6 ? (v/1e6).toFixed(1)+'M' : (v/1e3).toFixed(0)+'K';
-    ctx.fillText(fmt(maxV / 1.15), cw + PRICE_SCALE_W - 8, 14);
-  }
-
   // ── RSI PANE ──────────────────────────────────────────────────────────────
   _renderRSI() {
     const p   = this.panes.rsi;
@@ -717,7 +662,6 @@ class ChartEngine {
   // ── OVERLAY (crosshair) ───────────────────────────────────────────────────
   _renderOverlay() {
     this._clearOverlay(this.ctxOMain, this.panes.main);
-    this._clearOverlay(this.ctxOVol,  this.panes.vol);
     if (this.showRSI) this._clearOverlay(this.ctxORsi, this.panes.rsi);
 
     if (!this.mouse.inside || !this.data.length) {
@@ -732,11 +676,9 @@ class ChartEngine {
     const mx    = this.mouse.x;
     const my    = this.mouse.y;
     const pMain = this.panes.main;
-    const pVol  = this.panes.vol;
 
     // Determine which pane mouse is in
     const inMain = my >= pMain.y && my < pMain.y + pMain.h;
-    const inVol  = my >= pVol.y  && my < pVol.y  + pVol.h;
 
     // Bar index under cursor
     const localX = mx - pMain.x;
@@ -778,16 +720,6 @@ class ChartEngine {
     ctx.fillStyle = C.crossPt;
     ctx.fill();
     ctx.restore();
-
-    // Vol pane crosshair
-    const ctxV = this.ctxOVol;
-    ctxV.save();
-    ctxV.strokeStyle = C.cross;
-    ctxV.lineWidth = 1;
-    ctxV.setLineDash([4,4]);
-    ctxV.beginPath(); ctxV.moveTo(snapX, 0); ctxV.lineTo(snapX, pVol.h); ctxV.stroke();
-    ctxV.setLineDash([]);
-    ctxV.restore();
 
     // RSI crosshair
     if (this.showRSI) {
