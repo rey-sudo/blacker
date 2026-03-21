@@ -855,15 +855,14 @@ class ChartEngine {
   }
 
   _updateLegendDisplay(d, i) {
+    //----------------------------------------------------------
     const bull = d.c >= d.o;
     const chg = d.c - d.o;
     const pct = ((chg / d.o) * 100).toFixed(2);
     const col = bull ? "var(--bull)" : "var(--bear)";
 
-    // 1. Intentamos buscar si el contenedor ya existe
-    let ohlcContainer = document.getElementById("ohlc-row");
+    let ohlcContainer = document.getElementById("ohlc-display");
 
-    // 2. Preparamos el HTML
     const content =
       `<span class="ohlc-item"><span class="ohlc-label">O</span><span class="ohlc-val">${d.o.toFixed(2)}</span></span>` +
       `<span class="ohlc-item"><span class="ohlc-label">H</span><span class="ohlc-val">${d.h.toFixed(2)}</span></span>` +
@@ -872,15 +871,14 @@ class ChartEngine {
       `<span class="ohlc-item" style="color:${col}">${bull ? "+" : ""}${chg.toFixed(2)} (${bull ? "+" : ""}${pct}%)</span>`;
 
     if (ohlcContainer) {
-      // GUARD: Si ya existe, solo actualizamos el HTML interno
       ohlcContainer.innerHTML = content;
     } else {
-      // Si no existe, lo creamos por primera vez
       ohlcContainer = document.createElement("div");
-      ohlcContainer.id = "ohlc-row";
+      ohlcContainer.id = "ohlc-display";
       ohlcContainer.innerHTML = content;
       this.legendDiv.appendChild(ohlcContainer);
     }
+    //----------------------------------------------------------
   }
 
   // ── INTERACTION ──────────────────────────────────────────────────────────
