@@ -24,7 +24,7 @@
           Area
         </button>
         <div style="width: 1px; background: var(--border); margin: 0 4px"></div>
-        
+
         <button class="btn" id="btn-ma" onclick="toggleSeries('ma')">MA</button>
         <button class="btn" id="btn-bb" onclick="toggleSeries('bb')">BB</button>
 
@@ -37,10 +37,7 @@
 
     <!-- LAYOUT -->
     <div id="layout">
-        
-      
-
-      <!-- CHART AREA -->
+      <!-- CHART AREA START -->
       <div id="chart-area">
         <!-- OHLC DISPLAY -->
         <div id="ohlc-display"></div>
@@ -70,9 +67,8 @@
           <span id="status-cursor"></span>
         </div>
       </div>
-
-      <!-- CHART AREA END -->
     </div>
+    <!-- CHART AREA END -->
 
     <!-- LEGEND -->
     <div id="legend">
@@ -85,7 +81,7 @@
         <span>BB 20</span>
       </div>
     </div>
-    
+
     <script src="chart.js"></script>
     <script src="draw-line.js"></script>
     <script src="utils.js"></script>
