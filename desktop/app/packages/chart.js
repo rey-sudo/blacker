@@ -5,7 +5,6 @@
 //    • Dirty-flag RAF loop   → only redraws when state changes (true 60fps)
 //    • Virtual viewport      → renders only visible bars (O(view) not O(n))
 //    • Layered canvases      → data layer + overlay layer (crosshair redraws cheaply)
-//    • Multi-pane            → main / custom indicators
 //    • Drawing tools         → trendlines, h-lines, rectangles, fib, text
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -142,7 +141,6 @@ class ChartEngine {
 
     this.ctxMain  = this.cMain.getContext('2d');
     this.ctxOMain = this.oMain.getContext('2d');
-
     this.ctxTime  = this.cTime.getContext('2d');
   }
 
