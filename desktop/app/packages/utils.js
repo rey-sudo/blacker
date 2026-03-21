@@ -239,11 +239,6 @@ function toggleSeries(id) {
   if (legEl) legEl.style.display = chart.isSeriesEnabled(id) ? 'flex' : 'none';
 }
 
-function togglePane(name) {
-  chart.togglePane(name);
-  document.getElementById('btn-'+name).classList.toggle('active');
-}
-
 function resetZoom() { chart.resetZoom(); }
 
 function setTool(el, name) {

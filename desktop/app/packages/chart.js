@@ -1014,61 +1014,9 @@ class ChartEngine {
   }
 
   // ─── Series API ──────────────────────────────────────────────────────────
-  //
-  //  addSeries(def)  — register a custom overlay series on the main pane.
-  //
-  //  def shape:
-  //  {
-  //    id:           string           — unique key (e.g. 'ma20', 'bb')
-  //    label:        string           — legend label
-  //    color:        string           — legend swatch color
-  //    layer:        'background'|undefined
-  //                                   — 'background' renders BEFORE candles
-  //                                     (use for fills like BB envelope).
-  //                                     Omit or set anything else → renders
-  //                                     AFTER candles (lines, dots, etc.)
-  //    compute(data) → values[]       — called on load(); result stored in
-  //                                     entry.values. Can return anything:
-  //                                     numbers, objects, nulls…
-  //    priceExtent(values, vs, ve)    — optional. Return [lo, hi] to extend
-  //      → [number, number] | null      the auto-scale for your series.
-  //    render(ctx, pane, engine,       — draw your series. Called inside a
-  //           values, pMin, pMax)        save/restore block. engine exposes:
-  //                                       engine.viewStart / viewEnd
-  //                                       engine._xOf(i)
-  //                                       engine._yOf(price, pane, lo, hi)
-  //                                       engine.data[i]
-  //    tooltipRow(values, i)          — optional. Called when crosshair is
-  //      → { label, value, color }|null  at bar i. Return an object to append
-  //                                      a row to the tooltip.
-  //  }
-  //
-  //  Example — 50-period EMA:
-  //
-  //    chart.addSeries({
-  //      id: 'ema50', label: 'EMA 50', color: '#00d9a3',
-  //      compute(data) {
-  //        const k = 2 / 51;
-  //        return data.reduce((acc, d, i) => {
-  //          acc.push(i === 0 ? d.c : d.c * k + acc[i-1] * (1 - k));
-  //          return acc;
-  //        }, []);
-  //      },
-  //      render(ctx, pane, engine, values, lo, hi) {
-  //        ctx.strokeStyle = '#00d9a3'; ctx.lineWidth = 1.3; ctx.lineJoin = 'round';
-  //        ctx.beginPath();
-  //        let s = false;
-  //        for (let i = engine.viewStart; i < engine.viewEnd; i++) {
-  //          const x = engine._xOf(i), y = engine._yOf(values[i], pane, lo, hi);
-  //          s ? ctx.lineTo(x, y) : (ctx.moveTo(x, y), s = true);
-  //        }
-  //        ctx.stroke();
-  //      },
-  //      tooltipRow: (values, i) => ({ label: 'EMA50', value: values[i].toFixed(2), color: '#00d9a3' })
-  //    });
-  //
+
   addSeries(def) {
-    const entry = { def, values: [], enabled: false };
+    const entry = { def, values: [], enabled: true };
     if (this.data.length) entry.values = def.compute(this.data);
     this._series.set(def.id, entry);
     return this; // chainable
@@ -1108,12 +1056,7 @@ class ChartEngine {
   isSeriesEnabled(id) {
     return this._series.get(id)?.enabled ?? false;
   }
-
-  togglePane(name) {
-    this._resize();
-    this.dirty = true;
-  }
-
+  
   resetZoom() {
     this.barWidth  = DEFAULT_BAR_W;
     const capacity = Math.floor(this.chartW / this.barWidth);
