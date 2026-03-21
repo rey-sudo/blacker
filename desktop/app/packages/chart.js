@@ -700,6 +700,8 @@ class ChartEngine {
   // ── OVERLAY (crosshair) ───────────────────────────────────────────────────
   _renderOverlay() {
     this._clearOverlay(this.ctxOMain, this.panes.main);
+    
+    this._renderTimeAxis();
 
     if (!this.mouse.inside || !this.data.length) {
       // Still draw the live price line even without crosshair
@@ -1193,10 +1195,8 @@ class ChartEngine {
     if (!this.indicatorsDiv) return;
 
     this._series.forEach(({ def, enabled }) => {
-
       const itemId = `chart-indicators-item-${def.id}`;
       let item = document.getElementById(itemId);
-
 
       const opacity = enabled ? "1" : "0.4";
       const title = enabled ? "click to hide" : "click to show";
@@ -1205,14 +1205,12 @@ class ChartEngine {
         `<span>${def.label}</span>`;
 
       if (item) {
-
         item.style.opacity = opacity;
         item.title = title;
         item.innerHTML = innerHTML;
       } else {
-
         item = document.createElement("div");
-        item.id = itemId; 
+        item.id = itemId;
         item.className = "chart-indicators-item";
         item.style.cursor = "pointer";
         item.style.opacity = opacity;
