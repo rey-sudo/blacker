@@ -55,6 +55,7 @@ class ChartEngine {
 
     // Viewport (virtual scroll)
     this.barWidth = DEFAULT_BAR_W;
+    this.interval = 86400;
     this.rightPadBars = 20; // empty bar-slots kept to the right of the last candle
     this.viewStart = 0; // first visible bar index
     this.viewEnd = 0; // last  visible bar index  (exclusive; may exceed data.length)
@@ -184,6 +185,16 @@ class ChartEngine {
   // ── DATA LOADING ──────────────────────────────────────────────────────────
   load(data) {
     this.data = data;
+
+    if (data.length >= 2) {
+      let minGap = Infinity;
+      const n = Math.min(data.length - 1, 10);
+      for (let i = 0; i < n; i++)
+        minGap = Math.min(minGap, data[i + 1].t - data[i].t);
+      this.interval = minGap;
+    } else {
+      this.interval = 86400; // fallback: daily
+    }
 
     this._recomputeSeries();
 
@@ -700,7 +711,7 @@ class ChartEngine {
   // ── OVERLAY (crosshair) ───────────────────────────────────────────────────
   _renderOverlay() {
     this._clearOverlay(this.ctxOMain, this.panes.main);
-    
+
     this._renderTimeAxis();
 
     if (!this.mouse.inside || !this.data.length) {
@@ -1091,10 +1102,13 @@ class ChartEngine {
   }
 
   _timeGridStep() {
-    const bars = this._barsVisible();
-    if (bars <= 30) return "week";
-    if (bars <= 90) return "month";
-    if (bars <= 365) return "quarter";
+    const span = this._barsVisible() * this.interval; // segundos cubiertos
+    if (span <= 2 * 3600) return "minute"; // ≤ 2h   → grid cada minuto
+    if (span <= 48 * 3600) return "hour"; // ≤ 2d   → grid cada hora
+    if (span <= 8 * 86400) return "day"; // ≤ 8d   → grid cada día
+    if (span <= 60 * 86400) return "week"; // ≤ 2m   → grid cada semana
+    if (span <= 365 * 86400) return "month"; // ≤ 1a   → grid cada mes
+    if (span <= 1460 * 86400) return "quarter"; // ≤ 4a   → grid cada trimestre
     return "year";
   }
 
@@ -1103,17 +1117,18 @@ class ChartEngine {
     const t = this.data[i].t;
     const t0 = this.data[i - 1].t;
     const DAY = 86400;
-    // Derive UTC calendar fields from seconds without allocating Date objects
+    const HOUR = 3600;
+    const MINUTE = 60;
+    const minOf = (ts) => Math.floor(ts / MINUTE);
+    const hourOf = (ts) => Math.floor(ts / HOUR);
     const dayOf = (ts) => Math.floor(ts / DAY);
-    const yearOf = (ts) => {
-      const d = new Date(ts * 1000);
-      return d.getUTCFullYear();
-    };
-    const monthOf = (ts) => {
-      const d = new Date(ts * 1000);
-      return d.getUTCMonth();
-    };
-    const dowOf = (ts) => Math.floor(ts / DAY + 4) % 7; // 0=Sun
+    const dowOf = (ts) => Math.floor(ts / DAY + 4) % 7;
+    const yearOf = (ts) => new Date(ts * 1000).getUTCFullYear();
+    const monthOf = (ts) => new Date(ts * 1000).getUTCMonth();
+
+    if (step === "minute") return minOf(t) !== minOf(t0);
+    if (step === "hour") return hourOf(t) !== hourOf(t0);
+    if (step === "day") return dayOf(t) !== dayOf(t0);
     if (step === "week") return dowOf(t) === 1 && dowOf(t0) !== 1;
     if (step === "month") return monthOf(t) !== monthOf(t0);
     if (step === "quarter")
@@ -1129,7 +1144,7 @@ class ChartEngine {
 
   _formatDate(t, step) {
     const d = this._tsToDate(t);
-    const m = [
+    const mo = [
       "Jan",
       "Feb",
       "Mar",
@@ -1143,18 +1158,24 @@ class ChartEngine {
       "Nov",
       "Dec",
     ];
-    const mo = d.getUTCMonth(),
-      yr = d.getUTCFullYear();
-    if (step === "week") return `${m[mo]} ${d.getUTCDate()}`;
-    if (step === "month") return `${m[mo]} ${String(yr).slice(2)}`;
+    const hh = String(d.getUTCHours()).padStart(2, "0");
+    const mm = String(d.getUTCMinutes()).padStart(2, "0");
+    const dd = String(d.getUTCDate()).padStart(2, "0");
+    const yr = String(d.getUTCFullYear()).slice(2);
+
+    if (step === "minute") return `${hh}:${mm}`;
+    if (step === "hour") return `${hh}:00`;
+    if (step === "day") return `${mo[d.getUTCMonth()]} ${dd}`;
+    if (step === "week") return `${mo[d.getUTCMonth()]} ${dd}`;
+    if (step === "month") return `${mo[d.getUTCMonth()]} ${yr}`;
     if (step === "quarter")
-      return `Q${Math.floor(mo / 3) + 1} ${String(yr).slice(2)}`;
-    return `${yr}`;
+      return `Q${Math.floor(d.getUTCMonth() / 3) + 1} ${yr}`;
+    return `${d.getUTCFullYear()}`;
   }
 
   _formatDateFull(t) {
     const d = this._tsToDate(t);
-    const m = [
+    const mo = [
       "Jan",
       "Feb",
       "Mar",
@@ -1168,7 +1189,14 @@ class ChartEngine {
       "Nov",
       "Dec",
     ];
-    return `${m[d.getUTCMonth()]} ${String(d.getUTCDate()).padStart(2, "0")}, ${d.getUTCFullYear()}`;
+    const date = `${mo[d.getUTCMonth()]} ${String(d.getUTCDate()).padStart(2, "0")}, ${d.getUTCFullYear()}`;
+    const hh = String(d.getUTCHours()).padStart(2, "0");
+    const mm = String(d.getUTCMinutes()).padStart(2, "0");
+    const ss = String(d.getUTCSeconds()).padStart(2, "0");
+
+    if (this.interval < 60) return `${date} ${hh}:${mm}:${ss}`; // sub-minuto
+    if (this.interval < 86400) return `${date} ${hh}:${mm}`; // intraday
+    return date; // daily+
   }
 
   _updateScrollThumb() {
@@ -1284,7 +1312,7 @@ class ChartEngine {
   // Compare two integer-second timestamps at day granularity.
   // For intraday bars change 86400 to the bar interval in seconds.
   _isDifferentBar(t1, t2) {
-    return Math.floor(t1 / 86400) !== Math.floor(t2 / 86400);
+    return Math.floor(t1 / this.interval) !== Math.floor(t2 / this.interval);
   }
 
   // ─── Series API ──────────────────────────────────────────────────────────
