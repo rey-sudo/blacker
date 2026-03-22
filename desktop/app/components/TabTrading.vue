@@ -1,5 +1,5 @@
 <template>
-  <CandleChart :tabId="tabId" />
+  <ChartCandlestick :tabId="tabId" />
 </template>
 
 <script setup>

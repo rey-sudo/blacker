@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   ssr: false,
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  css: ["~/assets/css/theme.css", "~/assets/css/main.css"],
+  css: ["~/assets/css/theme.css", "~/assets/css/main.css", "~/packages/chart.css"],
   ui: {
     colorMode: true,
   },

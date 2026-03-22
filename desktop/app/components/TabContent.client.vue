@@ -61,13 +61,10 @@ onMounted(async () => {
 
 <style lang="css" scoped>
 .tab-content {
-  display: grid;
-  gap: 0.25rem;
-  height: calc(100vh - (var(--header-height) + var(--footer-height)));
   overflow: hidden;
-  padding: var(--tab-content-padding);
-  grid-template-rows: 8fr 2fr;
   box-sizing: border-box;
+  padding: var(--tab-content-padding);
+  height: calc(100vh - (var(--header-height) + var(--footer-height)));
 }
 
 /* Chrome, Edge, Safari */
