@@ -30,12 +30,15 @@
 }
 
 :root {
-  --chart-background: var(--ui-color-neutral-950);
+  --chart-background: white;
   --chart-header-background: var(--ui-bg);
   --chart-header-height: 2.5rem;
   --chart-radius: var(--ui-radius);
 }
 
+.dark {
+  --chart-background: var(--ui-color-neutral-950);
+}
 
 * {
   font-family: "Inter", sans-serif;
