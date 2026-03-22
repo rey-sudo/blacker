@@ -1,8 +1,7 @@
 <template>
   <UUser
-    name="kakaroto67"
     :avatar="{
-      src: 'https://i.pravatar.cc/150?u=john-doexd',
+      src: 'https://i.pravatar.cc/150?u=john-doexdx7012345sd123',
     }"
     :chip="{
       color: 'success',

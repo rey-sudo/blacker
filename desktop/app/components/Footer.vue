@@ -35,7 +35,7 @@
 
 <style lang="css" scoped>
 .footer {
-  background: var(--nav-background);
+  background: var(--footer-background);
   height: var(--footer-height);
   padding: 0 1rem;
   width: 100%;

@@ -1,5 +1,5 @@
 <template>
-  <div class="tab text-xs" :class="[isActive ? 'active' : 'inactive']">
+  <div class="tab fz-1" :class="[isActive ? 'active' : 'inactive']">
     <UContextMenu v-model:open="menuOpen" :items="menuItems" size="sm">
       <div class="tab-label flex items-center">
         <UChip standalone inset size="xs" :color="tabColor" />
@@ -108,6 +108,8 @@ onBeforeUnmount(() => {
   border-left: 1px solid var(--ui-border);
   border-right: 1px solid var(--ui-border);
   border-bottom: 1px solid var(--ui-border);
+  border-top-left-radius: var(--ui-radius);
+  border-top-right-radius: var(--ui-radius);
   align-items: center;
   font-weight: 600;
   cursor: pointer;
@@ -127,12 +129,10 @@ onBeforeUnmount(() => {
 
 .tab.active {
   background: var(--ui-bg);
-  border-bottom-color: var(--ui-primary);
 }
 
 .tab.inactive {
-  background: var(--ui-bg);
-  border-bottom-color: transparent;
+  background: transparent;
 }
 
 .tab:hover {

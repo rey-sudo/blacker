@@ -1,5 +1,5 @@
 <script setup lang="ts"></script>
 
 <template>
-  <UButton icon="lucide:menu" color="neutral" variant="ghost" size="md" />
+  <UButton icon="lucide:settings" color="neutral" variant="ghost" size="md" />
 </template>

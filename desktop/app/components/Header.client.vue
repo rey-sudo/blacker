@@ -6,9 +6,9 @@
     </div>
 
     <div class="header__right">
-      <HeaderAvatar />
       <HeaderThemeButton />
-      <HeaderSettingsButton style="margin-left: auto" />
+      <HeaderSettingsButton />
+      <HeaderAvatar />
     </div>
   </div>
 </template>
@@ -20,10 +20,10 @@
   gap: 1rem;
   display: grid;
   align-items: center;
+  background: var(--bg);
   box-sizing: border-box;
-  grid-template-columns: 1fr auto;
   height: var(--header-height);
-  background: var(--nav-background);
+  grid-template-columns: 1fr auto;
   padding: var(--tab-content-padding);
   padding-top: initial;
   padding-bottom: initial;
@@ -40,6 +40,5 @@
   gap: 1rem;
   display: flex;
   align-items: center;
-  padding-right: 0.5rem;
 }
 </style>

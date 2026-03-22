@@ -18,13 +18,13 @@
 }
 
 :root {
-  --header-height: 2.25rem;
+  --header-height: 2.5rem;
+  --header-background: var(--ui-bg-muted);
 
   --main-background: var(--ui-bg-accented);
 
-  --nav-background: var(--ui-bg);
-
-  --footer-height: 2.25rem;
+  --footer-height: 2.5rem;
+  --footer-background: var(--ui-bg);
 
   --tab-content-padding: 0.25rem;
 }
