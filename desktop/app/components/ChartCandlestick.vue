@@ -50,6 +50,7 @@ onMounted(() => {
     colors: {
       bg: getCssVariable("--chart-background"),
       bg2: getCssVariable("--chart-background"),
+      bg3: getCssVariable("--chart-background"),
       bull: "rgb(8, 153, 129)",
       bear: "rgb(242, 54, 69)",
       grid: getCssVariable("--ui-border"),
@@ -65,9 +66,10 @@ onMounted(() => {
 
 <style lang="css" scoped>
 .chart-container {
+  width: 1000px;
+  width: 100vw;
   display: flex;
   height: 100%;
   overflow: hidden;
 }
-
 </style>

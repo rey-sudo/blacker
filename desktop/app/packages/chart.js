@@ -42,81 +42,90 @@ const DEFAULT_OPTIONS = {
   },
 };
 
-function _mergeoptions(target, source, options) {
-  options = options || {};
-  options.clone = options.clone !== false;
-
-  function isMergeableObject(val) {
-    return (
-      val !== null &&
-      typeof val === "object" &&
-      !(val instanceof Date) &&
-      !(val instanceof RegExp)
-    );
+export function _mergeoptions(base, patch, opts = {}) {
+ 
+  // ── Config ──────────────────────────────────────────────────────
+ 
+  const resolvers = opts.resolvers ?? {};
+  const strict    = opts.strict    ?? false;
+  const clone     = opts.clone     !== false;
+ 
+  // ── Helpers ────────────────────────────────────────────────────────────
+ 
+  function isPlainObject(val) {
+    if (val === null || typeof val !== "object") return false;
+    const proto = Object.getPrototypeOf(val);
+    return proto === Object.prototype || proto === null;
   }
-
-  function baseEntity(val) {
-    return Array.isArray(val) ? [] : {};
-  }
-
-  function conditionalClone(value) {
-    return options.clone && isMergeableObject(value)
-      ? _mergeoptions(baseEntity(value), value, options)
-      : value;
-  }
-
-  function getKeys(obj) {
-    var keys = Object.keys(obj);
+ 
+  function ownKeys(obj) {
+    const keys = Object.keys(obj);
     if (Object.getOwnPropertySymbols) {
-      Object.getOwnPropertySymbols(obj).forEach(function (sym) {
-        if (Object.propertyIsEnumerable.call(obj, sym)) keys.push(sym);
-      });
+      for (const sym of Object.getOwnPropertySymbols(obj)) {
+        if (Object.prototype.propertyIsEnumerable.call(obj, sym)) keys.push(sym);
+      }
     }
     return keys;
   }
-
-  function checkProperty(tgt, key) {
+ 
+  function isProtected(target, key) {
     try {
       return (
-        key in tgt &&
-        !(
-          Object.hasOwnProperty.call(tgt, key) &&
-          Object.propertyIsEnumerable.call(tgt, key)
-        )
+        key in target &&
+        !(Object.hasOwn(target, key) &&
+          Object.prototype.propertyIsEnumerable.call(target, key))
       );
-    } catch (_) {
-      return false;
-    }
+    } catch { return false; }
   }
-
-  function mergeObject(tgt, src) {
-    var destination = {};
-    if (isMergeableObject(tgt)) {
-      getKeys(tgt).forEach(function (key) {
-        destination[key] = conditionalClone(tgt[key]);
-      });
+ 
+  // ── Recursive ───────────────────────────────────────────────────
+ 
+  function fuse(a, b, seen) {
+ 
+    if (seen.has(b)) {
+      if (strict) throw new TypeError("_mergeoptions: referencia circular detectada.");
+      return b;
     }
-    getKeys(src).forEach(function (key) {
-      if (checkProperty(tgt, key)) return;
-      if (isMergeableObject(tgt[key]) && isMergeableObject(src[key])) {
-        destination[key] = _mergeoptions(tgt[key], src[key], options);
-      } else {
-        destination[key] = conditionalClone(src[key]);
+    seen.add(b);
+ 
+    const result = {};
+ 
+    if (isPlainObject(a)) {
+      for (const key of ownKeys(a)) {
+        result[key] = maybeClone(a[key], seen);
       }
-    });
-    return destination;
-  }
+    }
+ 
+    for (const key of ownKeys(b)) {
+      if (isProtected(a, key)) continue;
+ 
 
-  var sourceIsArray = Array.isArray(source);
-  var targetIsArray = Array.isArray(target);
-
-  if (sourceIsArray !== targetIsArray) {
-    return conditionalClone(source);
-  } else if (sourceIsArray) {
-    return target.concat(source).map(conditionalClone);
-  } else {
-    return mergeObject(target, source);
+      if (resolvers[key]) {
+        result[key] = resolvers[key](a?.[key], b[key], opts);
+        continue;
+      }
+ 
+      if (isPlainObject(a?.[key]) && isPlainObject(b[key])) {
+        result[key] = fuse(a[key], b[key], seen);
+        continue;
+      }
+ 
+      result[key] = maybeClone(b[key], seen);
+    }
+ 
+    return result;
   }
+ 
+  function maybeClone(val, seen) {
+    if (!clone || !isPlainObject(val)) return val;
+    return fuse({}, val, seen);
+  }
+ 
+  if (!isPlainObject(base) || !isPlainObject(patch)) {
+    throw new TypeError("_mergeoptions: base y patch deben ser objetos planos.");
+  }
+ 
+  return fuse(base, patch, new WeakSet());
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -125,6 +134,7 @@ function _mergeoptions(target, source, options) {
 export class ChartEngine {
   constructor() {
     this.options = { ...DEFAULT_OPTIONS };
+
     // Data
     this.data = [];
 
@@ -166,10 +176,19 @@ export class ChartEngine {
     // Panes geometry (computed in resize)
     this.panes = {};
 
+    this._loadCssVariables();
     this._grabCanvases();
     this._resize();
     this._bindEvents();
     this._startLoop();
+  }
+
+  _loadCssVariables() {
+    const root = document.documentElement;
+
+    Object.entries(this.options.colors).forEach(([key, value]) => {
+      root.style.setProperty(`--${key}`, value);
+    });
   }
 
   // ── DOM SETUP ──────────────────────────────────────────────────────────────
@@ -496,7 +515,6 @@ export class ChartEngine {
   _drawCandlesticks(ctx, p, priceMin, priceMax) {
     const bw = Math.max(1, this.barWidth - 1);
     const hw = Math.max(1, Math.floor(bw / 2));
-
     ctx.save();
     for (
       let i = this.viewStart;
@@ -505,14 +523,14 @@ export class ChartEngine {
     ) {
       const d = this.data[i];
       const x = Math.round(this._xOf(i));
-      const yO = this._yOf(d.o, p, priceMin, priceMax);
-      const yC = this._yOf(d.c, p, priceMin, priceMax);
-      const yH = this._yOf(d.h, p, priceMin, priceMax);
-      const yL = this._yOf(d.l, p, priceMin, priceMax);
+      const yH = Math.round(this._yOf(d.h, p, priceMin, priceMax));
+      const yL = Math.round(this._yOf(d.l, p, priceMin, priceMax));
+      const yO = Math.round(this._yOf(d.o, p, priceMin, priceMax));
+      const yC = Math.round(this._yOf(d.c, p, priceMin, priceMax));
       const bull = d.c >= d.o;
       const col = bull ? this.options.colors.bull : this.options.colors.bear;
 
-      // Wick
+      // Wick — +0.5 aligns 1px stroke to pixel center
       ctx.strokeStyle = col;
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -520,13 +538,11 @@ export class ChartEngine {
       ctx.lineTo(x + 0.5, yL);
       ctx.stroke();
 
-      // Body
       const bodyTop = Math.min(yO, yC);
       const bodyH = Math.max(1, Math.abs(yC - yO));
       if (bw >= 2) {
         ctx.fillStyle = col;
         ctx.fillRect(x - hw + 1, bodyTop, bw - 1, bodyH);
-        // Inner glow on large candles
         if (bw >= 5 && bodyH > 2) {
           ctx.fillStyle = bull
             ? "rgba(0,200,122,0.25)"
@@ -537,8 +553,8 @@ export class ChartEngine {
         ctx.strokeStyle = col;
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(x, bodyTop);
-        ctx.lineTo(x, bodyTop + bodyH);
+        ctx.moveTo(x + 0.5, bodyTop);
+        ctx.lineTo(x + 0.5, bodyTop + bodyH);
         ctx.stroke();
       }
     }
@@ -890,7 +906,8 @@ export class ChartEngine {
     ctx.save();
     ctx.fillStyle = bgColor;
     ctx.fillRect(tx, ty, tw, th);
-    ctx.fillStyle = textColor === "#050810" ? "#050810" : this.options.colors.bg;
+    ctx.fillStyle =
+      textColor === "#050810" ? "#050810" : this.options.colors.bg;
     ctx.font = "10px Inter, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(label, tx + tw / 2, ty + 11.5);
@@ -1339,6 +1356,7 @@ export class ChartEngine {
   // ── PUBLIC API ────────────────────────────────────────────────────────────
   applyOptions(newOptions) {
     this.options = _mergeoptions(this.options, newOptions);
+    this._loadCssVariables();
     this.dirty = true;
   }
 

@@ -1,26 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap");
 
-:root {
-  --bg: #050810;
-  --bg2: #080d1a;
-  --bg3: #0d1526;
-  --border: #1a2540;
-  --border2: #243050;
-  --text: #c8d4e8;
-  --text-dim: #4a5a7a;
-  --text-bright: #e8f0ff;
-  --accent: #3d7aff;
-  --accent2: #00d9a3;
-  --bull: #00c87a;
-  --bear: #ff4060;
-  --bull-dim: rgba(0, 200, 122, 0.18);
-  --bear-dim: rgba(255, 64, 96, 0.18);
-  --gold: #ffb830;
-  --purple: #a855f7;
-  --mono: "Inter", monospace;
-  --sans: "Inter", sans-serif;
-}
-
 /* ── TOP BAR ── */
 #topbar {
   height: 44px;
