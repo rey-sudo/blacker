@@ -1,12 +1,5 @@
 "use strict";
-// ═══════════════════════════════════════════════════════════════════════════════
-//  FinChart — Lightweight Financial Charting Engine v1.0 LICENSE GNU GPLV3
-//  Architecture:
-//    • Dirty-flag RAF loop   → only redraws when state changes (true 60fps)
-//    • Virtual viewport      → renders only visible bars (O(view) not O(n))
-//    • Layered canvases      → data layer + overlay layer (crosshair redraws cheaply)
-//    • Drawing tools         → trendlines, h-lines, rectangles, fib, text
-// ═══════════════════════════════════════════════════════════════════════════════
+// BLACKER CHART LIBRARY LICENSE GNU GPLv3.0
 
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const PRICE_SCALE_W = 72;
@@ -15,37 +8,123 @@ const MAX_BAR_W = 40;
 const DEFAULT_BAR_W = 8;
 const SCROLL_ZOOM_FACTOR = 0.12;
 
-// ── COLOR PALETTE ─────────────────────────────────────────────────────────────
-const colors = {
-  bg: "#050810",
-  bg2: "#080d1a",
-  bg3: "#0d1526",
-  grid: "rgba(26,37,64,0.9)",
-  gridAlt: "rgba(26,37,64,0.4)",
-  text: "#c8d4e8",
-  textDim: "#4a5a7a",
-  bull: "#00c87a",
-  bear: "#ff4060",
-  bullDim: "rgba(0,200,122,0.15)",
-  bearDim: "rgba(255,64,96,0.15)",
-  line: "#3d7aff",
-  area1: "rgba(61,122,255,0.25)",
-  area2: "rgba(61,122,255,0.0)",
-  ma: "#ffb830",
-  bb: "#a855f7",
-  bbFill: "rgba(168,85,247,0.07)",
-  cross: "rgba(200,212,232,0.3)",
-  crossPt: "#3d7aff",
-  vol: "rgba(61,122,255,0.35)",
-  volBull: "rgba(0,200,122,0.35)",
-  volBear: "rgba(255,64,96,0.35)",
+const DEFAULT_OPTIONS = {
+  chartType: "candlestick", // 'candlestick' | 'line' | 'area'
+  rightPadBars: 20,
+  barWidth: DEFAULT_BAR_W,
+  minBarWidth: MIN_BAR_W,
+  maxBarWidth: MAX_BAR_W,
+  zoomFactor: SCROLL_ZOOM_FACTOR,
+
+  colors: {
+    bg: "#050810",
+    bg2: "#080d1a",
+    bg3: "#0d1526",
+    grid: "rgba(26,37,64,0.9)",
+    gridAlt: "rgba(26,37,64,0.4)",
+    text: "#c8d4e8",
+    textDim: "#4a5a7a",
+    bull: "#00c87a",
+    bear: "#ff4060",
+    bullDim: "rgba(0,200,122,0.15)",
+    bearDim: "rgba(255,64,96,0.15)",
+    line: "#3d7aff",
+    area1: "rgba(61,122,255,0.25)",
+    area2: "rgba(61,122,255,0.0)",
+    ma: "#ffb830",
+    bb: "#a855f7",
+    bbFill: "rgba(168,85,247,0.07)",
+    cross: "rgba(200,212,232,0.3)",
+    crossPt: "#3d7aff",
+    vol: "rgba(61,122,255,0.35)",
+    volBull: "rgba(0,200,122,0.35)",
+    volBear: "rgba(255,64,96,0.35)",
+  },
 };
+
+function _mergeoptions(target, source, options) {
+  options = options || {};
+  options.clone = options.clone !== false;
+
+  function isMergeableObject(val) {
+    return (
+      val !== null &&
+      typeof val === "object" &&
+      !(val instanceof Date) &&
+      !(val instanceof RegExp)
+    );
+  }
+
+  function baseEntity(val) {
+    return Array.isArray(val) ? [] : {};
+  }
+
+  function conditionalClone(value) {
+    return options.clone && isMergeableObject(value)
+      ? _mergeoptions(baseEntity(value), value, options)
+      : value;
+  }
+
+  function getKeys(obj) {
+    var keys = Object.keys(obj);
+    if (Object.getOwnPropertySymbols) {
+      Object.getOwnPropertySymbols(obj).forEach(function (sym) {
+        if (Object.propertyIsEnumerable.call(obj, sym)) keys.push(sym);
+      });
+    }
+    return keys;
+  }
+
+  function checkProperty(tgt, key) {
+    try {
+      return (
+        key in tgt &&
+        !(
+          Object.hasOwnProperty.call(tgt, key) &&
+          Object.propertyIsEnumerable.call(tgt, key)
+        )
+      );
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function mergeObject(tgt, src) {
+    var destination = {};
+    if (isMergeableObject(tgt)) {
+      getKeys(tgt).forEach(function (key) {
+        destination[key] = conditionalClone(tgt[key]);
+      });
+    }
+    getKeys(src).forEach(function (key) {
+      if (checkProperty(tgt, key)) return;
+      if (isMergeableObject(tgt[key]) && isMergeableObject(src[key])) {
+        destination[key] = _mergeoptions(tgt[key], src[key], options);
+      } else {
+        destination[key] = conditionalClone(src[key]);
+      }
+    });
+    return destination;
+  }
+
+  var sourceIsArray = Array.isArray(source);
+  var targetIsArray = Array.isArray(target);
+
+  if (sourceIsArray !== targetIsArray) {
+    return conditionalClone(source);
+  } else if (sourceIsArray) {
+    return target.concat(source).map(conditionalClone);
+  } else {
+    return mergeObject(target, source);
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 //  CHART ENGINE
 // ═══════════════════════════════════════════════════════════════════════════════
 export class ChartEngine {
   constructor() {
+    this.options = { ...DEFAULT_OPTIONS };
     // Data
     this.data = [];
 
@@ -346,7 +425,7 @@ export class ChartEngine {
     ctx.clearRect(0, 0, W, H);
 
     // Background
-    ctx.fillStyle = colors.bg;
+    ctx.fillStyle = this.options.colors.bg;
     ctx.fillRect(0, 0, W, H);
 
     // Grid
@@ -382,7 +461,7 @@ export class ChartEngine {
 
   _drawGrid(ctx, W, H, cw, priceMin, priceMax, p) {
     ctx.save();
-    ctx.strokeStyle = colors.grid;
+    ctx.strokeStyle = this.options.colors.grid;
     ctx.lineWidth = 1;
 
     // Horizontal price grid lines
@@ -404,7 +483,7 @@ export class ChartEngine {
     ) {
       if (this._isTimeGridLine(i, timeStep)) {
         const x = Math.round(this._xOf(i)) + 0.5;
-        ctx.strokeStyle = colors.grid;
+        ctx.strokeStyle = this.options.colors.grid;
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, H);
@@ -431,7 +510,7 @@ export class ChartEngine {
       const yH = this._yOf(d.h, p, priceMin, priceMax);
       const yL = this._yOf(d.l, p, priceMin, priceMax);
       const bull = d.c >= d.o;
-      const col = bull ? colors.bull : colors.bear;
+      const col = bull ? this.options.colors.bull : this.options.colors.bear;
 
       // Wick
       ctx.strokeStyle = col;
@@ -468,7 +547,7 @@ export class ChartEngine {
 
   _drawLine(ctx, p, priceMin, priceMax) {
     ctx.save();
-    ctx.strokeStyle = colors.line;
+    ctx.strokeStyle = this.options.colors.line;
     ctx.lineWidth = 1.5;
     ctx.lineJoin = "round";
     ctx.beginPath();
@@ -514,8 +593,8 @@ export class ChartEngine {
       ctx.lineTo(firstX, baseY);
       ctx.closePath();
       const grad = ctx.createLinearGradient(0, 0, 0, p.h);
-      grad.addColorStop(0, colors.area1);
-      grad.addColorStop(1, colors.area2);
+      grad.addColorStop(0, this.options.colors.area1);
+      grad.addColorStop(1, this.options.colors.area2);
       ctx.fillStyle = grad;
       ctx.fill();
     }
@@ -530,12 +609,12 @@ export class ChartEngine {
     const cw = this.chartW;
 
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = colors.bg2;
+    ctx.fillStyle = this.options.colors.bg2;
     ctx.fillRect(0, 0, W, H);
 
     if (!this.data.length) return;
     const step = this._timeGridStep();
-    ctx.fillStyle = colors.textDim;
+    ctx.fillStyle = this.options.colors.textDim;
     ctx.font = "9px Inter, sans-serif";
     ctx.textAlign = "center";
 
@@ -560,11 +639,11 @@ export class ChartEngine {
     ctx.clearRect(0, 0, W, H);
 
     // Fondo
-    ctx.fillStyle = colors.bg2;
+    ctx.fillStyle = this.options.colors.bg2;
     ctx.fillRect(0, 0, W, H);
 
     // Línea separadora izquierda
-    ctx.strokeStyle = colors.grid;
+    ctx.strokeStyle = this.options.colors.grid;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(0.5, 0);
@@ -573,7 +652,7 @@ export class ChartEngine {
 
     // Labels en cada grid step
     const steps = this._nicePriceSteps(priceMin, priceMax, 6);
-    ctx.fillStyle = colors.textDim;
+    ctx.fillStyle = this.options.colors.textDim;
     ctx.font = "10px Inter, sans-serif";
     ctx.textAlign = "right";
     steps.forEach((price) => {
@@ -586,7 +665,7 @@ export class ChartEngine {
     const last = this.data[this.data.length - 1];
     const y = this._yOf(last.c, p, priceMin, priceMax);
     const bull = last.c >= last.o;
-    ctx.fillStyle = bull ? colors.bull : colors.bear;
+    ctx.fillStyle = bull ? this.options.colors.bull : this.options.colors.bear;
     ctx.fillRect(1, y - 8, W - 2, 16);
     ctx.fillStyle = "#050810";
     ctx.font = "10px Inter, sans-serif";
@@ -754,7 +833,7 @@ export class ChartEngine {
     // Main pane crosshair
     const ctx = this.ctxOMain;
     ctx.save();
-    ctx.strokeStyle = colors.cross;
+    ctx.strokeStyle = this.options.colors.cross;
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
 
@@ -777,8 +856,8 @@ export class ChartEngine {
         crossPrice,
         localY,
         pMain,
-        colors.cross,
-        colors.textDim,
+        this.options.colors.cross,
+        this.options.colors.textDim,
       );
     }
     ctx.setLineDash([]);
@@ -787,7 +866,7 @@ export class ChartEngine {
     const dotY = this._yOf(d.c, pMain, lo, hi);
     ctx.beginPath();
     ctx.arc(snapX - 0.5, dotY, 3, 0, Math.PI * 2);
-    ctx.fillStyle = colors.crossPt;
+    ctx.fillStyle = this.options.colors.crossPt;
     ctx.fill();
     ctx.restore();
 
@@ -811,7 +890,7 @@ export class ChartEngine {
     ctx.save();
     ctx.fillStyle = bgColor;
     ctx.fillRect(tx, ty, tw, th);
-    ctx.fillStyle = textColor === "#050810" ? "#050810" : colors.bg;
+    ctx.fillStyle = textColor === "#050810" ? "#050810" : this.options.colors.bg;
     ctx.font = "10px Inter, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(label, tx + tw / 2, ty + 11.5);
@@ -826,9 +905,9 @@ export class ChartEngine {
     const label = this._formatDateFull(d.t);
     const tw = 90;
     tCtx.save();
-    tCtx.fillStyle = colors.cross;
+    tCtx.fillStyle = this.options.colors.cross;
     tCtx.fillRect(x - tw / 2, 0, tw, this.panes.time.h);
-    tCtx.fillStyle = colors.bg;
+    tCtx.fillStyle = this.options.colors.bg;
     tCtx.font = "9px Inter, sans-serif";
     tCtx.textAlign = "center";
     tCtx.fillText(label, x, 14);
@@ -842,7 +921,7 @@ export class ChartEngine {
 
     const y = this._yOf(last.c, pane, priceMin, priceMax);
     const bull = last.c >= last.o;
-    const col = bull ? colors.bull : colors.bear;
+    const col = bull ? this.options.colors.bull : this.options.colors.bear;
     const snapY = Math.round(y) + 0.5;
 
     ctx.save();
@@ -1258,6 +1337,11 @@ export class ChartEngine {
   }
 
   // ── PUBLIC API ────────────────────────────────────────────────────────────
+  applyOptions(newOptions) {
+    this.options = _mergeoptions(this.options, newOptions);
+    this.dirty = true;
+  }
+
   setChartType(type) {
     this.chartType = type;
     this.dirty = true;

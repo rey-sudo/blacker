@@ -28,7 +28,6 @@
         <span id="status-zoom"></span>
         <span id="status-cursor"></span>
       </div>
-
     </div>
   </div>
 </template>
@@ -47,6 +46,16 @@ const props = defineProps({
 onMounted(() => {
   const chart = new ChartEngine();
 
+  chart.applyOptions({
+    colors: {
+      bg: getCssVariable("--chart-background"),
+      bg2: getCssVariable("--chart-background"),
+      bull: "rgb(8, 153, 129)",
+      bear: "rgb(242, 54, 69)",
+      grid: getCssVariable("--ui-border"),
+    },
+  });
+
   const rawData = generate4h();
 
   chart.load(rawData);
@@ -55,11 +64,10 @@ onMounted(() => {
 </script>
 
 <style lang="css" scoped>
-.chart-container{
+.chart-container {
   display: flex;
   height: 100%;
   overflow: hidden;
 }
-
 
 </style>
