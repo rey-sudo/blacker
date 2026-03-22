@@ -67,7 +67,7 @@ onMounted(() => {
 <style lang="css" scoped>
 .chart-container {
   width: 1000px;
-  width: 100vw;
+  width: 100%;
   display: flex;
   height: 100%;
   overflow: hidden;
