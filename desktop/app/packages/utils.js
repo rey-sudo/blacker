@@ -106,6 +106,14 @@ chart.addSeries({
   color: "#ffb830",
   layer: "foreground", // renders after candles
 
+  params: {
+    period: { type: 'number', label: 'Period', value: 20, min: 2, max: 200, step: 1 },
+    color:  { type: 'color',  label: 'Color',  value: '#ffb830' },
+    width:  { type: 'number', label: 'Width',  value: 1.3, min: 0.5, max: 4, step: 0.5 },
+    style:  { type: 'select', label: 'Style',  value: 'solid',
+              options: ['solid', 'dashed', 'dotted'] },
+  },  
+
   // Compute full MA array once on data load
   compute(data) {
     const period = 20;
@@ -162,7 +170,25 @@ chart.addSeries({
     return { label: "MA20", value: values[i].toFixed(2), color: "#ffb830" };
   },
 });
+/**
+// Número con rango
+{ type: 'number', label: 'Period', value: 20, min: 2, max: 200, step: 1 }
 
+// Color picker
+{ type: 'color', label: 'Color', value: '#ffb830' }
+
+// Select / dropdown
+{ type: 'select', label: 'Style', value: 'solid', options: ['solid','dashed','dotted'] }
+
+// Booleano / toggle
+{ type: 'boolean', label: 'Show labels', value: true }
+
+// Texto libre (para etiquetas, notas)
+{ type: 'text', label: 'Label', value: 'MA 20' } 
+
+
+
+ */
 // ── REGISTER BB via addSeries() ───────────────────────────────────────────────
 chart.addSeries({
   id: "bb",

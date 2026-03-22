@@ -214,19 +214,22 @@ class ChartEngine {
   // Recompute values for all registered series (called on full load)
   _recomputeSeries() {
     this._series.forEach((entry) => {
-      entry.values = entry.def.compute(this.data);
+      entry.values = entry.def.compute(this.data, entry.params);
     });
   }
-
   // Incremental series update — O(period) per series, not O(n).
   // Falls back to full compute() if the series has no updateIncremental hook.
   _updateSeriesIncremental(isNewBar) {
     this._series.forEach((entry) => {
       if (entry.def.updateIncremental) {
-        entry.def.updateIncremental(entry.values, this.data, isNewBar);
+        entry.def.updateIncremental(
+          entry.values,
+          this.data,
+          isNewBar,
+          entry.params,
+        );
       } else {
-        // Fallback: full recompute (still correct, just not O(1))
-        entry.values = entry.def.compute(this.data);
+        entry.values = entry.def.compute(this.data, entry.params);
       }
     });
   }
@@ -350,10 +353,10 @@ class ChartEngine {
     this._drawGrid(ctx, W, H, cw, priceMin, priceMax, p);
 
     // ── Custom series (behind candles): fill-type series like BB render here
-    this._series.forEach(({ def, values, enabled }) => {
+    this._series.forEach(({ def, values, enabled, params }) => {
       if (!enabled || def.layer !== "background") return;
       ctx.save();
-      def.render(ctx, p, this, values, priceMin, priceMax);
+      def.render(ctx, p, this, values, priceMin, priceMax, params);
       ctx.restore();
     });
 
@@ -1318,7 +1321,14 @@ class ChartEngine {
   // ─── Series API ──────────────────────────────────────────────────────────
 
   addSeries(def) {
-    const entry = { def, values: [], enabled: true };
+    const params = {};
+    if (def.params) {
+      for (const [k, field] of Object.entries(def.params)) {
+        params[k] = { ...field }; // copy value, type, label, etc.
+      }
+    }
+
+    const entry = { def, values: [], enabled: true, params };
     if (this.data.length) entry.values = def.compute(this.data);
     this._series.set(def.id, entry);
     this._updateLegend();
@@ -1367,6 +1377,49 @@ class ChartEngine {
   // Is a series currently enabled?
   isSeriesEnabled(id) {
     return this._series.get(id)?.enabled ?? false;
+  }
+
+  // Leer el entry completo (def + values + enabled + params)
+  getSeries(id) {
+    return this._series.get(id) ?? null;
+  }
+
+  // Modificar un param individual
+  setSeriesParam(id, key, value) {
+    const entry = this._series.get(id);
+    if (!entry || !entry.params[key]) return this;
+    entry.params[key].value = value;
+    // Si el param afecta el cálculo → recompute completo
+    if (entry.params[key].affectsCompute) {
+      entry.values = entry.def.compute(this.data, entry.params);
+    }
+    this.dirty = true;
+    return this;
+  }
+
+  // Modificar múltiples params de una vez
+  setSeriesParams(id, patch) {
+    const entry = this._series.get(id);
+    if (!entry) return this;
+    let needsRecompute = false;
+    for (const [key, value] of Object.entries(patch)) {
+      if (!entry.params[key]) continue;
+      entry.params[key].value = value;
+      if (entry.params[key].affectsCompute) needsRecompute = true;
+    }
+    if (needsRecompute)
+      entry.values = entry.def.compute(this.data, entry.params);
+    this.dirty = true;
+    return this;
+  }
+
+  // Snapshot serializable — { period: 20, color: '#ffb830', ... }
+  getSeriesParams(id) {
+    const entry = this._series.get(id);
+    if (!entry) return null;
+    const out = {};
+    for (const [k, field] of Object.entries(entry.params)) out[k] = field.value;
+    return out;
   }
 
   resetZoom() {
