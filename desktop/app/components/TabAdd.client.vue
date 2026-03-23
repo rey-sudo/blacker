@@ -1,17 +1,20 @@
 <template>
-  <UButton
-    icon="i-lucide-plus"
-    size="xs"
-    color="neutral"
-    @click="visible = true"
-    variant="outline"
-  />
+  <div class="tab-add flex items-center h-[inherit]">
+    <UButton
+      class="mt-2"
+      icon="i-lucide-plus"
+      size="xs"
+      color="neutral"
+      @click="visible = true"
+      variant="ghost"
+    />
 
-  <UModal v-model:open="visible" title="Symbol Search">
-    <template #body>
-      <TabSymbolSearch @close="visible = false" @select="onSelect" />
-    </template>
-  </UModal>
+    <UModal v-model:open="visible" title="Symbol Search">
+      <template #body>
+        <TabSymbolSearch @close="visible = false" @select="onSelect" />
+      </template>
+    </UModal>
+  </div>
 </template>
 
 <script setup lang="ts">

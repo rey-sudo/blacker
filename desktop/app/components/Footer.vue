@@ -5,12 +5,12 @@
         >Positions
 
         <template #trailing>
-          <UBadge size="sm" color="neutral" variant="subtle">2</UBadge>
+          <UBadge size="xs" color="neutral" variant="subtle">2</UBadge>
         </template>
       </UButton>
       <UButton color="neutral" size="xs" variant="ghost">
         <template #trailing>
-          <UBadge size="sm" color="neutral" variant="subtle">1</UBadge>
+          <UBadge size="xs" color="neutral" variant="subtle">1</UBadge>
         </template>
 
         Alerts</UButton

@@ -65,7 +65,7 @@ const menuItems: ContextMenuItem[] = [
 const getBorderColor = (kind: TabKind) => {
   switch (kind) {
     case TabKind.Trading:
-      return "primary";
+      return "neutral";
 
     case TabKind.Backtesting:
       return "warning";
@@ -107,28 +107,32 @@ onBeforeUnmount(() => {
 .tab {
   border-left: 1px solid var(--ui-border);
   border-right: 1px solid var(--ui-border);
-  border-bottom: 1px solid var(--ui-border);
+  border-top: 1px solid var(--ui-border);
   border-top-left-radius: var(--ui-radius);
   border-top-right-radius: var(--ui-radius);
   align-items: center;
+  border-bottom: none;
   font-weight: 600;
   cursor: pointer;
+  height: 2rem;
   display: flex;
-  height: inherit;
   overflow: hidden;
   box-sizing: border-box;
 }
+
 .tab-label {
   padding: 0.5rem 1rem;
-  height: inherit;
 }
 
 .tab-label span {
-  margin-left: 0.25rem;
+  margin-left: 0.5rem;
 }
 
 .tab.active {
-  background: var(--ui-bg);
+  background: var(--ui-bg-muted);
+  border-left: 1px solid var(--ui-border-muted);
+  border-right: 1px solid var(--ui-border-muted);
+  border-top: 1px solid var(--ui-border-muted);
 }
 
 .tab.inactive {

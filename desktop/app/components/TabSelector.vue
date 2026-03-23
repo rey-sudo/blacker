@@ -1,5 +1,8 @@
 <template>
-  <div ref="tabsContainer" class="tab-selector flex gap-2 overflow-x-auto">
+  <div
+    class="flex gap-2 overflow-x-auto items-baseline box-border h-[inherit]"
+    ref="tabsContainer"
+  >
     <Tab
       v-for="tab in tabsStore.allTabs"
       :key="tab.id"
@@ -7,6 +10,7 @@
       :tabId="String(tab.id)"
       :isActive="tabsStore.activeTabId === tab.id"
       @click="tabsStore.selectTab(tab.id)"
+      class="mt-auto mb-[1px]"
     />
   </div>
 </template>
@@ -39,10 +43,3 @@ onMounted(async () => {
   });
 });
 </script>
-
-<style scoped>
-.tab-selector{
-  height: inherit;
-  box-sizing: border-box;
-}
-</style>

@@ -19,7 +19,7 @@
 
 :root {
   --header-height: 2.5rem;
-  --header-background: var(--ui-bg-muted);
+  --header-background: var(--ui-color-neutral-950);
 
   --main-background: var(--ui-bg-accented);
 
