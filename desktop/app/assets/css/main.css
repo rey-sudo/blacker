@@ -24,7 +24,7 @@
   --main-background: var(--ui-bg-accented);
 
   --footer-height: 2.5rem;
-  --footer-background: var(--ui-bg);
+  --footer-background: var(--ui-color-neutral-950);
 
   --tab-content-padding: 0.25rem;
 }
