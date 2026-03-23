@@ -10,7 +10,7 @@
       :tabId="String(tab.id)"
       :isActive="tabsStore.activeTabId === tab.id"
       @click="tabsStore.selectTab(tab.id)"
-      class="mt-auto mb-[1px]"
+      class="mt-auto"
     />
   </div>
 </template>

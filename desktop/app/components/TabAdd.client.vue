@@ -3,7 +3,7 @@
     <UButton
       class="mt-2"
       icon="i-lucide-plus"
-      size="xs"
+      size="sm"
       color="neutral"
       @click="visible = true"
       variant="ghost"
