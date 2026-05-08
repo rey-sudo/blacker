@@ -1,0 +1,298 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+:root {
+  --ui-header-height: 2.5rem;
+}
+
+/* Inter Regular */
+@font-face {
+  font-family: "Inter";
+  src: url("assets/fonts/Inter.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Inter Italic */
+@font-face {
+  font-family: "Inter";
+  src: url("assets/fonts/InterItalic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Open Sans Regular */
+@font-face {
+  font-family: "Open Sans";
+  src: url("assets/fonts/OpenSans.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Open Sans Italic */
+@font-face {
+  font-family: "Open Sans";
+  src: url("assets/fonts/OpenSansItalic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("assets/fonts/IBMPlexSans.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("assets/fonts/IBMPlexSansItalic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+* {
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-optical-sizing: auto;
+  font-variation-settings: "wdth" 100;
+}
+
+/**
+    font-family: "Inter", sans-serif;
+    font-family: 'Roboto', sans-serif;
+    font-family: 'Open Sans', sans-serif;
+    font-family: 'Source Code Pro', monospace;
+*/
+
+/**
+text-xs	0.75rem (12px)
+text-sm	0.875rem (14px)
+text-base	1rem (16px)
+text-lg	1.125rem (18px)
+text-xl	1.25rem (20px)
+text-2xl	1.5rem (24px)
+text-3xl	1.875rem (30px)
+text-4xl	2.25rem (36px)
+text-5xl	3rem (48px)
+text-6xl	3.75rem (60px)
+text-7xl	4.5rem (72px)
+text-8xl	6rem (96px)
+text-9xl	8rem (128px)
+
+rounded-xs
+
+rounded-sm
+
+rounded-md
+
+rounded-lg
+
+rounded-xl
+
+rounded-2xl
+
+rounded-3xl
+
+
+*/
+
+:root {
+  --ui-color-neutral-50: #e9edf2;
+  --ui-color-neutral-100: #dce2ea;
+  --ui-color-neutral-200: #c3ccd8;
+  --ui-color-neutral-300: #a1adbd;
+  --ui-color-neutral-400: #7d8899;
+  --ui-color-neutral-500: #5f6979;
+  --ui-color-neutral-600: #49515f;
+  --ui-color-neutral-700: #353b46;
+  --ui-color-neutral-800: #262b33;
+  --ui-color-neutral-900: #1b1f26;
+  --ui-color-neutral-925: #15181e;
+  --ui-color-neutral-950: #101216;
+  --ui-color-neutral-1000: #08090c;
+
+  /* ========== Escala Primary ========== */
+  --ui-color-primary-50: #eff6ff;
+  --ui-color-primary-100: #dbeafe;
+  --ui-color-primary-200: #bfdbfe;
+  --ui-color-primary-300: #93c5fd;
+  --ui-color-primary-400: #60a5fa;
+  --ui-color-primary-500: #3b82f6;
+  --ui-color-primary-600: #2563eb;
+  --ui-color-primary-700: #1d4ed8;
+  --ui-color-primary-800: #1e40af;
+  --ui-color-primary-900: #1e3a8a;
+
+  /* ========== Escala Secondary ========== */
+  --ui-color-secondary-50: #f5f3ff;
+  --ui-color-secondary-100: #ede9fe;
+  --ui-color-secondary-200: #ddd6fe;
+  --ui-color-secondary-300: #c4b5fd;
+  --ui-color-secondary-400: #a78bfa;
+  --ui-color-secondary-500: #8b5cf6;
+  --ui-color-secondary-600: #7c3aed;
+  --ui-color-secondary-700: #6d28d9;
+  --ui-color-secondary-800: #5b21b6;
+  --ui-color-secondary-900: #4c1d95;
+
+  /* ========== Escala Success ========== */
+  --ui-color-success-50: #f0fdf4;
+  --ui-color-success-100: #dcfce7;
+  --ui-color-success-200: #bbf7d0;
+  --ui-color-success-300: #86efac;
+  --ui-color-success-400: #4ade80;
+  --ui-color-success-500: #22c55e;
+  --ui-color-success-600: #16a34a;
+  --ui-color-success-700: #15803d;
+  --ui-color-success-800: #166534;
+  --ui-color-success-900: #14532d;
+
+  /* ========== Escala Info ========== */
+  --ui-color-info-50: #ecfeff;
+  --ui-color-info-100: #cffafe;
+  --ui-color-info-200: #a5f3fc;
+  --ui-color-info-300: #67e8f9;
+  --ui-color-info-400: #22d3ee;
+  --ui-color-info-500: #06b6d4;
+  --ui-color-info-600: #0891b2;
+  --ui-color-info-700: #0e7490;
+  --ui-color-info-800: #155e75;
+  --ui-color-info-900: #164e63;
+
+  /* ========== Escala Warning ========== */
+  --ui-color-warning-50: #fffbeb;
+  --ui-color-warning-100: #fef3c7;
+  --ui-color-warning-200: #fde68a;
+  --ui-color-warning-300: #fcd34d;
+  --ui-color-warning-400: #fbbf24;
+  --ui-color-warning-500: #f59e0b;
+  --ui-color-warning-600: #d97706;
+  --ui-color-warning-700: #b45309;
+  --ui-color-warning-800: #92400e;
+  --ui-color-warning-900: #78350f;
+
+  /* ========== Escala Error ========== */
+  --ui-color-error-50: #fef2f2;
+  --ui-color-error-100: #fee2e2;
+  --ui-color-error-200: #fecaca;
+  --ui-color-error-300: #fca5a5;
+  --ui-color-error-400: #f87171;
+  --ui-color-error-500: #ef4444;
+  --ui-color-error-600: #dc2626;
+  --ui-color-error-700: #b91c1c;
+  --ui-color-error-800: #991b1b;
+  --ui-color-error-900: #7f1d1d;
+}
+
+:root {
+  /* ========== Semantic (usa escala) ========== */
+  --ui-primary: var(--ui-color-primary-500);
+  --ui-secondary: var(--ui-color-secondary-500);
+
+  --ui-success: var(--ui-color-success-500);
+  --ui-info: var(--ui-color-info-500);
+  --ui-warning: var(--ui-color-warning-500);
+  --ui-error: var(--ui-color-error-500);
+
+  /* ========== Backgrounds ========== */
+  --ui-bg: white;
+  --ui-bg-muted: var(--ui-color-neutral-50);
+  --ui-bg-elevated: var(--ui-color-neutral-100);
+  --ui-bg-accented: var(--ui-color-neutral-200);
+  --ui-bg-inverted: var(--ui-color-neutral-900);
+
+  /* ========== Text ========== */
+  --ui-text-dimmed: var(--ui-color-neutral-400);
+  --ui-text-muted: var(--ui-color-neutral-500);
+  --ui-text-toned: var(--ui-color-neutral-600);
+  --ui-text: var(--ui-color-neutral-700);
+  --ui-text-highlighted: var(--ui-color-neutral-900);
+  --ui-text-inverted: white;
+
+  /* ========== Borders ========== */
+  --ui-border: var(--ui-color-neutral-100);
+  --ui-border-muted: var(--ui-color-neutral-200);
+  --ui-border-accented: var(--ui-color-neutral-300);
+  --ui-border-inverted: var(--ui-color-neutral-900);
+
+  /* ========== Layout ========== */
+  --ui-container: 1200px;
+  --ui-header-height: 2.5rem;
+
+  /* ========== Radius (Nuxt estándar) ========== */
+  --ui-radius: 8px;
+}
+
+.dark {
+  /* ========== Semantic ========== */
+  --ui-primary: var(--ui-color-primary-400);
+  --ui-secondary: var(--ui-color-secondary-400);
+  --ui-success: var(--ui-color-success-400);
+  --ui-info: var(--ui-color-info-400);
+  --ui-warning: var(--ui-color-warning-400);
+  --ui-error: var(--ui-color-error-400);
+
+  /* ========== Backgrounds ========== */
+  --ui-bg: var(--ui-color-neutral-900);
+  --ui-bg-muted: var(--ui-color-neutral-800);
+  --ui-bg-elevated: var(--ui-color-neutral-800);
+  --ui-bg-accented: var(--ui-color-neutral-700);
+  --ui-bg-inverted: white;
+
+  /* ========== Text ========== */
+  --ui-text-dimmed: var(--ui-color-neutral-500); /* era 600 */
+  --ui-text-muted: var(--ui-color-neutral-400); /* era 500 */
+  --ui-text-toned: var(--ui-color-neutral-300); /* era 400 */
+  --ui-text: var(--ui-color-neutral-200); /* era 300 */
+  --ui-text-highlighted: white; /* era neutral-50 */
+  --ui-text-inverted: var(--ui-color-neutral-900);
+
+  /* ========== Borders ========== */
+  --ui-border: var(--ui-color-neutral-800);
+  --ui-border-muted: var(--ui-color-neutral-700);
+  --ui-border-accented: var(--ui-color-neutral-700);
+  --ui-border-inverted: white;
+
+  /* ========== Layout ========== */
+  --ui-container: 1200px;
+  --ui-header-height: 2.5rem;
+
+  /* ========== Radius ========== */
+  --ui-radius: 8px;
+}
+
+:root {
+  --ui-card-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.02), 0 10px 20px rgba(0, 0, 0, 0.04),
+    0 15px 35px rgba(0, 0, 0, 0.04);
+
+  --editor-bg: var(--ui-bg);
+  --tab-bg: var(--ui-bg);
+  --split-bg: var(--ui-bg);
+  --header-bg: transparent;
+  --layout-bg: linear-gradient(
+    135deg,
+    #fff6e5 0%,
+    #fbe8f9 0%,
+    #e3f0ff 25%,
+    #e8f4fc 80%,
+    #e9fff0 100%
+  );
+}
+
+.dark {
+  --editor-bg: var(--ui-color-neutral-925);
+  --tab-bg: var(--ui-color-neutral-925);
+  --split-bg: var(--ui-color-neutral-925);
+  --header-bg: var(--ui-color-neutral-900);
+  --layout-bg: var(--ui-bg);
+}
