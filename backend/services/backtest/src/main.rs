@@ -19,7 +19,7 @@ pub struct Trade {
 }
 
 fn iterate_csv_file(mut db: CursorDB) -> Result<(), Box<dyn Error>> {
-    let file: File = File::open("./input/BTCUSD_PERP-trades-2026-02_grouped.csv")?;
+    let file: File = File::open("./input/BTCUSDT-trades-2026-05-06_grouped.csv")?;
 
     let reader: BufReader<File> = BufReader::with_capacity(1024 * 1024 * 16, file);
 
@@ -28,7 +28,7 @@ fn iterate_csv_file(mut db: CursorDB) -> Result<(), Box<dyn Error>> {
 
     let mut row: ByteRecord = ByteRecord::new();
     
-    info!("Running csv iteration");
+    println!("Running csv iteration");
 
     while csv.read_byte_record(&mut row)? {
         let trade: Trade = Trade {
