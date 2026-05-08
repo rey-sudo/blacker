@@ -1,6 +1,7 @@
 use csv::{ByteRecord, ReaderBuilder};
 use cursor_db::cursor::CursorDB;
 use rkyv::{Archive, Serialize};
+use tracing::info;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
@@ -14,11 +15,11 @@ pub struct Trade {
     quote_qty: f64,
     time: i64,
     is_buyer_maker: bool,
-    is_best_match: bool,
+    //is_best_match: bool,
 }
 
 fn iterate_csv_file(mut db: CursorDB) -> Result<(), Box<dyn Error>> {
-    let file: File = File::open("./input/BTCUSD-trades-2026-05-04_grouped.csv")?;
+    let file: File = File::open("./input/BTCUSD_PERP-trades-2026-02_grouped.csv")?;
 
     let reader: BufReader<File> = BufReader::with_capacity(1024 * 1024 * 16, file);
 
@@ -26,6 +27,8 @@ fn iterate_csv_file(mut db: CursorDB) -> Result<(), Box<dyn Error>> {
         ReaderBuilder::new().has_headers(false).from_reader(reader);
 
     let mut row: ByteRecord = ByteRecord::new();
+    
+    info!("Running csv iteration");
 
     while csv.read_byte_record(&mut row)? {
         let trade: Trade = Trade {
@@ -35,14 +38,14 @@ fn iterate_csv_file(mut db: CursorDB) -> Result<(), Box<dyn Error>> {
             quote_qty: std::str::from_utf8(&row[3])?.parse()?,
             time: std::str::from_utf8(&row[4])?.parse()?,
             is_buyer_maker: row[5] == b"True"[..],
-            is_best_match: row[6] == b"True"[..],
+            //is_best_match: row[6] == b"True"[..],
         };
 
         let payload: rkyv::util::AlignedVec = rkyv::to_bytes::<rkyv::rancor::Error>(&trade)?;
 
         match db.insert(trade.time, &payload) {
             Ok(_) => {
-                println!("✔ Record Saved: TS {}", trade.time);
+                //println!("✔ Record Saved: TS {}", trade.time);
             }
             Err(e) => {
                 eprintln!("🗙 Insert Error: {}", e);

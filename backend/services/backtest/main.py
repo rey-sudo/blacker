@@ -9,7 +9,7 @@ def group_trades(input_path: str, output_path: str = None):
     Lee un CSV de trades, agrupa por timestamp único y guarda ordenado.
 
     Columnas esperadas:
-        trade_id, price, qty, quote_qty, timestamp, is_buyer_maker, is_best_match
+        trade_id, price, qty, quote_qty, timestamp, is_buyer_maker
     """
     input_file = Path(input_path)
     if not input_file.exists():
@@ -21,7 +21,7 @@ def group_trades(input_path: str, output_path: str = None):
 
     # ── Leer trades ──────────────────────────────────────────────────────────
     columns = ["trade_id", "price", "qty", "quote_qty",
-               "timestamp", "is_buyer_maker", "is_best_match"]
+               "timestamp", "is_buyer_maker"]
 
     trades = []
     with open(input_file, newline="") as f:
@@ -64,7 +64,7 @@ def group_trades(input_path: str, output_path: str = None):
             "quote_qty"      : f"{total_quote_qty:.8f}",
             "timestamp"      : ts,
             "is_buyer_maker" : group[0]["is_buyer_maker"].strip(),
-            "is_best_match"  : group[0]["is_best_match"].strip(),
+            #"is_best_match"  : group[0]["is_best_match"].strip(),
             #"trades_merged"  : len(group),        # columna extra para trazabilidad
         })
 
@@ -73,7 +73,7 @@ def group_trades(input_path: str, output_path: str = None):
 
     # ── Escribir CSV de salida ────────────────────────────────────────────────
     out_cols = ["trade_id", "price", "qty", "quote_qty",
-                "timestamp", "is_buyer_maker", "is_best_match"]
+                "timestamp", "is_buyer_maker"]
 
     with open(output_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=out_cols)
