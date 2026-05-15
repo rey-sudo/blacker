@@ -1,18 +1,10 @@
 use crate::model::Trade;
-use memmap2::MmapMut;
 use std::{
     fs::{File, OpenOptions},
-    io::{BufRead, BufReader},
-    mem::size_of,
+    io::{BufRead, BufReader, BufWriter, Write},
 };
 
-const SCALE: f64 = 1_000_000_00.0;
-
-fn count_lines(path: &str) -> usize {
-    let file: File = File::open(path).expect("cannot open csv");
-    let reader: BufReader<File> = BufReader::new(file);
-    reader.lines().count()
-}
+pub const SCALE: f64 = 100_000_000.0;
 
 fn parse_bool(s: &str) -> u8 {
     match s.trim() {
@@ -23,38 +15,33 @@ fn parse_bool(s: &str) -> u8 {
 }
 
 pub fn convert_csv_to_binary(csv_path: &str, bin_path: &str) {
-    let total_rows: usize = count_lines(csv_path);
+    // Abrimos el CSV
+    let file = File::open(csv_path).expect("cannot open csv");
+    let mut reader = BufReader::new(file);
 
-    println!("rows: {}", total_rows);
-
-    let out_size: usize = total_rows * size_of::<Trade>();
-
-    let out_file: File = OpenOptions::new()
+    // Preparamos el archivo de salida con BufWriter (mucho más rápido para escritura secuencial)
+    let out_file = OpenOptions::new()
         .create(true)
-        .read(true)
         .write(true)
         .truncate(true)
         .open(bin_path)
         .expect("cannot create output");
+    let mut writer = BufWriter::new(out_file);
 
-    out_file
-        .set_len(out_size as u64)
-        .expect("cannot set output size");
+    // Reutilizamos el mismo buffer de memoria para todas las líneas
+    let mut line: String = String::new();
+    let mut i: usize = 0usize;
 
-    let mut mmap: MmapMut = unsafe { MmapMut::map_mut(&out_file).expect("cannot mmap output") };
-
-    let file: File = File::open(csv_path).expect("cannot open csv");
-    let reader: BufReader<File> = BufReader::new(file);
-
-    let trades_slice: &mut [Trade] = bytemuck::cast_slice_mut(&mut mmap[..]);
-
-    for (i, line) in reader.lines().enumerate() {
-        let line: String = line.expect("bad line");
+    // Leemos línea por línea sin crear nuevos Strings
+    while reader.read_line(&mut line).expect("read line failed") > 0 {
+        // Descomentar la siguiente línea si el CSV tiene un header (encabezado)
+        // if i == 0 { i += 1; line.clear(); continue; }
 
         let mut cols: std::str::Split<'_, char> = line.split(',');
 
-        let trade_id: u64 = cols.next().unwrap().parse().unwrap();
-
+        // Extraemos y parseamos las columnas
+        let trade_id: u64 = cols.next().unwrap().trim().parse().unwrap();
+        
         let price_f: f64 = cols.next().unwrap().trim().parse().unwrap();
         let qty_f: f64 = cols.next().unwrap().trim().parse().unwrap();
 
@@ -64,11 +51,11 @@ pub fn convert_csv_to_binary(csv_path: &str, bin_path: &str) {
         // quoteQty ignorado
         let _quote_qty: &str = cols.next().unwrap();
 
-        let timestamp_ms: u64 = cols.next().unwrap().parse().unwrap();
-
+        let timestamp_ms: u64 = cols.next().unwrap().trim().parse().unwrap();
         let is_buyer_maker: u8 = parse_bool(cols.next().unwrap());
 
-        trades_slice[i] = Trade {
+        // Construimos el struct
+        let trade: Trade = Trade {
             trade_id,
             price,
             qty,
@@ -77,12 +64,20 @@ pub fn convert_csv_to_binary(csv_path: &str, bin_path: &str) {
             _padding: [0; 7],
         };
 
-        if i % 1_000_000 == 0 && i > 0 {
+        // Escribimos directamente los bytes al archivo binario de forma secuencial
+        writer
+            .write_all(bytemuck::bytes_of(&trade))
+            .expect("failed to write trade to binary");
+
+        // Limpiamos el buffer para la siguiente iteración (clave para evitar re-asignaciones)
+        line.clear();
+        i += 1;
+
+        if i % 1_000_000 == 0 {
             println!("processed {} rows", i);
         }
     }
 
-    mmap.flush().expect("flush failed");
-
-    println!("binary written to {}", bin_path);
+    writer.flush().expect("flush failed");
+    println!("binary written to {} (Total rows: {})", bin_path, i);
 }

@@ -17,15 +17,7 @@ pub fn read_binary(path: &str) {
 
     println!("loaded {} trades", trades.len());
 
-    for t in trades.iter().take(5) {
+    for t in trades.iter() {
         println!("{:?}", t);
     }
-
-    let mut volume: u64 = 0;
-
-    for trade in trades {
-        volume += trade.qty;
-    }
-
-    println!("total volume = {}", volume);
 }
