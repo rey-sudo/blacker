@@ -1,0 +1,29 @@
+services:
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    command: >
+      redis-server
+      --save ""
+      --appendonly no
+      --maxmemory 4gb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+
+  backtest-ticks:
+    build: ./ticks
+    container_name: backtest_ticks
+    depends_on:
+      - redis
+    restart: "no"
+    env_file:
+      - ./ticks/.env
+    volumes:
+      - ./output:/output:ro
+
+volumes:
+  redis_data:

@@ -2,3 +2,5 @@
 *.cdb
 *.cdbi
 target
+.venv
+.env
