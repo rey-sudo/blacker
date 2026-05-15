@@ -1,8 +1,2 @@
 *.csv
-*.cdb
-*.cdbi
-target
-.venv
-.env
-.bin
-.idx
+*.bin
