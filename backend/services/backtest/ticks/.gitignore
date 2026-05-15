@@ -4,3 +4,5 @@
 target
 .venv
 .env
+.bin
+.idx
