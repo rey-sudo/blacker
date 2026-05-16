@@ -9,7 +9,10 @@ websocket:
     type: json
     data: |-
       {
-        "command": "START_BACKTEST"
+        "command": "START_BACKTEST",
+        "payload": {
+          "symbol": "BTCUSDT"
+        }
       }
   auth: inherit
 

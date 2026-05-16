@@ -1,0 +1,87 @@
+import { app } from "../server.js";
+import { Backtester } from "../services/backtester.js";
+import { WebSocket } from "ws";
+import { IncomingMessage, OutgoingMessage } from "../types/model.js";
+
+function now(): string {
+  return new Date().toISOString();
+}
+
+export function send(socket: WebSocket, msg: OutgoingMessage): void {
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify(msg));
+  }
+}
+
+export function onMessageHandler(
+  socket: WebSocket,
+  raw: Buffer,
+  backtester: Backtester,
+) {
+  let msg: IncomingMessage;
+
+  try {
+    msg = JSON.parse(raw.toString()) as IncomingMessage;
+  } catch {
+    send(socket, {
+      event: "ERROR",
+      data: { message: "Invalid JSON" },
+      timestamp: now(),
+    });
+    return;
+  }
+
+  // ----------------------------------------------------------
+
+  switch (msg.command) {
+    case "START_BACKTEST": {
+      console.log(msg.payload);
+      backtester.start();
+      break;
+    }
+
+    case "STOP_BACKTEST": {
+      backtester.stop();
+      break;
+    }
+
+    default: {
+      send(socket, {
+        event: "ERROR",
+        data: {
+          message: `Unknown command`,
+        },
+        timestamp: now(),
+      });
+    }
+  }
+}
+
+export function backtestHandler(socket: WebSocket) {
+  app.log.info("Client connected");
+
+  send(socket, {
+    event: "CONNECTED",
+    data: { message: "Ready to receive commands" },
+    timestamp: new Date().toISOString(),
+  } as OutgoingMessage);
+
+  // 1. Create backtester instance. --------------------------------------
+  const backtester = new Backtester();
+
+  const unsubscribeState = backtester.stats((stats) => socket.send(stats));
+
+  socket.on("message", (raw: Buffer) =>
+    onMessageHandler(socket, raw, backtester),
+  );
+
+  socket.on("close", () => {
+    unsubscribeState();
+    backtester.stop();
+    app.log.info("Client disconnected");
+  });
+
+  socket.on("error", (err: Error) => {
+    app.log.error(err, "WebSocket error");
+  });
+}
