@@ -1,45 +1,85 @@
 import { OutgoingMessage } from "../types/model.js";
 
-type StatsCallback = (stats: OutgoingMessage) => void;
+type StateCallback = (state: OutgoingMessage) => void;
+type LiveCandlesCallback = (candles: OutgoingMessage) => void;
 
 export class Backtester {
-  private isRunning = false;
-  private interval: NodeJS.Timeout | null = null;
-  private onStats?: StatsCallback;
+  public state = "stopped";
+  public symbol = null;
+  public isRunning = false;
+  private stateInterval: NodeJS.Timeout | null = null;
+  private onStats?: StateCallback;
+  private onLiveCandles?: LiveCandlesCallback;
+
+  //------------------------------------------------------------------------------------------------
+  // GETTERS
+  //------------------------------------------------------------------------------------------------
 
   get running(): boolean {
     return this.isRunning;
   }
 
-  public stats(callback: StatsCallback) {
+  //------------------------------------------------------------------------------------------------
+  // SUBSCRIPTIONS
+  //------------------------------------------------------------------------------------------------
+
+  public subscribeState(callback: StateCallback) {
     this.onStats = callback;
   }
+
+  public subscribeLiveCandles(callback: LiveCandlesCallback) {
+    this.onLiveCandles = callback;
+  }
+
+  //------------------------------------------------------------------------------------------------
+  // CONTROL
+  //------------------------------------------------------------------------------------------------
 
   public start() {
     if (this.isRunning) return;
 
     this.isRunning = true;
 
-    this.interval = setInterval(() => {
-      this.onStats?.(this._generateStats());
-    }, 1000);
+    this._watchState();
   }
 
   public stop() {
     this.isRunning = false;
 
-    if (this.interval) {
-      clearInterval(this.interval);
-      this.interval = null;
+    this._unwatchState();
+  }
+
+  //------------------------------------------------------------------------------------------------
+  // PRIVATE
+  //------------------------------------------------------------------------------------------------
+
+  private _watchState() {
+    this.stateInterval = setInterval(() => {
+      this.onStats?.(this._getState());
+    }, 1000);
+  }
+
+  private _unwatchState() {
+    if (this.stateInterval) {
+      clearInterval(this.stateInterval);
+      this.stateInterval = null;
     }
   }
 
-  private _generateStats(): OutgoingMessage {
+  private _getState(): OutgoingMessage {
+    const ticksState = 0;
+    const ohlcvState = 0;
+
+    const state = {
+      backtester: this.state,
+      symbol: this.symbol,
+      ticks_state: ticksState,
+      ohlcv_state: ohlcvState,
+    };
+
     const stateMessage = {
       event: "STATE",
-      data: {
-        message: `stats ${Date.now()}`,
-      },
+      data: state,
       timestamp: new Date().toISOString(),
     };
 

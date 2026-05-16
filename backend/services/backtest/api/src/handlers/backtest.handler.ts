@@ -71,8 +71,9 @@ export function backtestHandler(socket: WebSocket) {
   // 1. Create backtester instance.
   const backtester = new Backtester();
 
-  // 2. Listen backtester state.
-  backtester.stats((stats) => send(socket, stats));
+  // 2. Listen UI data
+  backtester.subscribeState((state) => send(socket, state));
+  backtester.subscribeLiveCandles((candles) => send(socket, candles));
 
   // 3. Handle IN messages.
   socket.on("message", (raw: Buffer) =>
