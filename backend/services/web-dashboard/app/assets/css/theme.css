@@ -1,10 +1,6 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
-:root {
-  --ui-header-height: 2.5rem;
-}
-
 /* Inter Regular */
 @font-face {
   font-family: "Inter";
@@ -270,29 +266,4 @@ rounded-3xl
   --ui-radius: 8px;
 }
 
-:root {
-  --ui-card-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.02), 0 10px 20px rgba(0, 0, 0, 0.04),
-    0 15px 35px rgba(0, 0, 0, 0.04);
 
-  --editor-bg: var(--ui-bg);
-  --tab-bg: var(--ui-bg);
-  --split-bg: var(--ui-bg);
-  --header-bg: transparent;
-  --layout-bg: linear-gradient(
-    135deg,
-    #fff6e5 0%,
-    #fbe8f9 0%,
-    #e3f0ff 25%,
-    #e8f4fc 80%,
-    #e9fff0 100%
-  );
-}
-
-.dark {
-  --editor-bg: var(--ui-color-neutral-925);
-  --tab-bg: var(--ui-color-neutral-925);
-  --split-bg: var(--ui-color-neutral-925);
-  --header-bg: var(--ui-color-neutral-900);
-  --layout-bg: var(--ui-bg);
-}

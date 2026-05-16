@@ -11,7 +11,7 @@
   >
     <UButton
       color="neutral"
-      size="sm"
+      size="xs"
       variant="ghost"
       icon="lucide:step-forward"
       >Backtest</UButton

@@ -1,5 +1,5 @@
 <template>
-  <div class="tab fz-1" :class="[isActive ? 'active' : 'inactive']">
+  <div class="tab text-xs" :class="[isActive ? 'active' : 'inactive']">
     <UContextMenu v-model:open="menuOpen" :items="menuItems" size="sm">
       <div class="tab-label flex items-center">
         <UChip standalone inset size="xs" :color="tabColor" />

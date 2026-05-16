@@ -7,23 +7,18 @@
 <script setup lang="ts">
 import TabTrading from "./TabTrading.vue";
 import Backtesting from "./TabBacktesting.vue";
-import { onMounted } from "vue";
 
 const props = defineProps({
   tabId: {
     type: String,
     required: true,
   },
-  isActive: {
-    type: Boolean,
-    required: true,
-  },
 });
+
+const tabsStore = useTabsStore();
 
 const useTabStore = createTabStore(props.tabId);
 const tabStore = useTabStore();
-
-const currentTab = tabStore.getCurrentTab(props.tabId);
 
 const getComponentByKind = (kind: TabKind) => {
   switch (kind) {
@@ -36,55 +31,26 @@ const getComponentByKind = (kind: TabKind) => {
 };
 
 const component = computed(() => {
+  const currentTab = tabsStore.getTabById(props.tabId);
   if (!currentTab) return;
-
   return getComponentByKind(currentTab.kind);
 });
 
-watch(
-  () => props.isActive,
-  (active) => {
-    if (active) {
-      tabStore.resume();
-    } else {
-      tabStore.pause();
-    }
-  },
-);
+onMounted(() => {
+  tabStore.start();
+});
 
-onMounted(async () => {
-  console.log(currentTab);
-
-  await tabStore.start();
+onUnmounted(() => {
+  tabStore.pause();
 });
 </script>
 
 <style lang="css" scoped>
 .tab-content {
-  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   box-sizing: border-box;
   padding: var(--tab-content-padding);
-  height: calc(100vh - (var(--header-height) + var(--footer-height)));
-}
-
-/* Chrome, Edge, Safari */
-.tab-content::-webkit-scrollbar {
-  width: 0.75rem;
-}
-
-.tab-content::-webkit-scrollbar-track {
-  background: var(--ui-bg);
-}
-
-.tab-content::-webkit-scrollbar-thumb {
-  background: var(--color-neutral-400);
-  border-radius: var(--ui-radius);
-  border-right: 1px solid transparent;
-  background-clip: content-box;
-  cursor: grab;
-}
-
-.tab-content::-webkit-scrollbar-thumb:hover {
-  background: var(--color-neutral-500);
 }
 </style>

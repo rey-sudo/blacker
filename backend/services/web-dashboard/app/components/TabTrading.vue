@@ -1,5 +1,8 @@
 <template>
-  <ChartCandlestick :tabId="tabId" />
+  <div class="tab-trading">
+    <ChartToolbar :tabId="tabId" />
+    <ChartCandlestick :tabId="tabId" />
+  </div>
 </template>
 
 <script setup>
@@ -11,4 +14,11 @@ const props = defineProps({
 });
 </script>
 
-<style lang="css" scoped></style>
+<style scoped>
+.tab-trading {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  background: red;
+}
+</style>

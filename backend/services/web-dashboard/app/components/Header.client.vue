@@ -1,8 +1,8 @@
 <template>
   <div class="header">
     <div class="header__left gap-2 flex items-center h-[inherit]">
-      <TabSelector />
-      <TabAdd />
+      <Tabs />
+      <TabAddButton />
     </div>
 
     <div class="header__right gap-4 flex items-center h-[inherit]">
