@@ -1,7 +1,7 @@
 <template>
   <div class="tab-add flex items-center h-[inherit]">
     <UButton
-      class="mt-2"
+      class="mt-1"
       icon="i-lucide-plus"
       size="sm"
       color="neutral"

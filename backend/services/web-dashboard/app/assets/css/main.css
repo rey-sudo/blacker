@@ -6,10 +6,10 @@
 }
 
 :root {
-  --header-height: 2.5rem;
+  --header-height: 2.25rem;
   --header-background: var(--ui-color-neutral-950);
   --main-background: var(--ui-bg-accented);
-  --footer-height: 2.5rem;
+  --footer-height: 2.25rem;
   --footer-background: var(--ui-color-neutral-950);
   --tab-content-padding: 0.25rem;
 }
@@ -20,6 +20,7 @@
   --chart-header-background: var(--ui-bg);
   --chart-header-height: 2.5rem;
   --chart-radius: var(--ui-radius);
+  --chart-toolbar-height: 2.25rem;
 }
 
 

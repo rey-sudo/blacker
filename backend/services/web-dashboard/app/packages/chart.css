@@ -184,7 +184,7 @@ canvas.pricescale-canvas {
 }
 
 #chart-legend {
-  top: 1rem;
+  top: 0.5rem;
   gap: 1rem;
   left: 1rem;
   z-index: 10;

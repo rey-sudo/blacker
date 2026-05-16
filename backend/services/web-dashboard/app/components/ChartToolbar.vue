@@ -16,9 +16,10 @@ const props = defineProps({
 <style lang="css" scoped>
 .chart-toolbar {
   display: flex;
-  padding: 0.5rem 1rem;
+  padding: 0rem 1rem;
   align-items: center;
   background: var(--chart-background);
+  height: var(--chart-toolbar-height);
   border-bottom: 1px solid var(--ui-border);
 }
 </style>
