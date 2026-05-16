@@ -4,9 +4,11 @@ type StateCallback = (state: OutgoingMessage) => void;
 type LiveCandlesCallback = (candles: OutgoingMessage) => void;
 
 export class Backtester {
-  public state = "stopped";
-  public symbol = null;
-  public isRunning = false;
+  public state: string = "stopped";
+  public symbol: null | string = null;
+  public timeframes: string[] = [];
+  public isRunning: boolean = false;
+
   private stateInterval: NodeJS.Timeout | null = null;
   private onStats?: StateCallback;
   private onLiveCandles?: LiveCandlesCallback;
@@ -73,6 +75,7 @@ export class Backtester {
     const state = {
       backtester: this.state,
       symbol: this.symbol,
+      timeframes: this.timeframes,
       ticks_state: ticksState,
       ohlcv_state: ohlcvState,
     };
