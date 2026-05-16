@@ -1,5 +1,8 @@
-export type CommandType = "START_BACKTEST" | "STOP_BACKTEST";
-
+export type CommandType =
+  | "SUBSCRIBE_STATS"
+  | "UNSUBSCRIBE_STATS"
+  | "START_BACKTEST"
+  | "STOP_BACKTEST";
 
 export interface IncomingMessage {
   command: CommandType;

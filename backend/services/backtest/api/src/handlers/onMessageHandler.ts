@@ -22,6 +22,14 @@ export function onMessageHandler(raw: Buffer, socket: WebSocket) {
 
   // ── Dispatch ──
   switch (msg.command) {
+    case "SUBSCRIBE_STATS": {
+      break;
+    }
+
+    case "UNSUBSCRIBE_STATS": {
+      break;
+    }
+
     case "START_BACKTEST": {
       break;
     }

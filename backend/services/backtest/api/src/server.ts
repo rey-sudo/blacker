@@ -17,6 +17,8 @@ await app.register(fastifyWebsocket);
 
 app.get("/backtest", { websocket: true }, (socket: WebSocket) => {
 
+  //const watcher = new StatsWatcher();
+
   app.log.info("Client connected");
 
   send(socket, {

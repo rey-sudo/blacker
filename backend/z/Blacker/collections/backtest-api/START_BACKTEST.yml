@@ -1,0 +1,18 @@
+info:
+  name: START_BACKTEST
+  type: websocket
+  seq: 1
+
+websocket:
+  url: ws://localhost:8100/backtest
+  message:
+    type: json
+    data: |-
+      {
+        "command": "START_BACKTEST"
+      }
+  auth: inherit
+
+settings:
+  timeout: 0
+  keepAliveInterval: 0
