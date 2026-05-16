@@ -1,10 +1,11 @@
-use ticks::{model::Trade, read::read_binary, write::convert_csv_to_binary};
+use ticks::{model::Trade, write::convert_csv_to_binary};
 use redis::Commands;
 use std::{
     fs::File,
     io::{BufReader, Read},
     mem::size_of,
 };
+use tracing_subscriber;
 
 /// Lee el archivo binario y transmite cada tick a un stream de Redis.
 /// Garantiza un comportamiento stateless borrando el stream existente al inicio.
@@ -73,6 +74,8 @@ pub fn stream_binary_to_redis(bin_path: &str, stream_key: &str, redis_url: &str)
 
 
 fn main() {
+    tracing_subscriber::fmt::init();
+     
     let csv_path: &str = "./input/input.csv";
     let bin_path: &str = "./output/ticks.bin";
 

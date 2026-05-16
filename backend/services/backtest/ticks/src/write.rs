@@ -1,5 +1,6 @@
 use crate::model::Trade;
 use anyhow::{Context, Result};
+use tracing::info;
 use std::{
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, BufWriter, Write},
@@ -68,6 +69,8 @@ fn parse_row(line: &str, row: usize) -> Result<Trade> {
         .trim()
         .parse()
         .with_context(|| format!("row {row}: invalid `price`"))?;
+    
+    anyhow::ensure!(price_f >= 0.0, "negative price: {price_f}");
 
     let qty_f: f64 = next_col("qty")?
         .trim()
@@ -128,13 +131,13 @@ fn parse_row(line: &str, row: usize) -> Result<Trade> {
 /// convert_csv_to_binary("trades.csv", "trades.bin", true)?;
 /// ```
 pub fn convert_csv_to_binary(csv_path: &str, bin_path: &str, skip_header: bool) -> Result<()> {
-    // 1. Read CSV file. -----------------------------------------------------------------------------------------------
+    // 1. Read CSV file. ---------------------------------------------------------------------- 
     let file: File =
         File::open(csv_path).with_context(|| format!("cannot open CSV file: {csv_path}"))?;
 
     let mut reader: BufReader<File> = BufReader::new(file);
 
-    // 2. Prepare binary file. -----------------------------------------------------------------------------------------
+    // 2. Prepare binary file. ----------------------------------------------------------------
     let out_file: File = OpenOptions::new()
         .create(true)
         .write(true)
@@ -161,7 +164,7 @@ pub fn convert_csv_to_binary(csv_path: &str, bin_path: &str, skip_header: bool) 
     let mut rows_read: usize = 0;
     let mut rows_written: usize = 0;
     
-    // 3. Main loop. ---------------------------------------------------------------------------------------------------
+    // 3. Main loop. --------------------------------------------------------------------------
     while reader
         .read_line(&mut line)
         .context("failed to read line from CSV")?
@@ -191,7 +194,7 @@ pub fn convert_csv_to_binary(csv_path: &str, bin_path: &str, skip_header: bool) 
         line.clear();
 
         if rows_written % 1_000_000 == 0 {
-            println!("processed {} rows...", rows_written);
+            info!("processed {} rows...", rows_written);
         }
     }
 
@@ -200,7 +203,7 @@ pub fn convert_csv_to_binary(csv_path: &str, bin_path: &str, skip_header: bool) 
     // propagating (drop ignores flush errors).
     writer.flush().context("failed to flush output buffer")?;
 
-    println!(
+    info!(
         "done — binary written to `{}` ({} rows written, {} rows read)",
         bin_path, rows_written, rows_read
     );
