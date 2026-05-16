@@ -1,65 +1,48 @@
-type StatsCallback = (stats: string) => void;
+import { OutgoingMessage } from "../types/model.js";
+
+type StatsCallback = (stats: OutgoingMessage) => void;
 
 export class Backtester {
   private isRunning = false;
-  private statsInterval: NodeJS.Timeout | null = null;
-  private subscribers: Set<StatsCallback> = new Set();
+  private interval: NodeJS.Timeout | null = null;
+  private onStats?: StatsCallback;
 
-  /**
-   * Getter público para saber si el backtester está corriendo
-   */
-  public get running(): boolean {
+  get running(): boolean {
     return this.isRunning;
   }
 
-  /**
-   * Inicia el backtester
-   */
-  public start(): void {
+  public stats(callback: StatsCallback) {
+    this.onStats = callback;
+  }
+
+  public start() {
     if (this.isRunning) return;
 
     this.isRunning = true;
 
-    // Emite stats cada 1 segundo
-    this.statsInterval = setInterval(() => {
-      const stats = this.generateStats();
-
-      for (const subscriber of this.subscribers) {
-        subscriber(stats);
-      }
+    this.interval = setInterval(() => {
+      this.onStats?.(this._generateStats());
     }, 1000);
   }
 
-  /**
-   * Detiene el backtester
-   */
-  public stop(): void {
-    if (!this.isRunning) return;
-
+  public stop() {
     this.isRunning = false;
 
-    if (this.statsInterval) {
-      clearInterval(this.statsInterval);
-      this.statsInterval = null;
+    if (this.interval) {
+      clearInterval(this.interval);
+      this.interval = null;
     }
   }
 
-  /**
-   * Subscripción a estadísticas
-   * Retorna función unsubscribe
-   */
-  public stats(callback: StatsCallback): () => void {
-    this.subscribers.add(callback);
-
-    return () => {
-      this.subscribers.delete(callback);
+  private _generateStats(): OutgoingMessage {
+    const stateMessage = {
+      event: "STATE",
+      data: {
+        message: `stats ${Date.now()}`,
+      },
+      timestamp: new Date().toISOString(),
     };
-  }
 
-  /**
-   * Genera estadísticas mock
-   */
-  private generateStats(): string {
-    return `Backtest running at ${new Date().toISOString()}`;
+    return stateMessage;
   }
 }

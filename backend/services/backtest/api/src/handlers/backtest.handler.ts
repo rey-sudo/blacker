@@ -66,21 +66,24 @@ export function backtestHandler(socket: WebSocket) {
     timestamp: new Date().toISOString(),
   } as OutgoingMessage);
 
-  // 1. Create backtester instance. --------------------------------------
+  // 1. Create backtester instance.
   const backtester = new Backtester();
 
-  const unsubscribeState = backtester.stats((stats) => socket.send(stats));
+  // 2. Listen backtester state.
+  backtester.stats((stats) => send(socket, stats));
 
+  // 3. Handle IN messages.
   socket.on("message", (raw: Buffer) =>
     onMessageHandler(socket, raw, backtester),
   );
 
+  // 4. Handle close connection.
   socket.on("close", () => {
-    unsubscribeState();
     backtester.stop();
     app.log.info("Client disconnected");
   });
 
+  // 5. Handle connection errors.
   socket.on("error", (err: Error) => {
     app.log.error(err, "WebSocket error");
   });
