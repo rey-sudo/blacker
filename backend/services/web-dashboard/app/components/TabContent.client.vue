@@ -1,87 +1,55 @@
-<template>
-  <div class="tab-content">
-    <!-- 
-      Dynamically resolves and mounts the concrete tab view (e.g., Trading or Backtesting) 
-      only when the localized tab store has finished initializing its ID.
-    -->
-    <component v-if="tabStore.id" :is="component" :tabId="tabStore.id" />
-  </div>
-</template>
-
 <script setup lang="ts">
-/**
- * @component TabContent
- * @description Acts as a dynamic wrapper and orchestrator for individual tab views. 
- * It instantiates an isolated, unique pinia/store instance for each tab identifier 
- * and handles lazy/dynamic resolution of the view matching the tab's metadata category.
- */
+// BLACKER
+// Copyright (C) 2026 Juan José Caballero Rey - https://github.com/rey-sudo
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation version 3 of the License.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import { computed, onMounted, onUnmounted } from "vue";
 import TabTrading from "./TabTrading.vue";
-import Backtesting from "./TabBacktesting.vue";
+import TabBacktesting from "./TabBacktesting.vue";
+import { useTabContentStore } from '~/stores/tabs';
 
-const props = defineProps({
-  /**
-   * Unique identifier passed down by the parent to decouple state context per tab.
-   */
-  tabId: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{ tabId: string }>()
 
-// Reference to the global, overarching tabs configuration store
-const tabsStore = useTabsStore();
+const tabsStore = useTabsStore()
 
-// Factory instantiation targeting a unique, localized store slice for this specific tab instance
-const useTabStore = createTabStore(props.tabId);
-const tabStore = useTabStore();
+// tab puede ser undefined si el id no existe
+const tab = computed(() => tabsStore.getTabById(props.tabId))
 
-/**
- * Maps a structural TabKind enum key to its corresponding Vue SFC constructor.
- * 
- * @param {TabKind} kind - The target functional behavior mode of the tab.
- * @returns {Component | undefined} The matched Vue component object to render.
- */
-const getComponentByKind = (kind: TabKind) => {
-  switch (kind) {
-    case TabKind.Trading:
-      return TabTrading;
+// tabStore puede ser null — el template lo guarda con v-if
+const tabStore = computed(() => useTabContentStore(tab.value))
 
-    case TabKind.Backtesting:
-      return Backtesting;
-  }
-};
-
-/**
- * Reactive computed dependency that safely looks up the current tab's metadata configuration 
- * from the global registry, dynamically determining which component tree to mount.
- * 
- * @returns {Component | undefined} The resolved child component tree context.
- */
 const component = computed(() => {
-  const currentTab = tabsStore.getTabById(props.tabId);
-  if (!currentTab) return;
-  return getComponentByKind(currentTab.kind);
-});
+  if (!tab.value) return null
+  switch (tab.value.kind) {
+    case TabKind.Trading:     return TabTrading
+    case TabKind.Backtesting: return TabBacktesting
+  }
+})
 
-/**
- * Lifecycle Hook: Triggers background initialization routines (e.g., network polling, 
- * WebSocket handshakes) isolated entirely to this tab's scope upon DOM injection.
- */
-onMounted(() => {
-  tabStore.start();
-});
-
-/**
- * Lifecycle Hook: Teardown/Hibernation routine. Safely suspends active stream connections, 
- * asynchronous pipelines, or structural listeners when the tab is swapped or unmounted.
- */
-onUnmounted(() => {
-  tabStore.pause();
-});
+// Ciclo de vida — todos los stores implementan onMount/onUnmount
+onMounted(()   => tabStore.value?.onMount())
+onUnmounted(() => tabStore.value?.onUnmount())
 </script>
 
+<template>
+  <div class="tab-content">
+    <component
+      v-if="tabStore && component"
+      :is="component"
+      :tabId="tabStore.id"
+    />
+  </div>
+</template>
 <style lang="css" scoped>
 .tab-content {
   flex: 1;

@@ -1,17 +1,22 @@
-<template>
-  <div class="tab text-xs" :class="[isActive ? 'active' : 'inactive']">
-    <UContextMenu v-model:open="menuOpen" :items="menuItems" size="sm">
-      <div class="tab-label flex items-center">
-        <UChip standalone inset size="xs" :color="tabColor" />
-        <span> {{ tabName }}</span>
-      </div>
-    </UContextMenu>
-  </div>
-</template>
-
 <script setup lang="ts">
+// BLACKER
+// Copyright (C) 2026 Juan José Caballero Rey - https://github.com/rey-sudo
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation version 3 of the License.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 import { ref } from "vue";
 import type { ContextMenuItem } from "@nuxt/ui";
+import { useTabContentStore } from "~/stores/tabs";
 
 const props = defineProps({
   tabId: {
@@ -26,8 +31,8 @@ const props = defineProps({
 
 const tabsStore = useTabsStore();
 
-const useTabStore = createTabStore(props.tabId);
-const tabStore = useTabStore();
+const tab = computed(() => tabsStore.getTabById(props.tabId));
+const tabStore = computed(() => useTabContentStore(tab.value));
 
 const menuOpen = ref(false);
 const menuItems: ContextMenuItem[] = [
@@ -73,35 +78,37 @@ const getBorderColor = (kind: TabKind) => {
 const getTabName = (kind: TabKind) => {
   switch (kind) {
     case TabKind.Trading:
-      return `${tabStore.symbol} ${tabStore.interval}`;
+      return `${tabStore.value?.symbol} ${tabStore.value?.interval}`;
 
     case TabKind.Backtesting:
-      return `${tabStore.symbol}_B`;
+      return `${tabStore.value?.symbol}_B`;
   }
 };
 
 const tabColor = computed(() => {
-  const currentTab = tabsStore.getTabById(props.tabId);
-  if (!currentTab) return;
-
-  return getBorderColor(currentTab.kind);
+  if (!tab.value) return;
+  return getBorderColor(tab.value.kind);
 });
 
 const tabName = computed(() => {
-  const currentTab = tabsStore.getTabById(props.tabId);
-  if (!currentTab) return;
-
-  return getTabName(currentTab.kind);
+  if (!tab.value) return;
+  return getTabName(tab.value.kind);
 });
 
-onMounted(() => {
-  tabStore.start();
-});
-
-onBeforeUnmount(() => {
-  tabStore.stop();
-});
+onMounted(() => tabStore.value?.onMount());
+onUnmounted(() => tabStore.value?.onUnmount());
 </script>
+
+<template>
+  <div class="tab text-xs" :class="[isActive ? 'active' : 'inactive']">
+    <UContextMenu v-model:open="menuOpen" :items="menuItems" size="sm">
+      <div class="tab-label flex items-center">
+        <UChip standalone inset size="xs" :color="tabColor" />
+        <span> {{ tabName }}</span>
+      </div>
+    </UContextMenu>
+  </div>
+</template>
 
 <style lang="css" scoped>
 .tab {

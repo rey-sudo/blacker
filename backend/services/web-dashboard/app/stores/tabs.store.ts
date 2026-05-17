@@ -72,8 +72,10 @@ export const useTabsStore = defineStore(
      * Ordered list of all open tabs, derived from `tabOrder` and `tabsById`.
      * Filters out any entries that may be out of sync between the two structures.
      */
-    const allTabs = computed(() =>
-      tabOrder.value.map((id) => tabsById.value.get(id)!).filter(Boolean),
+    const allTabs = computed<Tab[]>(() =>
+      tabOrder.value
+        .map((id) => tabsById.value.get(id))
+        .filter((tab): tab is Tab => Boolean(tab)),
     );
 
     /**
@@ -197,7 +199,7 @@ export const useTabsStore = defineStore(
 
     return {
       tabsById,
-      tabOrder, 
+      tabOrder,
       activeTabId,
       allTabs,
       addTab,

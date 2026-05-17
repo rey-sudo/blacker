@@ -52,13 +52,13 @@ const props = defineProps({
 });
 
 const tabsStore = useTabsStore();
-const useTabStore = createTabStore(props.tabId);
-const tabStore = useTabStore();
+
+const tab = computed(() => tabsStore.getTabById(props.tabId));
 
 const open = ref(false);
 
 const title = computed(() => {
-  return `Create a backtest for ${tabStore.symbol}`;
+  return `Create a backtest for ${tab.value.symbol}`;
 });
 
 const onCreate = () => {
@@ -69,7 +69,7 @@ const onCreate = () => {
     subtitle: "sub title",
     description: "description",
     color: "red",
-    symbol: tabStore.symbol,
+    symbol: tab.value.symbol,
   };
 
   tabsStore.addTab(newTab);

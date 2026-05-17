@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { TabKind, type TradingTab } from "~/stores/tabs";
+import { TabKind, type TradingTab } from "~/stores/tabs.store";
 
 const tabsStore = useTabsStore();
 
