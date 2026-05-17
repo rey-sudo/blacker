@@ -132,22 +132,9 @@ const states = computed(() => [
   padding: 0 1.25rem;
   overflow: hidden;
   position: relative;
+  border-radius: var(--ui-radius);
 }
 
-/* subtle scanline texture */
-.backtesting-toolbar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(255 255 255 / 0.012) 2px,
-    rgba(255 255 255 / 0.012) 4px
-  );
-  pointer-events: none;
-}
 
 /* ─── Divider ────────────────────────────────────────────── */
 .tb-divider {

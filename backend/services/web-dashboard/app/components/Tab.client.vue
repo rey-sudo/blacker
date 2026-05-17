@@ -29,8 +29,6 @@ const tabsStore = useTabsStore();
 const useTabStore = createTabStore(props.tabId);
 const tabStore = useTabStore();
 
-const currentTab = tabStore.getCurrentTab(props.tabId);
-
 const menuOpen = ref(false);
 const menuItems: ContextMenuItem[] = [
   [
@@ -83,12 +81,14 @@ const getTabName = (kind: TabKind) => {
 };
 
 const tabColor = computed(() => {
+  const currentTab = tabsStore.getTabById(props.tabId);
   if (!currentTab) return;
 
   return getBorderColor(currentTab.kind);
 });
 
 const tabName = computed(() => {
+  const currentTab = tabsStore.getTabById(props.tabId);
   if (!currentTab) return;
 
   return getTabName(currentTab.kind);
@@ -105,9 +105,7 @@ onBeforeUnmount(() => {
 
 <style lang="css" scoped>
 .tab {
-  border-left: 1px solid var(--ui-border);
-  border-right: 1px solid var(--ui-border);
-  border-top: 1px solid var(--ui-border);
+  border: 1px solid var(--ui-border);
   border-top-left-radius: calc(var(--ui-radius) * 0.5);
   border-top-right-radius: calc(var(--ui-radius) * 0.5);
   align-items: center;
@@ -129,10 +127,9 @@ onBeforeUnmount(() => {
 }
 
 .tab.active {
-  background: var(--ui-bg-muted);
-  border-left: 1px solid var(--ui-border-muted);
-  border-right: 1px solid var(--ui-border-muted);
-  border-top: 1px solid var(--ui-border-muted);
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border-muted);
+  border-bottom: none;
 }
 
 .tab.inactive {

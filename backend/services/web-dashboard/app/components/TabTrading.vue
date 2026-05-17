@@ -16,9 +16,10 @@ const props = defineProps({
 
 <style scoped>
 .tab-trading {
-  display: flex;
   height: 100%;
+  display: flex;
   flex-direction: column;
-  background: red;
+  border-radius: calc(var(--ui-radius) * 0.5);
+  overflow: hidden;
 }
 </style>
