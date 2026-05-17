@@ -108,8 +108,8 @@ onBeforeUnmount(() => {
   border-left: 1px solid var(--ui-border);
   border-right: 1px solid var(--ui-border);
   border-top: 1px solid var(--ui-border);
-  border-top-left-radius: var(--ui-radius);
-  border-top-right-radius: var(--ui-radius);
+  border-top-left-radius: calc(var(--ui-radius) * 0.75);
+  border-top-right-radius: calc(var(--ui-radius) * 0.75);
   align-items: center;
   border-bottom: none;
   font-weight: 600;

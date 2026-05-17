@@ -10,10 +10,11 @@
     :overlay="false"
   >
     <UButton
+      class="ml-auto"
       color="neutral"
       size="xs"
       variant="ghost"
-      icon="lucide:step-forward"
+      icon="material-symbols:fast-forward"
       >Backtest</UButton
     >
 
@@ -34,11 +35,7 @@
           >Cancel</UButton
         >
 
-        <UButton
-          color="neutral"
-          size="md"
-          variant="solid"
-          @click="onCreate"
+        <UButton color="neutral" size="md" variant="solid" @click="onCreate"
           >Create</UButton
         >
       </div>
