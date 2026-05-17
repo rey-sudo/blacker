@@ -1,5 +1,7 @@
 <template>
-<div>PAGEEEEEEEEE</div>
+  <div class="tab-backtesting">
+    <BacktestingToolbar />
+  </div>
 </template>
 
 <script setup>
@@ -12,7 +14,8 @@ const props = defineProps({
 </script>
 
 <style lang="css" scoped>
-
-
-
+.tab-backtesting {
+  display: flex;
+  flex-direction: column;
+}
 </style>

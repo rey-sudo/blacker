@@ -14,7 +14,6 @@
   --tab-content-padding: 0.25rem;
 }
 
-
 :root {
   --chart-background: white;
   --chart-header-background: var(--ui-bg);
@@ -23,6 +22,9 @@
   --chart-toolbar-height: 2.25rem;
 }
 
+:root {
+  --backtesting-toolbar-bg: var(--ui-color-neutral-950);
+}
 
 .dark {
   --chart-background: var(--ui-color-neutral-950);
@@ -67,5 +69,3 @@ div {
 body :not(input):not(textarea):not([contenteditable="true"]):focus {
   outline: none;
 }
-
-
