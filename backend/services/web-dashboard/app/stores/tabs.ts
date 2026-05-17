@@ -56,152 +56,194 @@ export interface AlgoTab extends TabBase {
  */
 export type Tab = BacktestingTab | TradingTab | AlgoTab;
 
-export const useTabsStore = defineStore("tabs", () => {
-  /** Primary storage — enables O(1) lookup by tab id */
-  const tabsById = ref<Map<string, Tab>>(new Map());
+export const useTabsStore = defineStore(
+  "tabs",
+  () => {
+    /** Primary storage — enables O(1) lookup by tab id */
+    const tabsById = ref<Map<string, Tab>>(new Map());
 
-  /** Tracks the visual order of tabs independently from the tabsById map */
-  const tabOrder = ref<string[]>([]);
+    /** Tracks the visual order of tabs independently from the tabsById map */
+    const tabOrder = ref<string[]>([]);
 
-  /** ID of the currently active tab, or null if no tabs are open */
-  const activeTabId = ref<string | null>(null);
+    /** ID of the currently active tab, or null if no tabs are open */
+    const activeTabId = ref<string | null>(null);
 
-  /**
-   * Ordered list of all open tabs, derived from `tabOrder` and `tabsById`.
-   * Filters out any entries that may be out of sync between the two structures.
-   */
-  const allTabs = computed(() =>
-    tabOrder.value.map((id) => tabsById.value.get(id)!).filter(Boolean),
-  );
+    /**
+     * Ordered list of all open tabs, derived from `tabOrder` and `tabsById`.
+     * Filters out any entries that may be out of sync between the two structures.
+     */
+    const allTabs = computed(() =>
+      tabOrder.value.map((id) => tabsById.value.get(id)!).filter(Boolean),
+    );
 
-  /**
-   * Adds a new tab and immediately activates it.
-   * Does nothing and returns `false` if a tab with the same id already exists.
-   *
-   * @param tab - The tab object to add
-   * @returns `true` if the tab was added, `false` if it already existed
-   */
-  function addTab(tab: Tab) {
-    console.log("Adding tab:", tab.id);
+    /**
+     * Adds a new tab and immediately activates it.
+     * Does nothing and returns `false` if a tab with the same id already exists.
+     *
+     * @param tab - The tab object to add
+     * @returns `true` if the tab was added, `false` if it already existed
+     */
+    function addTab(tab: Tab) {
+      console.log("Adding tab:", tab.id);
 
-    if (tabsById.value.has(tab.id)) return false;
+      if (tabsById.value.has(tab.id)) return false;
 
-    tabsById.value.set(tab.id, tab);
-    tabOrder.value.push(tab.id);
+      tabsById.value.set(tab.id, tab);
+      tabOrder.value.push(tab.id);
 
-    activeTabId.value = tab.id;
-    return true;
-  }
-
-  /**
-   * Removes a tab by id.
-   * If the removed tab was active, the caller is responsible
-   * for setting a new active tab.
-   *
-   * @param id - ID of the tab to remove
-   */
-  function closeTab(id: string) {
-    if (!tabsById.value.has(id)) return;
-
-    const index = tabOrder.value.indexOf(id);
-
-    tabsById.value.delete(id);
-    tabOrder.value = tabOrder.value.filter((tid) => tid !== id);
-
-    if (activeTabId.value === id) {
-      activeTabId.value =
-        tabOrder.value[index - 1] ?? tabOrder.value[index] ?? null;
+      activeTabId.value = tab.id;
+      return true;
     }
-  }
 
-  /**
-   * Moves a tab from one position to another in the tab bar.
-   * Triggered by drag & drop interactions.
-   *
-   * @param fromIndex - Current index of the tab
-   * @param toIndex - Target index to move the tab to
-   */
-  function moveTab(fromIndex: number, toIndex: number) {
-    const order = tabOrder.value;
-    const moved = order.splice(fromIndex, 1)[0];
+    /**
+     * Removes a tab by id.
+     * If the removed tab was active, the caller is responsible
+     * for setting a new active tab.
+     *
+     * @param id - ID of the tab to remove
+     */
+    function closeTab(id: string) {
+      if (!tabsById.value.has(id)) return;
 
-    if (moved === undefined) return;
+      const index = tabOrder.value.indexOf(id);
 
-    order.splice(toIndex, 0, moved);
+      tabsById.value.delete(id);
+      tabOrder.value = tabOrder.value.filter((tid) => tid !== id);
 
-    tabOrder.value = order;
+      if (activeTabId.value === id) {
+        activeTabId.value =
+          tabOrder.value[index - 1] ?? tabOrder.value[index] ?? null;
+      }
+    }
 
-    console.log("tabOrder", tabOrder.value);
-  }
+    /**
+     * Moves a tab from one position to another in the tab bar.
+     * Triggered by drag & drop interactions.
+     *
+     * @param fromIndex - Current index of the tab
+     * @param toIndex - Target index to move the tab to
+     */
+    function moveTab(fromIndex: number, toIndex: number) {
+      const order = tabOrder.value;
+      const moved = order.splice(fromIndex, 1)[0];
 
-  /**
-   * Activates a tab by id after validating it exists.
-   *
-   * @param id - ID of the tab to activate
-   * @returns `true` if the tab was found and activated, `false` otherwise
-   */
-  function selectTab(id: string): boolean {
-    if (!tabsById.value.has(id)) return false;
+      if (moved === undefined) return;
 
-    activeTabId.value = id;
-    return true;
-  }
+      order.splice(toIndex, 0, moved);
 
-  /**
-   * Retrieves a tab by its id without activating it.
-   *
-   * @param id - ID of the tab to retrieve
-   * @returns The tab object, or `undefined` if not found
-   */
-  function getTabById(id: string): Tab | undefined {
-    return tabsById.value.get(id);
-  }
+      tabOrder.value = order;
 
-  /**
-   * Closes all open tabs and resets the active tab to null.
-   */
-  function closeAllTabs(): void {
-    tabsById.value.clear();
-    tabOrder.value = [];
-    activeTabId.value = null;
-  }
+      console.log("tabOrder", tabOrder.value);
+    }
 
-  /**
-   * Creates a clone of an existing tab with a new unique id.
-   * The cloned tab is inserted immediately after the original and activated.
-   *
-   * @param id - ID of the tab to clone
-   * @returns The cloned tab, or null if the original was not found
-   */
-  function cloneTab(id: string): Tab | null {
-    const original = tabsById.value.get(id);
-    if (!original) return null;
+    /**
+     * Activates a tab by id after validating it exists.
+     *
+     * @param id - ID of the tab to activate
+     * @returns `true` if the tab was found and activated, `false` otherwise
+     */
+    function selectTab(id: string): boolean {
+      if (!tabsById.value.has(id)) return false;
 
-    const clone: Tab = {
-      ...original,
-      id: crypto.randomUUID(),
-      title: `${original.title} (copy)`,
+      activeTabId.value = id;
+      return true;
+    }
+
+    /**
+     * Retrieves a tab by its id without activating it.
+     *
+     * @param id - ID of the tab to retrieve
+     * @returns The tab object, or `undefined` if not found
+     */
+    function getTabById(id: string): Tab | undefined {
+      return tabsById.value.get(id);
+    }
+
+    /**
+     * Closes all open tabs and resets the active tab to null.
+     */
+    function closeAllTabs(): void {
+      tabsById.value.clear();
+      tabOrder.value = [];
+      activeTabId.value = null;
+    }
+
+    /**
+     * Creates a clone of an existing tab with a new unique id.
+     * The cloned tab is inserted immediately after the original and activated.
+     *
+     * @param id - ID of the tab to clone
+     * @returns The cloned tab, or null if the original was not found
+     */
+    function cloneTab(id: string): Tab | null {
+      const original = tabsById.value.get(id);
+      if (!original) return null;
+
+      const clone: Tab = {
+        ...original,
+        id: crypto.randomUUID(),
+        title: `${original.title} (copy)`,
+      };
+
+      const index = tabOrder.value.indexOf(id);
+
+      tabsById.value.set(clone.id, clone);
+      tabOrder.value.splice(index + 1, 0, clone.id);
+
+      activeTabId.value = clone.id;
+
+      return clone;
+    }
+
+    return {
+      tabsById,
+      tabOrder, 
+      activeTabId,
+      allTabs,
+      addTab,
+      closeTab,
+      moveTab,
+      selectTab,
+      getTabById,
+      closeAllTabs,
+      cloneTab,
     };
-
-    const index = tabOrder.value.indexOf(id);
-
-    tabsById.value.set(clone.id, clone);
-    tabOrder.value.splice(index + 1, 0, clone.id);
-
-    activeTabId.value = clone.id;
-
-    return clone;
-  }
-
-  return {
-    addTab,
-    allTabs,
-    closeTab,
-    moveTab,
-    activeTabId,
-    selectTab,
-    getTabById,
-    closeAllTabs,
-    cloneTab
-  };
-});
+  },
+  {
+    persist: {
+      key: "tabs-store",
+      serializer: {
+        serialize: (state) => {
+          return JSON.stringify({
+            tabsById: Array.from(state.tabsById.entries()),
+            tabOrder: state.tabOrder,
+            activeTabId: state.activeTabId,
+          });
+        },
+        deserialize: (raw) => {
+          try {
+            const parsed = JSON.parse(raw);
+            if (
+              !Array.isArray(parsed.tabsById) ||
+              !Array.isArray(parsed.tabOrder)
+            ) {
+              throw new Error("Estructura inválida");
+            }
+            return {
+              tabsById: new Map(parsed.tabsById),
+              tabOrder: parsed.tabOrder,
+              activeTabId: parsed.activeTabId ?? null,
+            };
+          } catch (err) {
+            console.warn("[tabs-store] Estado corrupto, reseteando:", err);
+            return {
+              tabsById: new Map(),
+              tabOrder: [],
+              activeTabId: null,
+            };
+          }
+        },
+      },
+    },
+  },
+);

@@ -22,7 +22,7 @@ import { TabKind, type TradingTab } from "~/stores/tabs";
 
 const tabsStore = useTabsStore();
 
-const visible = ref(true);
+const visible = ref(false);
 
 const onSelect = () => {
   const newTab: TradingTab = {
