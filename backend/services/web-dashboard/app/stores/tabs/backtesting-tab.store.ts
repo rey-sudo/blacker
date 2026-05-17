@@ -24,7 +24,12 @@ export const useBacktestingTabStore = (tabId: string) =>
       console.log("resumed");
     };
 
+    const tabTitle = computed(() => `${symbol.value} - ${interval.value}`);
+    const tabColor = "secondary";
+    
     return {
+      tabTitle,
+      tabColor,
       symbol,
       interval,
       stop,
@@ -34,9 +39,7 @@ export const useBacktestingTabStore = (tabId: string) =>
       isPaused,
       start,
 
-      onMount() {
-        
-      },
+      onMount() {},
       onUnmount() {
         pause();
       },

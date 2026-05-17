@@ -24,7 +24,12 @@ export const useTradingTabStore = (tabId: string) =>
       console.log("resumed");
     };
 
+    const tabTitle = computed(() => `${symbol.value} - ${interval.value}`)
+    const tabColor = "primary";
+    
     return {
+      tabTitle,
+      tabColor,
       symbol,
       interval,
       stop,

@@ -1,3 +1,30 @@
+<script setup lang="ts">
+// BLACKER
+// Copyright (C) 2026 Juan José Caballero Rey - https://github.com/rey-sudo
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation version 3 of the License.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+import TabContent from "~/components/TabContent.client.vue";
+
+// Initialize the global state store for tabs management.
+const tabsStore = useTabsStore();
+
+// Reactive computed property that retrieves the current active tab object.
+// It searches through all available tabs to find the one matching the active ID.
+const activeTab = computed(() =>
+  tabsStore.allTabs.find((t: Tab) => t.id === tabsStore.activeTabId),
+);
+</script>
 <template>
   <!-- 
     Dynamically renders the active tab content. 
@@ -5,25 +32,3 @@
   -->
   <TabContent v-if="activeTab" :key="activeTab.id" :tabId="activeTab.id" />
 </template>
-
-<script setup lang="ts">
-/**
- * @component TabViewer
- * @description Dynamically manages and displays the content of the currently selected tab.
- * It automatically syncs with the global tabs store to determine which tab is active.
- */
-import TabContent from "~/components/TabContent.client.vue";
-
-// Initialize the global state store for tabs management
-const tabsStore = useTabsStore();
-
-/**
- * Reactive computed property that retrieves the current active tab object.
- * It searches through all available tabs to find the one matching the active ID.
- *
- * @returns {ComputedRef<Object|undefined>} The active tab object, or undefined if no match is found.
- */
-const activeTab = computed(() =>
-  tabsStore.allTabs.find((t: Tab) => t.id === tabsStore.activeTabId),
-);
-</script>

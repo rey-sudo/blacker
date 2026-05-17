@@ -17,7 +17,6 @@ export enum TabKind {
 interface TabBase {
   /** Unique identifier for the tab */
   id: string;
-  /** Determines which tab-specific fields are available */
   kind: TabKind;
   title: string;
   subtitle: string;

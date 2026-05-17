@@ -31,7 +31,7 @@ const props = defineProps({
 
 const tabsStore = useTabsStore();
 
-const tab = computed(() => tabsStore.getTabById(props.tabId));
+const tab: Tab | undefined = computed(() => tabsStore.getTabById(props.tabId));
 const tabStore = computed(() => useTabContentStore(tab.value));
 
 const menuOpen = ref(false);
@@ -65,35 +65,7 @@ const menuItems: ContextMenuItem[] = [
   ],
 ];
 
-const getBorderColor = (kind: TabKind) => {
-  switch (kind) {
-    case TabKind.Trading:
-      return "neutral";
-
-    case TabKind.Backtesting:
-      return "warning";
-  }
-};
-
-const getTabName = (kind: TabKind) => {
-  switch (kind) {
-    case TabKind.Trading:
-      return `${tabStore.value?.symbol} ${tabStore.value?.interval}`;
-
-    case TabKind.Backtesting:
-      return `${tabStore.value?.symbol}_B`;
-  }
-};
-
-const tabColor = computed(() => {
-  if (!tab.value) return;
-  return getBorderColor(tab.value.kind);
-});
-
-const tabName = computed(() => {
-  if (!tab.value) return;
-  return getTabName(tab.value.kind);
-});
+const tabColor: any = computed(() => tabStore.value?.tabColor ?? "primary");
 
 onMounted(() => tabStore.value?.onMount());
 onUnmounted(() => tabStore.value?.onUnmount());
@@ -104,7 +76,7 @@ onUnmounted(() => tabStore.value?.onUnmount());
     <UContextMenu v-model:open="menuOpen" :items="menuItems" size="sm">
       <div class="tab-label flex items-center">
         <UChip standalone inset size="xs" :color="tabColor" />
-        <span> {{ tabName }}</span>
+        <span> {{ tabStore?.tabTitle }}</span>
       </div>
     </UContextMenu>
   </div>

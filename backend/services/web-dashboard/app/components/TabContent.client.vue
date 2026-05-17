@@ -22,12 +22,14 @@ const props = defineProps<{ tabId: string }>()
 
 const tabsStore = useTabsStore()
 
-// tab puede ser undefined si el id no existe
-const tab = computed(() => tabsStore.getTabById(props.tabId))
+// tab can be undefined if the id does not exist
+const tab: Tab | undefined = computed(() => tabsStore.getTabById(props.tabId))
 
-// tabStore puede ser null — el template lo guarda con v-if
+// tabStore can be null — the template guards it with v-if
 const tabStore = computed(() => useTabContentStore(tab.value))
 
+// Dynamically resolves the component based on the tab's type.
+// Returns null if the tab is undefined or doesn't match a known type.
 const component = computed(() => {
   if (!tab.value) return null
   switch (tab.value.kind) {
@@ -36,7 +38,7 @@ const component = computed(() => {
   }
 })
 
-// Ciclo de vida — todos los stores implementan onMount/onUnmount
+// Lifecycle — all stores implement onMount/onUnmount
 onMounted(()   => tabStore.value?.onMount())
 onUnmounted(() => tabStore.value?.onUnmount())
 </script>
@@ -50,6 +52,7 @@ onUnmounted(() => tabStore.value?.onUnmount())
     />
   </div>
 </template>
+
 <style lang="css" scoped>
 .tab-content {
   flex: 1;
