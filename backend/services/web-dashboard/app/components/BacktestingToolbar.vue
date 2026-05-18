@@ -151,13 +151,13 @@ const states = computed(() => [
 }
 
 .state-pill {
+  gap: 0.25rem;
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 8px 3px 6px;
-  border-radius: 3px;
+  padding: 0.25rem 1rem;
+  border-radius: var(--ui-radius);
   border: 1px solid transparent;
-  font-size: 0.6rem;
+  font-size: calc(var(--text-xs) * 0.75);
   letter-spacing: 0.06em;
   transition:
     background 0.2s,
@@ -271,16 +271,16 @@ const states = computed(() => [
 }
 
 .tf-chip {
-  padding: 3px 8px;
-  border-radius: 3px;
-  border: 1px solid rgba(255 255 255 / 0.08);
-  background: rgba(255 255 255 / 0.03);
-  color: rgba(255 255 255 / 0.4);
+  padding: 0.25rem 1rem;
+  cursor: pointer;
+  border-radius: var(--ui-radius);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg);
+  color: var(--ui-text-muted);
   font-family: inherit;
   font-size: 0.62rem;
   font-weight: 500;
   letter-spacing: 0.04em;
-  cursor: pointer;
   transition: all 0.15s ease;
 }
 

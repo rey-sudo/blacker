@@ -24,7 +24,7 @@ export const useBacktestingTabStore = (tabId: string) =>
       console.log("resumed");
     };
 
-    const tabTitle = computed(() => `${symbol.value} - BS`);
+    const tabTitle = computed(() => `${symbol.value} - BT`);
     const tabColor = "secondary";
     
     return {
