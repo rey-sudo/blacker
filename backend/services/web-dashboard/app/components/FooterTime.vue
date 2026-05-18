@@ -1,5 +1,5 @@
 <template>
-  <div class="footer-backtest-bar">
+  <div class="footer-time">
     <UInputDate
       v-model="value"
       granularity="second"
@@ -20,9 +20,6 @@
         <span>UTC</span>
       </template>
     </UInputTime>
-
-
-
   </div>
 </template>
 
@@ -33,11 +30,10 @@ import { shallowRef } from "vue";
 const value = shallowRef(new CalendarDate(2026, 2, 22));
 
 const time = shallowRef(new Time(12, 30, 10));
-
 </script>
 
 <style lang="css" scoped>
-.footer-backtest-bar {
+.footer-time {
   display: flex;
   gap: 1rem;
 }
