@@ -138,9 +138,9 @@ const backtestState = computed(() => [
   position: relative;
   padding: 0 1.25rem;
   align-items: center;
+  background: var(--ui-bg);
   box-shadow: var(--card-shadow);
   border-radius: var(--ui-radius);
-  background: var(--toolbar-bg);
 }
 
 .tb-symbol {

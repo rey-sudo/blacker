@@ -31,7 +31,9 @@ const props = defineProps({
 
 const tabsStore = useTabsStore();
 
-const tab: ComputedRef<Tab | undefined> = computed(() => tabsStore.getTabById(props.tabId));
+const tab: ComputedRef<Tab | undefined> = computed(() =>
+  tabsStore.getTabById(props.tabId),
+);
 const tabStore = computed(() => useTabContentStore(tab.value!));
 
 const menuOpen = ref(false);
@@ -84,21 +86,20 @@ onUnmounted(() => tabStore.value?.onUnmount());
 
 <style lang="css" scoped>
 .tab {
-  border: 1px solid var(--ui-border);
+  border: 1px solid transparent;
   border-top-left-radius: calc(var(--ui-radius) * 0.5);
   border-top-right-radius: calc(var(--ui-radius) * 0.5);
   align-items: center;
   border-bottom: none;
   font-weight: 600;
   cursor: pointer;
-  height: 2rem;
   display: flex;
   overflow: hidden;
   box-sizing: border-box;
 }
 
 .tab:hover {
-  background: var(--ui-bg-elevated);
+  background: var(--ui-bg-muted);
 }
 
 .tab-label {
@@ -110,14 +111,8 @@ onUnmounted(() => tabStore.value?.onUnmount());
 }
 
 .tab.active {
-  background: var(--ui-bg);
-  border: 1px solid var(--ui-border-muted);
+  border: 1px solid var(--ui-border-accented);
   border-bottom: none;
+  background: var(--ui-bg-muted);
 }
-
-.tab.inactive {
-  background: transparent;
-}
-
-
 </style>

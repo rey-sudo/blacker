@@ -1,9 +1,9 @@
 :root {
   --header-height: 2.25rem;
-  --header-background: var(--ui-color-neutral-950);
+  --header-background: var(--ui-bg);
   --main-background: var(--ui-bg-accented);
   --footer-height: 2.25rem;
-  --footer-background: var(--ui-color-neutral-950);
+  --footer-background: var(--ui-bg);
   --tab-content-padding: 0.25rem;
   --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.18);
 }
@@ -14,10 +14,6 @@
   --chart-header-height: 2.5rem;
   --chart-radius: var(--ui-radius);
   --chart-toolbar-height: 2.25rem;
-}
-
-:root {
-  --toolbar-bg: var(--ui-color-neutral-950);
 }
 
 .dark {

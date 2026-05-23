@@ -199,8 +199,8 @@ rounded-3xl
   /* ========== Backgrounds ========== */
   --ui-bg: var(--ui-color-neutral-900);
   --ui-bg-muted: var(--ui-color-neutral-800);
-  --ui-bg-elevated: var(--ui-color-neutral-800);
-  --ui-bg-accented: var(--ui-color-neutral-700);
+  --ui-bg-elevated: var(--ui-color-neutral-700);
+  --ui-bg-accented: var(--ui-color-neutral-600);
   --ui-bg-inverted: white;
 
   /* ========== Text ========== */
@@ -214,7 +214,7 @@ rounded-3xl
   /* ========== Borders ========== */
   --ui-border: var(--ui-color-neutral-800);
   --ui-border-muted: var(--ui-color-neutral-700);
-  --ui-border-accented: var(--ui-color-neutral-700);
+  --ui-border-accented: var(--ui-color-neutral-600);
   --ui-border-inverted: white;
 
   /* ========== Layout ========== */
