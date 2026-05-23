@@ -1,6 +1,9 @@
-export const useTradingTabStore = (tabId: string) =>
-  defineStore(`tab/${tabId}`, () => {
-    const id: string = tabId;
+export const useTradingTabStore = (tab: Tab) =>
+  defineStore(`tab/${tab.id}`, () => {
+    const id: string = tab.id;
+
+    const tabTitle = computed(() => `${symbol.value} - ${interval.value}`);
+    const tabColor = "primary";
 
     const symbol = ref("BTCUSDT");
     const interval = ref("1m");
@@ -24,9 +27,10 @@ export const useTradingTabStore = (tabId: string) =>
       console.log("resumed");
     };
 
-    const tabTitle = computed(() => `${symbol.value} - ${interval.value}`)
-    const tabColor = "primary";
-    
+    const getTab = () => {
+      return tab;
+    };
+
     return {
       tabTitle,
       tabColor,
@@ -38,10 +42,8 @@ export const useTradingTabStore = (tabId: string) =>
       resume,
       isPaused,
       start,
-
-      onMount() {
-        
-      },
+      getTab,
+      onMount() {},
       onUnmount() {
         pause();
       },

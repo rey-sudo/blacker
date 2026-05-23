@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // BLACKER
 // Copyright (C) 2026 Juan José Caballero Rey - https://github.com/rey-sudo
 //
@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import { useBacktestingTabStore } from '~/stores/tabs';
+import { useBacktestingTabStore } from "~/stores/tabs";
 
 const props = defineProps({
   tabId: {
@@ -23,21 +23,24 @@ const props = defineProps({
   },
 });
 
-const tab = useBacktestingTabStore(props.tabId)
+const tabsStore = useTabsStore();
 
+const tab: ComputedRef<Tab | undefined> = computed(() =>
+  tabsStore.getTabById(props.tabId),
+);
 
-
+const tabStore = useBacktestingTabStore(tab);
 
 </script>
 
 <template>
-  <div class="tab-backtesting">
+  <div class="backtesting-tab">
     <BacktestingToolbar />
   </div>
 </template>
 
 <style lang="css" scoped>
-.tab-backtesting {
+.backtesting-tab {
   display: flex;
   flex-direction: column;
 }

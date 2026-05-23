@@ -31,8 +31,8 @@ const props = defineProps({
 
 const tabsStore = useTabsStore();
 
-const tab: Tab | undefined = computed(() => tabsStore.getTabById(props.tabId));
-const tabStore = computed(() => useTabContentStore(tab.value));
+const tab: ComputedRef<Tab | undefined> = computed(() => tabsStore.getTabById(props.tabId));
+const tabStore = computed(() => useTabContentStore(tab.value!));
 
 const menuOpen = ref(false);
 const menuItems: ContextMenuItem[] = [

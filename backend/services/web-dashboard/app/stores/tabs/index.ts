@@ -7,9 +7,9 @@ export function useTabContentStore(tab: Tab) {
 
   switch (tab.kind) {
     case TabKind.Backtesting:
-      return useBacktestingTabStore(tab.id);
+      return useBacktestingTabStore(tab);
     case TabKind.Trading:
-      return useTradingTabStore(tab.id);
+      return useTradingTabStore(tab);
     //case TabKind.Algo:        return useAlgoTabStore(tab.id)
   }
 }

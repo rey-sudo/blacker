@@ -1,6 +1,6 @@
-export const useBacktestingTabStore = (tabId: string) =>
-  defineStore(`tab/${tabId}`, () => {
-    const id: string = tabId;
+export const useBacktestingTabStore = (tab: Tab) =>
+  defineStore(`tab/${tab.id}`, () => {
+    const id: string = tab.id;
 
     const tabTitle = computed(() => `${symbol.value} - BT`);
     const tabColor = "secondary";
@@ -27,7 +27,9 @@ export const useBacktestingTabStore = (tabId: string) =>
       console.log("resumed");
     };
 
-
+    const getTab = () => {
+      return tab;
+    };
     
     return {
       tabTitle,
@@ -40,6 +42,7 @@ export const useBacktestingTabStore = (tabId: string) =>
       resume,
       isPaused,
       start,
+      getTab,
 
       onMount() {},
       onUnmount() {

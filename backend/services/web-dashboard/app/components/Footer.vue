@@ -22,9 +22,9 @@
       <UButton color="neutral" size="xs" variant="ghost">Algorithmic</UButton>
 
      <UButton color="neutral" size="xs" variant="ghost">Console</UButton>
-      <USeparator orientation="vertical" class="h-6 pl-2 pr-4" />
+      <USeparator orientation="vertical" class="h-6 pl-2 pr-2" />
       <FooterTime />
-      <USeparator orientation="vertical" class="h-6 px-4" />
+      <USeparator orientation="vertical" class="h-6 px-2" />
     </div>
 
    

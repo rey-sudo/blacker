@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import TabTrading from "./TabTrading.vue";
-import TabBacktesting from "./TabBacktesting.vue";
+import TradingTab from "./TradingTab.vue";
+import BacktestingTab from "./BacktestingTab.vue";
 import { useTabContentStore } from '~/stores/tabs';
 
 const props = defineProps<{ tabId: string }>()
@@ -33,8 +33,8 @@ const tabStore = computed(() => useTabContentStore(tab.value!))
 const component = computed(() => {
   if (!tab.value) return null
   switch (tab.value.kind) {
-    case TabKind.Trading:     return TabTrading
-    case TabKind.Backtesting: return TabBacktesting
+    case TabKind.Trading:     return TradingTab
+    case TabKind.Backtesting: return BacktestingTab
   }
 })
 
