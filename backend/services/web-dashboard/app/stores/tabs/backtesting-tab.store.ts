@@ -2,6 +2,9 @@ export const useBacktestingTabStore = (tabId: string) =>
   defineStore(`tab/${tabId}`, () => {
     const id: string = tabId;
 
+    const tabTitle = computed(() => `${symbol.value} - BT`);
+    const tabColor = "secondary";
+
     const symbol = ref("BTCUSDT");
     const interval = ref("1m");
     const isPaused = ref(false);
@@ -24,8 +27,7 @@ export const useBacktestingTabStore = (tabId: string) =>
       console.log("resumed");
     };
 
-    const tabTitle = computed(() => `${symbol.value} - BT`);
-    const tabColor = "secondary";
+
     
     return {
       tabTitle,

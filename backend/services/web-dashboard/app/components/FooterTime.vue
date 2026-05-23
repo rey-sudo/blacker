@@ -4,14 +4,14 @@
       v-model="value"
       granularity="second"
       size="xs"
-      variant="outline"
+      variant="ghost"
       separator-icon="lucide:dot"
     />
 
     <UInputTime
       v-model="time"
       size="xs"
-      variant="outline"
+      variant="ghost"
       icon="i-lucide-clock"
       granularity="second"
       :hour-cycle="24"

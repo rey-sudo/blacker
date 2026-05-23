@@ -23,10 +23,10 @@ const props = defineProps<{ tabId: string }>()
 const tabsStore = useTabsStore()
 
 // tab can be undefined if the id does not exist
-const tab: Tab | undefined = computed(() => tabsStore.getTabById(props.tabId))
+const tab: ComputedRef<Tab | undefined> = computed(() => tabsStore.getTabById(props.tabId))
 
 // tabStore can be null — the template guards it with v-if
-const tabStore = computed(() => useTabContentStore(tab.value))
+const tabStore = computed(() => useTabContentStore(tab.value!))
 
 // Dynamically resolves the component based on the tab's type.
 // Returns null if the tab is undefined or doesn't match a known type.
