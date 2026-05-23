@@ -97,12 +97,16 @@ onUnmounted(() => tabStore.value?.onUnmount());
   box-sizing: border-box;
 }
 
+.tab:hover {
+  background: var(--ui-bg-elevated);
+}
+
 .tab-label {
   padding: 0.5rem 1rem;
 }
 
 .tab-label span {
-  margin-left: 0.25rem;
+  margin-left: 0.5rem;
 }
 
 .tab.active {
@@ -115,7 +119,5 @@ onUnmounted(() => tabStore.value?.onUnmount());
   background: transparent;
 }
 
-.tab:hover {
-  background: var(--ui-bg-elevated);
-}
+
 </style>

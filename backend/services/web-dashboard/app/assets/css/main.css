@@ -1,17 +1,11 @@
 :root {
-  --default-line-color-0: var(--color-red);
-  --default-line-color-1: var(--color-yellow);
-  --default-up-color: var(--color-green);
-  --default-down-color: var(--color-red);
-}
-
-:root {
   --header-height: 2.25rem;
   --header-background: var(--ui-color-neutral-950);
   --main-background: var(--ui-bg-accented);
   --footer-height: 2.25rem;
   --footer-background: var(--ui-color-neutral-950);
   --tab-content-padding: 0.25rem;
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
 :root {
@@ -23,7 +17,7 @@
 }
 
 :root {
-  --backtesting-toolbar-bg: var(--ui-color-neutral-950);
+  --toolbar-bg: var(--ui-color-neutral-950);
 }
 
 .dark {

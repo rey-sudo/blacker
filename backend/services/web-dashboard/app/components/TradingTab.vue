@@ -21,9 +21,11 @@ const props = defineProps({
   },
 });
 
-const tabsStore = useTabsStore()
+const tabsStore = useTabsStore();
 
-const tab: ComputedRef<Tab | undefined> = computed(() => tabsStore.getTabById(props.tabId))
+const tab: ComputedRef<Tab | undefined> = computed(() =>
+  tabsStore.getTabById(props.tabId),
+);
 </script>
 
 <template>
@@ -37,8 +39,8 @@ const tab: ComputedRef<Tab | undefined> = computed(() => tabsStore.getTabById(pr
 .trading-tab {
   height: 100%;
   display: flex;
-  flex-direction: column;
-  border-radius: calc(var(--ui-radius) * 0.5);
   overflow: hidden;
+  flex-direction: column;
+  box-shadow: var(--card-shadow);
 }
 </style>

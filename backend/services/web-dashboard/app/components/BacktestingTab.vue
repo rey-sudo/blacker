@@ -28,8 +28,11 @@ const tabsStore = useTabsStore();
 const tab: ComputedRef<Tab | undefined> = computed(() =>
   tabsStore.getTabById(props.tabId),
 );
+const tabStore = computed(() =>
+  tab.value ? useBacktestingTabStore(tab.value) : undefined,
+);
 
-const tabStore = useBacktestingTabStore(tab);
+
 
 </script>
 

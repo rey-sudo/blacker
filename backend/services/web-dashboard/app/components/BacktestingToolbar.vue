@@ -1,4 +1,19 @@
 <script setup lang="ts">
+// BLACKER
+// Copyright (C) 2026 Juan José Caballero Rey - https://github.com/rey-sudo
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation version 3 of the License.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 import { ref, computed } from "vue";
 
 // Props
@@ -16,11 +31,35 @@ const isPlaying = ref(false);
 const timeframes = ["1m", "5m", "15m", "1h", "4h", "1d"];
 const activeTimeframe = ref("1h");
 
-const states = computed(() => [
-  { key: "tick", label: "TICK", status: "idle", display: "IDLE" },
-  { key: "ohlcv", label: "OHLCV", status: "idle", display: "IDLE" },
-  { key: "timeframe", label: "TF", status: "idle", display: "IDLE" },
-  { key: "engine", label: "ENGINE", status: "idle", display: "IDLE" },
+const backtestState = computed(() => [
+  {
+    key: "tick",
+    label: "TICK",
+    status: "idle",
+    display: "ON",
+    color: "success" as any,
+  },
+  {
+    key: "ohlcv",
+    label: "OHLCV",
+    status: "idle",
+    display: "ON",
+    color: "success" as any,
+  },
+  {
+    key: "timeframe",
+    label: "TF",
+    status: "idle",
+    display: "ON",
+    color: "success" as any,
+  },
+  {
+    key: "engine",
+    label: "ENGINE",
+    status: "idle",
+    display: "ON",
+    color: "success" as any,
+  },
 ]);
 </script>
 
@@ -34,43 +73,27 @@ const states = computed(() => [
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
 
     <div class="tb-states">
-      <div
-        v-for="state in states"
+      <UButton
+        v-for="state in backtestState"
         :key="state.key"
         class="state-pill"
         :class="`state-pill--${state.status}`"
+        variant="outline"
+        color="neutral"
+        size="xs"
       >
-        <span class="state-pip" />
+        <UChip standalone inset size="xs" :color="state.color" />
         <span class="state-label">{{ state.label }}</span>
         <span class="state-value">{{ state.display }}</span>
-      </div>
+      </UButton>
     </div>
 
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
 
-    <!-- CENTER-RIGHT: Timeframe controls -->
     <div class="tb-timeframes">
-      <span class="tf-label">TF</span>
-      <button
-        v-for="tf in timeframes"
-        :key="tf"
-        class="tf-chip"
-        :class="{ 'tf-chip--active': tf === activeTimeframe }"
-        @click="activeTimeframe = tf"
+      <UButton color="neutral" variant="outline" icon="lucide:plus" size="sm"
+        >Add Timeframe</UButton
       >
-        {{ tf }}
-      </button>
-      <button class="tf-add" title="Add timeframe">
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <path
-            d="M5 1v8M1 5h8"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-          />
-        </svg>
-        <span>Add</span>
-      </button>
     </div>
 
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
@@ -115,8 +138,9 @@ const states = computed(() => [
   position: relative;
   padding: 0 1.25rem;
   align-items: center;
+  box-shadow: var(--card-shadow);
   border-radius: var(--ui-radius);
-  background: var(--backtesting-toolbar-bg);
+  background: var(--toolbar-bg);
 }
 
 .tb-symbol {
@@ -127,18 +151,17 @@ const states = computed(() => [
 }
 
 .symbol-badge {
-  gap: 0.25rem;
   display: flex;
   font-weight: 600;
   align-items: center;
-  font-size: var(--text-sm);
-  letter-spacing: 0.08em;
+  font-size: var(--text-md);
+  letter-spacing: 0.075em;
   color: var(--ui-text);
 }
 
 .symbol-sub {
   font-size: calc(var(--text-xs) * 0.75);
-  letter-spacing: 0.15em;
+  letter-spacing: 0.125em;
   color: var(--ui-text-muted);
   padding-left: 1rem;
 }
@@ -157,103 +180,18 @@ const states = computed(() => [
   padding: 0.25rem 1rem;
   border-radius: var(--ui-radius);
   border: 1px solid transparent;
-  font-size: calc(var(--text-xs) * 0.75);
-  letter-spacing: 0.06em;
   transition:
     background 0.2s,
     border-color 0.2s;
 }
 
-/* pip */
-.state-pip {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
 .state-label {
-  color: rgba(255 255 255 / 0.38);
+  color: var(--ui-text-muted);
   font-weight: 500;
 }
 
 .state-value {
   font-weight: 600;
-}
-
-/* idle */
-.state-pill--idle {
-  background: rgba(255 255 255 / 0.04);
-  border-color: rgba(255 255 255 / 0.06);
-}
-.state-pill--idle .state-pip {
-  background: #4a5060;
-}
-.state-pill--idle .state-value {
-  color: #4a5060;
-}
-
-/* ready */
-.state-pill--ready {
-  background: rgba(56 189 120 / 0.08);
-  border-color: rgba(56 189 120 / 0.18);
-}
-.state-pill--ready .state-pip {
-  background: #38bd78;
-  box-shadow: 0 0 5px #38bd7866;
-}
-.state-pill--ready .state-value {
-  color: #38bd78;
-}
-
-/* running */
-.state-pill--running {
-  background: rgba(59 130 246 / 0.1);
-  border-color: rgba(59 130 246 / 0.22);
-}
-.state-pill--running .state-pip {
-  background: #3b82f6;
-  box-shadow: 0 0 5px #3b82f666;
-  animation: blink-pip 1s ease-in-out infinite;
-}
-.state-pill--running .state-value {
-  color: #3b82f6;
-}
-
-/* error */
-.state-pill--error {
-  background: rgba(239 68 68 / 0.1);
-  border-color: rgba(239 68 68 / 0.22);
-}
-.state-pill--error .state-pip {
-  background: #ef4444;
-  box-shadow: 0 0 5px #ef444466;
-}
-.state-pill--error .state-value {
-  color: #ef4444;
-}
-
-/* loading */
-.state-pill--loading {
-  background: rgba(251 191 36 / 0.08);
-  border-color: rgba(251 191 36 / 0.18);
-}
-.state-pill--loading .state-pip {
-  background: #fbbf24;
-  animation: blink-pip 0.6s ease-in-out infinite;
-}
-.state-pill--loading .state-value {
-  color: #fbbf24;
-}
-
-@keyframes blink-pip {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
 }
 
 /* ─── Timeframes ─────────────────────────────────────────── */

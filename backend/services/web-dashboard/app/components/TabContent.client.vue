@@ -16,31 +16,37 @@
 
 import TradingTab from "./TradingTab.vue";
 import BacktestingTab from "./BacktestingTab.vue";
-import { useTabContentStore } from '~/stores/tabs';
+import { useTabContentStore } from "~/stores/tabs";
 
-const props = defineProps<{ tabId: string }>()
+const props = defineProps<{ tabId: string }>();
 
-const tabsStore = useTabsStore()
+const tabsStore = useTabsStore();
 
 // tab can be undefined if the id does not exist
-const tab: ComputedRef<Tab | undefined> = computed(() => tabsStore.getTabById(props.tabId))
+const tab: ComputedRef<Tab | undefined> = computed(() =>
+  tabsStore.getTabById(props.tabId),
+);
 
 // tabStore can be null — the template guards it with v-if
-const tabStore = computed(() => useTabContentStore(tab.value!))
+const tabStore = computed(() =>
+  tab.value ? useTabContentStore(tab.value) : undefined,
+);
 
 // Dynamically resolves the component based on the tab's type.
 // Returns null if the tab is undefined or doesn't match a known type.
 const component = computed(() => {
-  if (!tab.value) return null
+  if (!tab.value) return null;
   switch (tab.value.kind) {
-    case TabKind.Trading:     return TradingTab
-    case TabKind.Backtesting: return BacktestingTab
+    case TabKind.Trading:
+      return TradingTab;
+    case TabKind.Backtesting:
+      return BacktestingTab;
   }
-})
+});
 
 // Lifecycle — all stores implement onMount/onUnmount
-onMounted(()   => tabStore.value?.onMount())
-onUnmounted(() => tabStore.value?.onUnmount())
+onMounted(() => tabStore.value?.onMount());
+onUnmounted(() => tabStore.value?.onUnmount());
 </script>
 
 <template>
