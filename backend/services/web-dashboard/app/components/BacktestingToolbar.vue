@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { ref, computed } from "vue";
-
+import type { SelectItem } from "@nuxt/ui";
 // Props
 const props = defineProps({
   tickState: { type: String, default: "idle" },
@@ -27,78 +27,158 @@ const props = defineProps({
 // Playback
 const isPlaying = ref(false);
 
-// Timeframes
-const timeframes = ["1m", "5m", "15m", "1h", "4h", "1d"];
-const activeTimeframe = ref("1h");
-
 const backtestState = computed(() => [
   {
     key: "tick",
     label: "TICK",
     status: "idle",
-    display: "ON",
+    display: "LIVE",
     color: "success" as any,
   },
   {
     key: "ohlcv",
     label: "OHLCV",
     status: "idle",
-    display: "ON",
+    display: "LIVE",
     color: "success" as any,
   },
   {
     key: "timeframe",
     label: "TF",
     status: "idle",
-    display: "ON",
+    display: "LIVE",
     color: "success" as any,
   },
   {
     key: "engine",
     label: "ENGINE",
     status: "idle",
-    display: "ON",
-    color: "success" as any,
+    display: "IDLE",
+    color: "warning" as any,
   },
 ]);
+
+const timeframeModalOpen = ref(true);
+const timeframeModalTitle = ref("Add Custom Interval");
+
+const timeframeItems = ref<SelectItem[]>([
+  {
+    type: "label",
+    label: "Minutes",
+  },
+  "1m",
+  "5m",
+  "15m",
+  "30m",
+  "45m",
+  {
+    type: "separator",
+  },
+  {
+    type: "label",
+    label: "Hours",
+  },
+  "1h",
+  "2h",
+  "3h",
+  "4h",
+  "6h",
+]);
+
+const timeframeSelected = ref("1m");
+
+const onTimeframeAdd = () => {
+  
+};
 </script>
 
 <template>
   <div class="backtesting-toolbar">
-    <div class="tb-symbol">
+    <!----------------------------------------------------------------------------------------------------------------------
+  SYMBOL INFO
+----------------------------------------------------------------------------------------------------------------------->
+    <div class="symbol">
       <span class="symbol-badge">BTCUSDT</span>
       <span class="symbol-sub">PERPETUAL</span>
     </div>
 
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
-
-    <div class="tb-states">
+    <!----------------------------------------------------------------------------------------------------------------------
+  WORKER STATES
+----------------------------------------------------------------------------------------------------------------------->
+    <div class="backtesting-toolbar-workers">
       <UButton
         v-for="state in backtestState"
         :key="state.key"
-        class="state-pill"
-        :class="`state-pill--${state.status}`"
         variant="outline"
         color="neutral"
         size="xs"
       >
         <UChip standalone inset size="xs" :color="state.color" />
-        <span class="state-label">{{ state.label }}</span>
-        <span class="state-value">{{ state.display }}</span>
+        <span class="label">{{ state.label }}</span>
+        <span class="value">{{ state.display }}</span>
       </UButton>
     </div>
 
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
-
-    <div class="tb-timeframes">
-      <UButton color="neutral" variant="outline" icon="lucide:plus" size="sm"
-        >Add Timeframe</UButton
+    <!----------------------------------------------------------------------------------------------------------------------
+  ADD TIMEFRAMES
+----------------------------------------------------------------------------------------------------------------------->
+    <div class="backtesting-toolbar-timeframes">
+      <UModal
+        v-model:open="timeframeModalOpen"
+        :title="timeframeModalTitle"
+        :close="{
+          color: 'neutral',
+          variant: 'outline',
+          class: 'rounded-full',
+        }"
+        :overlay="false"
       >
+        <UButton color="neutral" variant="outline" icon="lucide:plus" size="sm"
+          >Add Timeframe</UButton
+        >
+
+        <template #body>
+          <UForm class="space-y-4">
+            <UFormField label="Timeframe">
+              <USelect
+                class="w-full"
+                v-model="timeframeSelected"
+                size="lg"
+                :items="timeframeItems"
+              />
+            </UFormField>
+          </UForm>
+        </template>
+
+        <template #footer>
+          <div class="content w-100 flex justify-end gap-2">
+            <UButton
+              color="neutral"
+              size="md"
+              variant="outline"
+              @click="timeframeModalOpen = false"
+              >Cancel</UButton
+            >
+
+            <UButton
+              color="neutral"
+              size="md"
+              variant="solid"
+              @click="onTimeframeAdd"
+            >
+              Add
+            </UButton>
+          </div>
+        </template>
+      </UModal>
     </div>
 
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
-
-    <!-- RIGHT: Playback controls -->
+    <!----------------------------------------------------------------------------------------------------------------------
+  BACKTEST CONTROLS
+----------------------------------------------------------------------------------------------------------------------->
     <div class="tb-controls">
       <button
         class="ctrl-btn ctrl-btn--play"
@@ -136,17 +216,17 @@ const backtestState = computed(() => [
   display: flex;
   overflow: hidden;
   position: relative;
-  padding: 0 1.25rem;
+  padding: 0 1rem;
   align-items: center;
   background: var(--ui-bg);
   box-shadow: var(--card-shadow);
   border-radius: var(--ui-radius);
 }
-
-.tb-symbol {
+/* ─── symbol ─────────────────────────────────────────── */
+.symbol {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.1rem;
   flex-shrink: 0;
 }
 
@@ -154,48 +234,36 @@ const backtestState = computed(() => [
   display: flex;
   font-weight: 600;
   align-items: center;
-  font-size: var(--text-md);
-  letter-spacing: 0.075em;
   color: var(--ui-text);
+  letter-spacing: 0.075em;
+  font-size: var(--text-md);
 }
 
 .symbol-sub {
   font-size: calc(var(--text-xs) * 0.75);
-  letter-spacing: 0.125em;
   color: var(--ui-text-muted);
+  letter-spacing: 0.125em;
   padding-left: 1rem;
 }
 
-/* ─── States ─────────────────────────────────────────────── */
-.tb-states {
+/* ─── workers ─────────────────────────────────────────── */
+.backtesting-toolbar-workers {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
 }
 
-.state-pill {
-  gap: 0.25rem;
-  display: flex;
-  align-items: center;
-  padding: 0.25rem 1rem;
-  border-radius: var(--ui-radius);
-  border: 1px solid transparent;
-  transition:
-    background 0.2s,
-    border-color 0.2s;
-}
-
-.state-label {
+.backtesting-toolbar-workers .label {
   color: var(--ui-text-muted);
   font-weight: 500;
 }
 
-.state-value {
+.backtesting-toolbar-workers .value {
   font-weight: 600;
 }
 
 /* ─── Timeframes ─────────────────────────────────────────── */
-.tb-timeframes {
+.backtesting-toolbar-timeframes {
   display: flex;
   align-items: center;
   gap: 4px;
