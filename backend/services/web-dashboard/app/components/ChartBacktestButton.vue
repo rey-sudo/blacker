@@ -44,6 +44,8 @@
 </template>
 
 <script setup lang="ts">
+import { useTradingTabStore } from "~/stores/tabs/trading-tab.store";
+
 const props = defineProps({
   tabId: {
     type: String,
@@ -53,12 +55,18 @@ const props = defineProps({
 
 const tabsStore = useTabsStore();
 
-const tab = computed(() => tabsStore.getTabById(props.tabId));
+const tab: ComputedRef<Tab | undefined> = computed(() =>
+  tabsStore.getTabById(props.tabId),
+);
+
+const tabStore = computed(() =>
+  tab.value ? useTradingTabStore(tab.value) : undefined,
+);
 
 const open = ref(false);
 
 const title = computed(() => {
-  return `Create a backtest for ${tab.value.symbol}`;
+  return `Create a backtest for ${tabStore.value?.symbol}`;
 });
 
 const onCreate = () => {
@@ -69,7 +77,7 @@ const onCreate = () => {
     subtitle: "sub title",
     description: "description",
     color: "red",
-    symbol: tab.value.symbol,
+    symbol: tabStore.value?.symbol || "symbol",
   };
 
   tabsStore.addTab(newTab);

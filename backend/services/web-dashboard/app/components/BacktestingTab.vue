@@ -47,7 +47,7 @@ const tabStore = computed(() =>
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  gap: 1rem;
+  gap: 0.5rem;
   padding: var(--tab-content-padding);
 }
 </style>

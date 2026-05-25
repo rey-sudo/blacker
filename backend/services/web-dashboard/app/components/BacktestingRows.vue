@@ -13,13 +13,11 @@ const rows = ref<number[]>(Array.from({ length: 4 }, (_, i) => i));
 <style scoped>
 .backtesting-rows {
   flex: 1;
+  gap: 0.5rem;
   min-height: 0;
-  overflow-y: auto;
-
   display: flex;
+  overflow-y: auto;
   flex-direction: column;
-  gap: 1rem;
- 
 }
 
 .row {

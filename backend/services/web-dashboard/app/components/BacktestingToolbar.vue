@@ -213,7 +213,7 @@ const onTimeframeAdded = () => {
   height: 5rem;
   display: flex;
   overflow: hidden;
-  padding: 0 1rem;
+  padding: 0 1.5rem;
   align-items: center;
   background: var(--ui-bg);
   box-shadow: var(--card-shadow);
