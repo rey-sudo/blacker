@@ -1,5 +1,5 @@
 <template>
-  <div class="containerx">
+  <div class="backtesting-rows">
     <div class="row" v-for="n in rows" :key="n"></div>
   </div>
 </template>
@@ -11,16 +11,15 @@ const rows = ref<number[]>(Array.from({ length: 4 }, (_, i) => i));
 </script>
 
 <style scoped>
-.containerx {
+.backtesting-rows {
   flex: 1;
-  width: 100%;
-  display: flex;
   min-height: 0;
   overflow-y: auto;
-  overflow: hidden;
+
+  display: flex;
   flex-direction: column;
-  border-radius: var(--ui-radius);
-  gap: var(--tab-content-padding);
+  gap: 1rem;
+ 
 }
 
 .row {

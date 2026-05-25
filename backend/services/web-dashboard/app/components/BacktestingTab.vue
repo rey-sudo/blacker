@@ -40,14 +40,14 @@ const tabStore = computed(() =>
   </div>
 </template>
 
-<style lang="css" scoped>
+<style scoped>
 .backtesting-tab {
-  flex: 1;
-  display: flex;
+  height: 100%;
   min-height: 0;
-  overflow: hidden;
+  display: flex;
   flex-direction: column;
-  gap: var(--tab-content-padding);
+  box-sizing: border-box;
+  gap: 1rem;
   padding: var(--tab-content-padding);
 }
 </style>
