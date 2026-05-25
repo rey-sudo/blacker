@@ -50,21 +50,9 @@ onUnmounted(() => tabStore.value?.onUnmount());
 </script>
 
 <template>
-  <div class="tab-content">
-    <component
-      v-if="tabStore && component"
-      :is="component"
-      :tabId="tabStore.id"
-    />
-  </div>
+  <component
+    v-if="tabStore && component"
+    :is="component"
+    :tabId="tabStore.id"
+  />
 </template>
-
-<style lang="css" scoped>
-.tab-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  padding: var(--tab-content-padding);
-}
-</style>

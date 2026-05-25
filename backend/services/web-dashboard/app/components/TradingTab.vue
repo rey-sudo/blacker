@@ -42,5 +42,6 @@ const tab: ComputedRef<Tab | undefined> = computed(() =>
   overflow: hidden;
   flex-direction: column;
   box-shadow: var(--card-shadow);
+  padding: var(--tab-content-padding);
 }
 </style>

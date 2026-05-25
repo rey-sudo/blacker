@@ -31,20 +31,23 @@ const tab: ComputedRef<Tab | undefined> = computed(() =>
 const tabStore = computed(() =>
   tab.value ? useBacktestingTabStore(tab.value) : undefined,
 );
-
-
-
 </script>
 
 <template>
   <div class="backtesting-tab">
     <BacktestingToolbar />
+    <BacktestingRows />
   </div>
 </template>
 
 <style lang="css" scoped>
 .backtesting-tab {
+  flex: 1;
   display: flex;
+  min-height: 0;
+  overflow: hidden;
   flex-direction: column;
+  gap: var(--tab-content-padding);
+  padding: var(--tab-content-padding);
 }
 </style>

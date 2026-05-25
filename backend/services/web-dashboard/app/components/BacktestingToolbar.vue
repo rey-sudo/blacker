@@ -58,7 +58,7 @@ const backtestState = computed(() => [
   },
 ]);
 
-const timeframeModalOpen = ref(true);
+const timeframeModalOpen = ref(false);
 const timeframeModalTitle = ref("Add Custom Interval");
 
 const timeframeItems = ref<SelectItem[]>([
@@ -87,8 +87,8 @@ const timeframeItems = ref<SelectItem[]>([
 
 const timeframeSelected = ref("1m");
 
-const onTimeframeAdd = () => {
-  
+const onTimeframeAdded = () => {
+  timeframeModalOpen.value = false;
 };
 </script>
 
@@ -116,7 +116,6 @@ const onTimeframeAdd = () => {
       >
         <UChip standalone inset size="xs" :color="state.color" />
         <span class="label">{{ state.label }}</span>
-        <span class="value">{{ state.display }}</span>
       </UButton>
     </div>
 
@@ -166,7 +165,7 @@ const onTimeframeAdd = () => {
               color="neutral"
               size="md"
               variant="solid"
-              @click="onTimeframeAdd"
+              @click="onTimeframeAdded"
             >
               Add
             </UButton>
@@ -179,7 +178,7 @@ const onTimeframeAdd = () => {
     <!----------------------------------------------------------------------------------------------------------------------
   BACKTEST CONTROLS
 ----------------------------------------------------------------------------------------------------------------------->
-    <div class="tb-controls">
+    <div class="backtesting-toolbar-controls">
       <button
         class="ctrl-btn ctrl-btn--play"
         :class="{ 'ctrl-btn--active': isPlaying }"
@@ -211,11 +210,9 @@ const onTimeframeAdd = () => {
 
 <style scoped>
 .backtesting-toolbar {
-  gap: 0;
   height: 5rem;
   display: flex;
   overflow: hidden;
-  position: relative;
   padding: 0 1rem;
   align-items: center;
   background: var(--ui-bg);
@@ -326,10 +323,10 @@ const onTimeframeAdd = () => {
 }
 
 /* ─── Controls ───────────────────────────────────────────── */
-.tb-controls {
+.backtesting-toolbar-controls {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 1rem;
   margin-left: auto;
 }
 
