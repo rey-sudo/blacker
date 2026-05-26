@@ -74,6 +74,7 @@ const props = defineProps({
   flex: 1;
   padding: 1rem;
   overflow-y: auto;
-  background-color: var(--ui-bg);
+  border-radius: var(--ui-radius);
+  border: 1px solid var(--ui-border);
 }
 </style>

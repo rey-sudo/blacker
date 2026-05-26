@@ -182,18 +182,18 @@ const onTimeframeAdded = () => {
       <UButton
         :disabled="isPlaying"
         title="Play"
-        color="success"
+        color="neutral"
         icon="material-symbols:play-arrow"
         @click="isPlaying = true"
         label="Play"
         :variant="isPlaying ? 'solid' : 'outline'"
-        :loading="isPlaying" 
+        :loading="isPlaying"
       />
 
       <UButton
         :disabled="!isPlaying"
         title="Stop"
-        color="error"
+        color="neutral"
         icon="material-symbols:stop"
         @click="isPlaying = false"
         label="Stop"

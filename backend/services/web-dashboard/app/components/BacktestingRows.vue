@@ -36,6 +36,7 @@ const tabStore = computed(() =>
 <template>
   <div class="backtesting-rows">
     <BacktestingRow :tabId="tabId" />
+    <BacktestingRow :tabId="tabId" />
   </div>
 </template>
 
