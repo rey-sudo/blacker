@@ -205,10 +205,10 @@ const onTimeframeAdded = () => {
 
 <style scoped>
 .backtesting-toolbar {
-  height: 5rem;
+  height: 4rem;
   display: flex;
+  padding: 0.5rem 1rem;
   overflow: hidden;
-  padding: 0 1.5rem;
   align-items: center;
   background: var(--ui-bg);
   box-shadow: var(--card-shadow);
