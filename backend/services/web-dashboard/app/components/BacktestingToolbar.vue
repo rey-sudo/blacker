@@ -30,21 +30,14 @@ const isPlaying = ref(false);
 const backtestState = computed(() => [
   {
     key: "tick",
+    label: "API",
+    status: "idle",
+    display: "LIVE",
+    color: "success" as any,
+  },
+  {
+    key: "tick",
     label: "TICK",
-    status: "idle",
-    display: "LIVE",
-    color: "success" as any,
-  },
-  {
-    key: "ohlcv",
-    label: "OHLCV",
-    status: "idle",
-    display: "LIVE",
-    color: "success" as any,
-  },
-  {
-    key: "timeframe",
-    label: "TF",
     status: "idle",
     display: "LIVE",
     color: "success" as any,
@@ -321,7 +314,7 @@ const onTimeframeAdded = () => {
   display: flex;
   align-items: center;
   margin-left: auto;
-  gap: 1rem;
+  gap: 0.5rem;
 }
 
 .ctrl-btn {

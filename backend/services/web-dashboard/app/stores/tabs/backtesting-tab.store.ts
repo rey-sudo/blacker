@@ -9,6 +9,12 @@ export const useBacktestingTabStore = (tab: Tab) =>
     const tabTitle = computed(() => `${symbol.value} - BT`);
     const tabColor = "neutral";
 
+    const timeframes = ref([
+      {
+        interval: "1h",
+      },
+    ]);
+
     const start = () => {
       console.log("tabStore: Starting.");
     };
@@ -38,6 +44,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
     };
 
     return {
+      timeframes,
       tabTitle,
       tabColor,
       symbol,
