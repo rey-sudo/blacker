@@ -179,31 +179,26 @@ const onTimeframeAdded = () => {
   BACKTEST CONTROLS
 ----------------------------------------------------------------------------------------------------------------------->
     <div class="backtesting-toolbar-controls">
-      <button
-        class="ctrl-btn ctrl-btn--play"
-        :class="{ 'ctrl-btn--active': isPlaying }"
+      <UButton
         :disabled="isPlaying"
         title="Play"
+        color="success"
+        icon="material-symbols:play-arrow"
         @click="isPlaying = true"
-      >
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <path d="M3 2l7 4-7 4V2z" fill="currentColor" />
-        </svg>
-        <span>Play</span>
-      </button>
+        label="Play"
+        :variant="isPlaying ? 'solid' : 'outline'"
+        :loading="isPlaying" 
+      />
 
-      <button
-        class="ctrl-btn ctrl-btn--stop"
-        :class="{ 'ctrl-btn--active': !isPlaying }"
+      <UButton
         :disabled="!isPlaying"
         title="Stop"
+        color="error"
+        icon="material-symbols:stop"
         @click="isPlaying = false"
-      >
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <rect x="1" y="1" width="8" height="8" rx="1" fill="currentColor" />
-        </svg>
-        <span>Stop</span>
-      </button>
+        label="Stop"
+        :variant="isPlaying ? 'outline' : 'solid'"
+      />
     </div>
   </div>
 </template>
@@ -322,12 +317,11 @@ const onTimeframeAdded = () => {
   color: rgba(255 255 255 / 0.55);
 }
 
-/* ─── Controls ───────────────────────────────────────────── */
 .backtesting-toolbar-controls {
   display: flex;
   align-items: center;
-  gap: 1rem;
   margin-left: auto;
+  gap: 1rem;
 }
 
 .ctrl-btn {

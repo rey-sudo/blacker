@@ -36,18 +36,18 @@ const tabStore = computed(() =>
 <template>
   <div class="backtesting-tab">
     <BacktestingToolbar />
-    <BacktestingRows />
+    <BacktestingRows :tabId="tabId" />
   </div>
 </template>
 
 <style scoped>
 .backtesting-tab {
+  gap: 0.25rem;
   height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  gap: 0.5rem;
   padding: var(--tab-content-padding);
 }
 </style>

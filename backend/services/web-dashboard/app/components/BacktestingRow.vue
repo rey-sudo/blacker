@@ -14,38 +14,66 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import { useBacktestingTabStore } from "~/stores/tabs";
-
 const props = defineProps({
   tabId: {
     type: String,
     required: true,
   },
 });
-
-const tabsStore = useTabsStore();
-
-const tab: ComputedRef<Tab | undefined> = computed(() =>
-  tabsStore.getTabById(props.tabId),
-);
-const tabStore = computed(() =>
-  tab.value ? useBacktestingTabStore(tab.value) : undefined,
-);
 </script>
 
 <template>
-  <div class="backtesting-rows">
-    <BacktestingRow :tabId="tabId" />
+  <div class="backtesting-row">
+    <div class="left">
+      <ChartCandlestick :tabId="tabId" />
+    </div>
+    <USeparator orientation="vertical" class="h-full" />
+    <div class="right">
+      <div class="top-panel">
+        <!-- Controles principales -->
+      </div>
+
+      <div class="bottom-panel">
+        <!-- Info: timeframe, métricas, etc -->
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.backtesting-rows {
-  flex: 1;
-  gap: 0.25rem;
-  min-height: 0;
+.backtesting-row {
   display: flex;
-  overflow-y: auto;
+  overflow: hidden;
+  min-height: 600px;
+  box-shadow: var(--card-shadow);
+  border-radius: var(--ui-radius);
+  background: var(--chart-background);
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.left {
+  flex: 1;
+}
+
+.right {
+  gap: 1rem;
+  width: 600px;
+  padding: 1rem;
+  display: flex;
   flex-direction: column;
+}
+
+.top-panel {
+  height: 100px;
+  padding: 1rem;
+  border-radius: var(--ui-radius);
+  border: 1px solid var(--ui-border);
+}
+
+.bottom-panel {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  background-color: var(--ui-bg);
 }
 </style>
