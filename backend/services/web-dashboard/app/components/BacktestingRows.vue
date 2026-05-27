@@ -35,7 +35,7 @@ const tabStore = computed(() =>
 
 <template>
   <div class="backtesting-rows">
-    <BacktestingRow v-for="value,index in tabStore?.timeframes" :key="index" :tabId="tabId" />
+    <BacktestingRow v-for="(value,index) in tabStore?.timeframes" :key="index" :tabId="tabId" />
   </div>
 </template>
 

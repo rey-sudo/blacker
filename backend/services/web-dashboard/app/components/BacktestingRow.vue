@@ -45,14 +45,15 @@ const props = defineProps({
   display: flex;
   overflow: hidden;
   min-height: 600px;
+  background: var(--ui-bg);
   box-shadow: var(--card-shadow);
   border-radius: var(--ui-radius);
-  background: var(--chart-background);
   border-bottom: 1px solid var(--ui-border);
 }
 
 .left {
   flex: 1;
+  padding: 0.25rem;
 }
 
 .right {

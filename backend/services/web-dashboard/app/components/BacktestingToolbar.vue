@@ -16,15 +16,27 @@
 
 import { ref, computed } from "vue";
 import type { SelectItem } from "@nuxt/ui";
-// Props
+import {
+  useBacktestingTabStore,
+  type Timeframe,
+} from "~/stores/tabs/backtesting-tab.store";
+
 const props = defineProps({
-  tickState: { type: String, default: "idle" },
-  ohlcvState: { type: String, default: "idle" },
-  timeframeState: { type: String, default: "idle" },
-  engineState: { type: String, default: "idle" },
+  tabId: {
+    type: String,
+    required: true,
+  },
 });
 
-// Playback
+const tabsStore = useTabsStore();
+
+const tab: ComputedRef<Tab | undefined> = computed(() =>
+  tabsStore.getTabById(props.tabId),
+);
+const tabStore = computed(() =>
+  tab.value ? useBacktestingTabStore(tab.value) : undefined,
+);
+
 const isPlaying = ref(false);
 
 const backtestState = computed(() => [
@@ -81,6 +93,12 @@ const timeframeItems = ref<SelectItem[]>([
 const timeframeSelected = ref("1m");
 
 const onTimeframeAdded = () => {
+  const timeframe: Timeframe = {
+    interval: "1h",
+  };
+
+  tabStore.value?.addTimeframe(timeframe);
+
   timeframeModalOpen.value = false;
 };
 </script>
