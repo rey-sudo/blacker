@@ -31,6 +31,10 @@ const tab: ComputedRef<Tab | undefined> = computed(() =>
 const tabStore = computed(() =>
   tab.value ? useBacktestingTabStore(tab.value) : undefined,
 );
+
+onMounted(() => {
+  tabStore.value?.start();
+});
 </script>
 
 <template>

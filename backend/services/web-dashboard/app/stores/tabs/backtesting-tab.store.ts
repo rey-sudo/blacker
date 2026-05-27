@@ -12,6 +12,20 @@ export interface Timeframe {
   interval: TimeframeInterval;
 }
 
+export const CommandType = {
+  SUBSCRIBE_STATS: "SUBSCRIBE_STATS",
+  UNSUBSCRIBE_STATS: "UNSUBSCRIBE_STATS",
+  START_BACKTEST: "START_BACKTEST",
+  STOP_BACKTEST: "STOP_BACKTEST",
+} as const;
+
+export type CommandType = (typeof CommandType)[keyof typeof CommandType];
+
+export interface InMessage {
+  command: CommandType;
+  payload?: Record<string, unknown>;
+}
+
 export const useBacktestingTabStore = (tab: Tab) =>
   defineStore(
     `tab/${tab.id}`,
@@ -27,18 +41,80 @@ export const useBacktestingTabStore = (tab: Tab) =>
 
       const timeframes = ref<Timeframe[]>([]);
 
+      const socket = shallowRef<WebSocket | null>(null);
+      const isConnected = ref(false);
+      const isConnecting = ref(false);
+      const messages = ref<any[]>([]);
+
       const addTimeframe = (timeframe: Timeframe) => {
         const exists = timeframes.value.some(
           (t) => t.interval === timeframe.interval,
         );
-
         if (exists) return;
 
         timeframes.value.push(timeframe);
       };
 
+      const connect = () => {
+        if (socket.value) return;
+
+        isConnecting.value = true;
+
+        const ws = new WebSocket("ws://localhost:3000/api/backtest/ws");
+
+        ws.onopen = () => {
+          isConnected.value = true;
+          isConnecting.value = false;
+
+          console.log("backtest ws connected");
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+
+            messages.value.push(data);
+
+            console.log("backtest message", data);
+          } catch {
+            console.log("raw message", event.data);
+          }
+        };
+
+        ws.onerror = (error) => {
+          console.error("backtest ws error", error);
+        };
+
+        ws.onclose = () => {
+          isConnected.value = false;
+          isConnecting.value = false;
+
+          socket.value = null;
+
+          console.log("backtest ws disconnected");
+        };
+
+        socket.value = ws;
+      };
+
+      const disconnect = () => {
+        socket.value?.close();
+        socket.value = null;
+      };
+
+      const send = (payload: InMessage) => {
+        if (!socket.value) return;
+
+        if (socket.value.readyState !== WebSocket.OPEN) return;
+
+        console.log(JSON.stringify(payload));
+
+        socket.value.send(JSON.stringify(payload));
+      };
+
       const start = () => {
-        console.log("tabStore: Starting.");
+        console.log(`backtestingStore: ${id} starting...`);
+        connect();
       };
 
       const stop = () => {
@@ -63,6 +139,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
 
       const onUnmount = () => {
         pause();
+        disconnect();
       };
 
       return {
@@ -79,6 +156,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
         isPaused,
         start,
         getTab,
+        send,
         onMount,
         onUnmount,
       };

@@ -35,5 +35,5 @@ export default defineNuxtConfig({
     ["@pinia/nuxt", { autoImports: ["defineStore"] }],
     "pinia-plugin-persistedstate/nuxt",
     "@nuxt/ui",
-  ],
+  ]
 });

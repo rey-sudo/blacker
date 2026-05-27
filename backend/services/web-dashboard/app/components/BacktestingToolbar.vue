@@ -17,7 +17,9 @@
 import { ref, computed } from "vue";
 import type { SelectItem } from "@nuxt/ui";
 import {
+  CommandType,
   useBacktestingTabStore,
+  type InMessage,
   type Timeframe,
 } from "~/stores/tabs/backtesting-tab.store";
 
@@ -100,6 +102,17 @@ const onTimeframeAdded = () => {
   tabStore.value?.addTimeframe(timeframe);
 
   timeframeModalOpen.value = false;
+};
+
+const onPlay = () => {
+  const message: InMessage = {
+    command: CommandType.START_BACKTEST,
+    payload: {
+      symbol: "BTCUSDT",
+    }
+  };
+  tabStore.value?.send(message);
+  isPlaying.value = true;
 };
 </script>
 
@@ -195,7 +208,7 @@ const onTimeframeAdded = () => {
         title="Play"
         color="neutral"
         icon="material-symbols:play-arrow"
-        @click="isPlaying = true"
+        @click="onPlay"
         label="Play"
         :variant="isPlaying ? 'solid' : 'outline'"
         :loading="isPlaying"
