@@ -25,17 +25,16 @@ const props = defineProps({
 <template>
   <div class="backtesting-row">
     <div class="left">
-      <ChartCandlestick :tabId="tabId" />
+      <ChartCandlestick
+        :tabId="tabId"
+        style="border-radius: var(--ui-radius)"
+      />
     </div>
     <USeparator orientation="vertical" class="h-full" />
     <div class="right">
-      <div class="top-panel">
-        <!-- Controles principales -->
-      </div>
+      <div class="top-panel"></div>
 
-      <div class="bottom-panel">
-        <!-- Info: timeframe, métricas, etc -->
-      </div>
+      <div class="bottom-panel"></div>
     </div>
   </div>
 </template>
@@ -53,7 +52,7 @@ const props = defineProps({
 
 .left {
   flex: 1;
-  padding: 0.25rem;
+  padding: 1rem;
 }
 
 .right {

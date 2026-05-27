@@ -1,2 +1,0 @@
-# rust-template
- rust-template
