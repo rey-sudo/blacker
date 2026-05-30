@@ -16,6 +16,7 @@
 
 import { useBacktestingTabStore } from "~/stores/tabs";
 
+// Define props to receive the unique identifier for the current tab
 const props = defineProps({
   tabId: {
     type: String,
@@ -23,18 +24,29 @@ const props = defineProps({
   },
 });
 
+// Initialize the main store containing tab definitions
 const tabsStore = useTabsStore();
 
+// Retrieve the specific tab configuration based on the provided tabId
 const tab: ComputedRef<Tab | undefined> = computed(() =>
   tabsStore.getTabById(props.tabId),
 );
+
+// Create a reactive instance of the backtesting store tied to the current tab
 const tabStore = computed(() =>
   tab.value ? useBacktestingTabStore(tab.value) : undefined,
 );
 
-onMounted(() => {
-  tabStore.value?.start();
-});
+// Watch for changes in the store instance and trigger the start method automatically
+watch(
+  () => tabStore.value,
+  (newStore) => {
+    if (newStore) {
+      newStore.start();
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

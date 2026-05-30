@@ -1,6 +1,6 @@
 export default defineWebSocketHandler({
   async open(client) {
-    const target = new WebSocket("ws://localhost:8100/backtest");
+    const target = new WebSocket("ws://localhost:8100/api/backtest/ws");
 
     target.onopen = () => {
       console.log("[target connected]");

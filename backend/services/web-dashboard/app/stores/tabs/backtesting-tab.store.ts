@@ -31,31 +31,24 @@ export const useBacktestingTabStore = (tab: Tab) =>
     `tab/${tab.id}`,
     () => {
       const id = tab.id;
-
       const symbol = ref("BTCUSDT");
       const interval = ref("1m");
       const isPaused = ref(false);
-
       const tabTitle = computed(() => `${symbol.value} - BT`);
       const tabColor = "neutral";
 
       const timeframes = ref<Timeframe[]>([]);
+
+      //----------------------------------------------------------------------------------------------------------------
+      // WEBSOCKET
+      //----------------------------------------------------------------------------------------------------------------
 
       const socket = shallowRef<WebSocket | null>(null);
       const isConnected = ref(false);
       const isConnecting = ref(false);
       const messages = ref<any[]>([]);
 
-      const addTimeframe = (timeframe: Timeframe) => {
-        const exists = timeframes.value.some(
-          (t) => t.interval === timeframe.interval,
-        );
-        if (exists) return;
-
-        timeframes.value.push(timeframe);
-      };
-
-      const connect = () => {
+      const connectToWs = () => {
         if (socket.value) return;
 
         isConnecting.value = true;
@@ -97,12 +90,12 @@ export const useBacktestingTabStore = (tab: Tab) =>
         socket.value = ws;
       };
 
-      const disconnect = () => {
+      const disconnectToWs = () => {
         socket.value?.close();
         socket.value = null;
       };
 
-      const send = (payload: InMessage) => {
+      const sendMessage = (payload: InMessage) => {
         if (!socket.value) return;
 
         if (socket.value.readyState !== WebSocket.OPEN) return;
@@ -112,13 +105,39 @@ export const useBacktestingTabStore = (tab: Tab) =>
         socket.value.send(JSON.stringify(payload));
       };
 
+      //----------------------------------------------------------------------------------------------------------------
+      // TIMEFRAME
+      //----------------------------------------------------------------------------------------------------------------
+
+      const addTimeframe = (timeframe: Timeframe) => {
+        const exists = timeframes.value.some(
+          (t) => t.interval === timeframe.interval,
+        );
+        if (exists) return;
+
+        timeframes.value.push(timeframe);
+      };
+
+      //----------------------------------------------------------------------------------------------------------------
+      // UTILS
+      //----------------------------------------------------------------------------------------------------------------
+
+      const getTab = () => {
+        return tab;
+      };
+
+      //----------------------------------------------------------------------------------------------------------------
+      // RUN LOGIC
+      //----------------------------------------------------------------------------------------------------------------
+
       const start = () => {
         console.log(`backtestingStore: ${id} starting...`);
-        connect();
+        connectToWs();
       };
 
       const stop = () => {
-        console.log("tabStore: Stopping.");
+        console.log(`backtestingStore: ${id} stopping...`);
+        disconnectToWs()
       };
 
       const pause = () => {
@@ -131,15 +150,11 @@ export const useBacktestingTabStore = (tab: Tab) =>
         console.log("resumed");
       };
 
-      const getTab = () => {
-        return tab;
-      };
-
       const onMount = () => {};
 
       const onUnmount = () => {
         pause();
-        disconnect();
+        disconnectToWs();
       };
 
       return {
@@ -156,7 +171,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
         isPaused,
         start,
         getTab,
-        send,
+        sendMessage,
         onMount,
         onUnmount,
       };
