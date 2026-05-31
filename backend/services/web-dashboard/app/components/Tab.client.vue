@@ -113,6 +113,6 @@ onUnmounted(() => tabStore.value?.onUnmount());
 .tab.active {
   border: 1px solid var(--ui-border-accented);
   border-bottom: none;
-  background: var(--ui-bg-muted);
+  background: var(--ui-bg);
 }
 </style>

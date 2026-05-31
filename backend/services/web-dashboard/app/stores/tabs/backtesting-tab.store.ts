@@ -26,6 +26,12 @@ export interface InMessage {
   payload?: Record<string, unknown>;
 }
 
+export interface OutMessage {
+  event: string;
+  data?: unknown;
+  timestamp: string;
+}
+
 export const useBacktestingTabStore = (tab: Tab) =>
   defineStore(
     `tab/${tab.id}`,
@@ -35,8 +41,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
       const interval = ref("1m");
       const isPaused = ref(false);
       const tabTitle = computed(() => `${symbol.value} - BT`);
-      const tabColor = "neutral";
-
+      const tabColor = tab.color;
       const timeframes = ref<Timeframe[]>([]);
 
       //----------------------------------------------------------------------------------------------------------------
@@ -65,7 +70,6 @@ export const useBacktestingTabStore = (tab: Tab) =>
         ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-
             messages.value.push(data);
 
             console.log("backtest message", data);
@@ -81,7 +85,6 @@ export const useBacktestingTabStore = (tab: Tab) =>
         ws.onclose = () => {
           isConnected.value = false;
           isConnecting.value = false;
-
           socket.value = null;
 
           console.log("backtest ws disconnected");
@@ -137,7 +140,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
 
       const stop = () => {
         console.log(`backtestingStore: ${id} stopping...`);
-        disconnectToWs()
+        disconnectToWs();
       };
 
       const pause = () => {

@@ -31,7 +31,7 @@ const onSelect = () => {
     title: "tab test",
     subtitle: "tab sub",
     description: "tab description",
-    color: "red",
+    color: "primary",
     symbol: "BTCUSDT",
     timeframe: "H1",
   };

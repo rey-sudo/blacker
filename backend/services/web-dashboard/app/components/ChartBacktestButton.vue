@@ -76,7 +76,7 @@ const onCreate = () => {
     title: "backtest title",
     subtitle: "sub title",
     description: "description",
-    color: "red",
+    color: "neutral",
     symbol: tabStore.value?.symbol || "symbol",
   };
 

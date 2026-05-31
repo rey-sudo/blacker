@@ -1,14 +1,14 @@
 import { app } from "../server.js";
 import { Backtester } from "../services/backtester.js";
 import { WebSocket } from "ws";
-import { IncomingMessage, OutgoingMessage } from "../types/model.js";
 import { now } from "../utils/now.js";
+import { CommandType, InMessage, OutMessage } from "../types/model.js";
 
 //----------------------------------------------------------------------------------------------------------------------
 // LOGIC
 //----------------------------------------------------------------------------------------------------------------------
 
-function send(socket: WebSocket, msg: OutgoingMessage): void {
+function send(socket: WebSocket, msg: OutMessage): void {
   if (socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(msg));
   }
@@ -19,10 +19,10 @@ function onMessageHandler(
   raw: Buffer,
   backtester: Backtester,
 ) {
-  let msg: IncomingMessage;
+  let msg: InMessage;
 
   try {
-    msg = JSON.parse(raw.toString()) as IncomingMessage;
+    msg = JSON.parse(raw.toString()) as InMessage;
   } catch {
     return send(socket, {
       event: "ERROR",
@@ -32,13 +32,13 @@ function onMessageHandler(
   }
 
   switch (msg.command) {
-    case "START_BACKTEST": {
+    case CommandType.START_BACKTEST: {
       console.log(msg.payload);
       backtester.start();
       break;
     }
 
-    case "STOP_BACKTEST": {
+    case CommandType.STOP_BACKTEST: {
       backtester.stop();
       break;
     }
@@ -66,7 +66,7 @@ export function backtestHandler(socket: WebSocket) {
     event: "CONNECTED",
     data: { message: "Ready to receive commands" },
     timestamp: now(),
-  } as OutgoingMessage);
+  } as OutMessage);
 
   // 1. Create backtester instance.
   const backtester = new Backtester();
