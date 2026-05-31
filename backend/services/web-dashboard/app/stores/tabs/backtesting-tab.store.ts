@@ -13,6 +13,7 @@ export interface Timeframe {
 }
 
 export const CommandType = {
+  PING: "PING",
   SUBSCRIBE_STATS: "SUBSCRIBE_STATS",
   UNSUBSCRIBE_STATS: "UNSUBSCRIBE_STATS",
   START_BACKTEST: "START_BACKTEST",
@@ -50,29 +51,52 @@ export const useBacktestingTabStore = (tab: Tab) =>
 
       const socket = shallowRef<WebSocket | null>(null);
       const isConnected = ref(false);
-      const isConnecting = ref(false);
       const messages = ref<any[]>([]);
+
+      let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+      const lastPongReceived = ref(Date.now());
+      const isResponsive = ref(true);
+      const PING_INTERVAL = 5_000;
+      const WATCHDOG_TIMEOUT = 12000;
 
       const connectToWs = () => {
         if (socket.value) return;
-
-        isConnecting.value = true;
 
         const ws = new WebSocket("ws://localhost:3000/api/backtest/ws");
 
         ws.onopen = () => {
           isConnected.value = true;
-          isConnecting.value = false;
+          lastPongReceived.value = Date.now();
 
           console.log("backtest ws connected");
+
+          heartbeatTimer = setInterval(() => {
+            const now = Date.now();
+            if (now - lastPongReceived.value > WATCHDOG_TIMEOUT) {
+              console.error("Backend no responde, cerrando conexión...");
+              ws.close();
+              isResponsive.value = false;
+              return;
+            }
+
+            if (ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({ command: CommandType.PING }));
+            }
+          }, PING_INTERVAL);
         };
 
         ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-            messages.value.push(data);
-
             console.log("backtest message", data);
+
+            if (data.event === "PONG") {
+              lastPongReceived.value = Date.now();
+              isResponsive.value = true;
+              return;
+            }
+
+            messages.value.push(data);
           } catch {
             console.log("raw message", event.data);
           }
@@ -84,8 +108,9 @@ export const useBacktestingTabStore = (tab: Tab) =>
 
         ws.onclose = () => {
           isConnected.value = false;
-          isConnecting.value = false;
           socket.value = null;
+
+          if (heartbeatTimer) clearInterval(heartbeatTimer);
 
           console.log("backtest ws disconnected");
         };
@@ -94,13 +119,17 @@ export const useBacktestingTabStore = (tab: Tab) =>
       };
 
       const disconnectToWs = () => {
+        if (heartbeatTimer) {
+          clearInterval(heartbeatTimer);
+          heartbeatTimer = null; 
+        }
+
         socket.value?.close();
         socket.value = null;
       };
 
       const sendMessage = (payload: InMessage) => {
         if (!socket.value) return;
-
         if (socket.value.readyState !== WebSocket.OPEN) return;
 
         console.log(JSON.stringify(payload));
@@ -161,6 +190,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
       };
 
       return {
+        isResponsive,
         addTimeframe,
         timeframes,
         tabTitle,

@@ -13,6 +13,7 @@ export interface Timeframe {
 }
 
 export const CommandType = {
+  PING: "PING",
   SUBSCRIBE_STATS: "SUBSCRIBE_STATS",
   UNSUBSCRIBE_STATS: "UNSUBSCRIBE_STATS",
   START_BACKTEST: "START_BACKTEST",

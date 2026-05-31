@@ -1,7 +1,7 @@
-import { OutgoingMessage } from "../types/model.js";
+import { OutMessage } from "../types/model.js";
 
-type StateCallback = (state: OutgoingMessage) => void;
-type LiveCandlesCallback = (candles: OutgoingMessage) => void;
+type StateCallback = (state: OutMessage) => void;
+type LiveCandlesCallback = (candles: OutMessage) => void;
 
 export class Backtester {
   public state: string = "stopped";
@@ -68,7 +68,7 @@ export class Backtester {
     }
   }
 
-  private _getState(): OutgoingMessage {
+  private _getState(): OutMessage {
     const ticksState = 0;
     const ohlcvState = 0;
 

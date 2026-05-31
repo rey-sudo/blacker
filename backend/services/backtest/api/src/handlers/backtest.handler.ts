@@ -32,6 +32,14 @@ function onMessageHandler(
   }
 
   switch (msg.command) {
+    case CommandType.PING:
+      send(socket, {
+        event: "PONG",
+        data: {},
+        timestamp: now(),
+      } as OutMessage);
+      break;
+
     case CommandType.START_BACKTEST: {
       console.log(msg.payload);
       backtester.start();
