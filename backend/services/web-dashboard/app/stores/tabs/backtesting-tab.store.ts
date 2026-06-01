@@ -46,7 +46,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
       const timeframes = ref<Timeframe[]>([]);
 
       //----------------------------------------------------------------------------------------------------------------
-      // WEBSOCKET
+      // WEBSOCKET 
       //----------------------------------------------------------------------------------------------------------------
 
       const socket = shallowRef<WebSocket | null>(null);
@@ -57,7 +57,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
       const lastPongReceived = ref(Date.now());
       const isResponsive = ref(true);
       const PING_INTERVAL = 5_000;
-      const WATCHDOG_TIMEOUT = 12000;
+      const WATCHDOG_TIMEOUT = 12_000;
 
       const connectToWs = () => {
         if (socket.value) return;
