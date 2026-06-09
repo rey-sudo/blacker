@@ -52,14 +52,14 @@ const backtestState = computed(() => [
     label: "TICK",
     status: "idle",
     display: "LIVE",
-    color: "success" as any,
+    color: "error" as any,
   },
   {
     key: "engine",
     label: "ENGINE",
     status: "idle",
     display: "IDLE",
-    color: "warning" as any,
+    color: "error" as any,
   },
 ]);
 
@@ -202,7 +202,7 @@ const onPlay = () => {
 ----------------------------------------------------------------------------------------------------------------------->
     <div class="backtesting-toolbar-controls">
       <UButton
-        :disabled="isPlaying"
+        :disabled="tabStore?.isPlayable"
         title="Play"
         color="neutral"
         icon="material-symbols:play-arrow"

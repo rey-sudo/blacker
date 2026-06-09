@@ -65,6 +65,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
       const tabTitle = computed(() => `${symbol.value} - BT`);
       const tabColor = tab.color;
       const timeframes = ref<Timeframe[]>([]);
+      const isPlayable = computed(() => timeframes.value.length === 0);
 
       //----------------------------------------------------------------------------------------------------------------
       // WEBSOCKET
@@ -280,6 +281,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
         isPaused,
         start,
         getTab,
+        isPlayable,
         sendMessage,
         onMount,
         onUnmount,
