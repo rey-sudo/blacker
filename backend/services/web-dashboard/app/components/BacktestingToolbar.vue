@@ -43,11 +43,9 @@ const isPlaying = ref(false);
 
 const backtestState = computed(() => [
   {
-    key: "tick",
+    key: "api",
     label: "API",
-    status: "idle",
-    display: "LIVE",
-    color: "success" as any,
+    color: tabStore.value?.isResponsive ? "success" : "error",
   },
   {
     key: "tick",
@@ -109,9 +107,9 @@ const onPlay = () => {
     command: CommandType.START_BACKTEST,
     payload: {
       symbol: "BTCUSDT",
-    }
+    },
   };
-  tabStore.value?.send(message);
+  tabStore.value?.sendMessage(message);
   isPlaying.value = true;
 };
 </script>

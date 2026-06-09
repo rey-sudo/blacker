@@ -1,3 +1,6 @@
+/**
+ * Supported candle intervals for backtesting and market data subscriptions.
+ */
 export type TimeframeInterval =
   | "1m"
   | "5m"
@@ -8,10 +11,16 @@ export type TimeframeInterval =
   | "1d"
   | "1w";
 
+/**
+ * Represents a timeframe configuration.
+ */
 export interface Timeframe {
   interval: TimeframeInterval;
 }
 
+/**
+ * Available websocket commands sent to the backtesting backend.
+ */
 export const CommandType = {
   PING: "PING",
   SUBSCRIBE_STATS: "SUBSCRIBE_STATS",
@@ -20,19 +29,31 @@ export const CommandType = {
   STOP_BACKTEST: "STOP_BACKTEST",
 } as const;
 
+/**
+ * Union type of all supported command values.
+ */
 export type CommandType = (typeof CommandType)[keyof typeof CommandType];
 
+/**
+ * Incoming websocket message sent from the client to the backend.
+ */
 export interface InMessage {
   command: CommandType;
   payload?: Record<string, unknown>;
 }
 
+/**
+ * Outgoing websocket message received from the backend.
+ */
 export interface OutMessage {
   event: string;
   data?: unknown;
   timestamp: string;
 }
 
+/**
+ * Creates a persistent backtesting store instance for a specific tab.
+ */
 export const useBacktestingTabStore = (tab: Tab) =>
   defineStore(
     `tab/${tab.id}`,
@@ -46,19 +67,54 @@ export const useBacktestingTabStore = (tab: Tab) =>
       const timeframes = ref<Timeframe[]>([]);
 
       //----------------------------------------------------------------------------------------------------------------
-      // WEBSOCKET 
+      // WEBSOCKET
       //----------------------------------------------------------------------------------------------------------------
 
       const socket = shallowRef<WebSocket | null>(null);
       const isConnected = ref(false);
       const messages = ref<any[]>([]);
 
-      let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
-      const lastPongReceived = ref(Date.now());
-      const isResponsive = ref(true);
+      let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+      const lastPongTimestamp = ref(Date.now());
+      const isResponsive = ref(false);
       const PING_INTERVAL = 5_000;
       const WATCHDOG_TIMEOUT = 12_000;
 
+      /**
+       * Add heartbeatInterval
+       */
+      const _addHeartbeatInterval = (ws: WebSocket) => {
+        heartbeatInterval = setInterval(() => {
+          const now = Date.now();
+
+          if (now - lastPongTimestamp.value > WATCHDOG_TIMEOUT) {
+            console.error("Backend no responde, cerrando conexión...");
+            ws.close();
+            isResponsive.value = false;
+            return;
+          }
+
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ command: CommandType.PING }));
+          }
+        }, PING_INTERVAL);
+      };
+
+      /**
+       * Stops the heartbeat timer and marks the backend as unresponsive.
+       */
+      const _clearHeartbeat = () => {
+        if (heartbeatInterval) {
+          clearInterval(heartbeatInterval);
+          heartbeatInterval = null;
+        }
+
+        isResponsive.value = false;
+      };
+
+      /**
+       * Establishes the websocket connection and starts heartbeat monitoring.
+       */
       const connectToWs = () => {
         if (socket.value) return;
 
@@ -66,68 +122,61 @@ export const useBacktestingTabStore = (tab: Tab) =>
 
         ws.onopen = () => {
           isConnected.value = true;
-          lastPongReceived.value = Date.now();
+          lastPongTimestamp.value = Date.now();
+          isResponsive.value = true;
 
-          console.log("backtest ws connected");
+          _addHeartbeatInterval(ws);
 
-          heartbeatTimer = setInterval(() => {
-            const now = Date.now();
-            if (now - lastPongReceived.value > WATCHDOG_TIMEOUT) {
-              console.error("Backend no responde, cerrando conexión...");
-              ws.close();
-              isResponsive.value = false;
-              return;
-            }
-
-            if (ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({ command: CommandType.PING }));
-            }
-          }, PING_INTERVAL);
+          console.log("Backtest WS connected to store");
         };
 
         ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-            console.log("backtest message", data);
+            console.log("Backtest WS message parsed", data);
 
             if (data.event === "PONG") {
-              lastPongReceived.value = Date.now();
+              lastPongTimestamp.value = Date.now();
               isResponsive.value = true;
               return;
             }
 
             messages.value.push(data);
           } catch {
-            console.log("raw message", event.data);
+            console.log("Backtest WS message error", event.data);
           }
         };
 
         ws.onerror = (error) => {
-          console.error("backtest ws error", error);
+          console.error("Backtest WS error", error);
+          isResponsive.value = false;
         };
 
         ws.onclose = () => {
           isConnected.value = false;
           socket.value = null;
 
-          if (heartbeatTimer) clearInterval(heartbeatTimer);
+          _clearHeartbeat();
 
-          console.log("backtest ws disconnected");
+          console.log("Backtest WS disconnected");
         };
 
         socket.value = ws;
       };
 
+      /**
+       * Closes the websocket connection and cleans up resources.
+       */
       const disconnectToWs = () => {
-        if (heartbeatTimer) {
-          clearInterval(heartbeatTimer);
-          heartbeatTimer = null; 
-        }
+        _clearHeartbeat();
 
         socket.value?.close();
         socket.value = null;
       };
 
+      /**
+       * Sends a command message to the backend if the connection is open.
+       */
       const sendMessage = (payload: InMessage) => {
         if (!socket.value) return;
         if (socket.value.readyState !== WebSocket.OPEN) return;
@@ -141,6 +190,9 @@ export const useBacktestingTabStore = (tab: Tab) =>
       // TIMEFRAME
       //----------------------------------------------------------------------------------------------------------------
 
+      /**
+       * Adds a timeframe if it is not already registered.
+       */
       const addTimeframe = (timeframe: Timeframe) => {
         const exists = timeframes.value.some(
           (t) => t.interval === timeframe.interval,
@@ -154,6 +206,9 @@ export const useBacktestingTabStore = (tab: Tab) =>
       // UTILS
       //----------------------------------------------------------------------------------------------------------------
 
+      /**
+       * Returns the associated tab instance.
+       */
       const getTab = () => {
         return tab;
       };
@@ -162,28 +217,51 @@ export const useBacktestingTabStore = (tab: Tab) =>
       // RUN LOGIC
       //----------------------------------------------------------------------------------------------------------------
 
+      /**
+       * Starts the backtesting store service.
+       */
       const start = () => {
         console.log(`backtestingStore: ${id} starting...`);
         connectToWs();
       };
 
+      /**
+       * Stops the backtesting session and disconnects from the backend.
+       */
       const stop = () => {
         console.log(`backtestingStore: ${id} stopping...`);
         disconnectToWs();
       };
 
+      /**
+       * Pauses the backtesting workflow.
+       */
       const pause = () => {
         isPaused.value = true;
         console.log("paused");
       };
 
+      /**
+       * Resumes the backtesting workflow.
+       */
       const resume = () => {
         isPaused.value = false;
         console.log("resumed");
       };
 
+      //----------------------------------------------------------------------------------------------------------------
+      // COMPONENT LIFECYCLE
+      //----------------------------------------------------------------------------------------------------------------
+
+      /**
+       * Lifecycle hook executed when the tab is mounted.
+       */
       const onMount = () => {};
 
+      /**
+       * Lifecycle hook executed when the tab is unmounted.
+       * Ensures the session is paused and disconnected.
+       */
       const onUnmount = () => {
         pause();
         disconnectToWs();
