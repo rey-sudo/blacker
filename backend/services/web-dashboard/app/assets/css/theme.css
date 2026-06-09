@@ -184,7 +184,7 @@ rounded-3xl
   --ui-header-height: 2.5rem;
 
   /* ========== Radius (Nuxt estándar) ========== */
-  --ui-radius: 8px;
+  --ui-radius: 6px;
 }
 
 .dark {
@@ -222,7 +222,7 @@ rounded-3xl
   --ui-header-height: 2.5rem;
 
   /* ========== Radius ========== */
-  --ui-radius: 8px;
+  --ui-radius: 6px;
 }
 
 

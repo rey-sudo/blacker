@@ -157,7 +157,7 @@ const onPlay = () => {
         :overlay="false"
       >
         <UButton color="neutral" variant="outline" icon="lucide:plus" size="sm"
-          >Add Timeframe</UButton
+          >Timeframe</UButton
         >
 
         <template #body>

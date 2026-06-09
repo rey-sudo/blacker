@@ -87,8 +87,8 @@ onUnmounted(() => tabStore.value?.onUnmount());
 <style lang="css" scoped>
 .tab {
   border: 1px solid transparent;
-  border-top-left-radius: calc(var(--ui-radius) * 0.5);
-  border-top-right-radius: calc(var(--ui-radius) * 0.5);
+  border-top-left-radius: calc(var(--ui-radius) * 1);
+  border-top-right-radius: calc(var(--ui-radius) * 1);
   align-items: center;
   border-bottom: none;
   font-weight: 600;
@@ -112,7 +112,7 @@ onUnmounted(() => tabStore.value?.onUnmount());
 
 .tab.active {
   border: 1px solid var(--ui-border-accented);
+  background: var(--ui-bg-elevated);
   border-bottom: none;
-  background: var(--ui-bg);
 }
 </style>

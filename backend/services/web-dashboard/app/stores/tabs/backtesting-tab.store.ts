@@ -81,16 +81,15 @@ export const useBacktestingTabStore = (tab: Tab) =>
       const WATCHDOG_TIMEOUT = 12_000;
 
       /**
-       * Add heartbeatInterval
+       * Add heartbeatInterval timer
        */
       const _addHeartbeatInterval = (ws: WebSocket) => {
         heartbeatInterval = setInterval(() => {
           const now = Date.now();
 
           if (now - lastPongTimestamp.value > WATCHDOG_TIMEOUT) {
-            console.error("Backend no responde, cerrando conexión...");
+            console.error("Backtest WS is not responding, closing...");
             ws.close();
-            isResponsive.value = false;
             return;
           }
 
@@ -107,9 +106,8 @@ export const useBacktestingTabStore = (tab: Tab) =>
         if (heartbeatInterval) {
           clearInterval(heartbeatInterval);
           heartbeatInterval = null;
+          isResponsive.value = false;
         }
-
-        isResponsive.value = false;
       };
 
       /**
