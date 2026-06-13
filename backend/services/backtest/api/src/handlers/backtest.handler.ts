@@ -1,8 +1,8 @@
 import { app } from "../server.js";
 import { Backtester } from "../services/backtester.js";
-import { WebSocket } from "ws";
-import { now } from "../utils/now.js";
 import { CommandType, InMessage, OutMessage } from "../types/model.js";
+import { now } from "../utils/now.js";
+import { WebSocket } from "ws";
 
 //----------------------------------------------------------------------------------------------------------------------
 // LOGIC

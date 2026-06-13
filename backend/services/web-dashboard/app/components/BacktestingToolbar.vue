@@ -31,7 +31,6 @@ const props = defineProps({
 });
 
 const tabsStore = useTabsStore();
-
 const tab: ComputedRef<Tab | undefined> = computed(() =>
   tabsStore.getTabById(props.tabId),
 );
@@ -39,7 +38,11 @@ const tabStore = computed(() =>
   tab.value ? useBacktestingTabStore(tab.value) : undefined,
 );
 
-const isPlaying = ref(false);
+const isPlaying = ref(false); //
+
+//----------------------------------------------------------------------------------------------------------------------
+// STATES
+//----------------------------------------------------------------------------------------------------------------------
 
 const backtestState = computed(() => [
   {
@@ -63,9 +66,12 @@ const backtestState = computed(() => [
   },
 ]);
 
+//----------------------------------------------------------------------------------------------------------------------
+// TIMEFRAMES
+//----------------------------------------------------------------------------------------------------------------------
+
 const timeframeModalOpen = ref(false);
 const timeframeModalTitle = ref("Add Custom Interval");
-
 const timeframeItems = ref<SelectItem[]>([
   {
     type: "label",
@@ -89,26 +95,28 @@ const timeframeItems = ref<SelectItem[]>([
   "4h",
   "6h",
 ]);
-
 const timeframeSelected = ref("1m");
 
 const onTimeframeAdded = () => {
   const timeframe: Timeframe = {
-    interval: "1h",
+    interval: timeframeSelected.value,
   };
 
   tabStore.value?.addTimeframe(timeframe);
-
   timeframeModalOpen.value = false;
 };
 
 const onPlay = () => {
+  if (!tabStore.value?.isPlayable) return;
+
   const message: InMessage = {
     command: CommandType.START_BACKTEST,
     payload: {
       symbol: "BTCUSDT",
+      intervals: tabStore.value?.timeframes,
     },
   };
+
   tabStore.value?.sendMessage(message);
   isPlaying.value = true;
 };
@@ -202,7 +210,7 @@ const onPlay = () => {
 ----------------------------------------------------------------------------------------------------------------------->
     <div class="backtesting-toolbar-controls">
       <UButton
-        :disabled="tabStore?.isPlayable"
+        :disabled="!tabStore?.isPlayable"
         title="Play"
         color="neutral"
         icon="material-symbols:play-arrow"
