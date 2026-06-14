@@ -113,7 +113,7 @@ const onPlay = () => {
     command: CommandType.START_BACKTEST,
     payload: {
       symbol: "BTCUSDT",
-      intervals: tabStore.value?.timeframes,
+      timeframes: tabStore.value?.timeframes,
     },
   };
 

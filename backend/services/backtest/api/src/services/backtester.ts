@@ -1,15 +1,34 @@
-import { OutMessage } from "../types/model.js";
+import z from "zod";
+import { OutMessage, Timeframe, TimeframeSchema } from "../types/model.js";
+import { now } from "../utils/now.js";
 
 type StateCallback = (state: OutMessage) => void;
 type LiveCandlesCallback = (candles: OutMessage) => void;
 
-export class Backtester {
-  public state: string = "stopped";
-  public symbol: null | string = null;
-  public timeframes: string[] = [];
-  public isRunning: boolean = false;
+export type BacktesterState = "running" | "stopped";
 
-  private stateInterval: NodeJS.Timeout | null = null;
+export interface GlobalState {
+  state: BacktesterState;
+  symbol: null | string;
+  timeframes: Timeframe[];
+  tick_state: number;
+  engine_state: number;
+}
+
+export const StartParamsSchema = z.object({
+  symbol: z.string(),
+  timeframes: z.array(TimeframeSchema),
+});
+
+export type StartParams = z.infer<typeof StartParamsSchema>;
+
+export class Backtester {
+  public state: BacktesterState = "stopped";
+  public symbol: null | string = null;
+  public timeframes: Timeframe[] = [];
+
+  private statsInterval: NodeJS.Timeout | null = null;
+
   private onStats?: StateCallback;
   private onLiveCandles?: LiveCandlesCallback;
 
@@ -18,7 +37,7 @@ export class Backtester {
   //------------------------------------------------------------------------------------------------
 
   get running(): boolean {
-    return this.isRunning;
+    return this.state === "running";
   }
 
   //------------------------------------------------------------------------------------------------
@@ -37,16 +56,18 @@ export class Backtester {
   // CONTROL
   //------------------------------------------------------------------------------------------------
 
-  public start() {
-    if (this.isRunning) return;
+  public start(params: StartParams) {
+    if (this.running) return;
 
-    this.isRunning = true;
+    this.symbol = params.symbol;
+    this.timeframes = params.timeframes;
+    this.state = "running";
 
     this._watchState();
   }
 
   public stop() {
-    this.isRunning = false;
+    this.state = "stopped";
 
     this._unwatchState();
   }
@@ -56,35 +77,37 @@ export class Backtester {
   //------------------------------------------------------------------------------------------------
 
   private _watchState() {
-    this.stateInterval = setInterval(() => {
+    this.statsInterval = setInterval(() => {
       this.onStats?.(this._getState());
     }, 1000);
   }
 
   private _unwatchState() {
-    if (this.stateInterval) {
-      clearInterval(this.stateInterval);
-      this.stateInterval = null;
+    if (this.statsInterval) {
+      clearInterval(this.statsInterval);
+      this.statsInterval = null;
     }
   }
 
   private _getState(): OutMessage {
-    const ticksState = 0;
-    const ohlcvState = 0;
+    const tickState = 0;
+    const engineState = 0;
 
-    const state = {
-      backtester: this.state,
+    const globalState: GlobalState = {
+      state: this.state,
       symbol: this.symbol,
       timeframes: this.timeframes,
-      ticks_state: ticksState,
-      ohlcv_state: ohlcvState,
+      tick_state: tickState,
+      engine_state: engineState,
     };
 
     const stateMessage = {
       event: "STATE",
-      data: state,
-      timestamp: new Date().toISOString(),
+      data: globalState,
+      timestamp: now(),
     };
+
+    console.log(JSON.stringify(stateMessage));
 
     return stateMessage;
   }

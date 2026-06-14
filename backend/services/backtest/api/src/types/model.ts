@@ -1,16 +1,23 @@
-export type TimeframeInterval =
-  | "1m"
-  | "5m"
-  | "15m"
-  | "30m"
-  | "1h"
-  | "4h"
-  | "1d"
-  | "1w";
+import z from "zod";
 
-export interface Timeframe {
-  interval: TimeframeInterval;
-}
+export const TimeframeIntervalSchema = z.enum([
+  "1m",
+  "5m",
+  "15m",
+  "30m",
+  "1h",
+  "4h",
+  "1d",
+  "1w",
+]);
+
+export type TimeframeInterval = z.infer<typeof TimeframeIntervalSchema>;
+
+export const TimeframeSchema = z.object({
+  interval: TimeframeIntervalSchema,
+});
+
+export type Timeframe = z.infer<typeof TimeframeSchema>;
 
 export const CommandType = {
   PING: "PING",

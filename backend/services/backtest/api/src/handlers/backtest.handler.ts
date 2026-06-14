@@ -1,5 +1,9 @@
 import { app } from "../server.js";
-import { Backtester } from "../services/backtester.js";
+import {
+  Backtester,
+  StartParams,
+  StartParamsSchema,
+} from "../services/backtester.js";
 import { CommandType, InMessage, OutMessage } from "../types/model.js";
 import { now } from "../utils/now.js";
 import { WebSocket } from "ws";
@@ -41,8 +45,18 @@ function onMessageHandler(
       break;
 
     case CommandType.START_BACKTEST: {
-      console.log(msg.payload);
-      backtester.start();
+      const result = StartParamsSchema.safeParse(msg.payload);
+      if (!result.success) {
+        return send(socket, {
+          event: "ERROR",
+          data: {
+            message: "Invalid StartParams payload " + result.error.issues,
+          },
+          timestamp: now(),
+        });
+      }
+
+      backtester.start(result.data);
       break;
     }
 
