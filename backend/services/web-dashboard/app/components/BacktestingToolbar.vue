@@ -21,6 +21,7 @@ import {
   useBacktestingTabStore,
   type InMessage,
   type Timeframe,
+  type TimeframeInterval,
 } from "~/stores/tabs/backtesting-tab.store";
 
 const props = defineProps({
@@ -95,7 +96,8 @@ const timeframeItems = ref<SelectItem[]>([
   "4h",
   "6h",
 ]);
-const timeframeSelected = ref("1m");
+
+const timeframeSelected = ref<TimeframeInterval>("1m");
 
 const onTimeframeAdded = () => {
   const timeframe: Timeframe = {
@@ -107,18 +109,7 @@ const onTimeframeAdded = () => {
 };
 
 const onPlay = () => {
-  if (!tabStore.value?.isPlayable) return;
-
-  const message: InMessage = {
-    command: CommandType.START_BACKTEST,
-    payload: {
-      symbol: "BTCUSDT",
-      timeframes: tabStore.value?.timeframes,
-    },
-  };
-
-  tabStore.value?.sendMessage(message);
-  isPlaying.value = true;
+  tabStore.value?.playBacktest();
 };
 </script>
 
@@ -216,8 +207,8 @@ const onPlay = () => {
         icon="material-symbols:play-arrow"
         @click="onPlay"
         label="Play"
-        :variant="isPlaying ? 'solid' : 'outline'"
-        :loading="isPlaying"
+        :variant="tabStore?.isRunning ? 'solid' : 'outline'"
+        :loading="tabStore?.isRunning"
       />
 
       <UButton

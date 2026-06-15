@@ -1,6 +1,7 @@
 import { app } from "../server.js";
 import {
   Backtester,
+  InitParamsSchema,
   StartParams,
   StartParamsSchema,
 } from "../services/backtester.js";
@@ -36,13 +37,32 @@ function onMessageHandler(
   }
 
   switch (msg.command) {
-    case CommandType.PING:
-      send(socket, {
+    case CommandType.PING: {
+      const outMessage: OutMessage = {
         event: "PONG",
         data: {},
         timestamp: now(),
-      } as OutMessage);
+      };
+
+      send(socket, outMessage);
       break;
+    }
+
+    case CommandType.INIT: {
+      const result = InitParamsSchema.safeParse(msg.payload);
+      if (!result.success) {
+        return send(socket, {
+          event: "ERROR",
+          data: {
+            message: "Invalid InitParams payload " + result.error.issues,
+          },
+          timestamp: now(),
+        });
+      }
+
+      backtester.init(result.data);
+      break;
+    }
 
     case CommandType.START_BACKTEST: {
       const result = StartParamsSchema.safeParse(msg.payload);
@@ -84,11 +104,13 @@ function onMessageHandler(
 export function backtestHandler(socket: WebSocket) {
   app.log.info("Client connected");
 
-  send(socket, {
+  const connectedMessage: OutMessage = {
     event: "CONNECTED",
     data: { message: "Ready to receive commands" },
     timestamp: now(),
-  } as OutMessage);
+  };
+
+  send(socket, connectedMessage);
 
   // 1. Create backtester instance.
   const backtester = new Backtester();
@@ -104,7 +126,7 @@ export function backtestHandler(socket: WebSocket) {
 
   // 4. Handle close connection.
   socket.on("close", () => {
-    backtester.stop();
+    backtester.close();
     app.log.info("Client disconnected");
   });
 

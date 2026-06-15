@@ -42,7 +42,7 @@ watch(
   () => tabStore.value,
   (newStore) => {
     if (newStore) {
-      newStore.start();
+      newStore.startStore();
     }
   },
   { immediate: true },

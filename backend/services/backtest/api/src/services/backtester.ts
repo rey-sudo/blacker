@@ -2,10 +2,12 @@ import z from "zod";
 import { OutMessage, Timeframe, TimeframeSchema } from "../types/model.js";
 import { now } from "../utils/now.js";
 
-type StateCallback = (state: OutMessage) => void;
-type LiveCandlesCallback = (candles: OutMessage) => void;
-
-export type BacktesterState = "running" | "stopped";
+export type BacktesterState =
+  | "pending"
+  | "init"
+  | "running"
+  | "stopped"
+  | "closed";
 
 export interface GlobalState {
   state: BacktesterState;
@@ -15,15 +17,31 @@ export interface GlobalState {
   engine_state: number;
 }
 
+type StateCallback = (state: OutMessage) => void;
+type LiveCandlesCallback = (candles: OutMessage) => void;
+
+//--------------------------------------------------------------------------------------------------
+// COMMAND PARAMS
+//--------------------------------------------------------------------------------------------------
+
 export const StartParamsSchema = z.object({
-  symbol: z.string(),
   timeframes: z.array(TimeframeSchema),
 });
 
 export type StartParams = z.infer<typeof StartParamsSchema>;
 
+export const InitParamsSchema = z.object({
+  symbol: z.string(),
+});
+
+export type InitParams = z.infer<typeof InitParamsSchema>;
+
+//--------------------------------------------------------------------------------------------------
+// BACKTESTER CLASS
+//--------------------------------------------------------------------------------------------------
+
 export class Backtester {
-  public state: BacktesterState = "stopped";
+  public state: BacktesterState = "pending";
   public symbol: null | string = null;
   public timeframes: Timeframe[] = [];
 
@@ -56,18 +74,30 @@ export class Backtester {
   // CONTROL
   //------------------------------------------------------------------------------------------------
 
-  public start(params: StartParams) {
-    if (this.running) return;
+  public init(params: InitParams) {
+    if (this.state === "init") return;
 
+    this.state = "init";
     this.symbol = params.symbol;
-    this.timeframes = params.timeframes;
-    this.state = "running";
 
     this._watchState();
   }
 
+  public start(params: StartParams) {
+    // if (this.state !== "init") return;
+
+    if (this.running) return;
+
+    this.timeframes = params.timeframes;
+    this.state = "running";
+  }
+
   public stop() {
     this.state = "stopped";
+  }
+
+  public close() {
+    this.state = "closed";
 
     this._unwatchState();
   }

@@ -21,6 +21,8 @@ export type Timeframe = z.infer<typeof TimeframeSchema>;
 
 export const CommandType = {
   PING: "PING",
+  INIT: "INIT",
+  CONFIGURE: "CONFIGURE",
   SUBSCRIBE_STATS: "SUBSCRIBE_STATS",
   UNSUBSCRIBE_STATS: "UNSUBSCRIBE_STATS",
   START_BACKTEST: "START_BACKTEST",
