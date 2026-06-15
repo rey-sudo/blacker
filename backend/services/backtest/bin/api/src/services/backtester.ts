@@ -1,6 +1,22 @@
+// BLACKER
+// Copyright (C) 2026 Juan José Caballero Rey - https://github.com/rey-sudo
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation version 3 of the License.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 import z from "zod";
 import { OutMessage, Timeframe, TimeframeSchema } from "../types/model.js";
 import { now } from "../utils/now.js";
+import { getRedisClient } from "./redis-client.js";
 
 export type BacktesterState =
   | "pending"
@@ -96,13 +112,19 @@ export class Backtester {
    * @param params
    * @returns
    */
-  public start(params: StartParams) {
+  public async start(params: StartParams) {
     if (!this.initialized) return;
-
     if (this.running) return;
 
-    this.timeframes = params.timeframes;
     this.state = "running";
+    this.timeframes = params.timeframes;
+
+    const redis = await getRedisClient();
+
+    await redis.xAdd("backtester:commands", "*", {
+      command: "START_BACKTESTING",
+      data: JSON.stringify(params),
+    });
   }
 
   public stop() {
