@@ -17,6 +17,7 @@ import z from "zod";
 import { OutMessage, Timeframe, TimeframeSchema } from "../types/model.js";
 import { now } from "../utils/now.js";
 import { getRedisClient } from "./redis-client.js";
+import { app } from "../server.js";
 
 export type BacktesterState =
   | "pending"
@@ -116,19 +117,30 @@ export class Backtester {
     if (!this.initialized) return;
     if (this.running) return;
 
-    this.state = "running";
-    this.timeframes = params.timeframes;
-
     const redis = await getRedisClient();
 
     await redis.xAdd("backtester:commands", "*", {
       command: "START_BACKTESTING",
-      data: JSON.stringify(params),
+      payload: JSON.stringify(params),
     });
+
+    this.state = "running";
+    this.timeframes = params.timeframes;
+
+    app.log.info("START_BACKTESTING command sent to consumers.");
   }
 
-  public stop() {
+  public async stop() {
+    const redis = await getRedisClient();
+
+    await redis.xAdd("backtester:commands", "*", {
+      command: "STOP_BACKTESTING",
+      payload: JSON.stringify({}),
+    });
+
     this.state = "stopped";
+
+    app.log.info("STOP_BACKTESTING command sent to consumers.");
   }
 
   public close() {
