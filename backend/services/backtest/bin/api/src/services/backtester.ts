@@ -11,6 +11,7 @@ export type BacktesterState =
 
 export interface GlobalState {
   state: BacktesterState;
+  initialized: boolean;
   symbol: null | string;
   timeframes: Timeframe[];
   tick_state: number;
@@ -42,6 +43,7 @@ export type InitParams = z.infer<typeof InitParamsSchema>;
 
 export class Backtester {
   public state: BacktesterState = "pending";
+  public initialized: boolean = false;
   public symbol: null | string = null;
   public timeframes: Timeframe[] = [];
 
@@ -74,17 +76,28 @@ export class Backtester {
   // CONTROL
   //------------------------------------------------------------------------------------------------
 
+  /**
+   * Immutable parameters for backtesting.
+   * @param params
+   * @returns
+   */
   public init(params: InitParams) {
-    if (this.state === "init") return;
+    if (this.initialized) return;
 
     this.state = "init";
+    this.initialized = true;
     this.symbol = params.symbol;
 
     this._watchState();
   }
 
+  /**
+   * Variable parameters for backtesting.
+   * @param params
+   * @returns
+   */
   public start(params: StartParams) {
-    // if (this.state !== "init") return;
+    if (!this.initialized) return;
 
     if (this.running) return;
 
@@ -125,6 +138,7 @@ export class Backtester {
 
     const globalState: GlobalState = {
       state: this.state,
+      initialized: this.initialized,
       symbol: this.symbol,
       timeframes: this.timeframes,
       tick_state: tickState,

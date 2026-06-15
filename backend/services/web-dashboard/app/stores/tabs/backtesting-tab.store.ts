@@ -13,6 +13,7 @@ export type BacktesterState =
  */
 export interface GlobalState {
   state: BacktesterState;
+  initialized: boolean;
   symbol: null | string;
   timeframes: Timeframe[];
   tick_state: number;
@@ -86,16 +87,17 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const tabTitle = computed(() => `${symbol.value} - BT`);
       const tabColor = tab.color;
 
-      const timeframes = ref<Timeframe[]>([]);
-
       // Backend read only state
       const globalState = ref<GlobalState>({
         state: "pending",
+        initialized: false,
         symbol: null,
         timeframes: [],
         tick_state: 0,
         engine_state: 0,
       });
+
+      const timeframes = ref<Timeframe[]>([]);
 
       const isRunning = computed(() => globalState.value.state === "running");
       const isStopped = computed(() => globalState.value.state === "stopped");
@@ -294,6 +296,8 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
        * Stop backend Backtester flow
        */
       const stopBacktest = () => {
+        if (!isRunning.value) return;
+
         const message: InMessage = {
           command: CommandType.STOP_BACKTEST,
           payload: {},
