@@ -87,8 +87,8 @@ export const useBacktestingTabStore = (tab: Tab) =>
       const tabColor = tab.color;
 
       const timeframes = ref<Timeframe[]>([]);
-      const isPlayable = computed(() => timeframes.value.length > 0);
 
+      // Backend read only state
       const globalState = ref<GlobalState>({
         state: "pending",
         symbol: null,
@@ -98,6 +98,8 @@ export const useBacktestingTabStore = (tab: Tab) =>
       });
 
       const isRunning = computed(() => globalState.value.state === "running");
+      const isStopped = computed(() => globalState.value.state === "stopped");
+      const isPlayable = computed(() => timeframes.value.length > 0);
 
       //----------------------------------------------------------------------------------------------------------------
       // WEBSOCKET
@@ -194,7 +196,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
       /**
        * Establishes the websocket connection and starts heartbeat monitoring.
        */
-      const connectToWs = () => {
+      const _connectToWs = () => {
         if (socket.value) return;
 
         const ws = new WebSocket("ws://localhost:3000/api/backtest/ws");
@@ -232,7 +234,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
       /**
        * Closes the websocket connection and cleans up resources.
        */
-      const disconnectToWs = () => {
+      const _disconnectToWs = () => {
         _clearHeartbeat();
 
         socket.value?.close();
@@ -267,6 +269,9 @@ export const useBacktestingTabStore = (tab: Tab) =>
         timeframes.value.push(timeframe);
       };
 
+      /**
+       * Run backend Backtester flow
+       */
       const playBacktest = () => {
         if (!isPlayable.value) return;
 
@@ -275,6 +280,18 @@ export const useBacktestingTabStore = (tab: Tab) =>
           payload: {
             timeframes: timeframes.value,
           },
+        };
+
+        sendMessage(message);
+      };
+
+      /**
+       * Stop backend Backtester flow
+       */
+      const stopBacktest = () => {
+        const message: InMessage = {
+          command: CommandType.STOP_BACKTEST,
+          payload: {},
         };
 
         sendMessage(message);
@@ -289,7 +306,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
        */
       const startStore = () => {
         console.log(`backtestingStore: ${id} starting...`);
-        connectToWs();
+        _connectToWs();
       };
 
       /**
@@ -297,7 +314,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
        */
       const stopStore = () => {
         console.log(`backtestingStore: ${id} stopping...`);
-        disconnectToWs();
+        _disconnectToWs();
       };
 
       //----------------------------------------------------------------------------------------------------------------
@@ -325,7 +342,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
        * Ensures the session is paused and disconnected.
        */
       const onUnmount = () => {
-        disconnectToWs();
+        _disconnectToWs();
       };
 
       return {
@@ -342,7 +359,9 @@ export const useBacktestingTabStore = (tab: Tab) =>
         isPlayable,
         sendMessage,
         playBacktest,
+        stopBacktest,
         isRunning,
+        isStopped,
         onMount,
         onUnmount,
       };

@@ -39,8 +39,6 @@ const tabStore = computed(() =>
   tab.value ? useBacktestingTabStore(tab.value) : undefined,
 );
 
-const isPlaying = ref(false); //
-
 //----------------------------------------------------------------------------------------------------------------------
 // STATES
 //----------------------------------------------------------------------------------------------------------------------
@@ -110,6 +108,10 @@ const onTimeframeAdded = () => {
 
 const onPlay = () => {
   tabStore.value?.playBacktest();
+};
+
+const onStop = () => {
+  tabStore.value?.stopBacktest();
 };
 </script>
 
@@ -212,13 +214,13 @@ const onPlay = () => {
       />
 
       <UButton
-        :disabled="!isPlaying"
+        :disabled="!tabStore?.isRunning"
         title="Stop"
         color="neutral"
         icon="material-symbols:stop"
-        @click="isPlaying = false"
+        @click="onStop"
         label="Stop"
-        :variant="isPlaying ? 'outline' : 'solid'"
+        :variant="tabStore?.isRunning ? 'outline' : 'solid'"
       />
     </div>
   </div>
