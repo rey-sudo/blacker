@@ -120,7 +120,7 @@ export class Backtester {
   }
 
   private _getState(): OutMessage {
-    const tickState = 0;
+    const tickState = 1;
     const engineState = 0;
 
     const globalState: GlobalState = {

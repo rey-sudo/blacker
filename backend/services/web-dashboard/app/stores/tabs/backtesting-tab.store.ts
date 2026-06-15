@@ -360,6 +360,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
         sendMessage,
         playBacktest,
         stopBacktest,
+        globalState,
         isRunning,
         isStopped,
         onMount,

@@ -52,9 +52,7 @@ const backtestState = computed(() => [
   {
     key: "tick",
     label: "TICK",
-    status: "idle",
-    display: "LIVE",
-    color: "error" as any,
+    color: tabStore.value?.globalState.tick_state ? "success" : "error",
   },
   {
     key: "engine",
