@@ -77,12 +77,12 @@ export interface OutMessage {
 //----------------------------------------------------------------------------------------------------------------
 // BACKTESTING STORE
 //----------------------------------------------------------------------------------------------------------------
-export const useBacktestingTabStore = (tab: Tab) =>
+export const useBacktestingTabStore = (tab: BacktestingTab) =>
   defineStore(
     `tab/${tab.id}`,
     () => {
       const id = tab.id;
-      const symbol = ref("BTCUSDT");
+      const symbol = ref(tab.symbol);
       const tabTitle = computed(() => `${symbol.value} - BT`);
       const tabColor = tab.color;
 
@@ -104,6 +104,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
       //----------------------------------------------------------------------------------------------------------------
       // WEBSOCKET
       //----------------------------------------------------------------------------------------------------------------
+
       const PING_INTERVAL = 5_000;
       const WATCHDOG_TIMEOUT = 12_000;
 
@@ -161,6 +162,7 @@ export const useBacktestingTabStore = (tab: Tab) =>
 
         console.log(globalState.value);
       };
+
       /**
        *  start to listen STATE event
        */
@@ -175,6 +177,9 @@ export const useBacktestingTabStore = (tab: Tab) =>
         sendMessage(message);
       };
 
+      /**
+       *  Backend WS events handler
+       */
       const _handleEvents = (event: MessageEvent<string>) => {
         try {
           const data: OutMessage = JSON.parse(event.data);

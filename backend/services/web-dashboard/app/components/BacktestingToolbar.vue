@@ -17,9 +17,7 @@
 import { ref, computed } from "vue";
 import type { SelectItem } from "@nuxt/ui";
 import {
-  CommandType,
   useBacktestingTabStore,
-  type InMessage,
   type Timeframe,
   type TimeframeInterval,
 } from "~/stores/tabs/backtesting-tab.store";
@@ -43,7 +41,13 @@ const tabStore = computed(() =>
 // STATES
 //----------------------------------------------------------------------------------------------------------------------
 
-const backtestState = computed(() => [
+interface BacktestStateItem {
+  key: string;
+  label: string;
+  color: any;
+}
+
+const backtestState = computed<BacktestStateItem[]>(() => [
   {
     key: "api",
     label: "API",
@@ -57,9 +61,7 @@ const backtestState = computed(() => [
   {
     key: "engine",
     label: "ENGINE",
-    status: "idle",
-    display: "IDLE",
-    color: "error" as any,
+    color: tabStore.value?.globalState.engine_state ? "success" : "error",
   },
 ]);
 
@@ -103,6 +105,10 @@ const onTimeframeAdded = () => {
   tabStore.value?.addTimeframe(timeframe);
   timeframeModalOpen.value = false;
 };
+
+//----------------------------------------------------------------------------------------------------------------------
+// CONTROLS
+//----------------------------------------------------------------------------------------------------------------------
 
 const onPlay = () => {
   tabStore.value?.playBacktest();

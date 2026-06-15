@@ -24,7 +24,6 @@ const props = defineProps({
 });
 
 const tabsStore = useTabsStore();
-
 const tab: ComputedRef<Tab | undefined> = computed(() =>
   tabsStore.getTabById(props.tabId),
 );
