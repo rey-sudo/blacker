@@ -42,7 +42,11 @@ class TradingEngine:
             state
         )
 
-        return self.strategy.evaluate(engine_state)
+        signal = self.strategy.evaluate(engine_state)
+
+        #self._publish_live(engine_state, signal)
+
+        return signal
 
     def _build_state(self, ts, state):
         return EngineState(
