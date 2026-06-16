@@ -1,45 +1,27 @@
-use crate::model::Trade;
 use anyhow::{Context, Result};
-use tracing::info;
+use rust_decimal::Decimal;
+use rust_decimal::prelude::{FromStr, ToPrimitive};
+use tick::model::Trade;
 use std::{
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, BufWriter, Write},
 };
+use tracing::info;
 
 //----------------------------------------------------------------------------------------------------------------------
 // CONSTANTS
 //----------------------------------------------------------------------------------------------------------------------
 
-/// Scale factor used to convert floating-point prices and quantities into
-/// fixed-point `u64` integers, preserving up to 8 decimal places.
-///
-/// Example: 0.00123456 → 123_456 (stored as u64)
-pub const SCALE: f64 = 100_000_000.0;
+pub const SCALE: u64 = 100_000_000;
 
 //----------------------------------------------------------------------------------------------------------------------
 // AUXILIAR
 //----------------------------------------------------------------------------------------------------------------------
 
-/// Parses a string slice into a `u8` boolean representation.
-///
-/// # Returns
-/// - `Ok(1)` for `"true"`
-/// - `Ok(0)` for `"false"`
-///
-/// # Errors
-/// Returns an error if the input is neither `"true"` nor `"false"`.
-fn parse_bool(s: &str) -> Result<u8> {
-    match s.trim().to_ascii_lowercase().as_str() {
-        "true" => Ok(1),
-        "false" => Ok(0),
-        other => anyhow::bail!("invalid boolean value: {:?}", other),
-    }
-}
-
 /// Parses a single CSV line into a [`Trade`] struct.
 ///
 /// Expected column order:
-/// `trade_id, price, qty, quote_qty (ignored), timestamp_ms, is_buyer_maker`
+/// `trade_id, timestamp_ms, price, qty, side`
 ///
 /// Prices and quantities are stored as fixed-point `u64` values scaled by
 /// [`SCALE`] to avoid floating-point representation issues.
@@ -53,8 +35,6 @@ fn parse_bool(s: &str) -> Result<u8> {
 fn parse_row(line: &str, row: usize) -> Result<Trade> {
     let mut cols: std::str::Split<'_, char> = line.split(',');
 
-    // Helper closure: advances the iterator and returns a context-rich error
-    // if the column is absent.
     let mut next_col = |name: &str| -> Result<&str> {
         cols.next()
             .ok_or_else(|| anyhow::anyhow!("row {row}: missing column `{name}`"))
@@ -65,41 +45,41 @@ fn parse_row(line: &str, row: usize) -> Result<Trade> {
         .parse()
         .with_context(|| format!("row {row}: invalid `trade_id`"))?;
 
-    let price_f: f64 = next_col("price")?
-        .trim()
-        .parse()
-        .with_context(|| format!("row {row}: invalid `price`"))?;
-    
-    anyhow::ensure!(price_f >= 0.0, "negative price: {price_f}");
-
-    let qty_f: f64 = next_col("qty")?
-        .trim()
-        .parse()
-        .with_context(|| format!("row {row}: invalid `qty`"))?;
-
-    // Convert to fixed-point. `round()` prevents truncation errors from
-    // floating-point imprecision (e.g. 1.005 * SCALE = 100_499_999.99...).
-    let price: u64 = (price_f * SCALE).round() as u64;
-    let qty: u64 = (qty_f * SCALE).round() as u64;
-
-    // `quote_qty` is part of the schema but not used in this pipeline.
-    // We still validate its presence so column offsets remain correct.
-    next_col("quote_qty")?;
-
     let timestamp_ms: u64 = next_col("timestamp_ms")?
         .trim()
         .parse()
         .with_context(|| format!("row {row}: invalid `timestamp_ms`"))?;
 
-    let is_buyer_maker: u8 = parse_bool(next_col("is_buyer_maker")?)
-        .with_context(|| format!("row {row}: invalid `is_buyer_maker`"))?;
+    let price = Decimal::from_str(next_col("price")?.trim())
+        .with_context(|| format!("row {row}: invalid `price`"))?;
+
+    let qty = Decimal::from_str(next_col("qty")?.trim())
+        .with_context(|| format!("row {row}: invalid `qty`"))?;
+
+    let side: u8 = match next_col("side")?.trim() {
+        "BUY" => 0,
+        "SELL" => 1,
+        other => anyhow::bail!("row {row}: invalid side `{other}`"),
+    };
+
+    let scale = Decimal::from(SCALE);
+
+    let price_u64: u64 = (price * scale)
+        .round()
+        .to_u64()
+        .ok_or_else(|| anyhow::anyhow!("row {row}: price overflow"))?;
+
+    let qty_u64: u64 = (qty * scale)
+        .round()
+        .to_u64()
+        .ok_or_else(|| anyhow::anyhow!("row {row}: qty overflow"))?;
 
     Ok(Trade {
         trade_id,
-        price,
-        qty,
         timestamp_ms,
-        is_buyer_maker,
+        price: price_u64,
+        qty: qty_u64,
+        side,
         _padding: [0; 7],
     })
 }
@@ -131,7 +111,7 @@ fn parse_row(line: &str, row: usize) -> Result<Trade> {
 /// convert_csv_to_binary("trades.csv", "trades.bin", true)?;
 /// ```
 pub fn convert_csv_to_binary(csv_path: &str, bin_path: &str, skip_header: bool) -> Result<()> {
-    // 1. Read CSV file. ---------------------------------------------------------------------- 
+    // 1. Read CSV file. ----------------------------------------------------------------------
     let file: File =
         File::open(csv_path).with_context(|| format!("cannot open CSV file: {csv_path}"))?;
 
@@ -163,7 +143,7 @@ pub fn convert_csv_to_binary(csv_path: &str, bin_path: &str, skip_header: bool) 
     let mut line: String = String::new();
     let mut rows_read: usize = 0;
     let mut rows_written: usize = 0;
-    
+
     // 3. Main loop. --------------------------------------------------------------------------
     while reader
         .read_line(&mut line)
@@ -209,4 +189,17 @@ pub fn convert_csv_to_binary(csv_path: &str, bin_path: &str, skip_header: bool) 
     );
 
     Ok(())
+}
+
+
+fn main() {
+    tracing_subscriber::fmt::init();
+
+    let csv_path: &str = "./input/input.csv";
+    let bin_path: &str = "./output/ticks.bin";
+
+    let stream_key: &str = "ticks:btcusd";
+    let redis_url: &str = "redis://redis-local:6379";
+
+    let _ = convert_csv_to_binary(csv_path, bin_path, true);
 }
