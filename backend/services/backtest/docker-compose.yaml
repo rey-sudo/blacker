@@ -1,7 +1,8 @@
 services:
-  redis:
+
+  redis-local:
     image: redis:7
-    container_name: redis
+    container_name: redis_local
     restart: unless-stopped
     ports:
       - "6380:6379"
@@ -14,16 +15,27 @@ services:
     volumes:
       - redis_data:/data
 
-  backtest-ticks:
-    build: ./ticks
-    container_name: backtest_ticks
+  backtest-api:
+    build: ./bin/api
+    container_name: backtest_api
     depends_on:
-      - redis
-    restart: "no"
+      - redis-local   
     env_file:
-      - ./ticks/.env
+      - ./bin/api/.env       
+    ports:
+      - "8100:8100"
+    restart: unless-stopped
+
+  backtest-tick:
+    build: ./bin/tick
+    container_name: backtest_tick
+    depends_on:
+      - backtest-api
+    env_file:
+      - ./bin/tick/.env
+    restart: "no"
     volumes:
-      - ./output:/output:ro
+      - ./bin/tick/output:/output:ro
 
 volumes:
   redis_data:

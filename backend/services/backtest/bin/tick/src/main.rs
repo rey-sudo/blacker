@@ -82,7 +82,7 @@ fn main() {
     let stream_key: &str ="ticks:btcusd";
     let redis_url: &str = "redis://localhost:6379";
 
-    convert_csv_to_binary(csv_path, bin_path, true);
+    let _ = convert_csv_to_binary(csv_path, bin_path, true);
 
     //stream_binary_to_redis(bin_path, stream_key, redis_url)
 }

@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import Fastify from "fastify";
 import fastifyWebsocket from "@fastify/websocket";
 import { RedisClientType } from "redis";
