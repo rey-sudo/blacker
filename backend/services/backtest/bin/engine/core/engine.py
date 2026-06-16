@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from timeframes.candle import Candle
+import redis
 
 @dataclass
 class TFState:
@@ -39,6 +40,4 @@ class TradingEngine:
 
         signal = self.strategy.evaluate(engine_state)
 
-        self._publish_live(engine_state, signal)
-
-        return signal
+        return engine_state, signal
