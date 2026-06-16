@@ -1,11 +1,47 @@
+use crate::model::Trade;
+use anyhow::{Context, Result};
 use redis::Commands;
+use std::time::Duration;
 use std::{
     fs::File,
     io::{BufReader, Read},
     mem::size_of,
 };
+use tokio_util::sync::CancellationToken;
+use tracing::{error, info};
 
-use crate::model::Trade;
+pub async fn start_tick_streaming(
+    payload: String,
+    token: CancellationToken,
+    redis_clone: redis::Client,
+) -> Result<()> {
+    info!("Starting backtest: {}", payload);
+
+    let mut iteration: u64 = 0u64;
+
+    let mut conn: redis::aio::MultiplexedConnection = redis_clone
+        .get_multiplexed_async_connection()
+        .await
+        .context("Failed to connect to Redis at redis://redis-local:6379")?;
+
+    loop {
+        tokio::select! {
+            _ = token.cancelled() => {
+                info!("Backtest cancelled");
+                break;
+            }
+
+            _ = tokio::time::sleep(Duration::from_secs(1)) => {
+                iteration += 1;
+                info!("Backtest running... iteration={}", iteration);
+            }
+        }
+    }
+
+    info!("Backtest finished");
+
+    Ok(())
+}
 
 /// Lee el archivo binario y transmite cada tick a un stream de Redis.
 /// Garantiza un comportamiento stateless borrando el stream existente al inicio.

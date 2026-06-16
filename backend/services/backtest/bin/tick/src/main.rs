@@ -1,6 +1,7 @@
 use anyhow::{Context, Result};
 use redis::streams::StreamReadReply;
 use std::{sync::Arc, time::Duration};
+use tick::stream::start_tick_streaming;
 use tokio::{sync::Mutex, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tracing::{error, info};
@@ -84,6 +85,7 @@ async fn main() -> Result<()> {
                     Some("START_BACKTESTING") => {
                         let payload: String = payload.unwrap_or_default();
 
+                        // Acquire exclusive access to the active backtest state.
                         let mut state: tokio::sync::MutexGuard<'_, BacktestState> =
                             state.lock().await;
 
@@ -109,7 +111,7 @@ async fn main() -> Result<()> {
                         // can continue receiving commands.
                         let handle: JoinHandle<()> = tokio::spawn(async move {
                             if let Err(err) =
-                                start_backtesting(payload, token_clone, redis_clone).await
+                                start_tick_streaming(payload, token_clone, redis_clone).await
                             {
                                 error!("Backtest failed: {:?}", err);
                             }
@@ -120,9 +122,11 @@ async fn main() -> Result<()> {
                     }
 
                     Some("STOP_BACKTESTING") => {
+                        // Acquire exclusive access to the active backtest state.
                         let mut state: tokio::sync::MutexGuard<'_, BacktestState> =
                             state.lock().await;
 
+                        // Signal the active backtest to stop gracefully.
                         if let Some(token) = state.token.take() {
                             info!("Stopping backtest");
                             token.cancel();
@@ -150,37 +154,4 @@ async fn main() -> Result<()> {
             }
         }
     }
-}
-
-async fn start_backtesting(
-    payload: String,
-    token: CancellationToken,
-    redis_clone: redis::Client,
-) -> Result<()> {
-    info!("Starting backtest: {}", payload);
-
-    let mut iteration: u64 = 0u64;
-
-    let mut conn: redis::aio::MultiplexedConnection = redis_clone
-        .get_multiplexed_async_connection()
-        .await
-        .context("Failed to connect to Redis at redis://redis-local:6379")?;
-
-    loop {
-        tokio::select! {
-            _ = token.cancelled() => {
-                info!("Backtest cancelled");
-                break;
-            }
-
-            _ = tokio::time::sleep(Duration::from_secs(1)) => {
-                iteration += 1;
-                info!("Backtest running... iteration={}", iteration);
-            }
-        }
-    }
-
-    info!("Backtest finished");
-
-    Ok(())
 }
