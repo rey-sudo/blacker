@@ -1,103 +1,81 @@
-use redis::Commands;
-use std::{
-    fs::File,
-    io::{BufReader, Read},
-    mem::size_of,
+use std::time::Duration;
+
+use anyhow::Result;
+use redis::{
+    AsyncCommands,
+    streams::{StreamReadOptions, StreamReadReply},
 };
-use tick::{model::Trade, write::convert_csv_to_binary};
-use tracing_subscriber;
+use tokio::task;
+use tracing::{error, info};
 
-/// Lee el archivo binario y transmite cada tick a un stream de Redis.
-/// Garantiza un comportamiento stateless borrando el stream existente al inicio.
-pub fn stream_binary_to_redis(bin_path: &str, stream_key: &str, redis_url: &str) {
-    // 1. Conexión a Redis
-    let client = redis::Client::open(redis_url).expect("URL de Redis inválida");
-    let mut con = client
-        .get_connection()
-        .expect("Error al conectar con Redis");
+const STREAM_NAME: &str = "backtester:commands";
 
-    // 2. Garantizar comportamiento Stateless: Borrar stream previo si existe
-    // Ignoramos si el stream no existía previamente
-    let _: () = con.del(stream_key).unwrap_or(());
-    println!(
-        "Reseteado: Stream '{}' limpio para nueva ejecución.",
-        stream_key
-    );
+#[tokio::main]
+async fn main() -> Result<()> {
+    tracing_subscriber::fmt::init();
 
-    // 3. Preparar la lectura secuencial del binario
-    let file = File::open(bin_path).expect("No se pudo abrir el archivo binario");
-    let mut reader = BufReader::new(file);
+    let client: redis::Client =
+        redis::Client::open("redis://redis-local:6379").expect("URL de Redis inválida");
 
-    let trade_size = size_of::<Trade>();
-    let mut buffer = vec![0u8; trade_size];
+    let mut conn: redis::aio::MultiplexedConnection =
+        client.get_multiplexed_async_connection().await?;
 
-    let mut count = 0usize;
+    let _: Result<String, _> = redis::cmd("XGROUP")
+        .arg("CREATE")
+        .arg(STREAM_NAME)
+        .arg("backtester-tick-group")
+        .arg("0")
+        .arg("MKSTREAM")
+        .query_async(&mut conn)
+        .await;
 
-    // 4. Configuración del Pipeline para máximo rendimiento por red
-    let mut pipe = redis::pipe();
-    let batch_size = 5_000; // Tamaño óptimo para no saturar el buffer de Redis
+    info!("Listening stream {}", STREAM_NAME);
 
-    println!("Enviando ticks por stream {}...", stream_key);
+    loop {
+        let reply: StreamReadReply = redis::cmd("XREADGROUP")
+            .arg("GROUP")
+            .arg("backtester-tick-group")
+            .arg("worker-1")
+            .arg("COUNT")
+            .arg(10)
+            .arg("STREAMS")
+            .arg(STREAM_NAME)
+            .arg(">")
+            .query_async(&mut conn)
+            .await?;
 
-    // Leer exactamente los bytes que mapean a un struct Trade
-    while reader.read_exact(&mut buffer).is_ok() {
-        // Mapeo seguro y ultra rápido de bytes a la estructura en memoria
-        let trade: &Trade = bytemuck::from_bytes(&buffer);
+        if reply.keys.is_empty() {
+            tokio::time::sleep(Duration::from_millis(500)).await;
+            continue;
+        }
 
-        // Insertar comando XADD al pipeline
-        // Usamos "*" para que Redis asigne el ID por timestamp del motor de Redis
-        pipe.cmd("XADD")
-            .arg(stream_key)
-            .arg("*")
-            .arg("trade_id")
-            .arg(trade.trade_id)
-            .arg("price")
-            .arg(trade.price)
-            .arg("qty")
-            .arg(trade.qty)
-            .arg("timestamp")
-            .arg(trade.timestamp_ms)
-            .arg("is_buyer_maker")
-            .arg(trade.is_buyer_maker);
+        for stream in reply.keys {
+            for message in stream.ids {
+                let command: Option<String> = message.get("command");
+                let payload: Option<String> = message.get("payload");
 
-        count += 1;
+                let result = match command.as_deref() {
+                    Some("START_BACKTESTING") => {
+                        start_backtesting(payload.unwrap_or_default()).await
+                    }
+                    _ => Ok(()),
+                };
 
-        // Si alcanzamos el tamaño del lote, vaciamos el pipeline hacia la red
-        if count % batch_size == 0 {
-            let _: () = pipe
-                .query(&mut con)
-                .expect("Error al ejecutar pipeline en Redis");
-            pipe.clear(); // Resetear el pipeline para el siguiente lote
-
-            if count % 1_000_000 == 0 {
-                println!("Transmitidos {}_000_000 de ticks...", count / 1_000_000);
+                if result.is_ok() {
+                    redis::cmd("XACK")
+                        .arg(STREAM_NAME)
+                        .arg("backtester-tick-group")
+                        .arg(&message.id)
+                        .query_async::<()>(&mut conn)
+                        .await?;
+                }
             }
         }
     }
-
-    // 5. Enviar los ticks restantes que no completaron el último lote
-    if count % batch_size != 0 {
-        let _: () = pipe
-            .query(&mut con)
-            .expect("Error al vaciar el último lote en Redis");
-    }
-
-    println!(
-        "Streaming finalizado. Se han enviado {} ticks al stream '{}'.",
-        count, stream_key
-    );
 }
 
-fn main() {
-    tracing_subscriber::fmt::init();
+async fn start_backtesting(payload: String) -> Result<()> {
+    info!("Starting backtest: {}", payload);
 
-    let csv_path: &str = "./input/input.csv";
-    let bin_path: &str = "./output/ticks.bin";
-
-    let stream_key: &str = "ticks:btcusd";
-    let redis_url: &str = "redis://redis-local:6379";
-
-    //let _ = convert_csv_to_binary(csv_path, bin_path, true);
-
-    let _ = stream_binary_to_redis(bin_path, stream_key, redis_url);
+    Ok(())
 }

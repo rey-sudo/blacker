@@ -30,6 +30,7 @@ services:
     build: ./bin/tick
     container_name: backtest_tick
     depends_on:
+      - redis-local
       - backtest-api
     env_file:
       - ./bin/tick/.env

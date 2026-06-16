@@ -1,0 +1,27 @@
+
+
+/**
+ * 
+ * 
+ * 
+ * 
+ 
+fn main() {
+    tracing_subscriber::fmt::init();
+
+    let csv_path: &str = "./input/input.csv";
+    let bin_path: &str = "./output/ticks.bin";
+
+    let stream_key: &str = "ticks:btcusd";
+    let redis_url: &str = "redis://redis-local:6379";
+
+    //let _ = convert_csv_to_binary(csv_path, bin_path, true);
+
+    let _ = stream_binary_to_redis(bin_path, stream_key, redis_url);
+}
+
+
+
+
+ * 
+ */
