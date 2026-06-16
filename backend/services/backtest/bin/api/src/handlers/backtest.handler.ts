@@ -117,7 +117,7 @@ export function backtestHandler(socket: WebSocket) {
 
   // 2. Listen UI data
   backtester.subscribeState((state) => send(socket, state));
-  backtester.subscribeLiveCandles((candles) => send(socket, candles));
+  backtester.subscribeEngineUpdates((update) => send(socket, update));
 
   // 3. Handle IN messages.
   socket.on("message", (raw: Buffer) =>

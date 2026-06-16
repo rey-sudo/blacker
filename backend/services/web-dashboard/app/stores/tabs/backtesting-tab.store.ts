@@ -94,7 +94,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         symbol: null,
         timeframes: [],
         tick_state: false,
-        engine_state: false
+        engine_state: false,
       });
 
       const timeframes = ref<Timeframe[]>([]);
@@ -166,6 +166,14 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       };
 
       /**
+       *  Handles ENGINE message event
+       */
+      const _onEngineEvent = (event: OutMessage) => {
+        const eventData: any = event.data;
+        console.log(eventData?.engineState?.timeframes?.["1m"]?.live_candle);
+      };
+
+      /**
        *  start to listen STATE event
        */
       const _listenState = () => {
@@ -192,6 +200,10 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
 
           if (data.event === "STATE") {
             return _onStateEvent(data);
+          }
+
+          if (data.event === "ENGINE") {
+            return _onEngineEvent(data);
           }
 
           messages.value.push(data);

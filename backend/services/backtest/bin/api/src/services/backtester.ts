@@ -36,7 +36,7 @@ export interface GlobalState {
 }
 
 type StateCallback = (state: OutMessage) => void;
-type LiveCandlesCallback = (candles: OutMessage) => void;
+type EngineUpdatesCallback = (candles: OutMessage) => void;
 
 //--------------------------------------------------------------------------------------------------
 // COMMAND PARAMS
@@ -67,7 +67,7 @@ export class Backtester {
   private statsInterval: NodeJS.Timeout | null = null;
 
   private onStats?: StateCallback;
-  private onLiveCandles?: LiveCandlesCallback;
+  private onEngineUpdate?: EngineUpdatesCallback;
 
   //------------------------------------------------------------------------------------------------
   // GETTERS
@@ -85,8 +85,8 @@ export class Backtester {
     this.onStats = callback;
   }
 
-  public subscribeLiveCandles(callback: LiveCandlesCallback) {
-    this.onLiveCandles = callback;
+  public subscribeEngineUpdates(callback: EngineUpdatesCallback) {
+    this.onEngineUpdate = callback;
   }
 
   //------------------------------------------------------------------------------------------------
@@ -106,6 +106,7 @@ export class Backtester {
     this.symbol = params.symbol;
 
     this._watchState();
+    this._listenEngine();
   }
 
   /**
@@ -167,6 +168,56 @@ export class Backtester {
     }
   }
 
+  private async _listenEngine() {
+    const redis = await getRedisClient();
+
+    const stream = "backtester:engine:stream";
+    const group = "node_consumers";
+    const consumer = "worker_1";
+
+    const sleep = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
+
+    try {
+      await redis.xGroupCreate(stream, group, "0", { MKSTREAM: true });
+    } catch (error: any) {
+      if (!error?.message?.includes("BUSYGROUP")) throw error;
+    }
+
+    console.log(`Escuchando stream '${stream}' como '${consumer}'...`);
+
+    while (true) {
+      try {
+        const response = await redis
+          .withCommandOptions({})
+          .xReadGroup(group, consumer, [{ key: stream, id: ">" }], {
+            COUNT: 1,
+            BLOCK: 1000,
+          });
+
+        const messages = response?.[0]?.messages;
+        if (!messages?.length) continue;
+
+        for (const { id, message } of messages) {
+          const engineState = JSON.parse(message.state_data);
+
+          const status = {
+            event: "ENGINE",
+            data: { engineState },
+            timestamp: now(),
+          };
+
+          void this.onEngineUpdate?.(status);
+          
+          await redis.xAck(stream, group, id);
+        }
+      } catch (error) {
+        console.error("Error al leer el stream:", error);
+        await sleep(1000);
+      }
+    }
+  }
+
   private async _getState(): Promise<OutMessage> {
     let tickState = false;
     let engineState = false;
@@ -198,7 +249,6 @@ export class Backtester {
       timestamp: now(),
     };
 
-    console.log(JSON.stringify(stateMessage));
     return stateMessage;
   }
 }
