@@ -3,10 +3,15 @@ from strategy.my_strategy import MyStrategy
 from timeframes.aggregator import TimeframeAggregator
 from ingestion.redis_consumer import RedisConsumer
 
+aggregators = [
+    TimeframeAggregator(name="1m", timeframe_ms=1 * 60_000),
+]
+
+strategy = MyStrategy()
+
 engine = TradingEngine(
-    strategy=MyStrategy(),
-    agg_5m=TimeframeAggregator(5 * 60_000),
-    agg_30m=TimeframeAggregator(30 * 60_000),
+    strategy=strategy,
+    aggregators=aggregators
 )
 
 consumer = RedisConsumer(

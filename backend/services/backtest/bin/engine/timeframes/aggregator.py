@@ -3,14 +3,17 @@ from decimal import Decimal
 from .candle import Candle
 
 class TimeframeAggregator:
-    def __init__(self, timeframe_ms: int):
+    def __init__(self, name: str, timeframe_ms: int):
+        self.name = name
         self.tf = timeframe_ms
         self.candles = {}
+        self.indicators = {}
 
     def _bucket(self, ts: int) -> int:
         return ts // self.tf
 
     def update(self, tick):
+
         bucket = self._bucket(tick.timestamp_ms)
 
         if bucket not in self.candles:
@@ -24,11 +27,10 @@ class TimeframeAggregator:
                 end_ts=(bucket + 1) * self.tf,
             )
             self.candles[bucket] = candle
-            return None, candle
+            return candle, True  # 👈 nuevo candle
 
         old = self.candles[bucket]
 
-        # 🔥 crear nuevo candle (NO mutar)
         new_candle = Candle(
             open=old.open,
             high=max(old.high, tick.price),
@@ -41,4 +43,6 @@ class TimeframeAggregator:
 
         self.candles[bucket] = new_candle
 
-        return None, new_candle
+        return new_candle, False  # 👈 update
+
+        #HERE OCCURS INDICATOR CALCULATION
