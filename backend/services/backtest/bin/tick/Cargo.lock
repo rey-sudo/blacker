@@ -434,7 +434,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ticks"
+name = "tick"
 version = "0.1.0"
 dependencies = [
  "anyhow",

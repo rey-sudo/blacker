@@ -35,7 +35,7 @@ services:
       - ./bin/tick/.env
     restart: "no"
     volumes:
-      - ./bin/tick/output:/output:ro
+      - ./bin/tick/output:/app/output
 
 volumes:
   redis_data:

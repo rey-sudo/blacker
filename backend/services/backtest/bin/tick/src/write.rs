@@ -29,7 +29,7 @@ pub const SCALE: f64 = 100_000_000.0;
 /// # Errors
 /// Returns an error if the input is neither `"true"` nor `"false"`.
 fn parse_bool(s: &str) -> Result<u8> {
-    match s.trim() {
+    match s.trim().to_ascii_lowercase().as_str() {
         "true" => Ok(1),
         "false" => Ok(0),
         other => anyhow::bail!("invalid boolean value: {:?}", other),
