@@ -16,8 +16,8 @@ export interface GlobalState {
   initialized: boolean;
   symbol: null | string;
   timeframes: Timeframe[];
-  tick_state: number;
-  engine_state: number;
+  tick_state: boolean;
+  engine_state: boolean;
 }
 
 /**
@@ -93,8 +93,8 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         initialized: false,
         symbol: null,
         timeframes: [],
-        tick_state: 0,
-        engine_state: 0,
+        tick_state: false,
+        engine_state: false
       });
 
       const timeframes = ref<Timeframe[]>([]);

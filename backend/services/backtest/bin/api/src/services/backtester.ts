@@ -31,8 +31,8 @@ export interface GlobalState {
   initialized: boolean;
   symbol: null | string;
   timeframes: Timeframe[];
-  tick_state: number;
-  engine_state: number;
+  tick_state: boolean;
+  engine_state: boolean;
 }
 
 type StateCallback = (state: OutMessage) => void;
@@ -154,8 +154,9 @@ export class Backtester {
   //------------------------------------------------------------------------------------------------
 
   private _watchState() {
-    this.statsInterval = setInterval(() => {
-      this.onStats?.(this._getState());
+    this.statsInterval = setInterval(async () => {
+      const s = await this._getState();
+      this.onStats?.(s);
     }, 1000);
   }
 
@@ -166,27 +167,38 @@ export class Backtester {
     }
   }
 
-  private _getState(): OutMessage {
-    const tickState = 1;
-    const engineState = 0;
+  private async _getState(): Promise<OutMessage> {
+    let tickState = false;
+    let engineState = false;
 
-    const globalState: GlobalState = {
-      state: this.state,
-      initialized: this.initialized,
-      symbol: this.symbol,
-      timeframes: this.timeframes,
-      tick_state: tickState,
-      engine_state: engineState,
-    };
+    try {
+      const redis = await getRedisClient();
+
+      const [tick, engine] = await Promise.all([
+        redis.exists("backtester:tick:alive"),
+        redis.exists("backtester:engine:alive"),
+      ]);
+
+      tickState = tick === 1;
+      engineState = engine === 1;
+    } catch (err) {
+      console.error("Redis error:", err);
+    }
 
     const stateMessage = {
       event: "STATE",
-      data: globalState,
+      data: {
+        state: this.state,
+        initialized: this.initialized,
+        symbol: this.symbol,
+        timeframes: this.timeframes,
+        tick_state: tickState,
+        engine_state: engineState,
+      } as GlobalState,
       timestamp: now(),
     };
 
     console.log(JSON.stringify(stateMessage));
-
     return stateMessage;
   }
 }
