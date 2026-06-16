@@ -13,7 +13,7 @@ class MyStrategy(Strategy):
         if not tf1.is_new:
             return None
 
-        pprint(vars(tf1))
-        print("=" * 50)
+        #pprint(vars(tf1))
+        #print("=" * 50)
 
         return None

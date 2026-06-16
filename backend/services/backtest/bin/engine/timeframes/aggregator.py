@@ -3,6 +3,10 @@ from decimal import Decimal
 from .candle import Candle
 
 class TimeframeAggregator:
+    """
+    Aggregates continuous market ticks into OHLCV (Open, High, Low, Close, Volume) 
+    candles for a specific timeframe.
+    """    
     def __init__(self, name: str, timeframe_ms: int):
         self.name = name
         self.tf = timeframe_ms
@@ -10,13 +14,27 @@ class TimeframeAggregator:
         self.indicators = {}
 
     def _bucket(self, ts: int) -> int:
+        """
+        Calculates the time bucket index for a given timestamp.
+        """        
         return ts // self.tf
 
     def update(self, tick):
+        """
+        Processes a new market tick to create or update a timeframe candle.
 
+        Args:
+            tick: The incoming market tick (must contain price, qty, and timestamp_ms).
+
+        Returns:
+            tuple[Candle, bool]: The current Candle object and a boolean flag indicating 
+                                 whether it is a newly formed candle (True) or an 
+                                 update to an existing one (False).
+        """        
         bucket = self._bucket(tick.timestamp_ms)
+        old = self.candles.get(bucket)
 
-        if bucket not in self.candles:
+        if old is None:
             candle = Candle(
                 open=tick.price,
                 high=tick.price,
@@ -27,11 +45,9 @@ class TimeframeAggregator:
                 end_ts=(bucket + 1) * self.tf,
             )
             self.candles[bucket] = candle
-            return candle, True  # 👈 nuevo candle
+            return candle, True
 
-        old = self.candles[bucket]
-
-        new_candle = Candle(
+        candle = Candle(
             open=old.open,
             high=max(old.high, tick.price),
             low=min(old.low, tick.price),
@@ -41,8 +57,7 @@ class TimeframeAggregator:
             end_ts=old.end_ts,
         )
 
-        self.candles[bucket] = new_candle
-
-        return new_candle, False  # 👈 update
+        self.candles[bucket] = candle
+        return candle, False
 
         #HERE OCCURS INDICATOR CALCULATION
