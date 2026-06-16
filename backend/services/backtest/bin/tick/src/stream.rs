@@ -33,7 +33,7 @@ pub async fn start_tick_streaming(
 
             _ = tokio::time::sleep(Duration::from_secs(1)) => {
                 let bin_path: &str = "./output/ticks.bin";
-                let stream_key: &str = "ticks:btcusd";
+                let stream_key: &str = "backtester:tick:stream";
                 let redis_url: &str = "redis://redis-local:6379";
 
                 stream_binary_to_redis(bin_path, stream_key, redis_url);
@@ -94,7 +94,7 @@ pub fn stream_binary_to_redis(bin_path: &str, stream_key: &str, redis_url: &str)
             .arg("*")
             .arg("trade_id")
             .arg(trade.trade_id)
-            .arg("timestamp")
+            .arg("timestamp_ms")
             .arg(trade.timestamp_ms)
             .arg("price")
             .arg(trade.price)
