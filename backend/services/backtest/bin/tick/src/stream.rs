@@ -37,8 +37,10 @@ pub async fn start_tick_streaming(
                 let redis_url: &str = "redis://redis-local:6379";
 
                 stream_binary_to_redis(bin_path, stream_key, redis_url);
-                
-                info!("Backtest running... iteration={}", iteration);
+
+                token.cancel();
+
+                info!("TOKEN CANCELLED STREAM FINISHED");
             }
         }
     }

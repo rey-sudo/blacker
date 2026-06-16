@@ -1,11 +1,14 @@
 use anyhow::{Context, Result};
 use redis::streams::StreamReadReply;
+use redis::{AsyncCommands, aio::MultiplexedConnection};
 use std::{sync::Arc, time::Duration};
 use tick::stream::start_tick_streaming;
 use tokio::{sync::Mutex, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tracing::{error, info};
 
+const HEARTBEAT_KEY: &str = "backtester:tick:alive";
+const HEARTBEAT_TTL: u64 = 5;
 /// Redis stream used to receive backtesting commands.
 const STREAM_NAME: &str = "backtester:commands";
 /// Consumer group responsible for processing backtesting commands.
@@ -17,6 +20,25 @@ const CONSUMER_NAME: &str = "worker-1";
 struct BacktestState {
     token: Option<CancellationToken>,
     handle: Option<JoinHandle<()>>,
+}
+
+//----------------------------------------------------------------------------------------------------------------------
+// AUXILIAR
+//----------------------------------------------------------------------------------------------------------------------
+
+pub fn spawn_redis_heartbeat(mut conn: MultiplexedConnection) -> JoinHandle<()> {
+    tokio::spawn(async move {
+        let mut interval: tokio::time::Interval = tokio::time::interval(Duration::from_secs(2));
+
+        loop {
+            interval.tick().await;
+
+            let _: () = conn
+                .set_ex(HEARTBEAT_KEY, "1", HEARTBEAT_TTL)
+                .await
+                .unwrap_or(());
+        }
+    })
 }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -32,7 +54,7 @@ async fn main() -> Result<()> {
         redis::Client::open("redis://redis-local:6379").expect("URL de Redis inválida");
 
     // 2. Establish a multiplexed async connection shared across Redis commands.
-    let mut conn: redis::aio::MultiplexedConnection = redis_client
+    let mut conn: MultiplexedConnection = redis_client
         .get_multiplexed_async_connection()
         .await
         .context("Failed to connect to Redis at redis://redis-local:6379")?;
@@ -54,6 +76,8 @@ async fn main() -> Result<()> {
     }));
 
     info!("Listening stream {}", STREAM_NAME);
+
+    let _heartbeat_handle: JoinHandle<()> = spawn_redis_heartbeat(conn.clone());
 
     // 5. Main loop: Continuously poll Redis for new commands.
     loop {

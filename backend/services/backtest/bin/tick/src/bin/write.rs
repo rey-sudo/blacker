@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
 use rust_decimal::Decimal;
 use rust_decimal::prelude::{FromStr, ToPrimitive};
-use tick::model::Trade;
 use std::{
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, BufWriter, Write},
 };
+use tick::model::Trade;
 use tracing::info;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -190,7 +190,6 @@ pub fn convert_csv_to_binary(csv_path: &str, bin_path: &str, skip_header: bool) 
 
     Ok(())
 }
-
 
 fn main() {
     tracing_subscriber::fmt::init();
