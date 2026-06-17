@@ -20,6 +20,7 @@ impl SerializeMessage for Trade {
         Ok(producer::Message {
             payload: rmp_serde::to_vec(&input)
                 .map_err(|e: rmp_serde::encode::Error| PulsarError::Custom(e.to_string()))?,
+            partition_key: Some("SYMBOL".to_string()),
             ..Default::default()
         })
     }
