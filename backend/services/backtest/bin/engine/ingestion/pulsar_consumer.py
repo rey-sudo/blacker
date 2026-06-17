@@ -31,8 +31,6 @@ class PulsarConsumer:
                     raw=False,
                 )
 
-                print(data)
-
                 trade_id, timestamp_ms, price, qty, side = data
 
                 tick = Tick(
