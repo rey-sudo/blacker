@@ -31,7 +31,7 @@ const tab: ComputedRef<Tab | undefined> = computed(() =>
 <template>
   <div class="trading-tab">
     <ChartToolbar :tabId="tabId" />
-    <ChartCandlestick :tabId="tabId" />
+    <ChartCandlestick :tabId="tabId" :timeframe="{ interval: '1h '}"/>
   </div>
 </template>
 

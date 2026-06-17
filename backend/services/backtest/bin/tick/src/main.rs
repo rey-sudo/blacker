@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use pulsar::{Pulsar, TokioExecutor};
 use redis::streams::StreamReadReply;
 use redis::{AsyncCommands, aio::MultiplexedConnection};
 use std::{sync::Arc, time::Duration};
@@ -41,6 +42,33 @@ pub fn spawn_redis_heartbeat(mut conn: MultiplexedConnection) -> JoinHandle<()> 
     })
 }
 
+async fn ensure_redis_consumer_group(
+    conn: &mut MultiplexedConnection,
+    stream: &str,
+    group: &str,
+) -> Result<()> {
+    let result: redis::RedisResult<String> = redis::cmd("XGROUP")
+        .arg("CREATE")
+        .arg(stream)
+        .arg(group)
+        .arg("0")
+        .arg("MKSTREAM")
+        .query_async(conn)
+        .await;
+
+    match result {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            // "BUSYGROUP" significa que ya existe, no es un error de ejecución
+            if e.to_string().contains("BUSYGROUP") {
+                Ok(())
+            } else {
+                Err(e.into())
+            }
+        }
+    }
+}
+
 //----------------------------------------------------------------------------------------------------------------------
 // MAIN
 //----------------------------------------------------------------------------------------------------------------------
@@ -49,35 +77,38 @@ pub fn spawn_redis_heartbeat(mut conn: MultiplexedConnection) -> JoinHandle<()> 
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
-    // 1. Redis client: Create a Redis client using the internal network address.
+    // 1. Redis client: create a Redis client using the internal network address.
     let redis_client: redis::Client =
-        redis::Client::open("redis://redis-local:6379").expect("URL de Redis inválida");
+        redis::Client::open("redis://localhost:6380").expect("URL de Redis inválida");
 
-    // 2. Establish a multiplexed async connection shared across Redis commands.
-    let mut conn: MultiplexedConnection = redis_client
+    // 2. Redis connection: Establish a multiplexed async connection shared across Redis commands.
+    let mut redis_conn: MultiplexedConnection = redis_client
         .get_multiplexed_async_connection()
         .await
-        .context("Failed to connect to Redis at redis://redis-local:6379")?;
+        .context("Failed to connect to Redis at redis://localhost:6380")?;
 
-    // 3. Create the consumer group if it does not already exist.
-    let _: Result<String, _> = redis::cmd("XGROUP")
-        .arg("CREATE")
-        .arg(STREAM_NAME)
-        .arg(GROUP_NAME)
-        .arg("0") // Initial ID
-        .arg("MKSTREAM") // Create stream if it doesn't exist.
-        .query_async(&mut conn)
-        .await;
+    // 3. Redis group: Create the consumer group if it does not already exist.
+    ensure_redis_consumer_group(&mut redis_conn, STREAM_NAME, GROUP_NAME)
+        .await
+        .context("Error fatal al preparar el bus de eventos")?;
 
-    // 4. Shared state used to control the currently running backtest.
+    // 4. Pulsar client: Create the pulsar client for the producer.
+    let pulsar_client: Pulsar<TokioExecutor> =
+        Pulsar::builder("pulsar://localhost:6650", TokioExecutor)
+            .with_outbound_channel_size(10_000)
+            .build()
+            .await?;
+
+    // 5. Heartbeat : Publish the service availability.
+    let _heartbeat_handle: JoinHandle<()> = spawn_redis_heartbeat(redis_conn.clone());
+
+    // 6. State : Shared state used to control the currently running backtest.
     let state: Arc<Mutex<BacktestState>> = Arc::new(Mutex::new(BacktestState {
         token: None,
         handle: None,
     }));
 
     info!("Listening stream {}", STREAM_NAME);
-
-    let _heartbeat_handle: JoinHandle<()> = spawn_redis_heartbeat(conn.clone());
 
     // 5. Main loop: Continuously poll Redis for new commands.
     loop {
@@ -91,7 +122,7 @@ async fn main() -> Result<()> {
             .arg("STREAMS")
             .arg(STREAM_NAME)
             .arg(">") // Only new, never-delivered messages.
-            .query_async(&mut conn)
+            .query_async(&mut redis_conn)
             .await?;
 
         if reply.keys.is_empty() {
@@ -129,13 +160,13 @@ async fn main() -> Result<()> {
                         let token: CancellationToken = CancellationToken::new();
                         let token_clone: CancellationToken = token.clone();
 
-                        let redis_clone: redis::Client = redis_client.clone();
+                        let pulsar_clone: Pulsar<TokioExecutor> = pulsar_client.clone();
 
                         // Run the backtest in a detached task so the Redis consumer
                         // can continue receiving commands.
                         let handle: JoinHandle<()> = tokio::spawn(async move {
                             if let Err(err) =
-                                start_tick_streaming(payload, token_clone, redis_clone).await
+                                start_tick_streaming(payload, token_clone, pulsar_clone).await
                             {
                                 error!("Backtest failed: {:?}", err);
                             }
@@ -173,7 +204,7 @@ async fn main() -> Result<()> {
                     .arg(STREAM_NAME)
                     .arg(GROUP_NAME)
                     .arg(&message.id)
-                    .query_async::<()>(&mut conn)
+                    .query_async::<()>(&mut redis_conn)
                     .await?;
             }
         }

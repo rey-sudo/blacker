@@ -1,136 +1,99 @@
 use crate::model::Trade;
 use anyhow::{Context, Result};
-use redis::Commands;
-use std::time::Duration;
+use futures::future::join_all;
+use pulsar::{Producer, ProducerOptions, Pulsar, TokioExecutor};
 use std::{
     fs::File,
     io::{BufReader, Read},
-    mem::size_of,
+    time::Duration,
 };
 use tokio_util::sync::CancellationToken;
-use tracing::{error, info};
+use tracing::info;
+
+const MAX_IN_FLIGHT: usize = 5000;
 
 pub async fn start_tick_streaming(
     payload: String,
     token: CancellationToken,
-    redis_clone: redis::Client,
+    pulsar_clone: Pulsar<TokioExecutor>,
 ) -> Result<()> {
-    info!("Starting backtest: {}", payload);
+    info!("Starting streaming: {}", payload);
 
-    let mut iteration: u64 = 0u64;
-
-    let mut conn: redis::aio::MultiplexedConnection = redis_clone
-        .get_multiplexed_async_connection()
+    let mut pulsar_producer = pulsar_clone
+        .producer()
+        .with_topic("persistent://public/default/ticks")
+        .with_options(ProducerOptions {
+            batch_size: Some(1000),
+            batch_timeout: Some(Duration::from_millis(5)),
+            block_queue_if_full: true,
+            ..Default::default()
+        })
+        .build()
         .await
-        .context("Failed to connect to Redis at redis://redis-local:6379")?;
+        .context("Failed to build Pulsar producer")?;
 
-    loop {
-        tokio::select! {
-            _ = token.cancelled() => {
-                info!("Backtest cancelled");
-                break;
-            }
+    let bin_path: &str = "./output/ticks.bin";
 
-            _ = tokio::time::sleep(Duration::from_secs(1)) => {
-                let bin_path: &str = "./output/ticks.bin";
-                let stream_key: &str = "backtester:tick:stream";
-                let redis_url: &str = "redis://redis-local:6379";
-
-                stream_binary_to_redis(bin_path, stream_key, redis_url);
-
-                token.cancel();
-
-                info!("TOKEN CANCELLED STREAM FINISHED");
-            }
-        }
-    }
+    stream_ticks(bin_path, &mut pulsar_producer, token.clone()).await?;
 
     info!("Backtest finished");
 
     Ok(())
 }
 
-/// Lee el archivo binario y transmite cada tick a un stream de Redis.
-/// Garantiza un comportamiento stateless borrando el stream existente al inicio.
-pub fn stream_binary_to_redis(bin_path: &str, stream_key: &str, redis_url: &str) {
-    // 1. Conexión a Redis
-    let client = redis::Client::open(redis_url).expect("URL de Redis inválida");
-    let mut con = client
-        .get_connection()
-        .expect("Error al conectar con Redis");
-
-    // 2. Limpia el stream sin borrarlo (mantiene la key pero elimina todos los eventos).
-    // MINID + 0 fuerza a eliminar todo el rango de IDs, dejando el stream vacío.
-    let _: () = redis::cmd("XTRIM")
-        .arg(stream_key)
-        .arg("MINID")
-        .arg("+")
-        .arg("0")
-        .query(&mut con)
-        .unwrap_or(());
-
-    println!("Stream '{}' vaciado (XTRIM MINID + 0).", stream_key);
-
-    // 3. Preparar la lectura secuencial del binario
-    let file = File::open(bin_path).expect("No se pudo abrir el archivo binario");
+pub async fn stream_ticks(
+    bin_path: &str,
+    pulsar_producer: &mut Producer<TokioExecutor>,
+    token: CancellationToken,
+) -> Result<()> {
+    let file = File::open(bin_path)?;
     let mut reader = BufReader::new(file);
 
-    let trade_size = size_of::<Trade>();
-    let mut buffer = vec![0u8; trade_size];
+    let mut buffer = [0u8; std::mem::size_of::<Trade>()];
 
-    let mut count = 0usize;
+    let mut count: usize = 0;
 
-    // 4. Configuración del Pipeline para máximo rendimiento por red
-    let mut pipe = redis::pipe();
-    let batch_size = 5_000; // Tamaño óptimo para no saturar el buffer de Redis
+    info!("Starting tick streaming");
 
-    println!("Enviando ticks por stream {}...", stream_key);
+    let mut pending = Vec::with_capacity(MAX_IN_FLIGHT);
 
-    // Leer exactamente los bytes que mapean a un struct Trade
-    while reader.read_exact(&mut buffer).is_ok() {
-        // Mapeo seguro y ultra rápido de bytes a la estructura en memoria
-        let trade: &Trade = bytemuck::from_bytes(&buffer);
+    loop {
+        if token.is_cancelled() {
+            break;
+        }
 
-        // Insertar comando XADD al pipeline
-        // Usamos "*" para que Redis asigne el ID por timestamp del motor de Redis
-        pipe.cmd("XADD")
-            .arg(stream_key)
-            .arg("*")
-            .arg("trade_id")
-            .arg(trade.trade_id)
-            .arg("timestamp_ms")
-            .arg(trade.timestamp_ms)
-            .arg("price")
-            .arg(trade.price)
-            .arg("qty")
-            .arg(trade.qty)
-            .arg("side")
-            .arg(trade.side);
+        match reader.read_exact(&mut buffer) {
+            Ok(_) => {}
+            Err(e) if e.kind() == std::io::ErrorKind::UnexpectedEof => break,
+            Err(e) => return Err(e.into()),
+        }
+
+        let trade = *bytemuck::from_bytes::<Trade>(&buffer);
+
+        let receipt = pulsar_producer.send_non_blocking(trade).await?;
+
+        pending.push(receipt);
 
         count += 1;
 
-        // Si alcanzamos el tamaño del lote, vaciamos el pipeline hacia la red
-        if count % batch_size == 0 {
-            let _: () = pipe
-                .query(&mut con)
-                .expect("Error al ejecutar pipeline en Redis");
-            pipe.clear(); // Resetear el pipeline para el siguiente lote
+        if pending.len() >= MAX_IN_FLIGHT {
+            let receipts = std::mem::take(&mut pending);
 
-            if count % 1_000_000 == 0 {
-                println!("Transmitidos {}_000_000 de ticks...", count / 1_000_000);
+            for result in join_all(receipts).await {
+                result?;
             }
+
+            info!("{count} ticks enviados");
         }
     }
 
-    // 5. Enviar los ticks restantes que no completaron el último lote
-    if count % batch_size != 0 {
-        let _: () = pipe
-            .query(&mut con)
-            .expect("Error al vaciar el último lote en Redis");
+    if !pending.is_empty() {
+        for result in join_all(pending).await {
+            result?;
+        }
     }
 
-    println!(
-        "Streaming finalizado. Se han enviado {} ticks al stream '{}'.",
-        count, stream_key
-    );
+    info!("Streaming finished. Total ticks: {count}");
+
+    Ok(())
 }

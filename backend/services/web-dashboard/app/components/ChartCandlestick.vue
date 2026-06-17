@@ -77,10 +77,8 @@ function normalizeCandle(candle: any) {
   };
 }
 
-let chart: any = null;
-
 onMounted(() => {
-  chart = new ChartEngine();
+  const chart = new ChartEngine();
 
   chart.applyOptions({
     colors: {
@@ -126,12 +124,14 @@ onMounted(() => {
   chart.load(normalizeCandles(fakeData));
 
   chart._updateStatus();
-
-  const unsubscribe = tabStore.value?.subscribe((candle: any) => {
-    const newCandle = normalizeCandle(candle);
-    //console.log(newCandle);
-    chart.update(newCandle);
-  });
+  
+  if (tabStore.value?.subscriber) {
+    const unsubscribe = tabStore.value.subscriber((candle: any) => {
+      const newCandle = normalizeCandle(candle);
+      //console.log(newCandle);
+      chart.update(newCandle);
+    });
+  }
 });
 </script>
 

@@ -106,7 +106,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const listeners = new Set();
       const lastCandle = ref(null);
 
-      function subscribe(fn: any) {
+      function subscriber(fn: any) {
         listeners.add(fn);
 
         return () => {
@@ -391,7 +391,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
 
       return {
         lastCandle,
-        subscribe,
+        subscriber,
         clear,
         isResponsive,
         addTimeframe,
