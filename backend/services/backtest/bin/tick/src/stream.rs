@@ -11,6 +11,7 @@ use tokio_util::sync::CancellationToken;
 use tracing::info;
 
 const MAX_IN_FLIGHT: usize = 5000;
+const LOG_INTERVAL: usize = 100_000;
 
 pub async fn start_tick_streaming(
     payload: String,
@@ -59,6 +60,7 @@ pub async fn stream_ticks(
 
     loop {
         if token.is_cancelled() {
+            info!("Streaming cancelled");
             break;
         }
 
@@ -77,13 +79,15 @@ pub async fn stream_ticks(
         count += 1;
 
         if pending.len() >= MAX_IN_FLIGHT {
-            let receipts = std::mem::take(&mut pending);
+            let receipts = std::mem::replace(&mut pending, Vec::with_capacity(MAX_IN_FLIGHT));
 
             for result in join_all(receipts).await {
                 result?;
             }
 
-            info!("{count} ticks enviados");
+            if count % LOG_INTERVAL == 0 {
+                info!("{count} ticks enviados");
+            }
         }
     }
 
