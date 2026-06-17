@@ -20,7 +20,7 @@ pub async fn start_tick_streaming(
 ) -> Result<()> {
     info!("Starting streaming: {}", payload);
 
-    let mut pulsar_producer = pulsar_clone
+    let mut pulsar_producer: Producer<TokioExecutor> = pulsar_clone
         .producer()
         .with_topic("persistent://public/default/ticks")
         .with_options(ProducerOptions {
@@ -35,9 +35,7 @@ pub async fn start_tick_streaming(
 
     let bin_path: &str = "./output/ticks.bin";
 
-    stream_ticks(bin_path, &mut pulsar_producer, token.clone()).await?;
-
-    info!("Backtest finished");
+    stream_ticks(bin_path, &mut pulsar_producer, token).await?;
 
     Ok(())
 }
@@ -47,16 +45,16 @@ pub async fn stream_ticks(
     pulsar_producer: &mut Producer<TokioExecutor>,
     token: CancellationToken,
 ) -> Result<()> {
-    let file = File::open(bin_path)?;
-    let mut reader = BufReader::new(file);
+    let file: File = File::open(bin_path)?;
+    let mut reader: BufReader<File> = BufReader::new(file);
 
-    let mut buffer = [0u8; std::mem::size_of::<Trade>()];
+    let mut buffer: [u8; 40] = [0u8; std::mem::size_of::<Trade>()];
 
     let mut count: usize = 0;
 
     info!("Starting tick streaming");
 
-    let mut pending = Vec::with_capacity(MAX_IN_FLIGHT);
+    let mut pending: Vec<pulsar::producer::SendFuture> = Vec::with_capacity(MAX_IN_FLIGHT);
 
     loop {
         if token.is_cancelled() {
@@ -70,16 +68,16 @@ pub async fn stream_ticks(
             Err(e) => return Err(e.into()),
         }
 
-        let trade = *bytemuck::from_bytes::<Trade>(&buffer);
+        let trade: Trade = *bytemuck::from_bytes::<Trade>(&buffer);
 
-        let receipt = pulsar_producer.send_non_blocking(trade).await?;
+        let receipt: pulsar::producer::SendFuture = pulsar_producer.send_non_blocking(trade).await?;
 
         pending.push(receipt);
 
         count += 1;
 
         if pending.len() >= MAX_IN_FLIGHT {
-            let receipts = std::mem::replace(&mut pending, Vec::with_capacity(MAX_IN_FLIGHT));
+            let receipts: Vec<pulsar::producer::SendFuture> = std::mem::replace(&mut pending, Vec::with_capacity(MAX_IN_FLIGHT));
 
             for result in join_all(receipts).await {
                 result?;
