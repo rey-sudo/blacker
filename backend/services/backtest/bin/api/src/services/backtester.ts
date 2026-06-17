@@ -175,13 +175,24 @@ export class Backtester {
     const group = "node_consumers";
     const consumer = "worker_1";
 
-    try {
-      await redis.xGroupCreate(stream, group, "0", { MKSTREAM: true });
-    } catch (error: any) {
-      if (!error?.message?.includes("BUSYGROUP")) throw error;
-    }
+    const ensureGroup = async (fromStart = false) => {
+      try {
+        await redis.xGroupCreate(
+          stream,
+          group,
+          fromStart ? "0" : "$",
+          { MKSTREAM: true },
+        );
+      } catch (error: any) {
+        if (!error?.message?.includes("BUSYGROUP")) throw error;
+      }
+    };
+
+    await ensureGroup(true);
 
     console.log(`Listening stream '${stream}' as '${consumer}'...`);
+
+    type RedisStreamMessage = { id: string; message: Record<string, string> };
 
     while (true) {
       try {
@@ -191,16 +202,11 @@ export class Backtester {
           group,
           consumer,
           [{ key: stream, id: ">" }],
-          { COUNT: 20, BLOCK: 1000 },
+          { COUNT: 100, BLOCK: 1000 },
         );
 
         const messages = response?.[0]?.messages;
         if (!messages?.length) continue;
-
-        type RedisStreamMessage = {
-          id: string;
-          message: Record<string, string>;
-        };
 
         const batch: OutMessage[] = messages.map(
           ({ message }: RedisStreamMessage) => ({
@@ -210,23 +216,25 @@ export class Backtester {
           }),
         );
 
-        const formated: OutMessage = {
+        this.onEngineUpdate?.({
           event: "ENGINE",
           data: batch,
           timestamp: now(),
-        };
-
-        this.onEngineUpdate?.(formated);
-
-        //console.log(batch);
+        });
 
         await redis.xAck(
           stream,
           group,
           messages.map(({ id }: RedisStreamMessage) => id),
         );
-      } catch (error) {
-        console.error("Error reading stream:", error);
+      } catch (error: any) {
+        if (error?.message?.includes("NOGROUP")) {
+          console.warn("Stream/group lost, recreating...");
+          await ensureGroup(false);
+        } else {
+          console.error("Error reading stream:", error);
+        }
+
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }

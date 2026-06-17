@@ -33,5 +33,5 @@ def handle_tick(tick):
 
 print("Starting...")
 
-publisher.purge_stream()
+#publisher.purge_stream()
 consumer.listen(handle_tick)
