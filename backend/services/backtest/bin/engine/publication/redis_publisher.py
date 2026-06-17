@@ -18,3 +18,6 @@ class RedisPublisher:
         print(payload)
 
         return self.r.xadd(self.stream, payload)
+
+    def purge_stream(self):
+        self.r.delete(self.stream)

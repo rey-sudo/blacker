@@ -32,4 +32,5 @@ def handle_tick(tick):
     publisher.publish(state)
 
 
+publisher.purge_stream()
 consumer.listen(handle_tick)

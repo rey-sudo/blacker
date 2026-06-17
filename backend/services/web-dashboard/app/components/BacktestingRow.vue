@@ -19,20 +19,23 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  timeframe: {
+    type: Object,
+    required: true,
+  },
 });
 </script>
 
 <template>
   <div class="backtesting-row">
     <div class="left">
-      <ChartCandlestick
-        :tabId="tabId"
-        style="border-radius: var(--ui-radius)"
-      />
+      <ChartCandlestick :tabId="tabId" :timeframe="timeframe" />
     </div>
     <USeparator orientation="vertical" class="h-full" />
     <div class="right">
-      <div class="top-panel"></div>
+      <div class="top-panel">
+        {{ timeframe }}
+      </div>
 
       <div class="bottom-panel"></div>
     </div>

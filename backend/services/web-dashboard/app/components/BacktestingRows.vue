@@ -28,13 +28,13 @@ const tab: ComputedRef<Tab | undefined> = computed(() =>
   tabsStore.getTabById(props.tabId),
 );
 const tabStore = computed(() =>
-  tab.value ? useBacktestingTabStore(tab.value) : undefined,
+  tab.value ? useBacktestingTabStore(tab.value as BacktestingTab) : undefined,
 );
 </script>
 
 <template>
   <div class="backtesting-rows">
-    <BacktestingRow v-for="(value,index) in tabStore?.timeframes" :key="index" :tabId="tabId" />
+    <BacktestingRow v-for="(value,index) in tabStore?.timeframes" :key="index" :tabId="tabId" :timeframe="value"/>
   </div>
 </template>
 

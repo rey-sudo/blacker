@@ -1,4 +1,4 @@
-export const useTradingTabStore = (tab: Tab) =>
+export const useTradingTabStore = (tab: TradingTab) =>
   defineStore(`tab/${tab.id}`, () => {
     const id: string = tab.id;
 

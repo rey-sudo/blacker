@@ -32,19 +32,55 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ChartEngine } from "@/packages/chart.js";
-import { generate4h } from "@/packages/utils_.js";
+import { useBacktestingTabStore } from "~/stores/tabs";
 
 const props = defineProps({
   tabId: {
     type: String,
     required: true,
   },
+  timeframe: {
+    type: Object,
+    required: true,
+  },
 });
 
+const tabsStore = useTabsStore();
+const tab: ComputedRef<Tab | undefined> = computed(() =>
+  tabsStore.getTabById(props.tabId),
+);
+const tabStore = computed(() =>
+  tab.value ? useBacktestingTabStore(tab.value as BacktestingTab) : undefined,
+);
+
+function normalizeCandles(candles: any) {
+  return candles.map((candle: any) => ({
+    t: Math.floor(candle.start_ts / 1000), // timestamp en segundos
+    o: Number(candle.open),
+    h: Number(candle.high),
+    l: Number(candle.low),
+    c: Number(candle.close),
+    v: Number(candle.volume),
+  }));
+}
+
+function normalizeCandle(candle: any) {
+  return {
+    t: Math.floor(candle.start_ts / 1000), // timestamp en segundos
+    o: Number(candle.open),
+    h: Number(candle.high),
+    l: Number(candle.low),
+    c: Number(candle.close),
+    v: Number(candle.volume),
+  };
+}
+
+let chart: any = null;
+
 onMounted(() => {
-  const chart = new ChartEngine();
+  chart = new ChartEngine();
 
   chart.applyOptions({
     colors: {
@@ -57,10 +93,45 @@ onMounted(() => {
     },
   });
 
-  const rawData = generate4h();
+  const fakeData = [
+    {
+      open: "63332",
+      high: "63344",
+      low: "63260.12",
+      close: "63263.08",
+      volume: "9.95372",
+      start_ts: 1780876800000,
+      end_ts: 1780876860000,
+    },
+    {
+      open: "63263.09",
+      high: "63274",
+      low: "63220.74",
+      close: "63237.64",
+      volume: "14.71391",
+      start_ts: 1780876860000,
+      end_ts: 1780876920000,
+    },
+    {
+      open: "63237.64",
+      high: "63246.71",
+      low: "63192",
+      close: "63203.55",
+      volume: "13.77433",
+      start_ts: 1780876920000,
+      end_ts: 1780876980000,
+    },
+  ];
 
-  chart.load(rawData);
+  chart.load(normalizeCandles(fakeData));
+
   chart._updateStatus();
+
+  const unsubscribe = tabStore.value?.subscribe((candle: any) => {
+    const newCandle = normalizeCandle(candle);
+    console.log(newCandle);
+    chart.update(newCandle);
+  });
 });
 </script>
 

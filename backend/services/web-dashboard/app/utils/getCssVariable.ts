@@ -1,6 +1,6 @@
 import Color from "colorjs.io";
 
-export function getCssVariable(name: string, el: any) {
+export function getCssVariable(name: string, el?: any) {
   if (typeof window === 'undefined') return null; // SSR safe
 
   const target = el ?? document.documentElement;

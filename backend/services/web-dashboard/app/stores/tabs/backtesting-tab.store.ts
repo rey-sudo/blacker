@@ -103,6 +103,26 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const isStopped = computed(() => globalState.value.state === "stopped");
       const isPlayable = computed(() => timeframes.value.length > 0);
 
+      const listeners = new Set();
+      const lastCandle = ref(null);
+
+      function subscribe(fn: any) {
+        listeners.add(fn);
+
+        return () => {
+          listeners.delete(fn);
+        };
+      }
+
+      function _pushLiveCandle(candle: any) {
+        lastCandle.value = candle;
+        listeners.forEach((fn: any) => fn(candle));
+      }
+
+      function clear() {
+        listeners.clear();
+      }
+
       //----------------------------------------------------------------------------------------------------------------
       // WEBSOCKET
       //----------------------------------------------------------------------------------------------------------------
@@ -170,7 +190,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
        */
       const _onEngineEvent = (event: OutMessage) => {
         const eventData: any = event.data;
-        console.log(eventData?.engineState?.timeframes?.["1m"]?.live_candle);
+        _pushLiveCandle(eventData?.engineState?.timeframes?.["1m"]?.live_candle)
       };
 
       /**
@@ -367,6 +387,9 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       };
 
       return {
+        lastCandle,
+        subscribe,
+        clear,
         isResponsive,
         addTimeframe,
         timeframes,
