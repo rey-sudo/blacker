@@ -28,7 +28,7 @@ class TradingEngine:
 
             state[agg.name] = TFState(
                 live_candle=candle,
-                history=list(agg.candles.values())[-500:], 
+                history=list(agg.candles.values())[-10:], 
                 is_new=is_new,
                 indicators=agg.indicators,
             )

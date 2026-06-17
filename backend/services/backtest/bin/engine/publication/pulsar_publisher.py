@@ -25,7 +25,11 @@ class PulsarPublisher:
 
     def publish(self, engine_state):
         data = serialize(engine_state)
-        return self.producer.send(data)
+        print(data)
+        return self.producer.send(
+            data,
+            partition_key="engine.state" 
+        )
 
     def close(self):
         self.producer.close()
