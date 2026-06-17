@@ -9,8 +9,9 @@ pub struct Trade {
     pub timestamp_ms: u64,
     pub price: u64,
     pub qty: u64,
-    /// 0=BUY, 1=SELL
     pub side: u8,
+
+    #[serde(skip)]
     pub _padding: [u8; 7],
 }
 
