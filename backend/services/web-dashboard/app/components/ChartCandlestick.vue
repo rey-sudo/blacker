@@ -129,7 +129,7 @@ onMounted(() => {
 
   const unsubscribe = tabStore.value?.subscribe((candle: any) => {
     const newCandle = normalizeCandle(candle);
-    console.log(newCandle);
+    //console.log(newCandle);
     chart.update(newCandle);
   });
 });

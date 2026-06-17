@@ -36,7 +36,7 @@ export interface GlobalState {
 }
 
 type StateCallback = (state: OutMessage) => void;
-type EngineUpdatesCallback = (candles: OutMessage) => void;
+type EngineUpdatesCallback = (update: OutMessage) => void;
 
 //--------------------------------------------------------------------------------------------------
 // COMMAND PARAMS
@@ -175,45 +175,59 @@ export class Backtester {
     const group = "node_consumers";
     const consumer = "worker_1";
 
-    const sleep = (ms: number) =>
-      new Promise((resolve) => setTimeout(resolve, ms));
-
     try {
       await redis.xGroupCreate(stream, group, "0", { MKSTREAM: true });
     } catch (error: any) {
       if (!error?.message?.includes("BUSYGROUP")) throw error;
     }
 
-    console.log(`Escuchando stream '${stream}' como '${consumer}'...`);
+    console.log(`Listening stream '${stream}' as '${consumer}'...`);
 
     while (true) {
       try {
-        const response = await redis
-          .withCommandOptions({})
-          .xReadGroup(group, consumer, [{ key: stream, id: ">" }], {
-            COUNT: 1,
-            BLOCK: 1000,
-          });
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        const response = await redis.xReadGroup(
+          group,
+          consumer,
+          [{ key: stream, id: ">" }],
+          { COUNT: 20, BLOCK: 1000 },
+        );
 
         const messages = response?.[0]?.messages;
         if (!messages?.length) continue;
 
-        for (const { id, message } of messages) {
-          const engineState = JSON.parse(message.state_data);
+        type RedisStreamMessage = {
+          id: string;
+          message: Record<string, string>;
+        };
 
-          const status = {
-            event: "ENGINE",
-            data: { engineState },
+        const batch: OutMessage[] = messages.map(
+          ({ message }: RedisStreamMessage) => ({
+            event: "ENGINE" as const,
+            data: { engineState: JSON.parse(message["state_data"] ?? "{}") },
             timestamp: now(),
-          };
+          }),
+        );
 
-          void this.onEngineUpdate?.(status);
-          
-          await redis.xAck(stream, group, id);
-        }
+        const formated: OutMessage = {
+          event: "ENGINE",
+          data: batch,
+          timestamp: now(),
+        };
+
+        this.onEngineUpdate?.(formated);
+
+        //console.log(batch);
+
+        await redis.xAck(
+          stream,
+          group,
+          messages.map(({ id }: RedisStreamMessage) => id),
+        );
       } catch (error) {
-        console.error("Error al leer el stream:", error);
-        await sleep(1000);
+        console.error("Error reading stream:", error);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
   }

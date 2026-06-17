@@ -181,16 +181,19 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
        */
       const _onStateEvent = (event: OutMessage) => {
         globalState.value = event.data as GlobalState;
-
-        console.log(globalState.value);
       };
 
       /**
        *  Handles ENGINE message event
        */
-      const _onEngineEvent = (event: OutMessage) => {
-        const eventData: any = event.data;
-        _pushLiveCandle(eventData?.engineState?.timeframes?.["1m"]?.live_candle)
+      const _onEngineEvent = (events: OutMessage) => {
+        for (const e of events.data as any) {
+          const eventData = e.data as any;
+         
+          _pushLiveCandle(
+            eventData?.engineState?.timeframes?.["1m"]?.live_candle,
+          );
+        }
       };
 
       /**
