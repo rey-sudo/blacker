@@ -26,11 +26,12 @@ publisher = RedisPublisher(stream="backtester:engine:stream")
 def handle_tick(tick):
     state, signal = engine.on_tick(tick)
 
-    if signal:
-        print("SIGNAL:", signal)
+    #if signal:
+        #print("SIGNAL:", signal)
     
     publisher.publish(state)
 
+print("Starting...")
 
 publisher.purge_stream()
 consumer.listen(handle_tick)

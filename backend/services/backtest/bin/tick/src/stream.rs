@@ -59,13 +59,17 @@ pub fn stream_binary_to_redis(bin_path: &str, stream_key: &str, redis_url: &str)
         .get_connection()
         .expect("Error al conectar con Redis");
 
-    // 2. Garantizar comportamiento Stateless: Borrar stream previo si existe
-    // Ignoramos si el stream no existía previamente
-    let _: () = con.del(stream_key).unwrap_or(());
-    println!(
-        "Reseteado: Stream '{}' limpio para nueva ejecución.",
-        stream_key
-    );
+    // 2. Limpia el stream sin borrarlo (mantiene la key pero elimina todos los eventos).
+    // MINID + 0 fuerza a eliminar todo el rango de IDs, dejando el stream vacío.
+    let _: () = redis::cmd("XTRIM")
+        .arg(stream_key)
+        .arg("MINID")
+        .arg("+")
+        .arg("0")
+        .query(&mut con)
+        .unwrap_or(());
+
+    println!("Stream '{}' vaciado (XTRIM MINID + 0).", stream_key);
 
     // 3. Preparar la lectura secuencial del binario
     let file = File::open(bin_path).expect("No se pudo abrir el archivo binario");

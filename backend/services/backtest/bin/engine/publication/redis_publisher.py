@@ -15,9 +15,9 @@ class RedisPublisher:
             "state_data": state_json
         }
 
-        print(payload)
+        #print(payload)
 
         return self.r.xadd(self.stream, payload)
 
     def purge_stream(self):
-        self.r.delete(self.stream)
+        self.r.xtrim(self.stream, maxlen=0, approximate=False)
