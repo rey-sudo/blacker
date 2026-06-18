@@ -19,9 +19,9 @@ class PulsarConsumer:
             subscription_name=subscription,
             consumer_type=ConsumerType.Exclusive,
             batch_receive_policy=ConsumerBatchReceivePolicy(
-                max_num_message=1_000,
-                max_num_bytes=20 * 1024 * 1024,
-                timeout_ms=10,
+                max_num_message=10_000,
+                max_num_bytes=50 * 1024 * 1024,
+                timeout_ms=50,
             )
         )
 
@@ -49,6 +49,8 @@ class PulsarConsumer:
                 for msg in messages:
                     tick = self._decode_tick(msg)
                     callback(tick)
+                
+                for msg in messages:
                     self.consumer.acknowledge(msg)
 
             except Exception:
