@@ -22,7 +22,7 @@ import { app } from "../server.js";
 import { Unpackr } from "msgpackr";
 
 const unpackr = new Unpackr({
-   mapsAsObjects: true,
+  mapsAsObjects: true,
   int64AsType: "number",
 });
 
@@ -77,6 +77,9 @@ export class Backtester {
 
   private onStats?: StateCallback;
   private onEngineUpdate?: EngineUpdatesCallback;
+
+  private _pulsar_client?: Pulsar.Client;
+  private _pulsar_consumer?: Pulsar.Consumer;
 
   //------------------------------------------------------------------------------------------------
   // GETTERS
@@ -148,15 +151,17 @@ export class Backtester {
       payload: JSON.stringify({}),
     });
 
+    this._stopEngine();
+    this._unwatchState();
+
     this.state = "stopped";
 
     app.log.info("STOP_BACKTESTING command sent to consumers.");
   }
 
   public close() {
+    this.stop();
     this.state = "closed";
-
-    this._unwatchState();
   }
 
   //------------------------------------------------------------------------------------------------
@@ -178,10 +183,16 @@ export class Backtester {
   }
 
   private async _listenEngine() {
-    let client: Pulsar.Client | undefined;
-    let consumer: Pulsar.Consumer | undefined;
-
     while (true) {
+      if (!this.running) {
+        await sleep(5000);
+        continue;
+      }
+      
+      console.log("2");
+      let client: Pulsar.Client | undefined;
+      let consumer: Pulsar.Consumer | undefined;
+
       try {
         client = new Pulsar.Client({
           serviceUrl: "pulsar://localhost:6650",
@@ -200,12 +211,21 @@ export class Backtester {
           },
         });
 
+        console.log("ESCUCHANDO STREAM");
+
+        this._pulsar_client = client;
+        this._pulsar_consumer = consumer;
+
         const timestamp = now();
 
         console.log("Listening Pulsar topic 'engine.state'...");
 
-        while (true) {
+        while (this.running) {
           const messages = await consumer.batchReceive();
+
+          if (!this.running) {
+            break;
+          }
 
           if (messages.length > 0) {
             void consumer.acknowledgeCumulative(messages[messages.length - 1]);
@@ -236,8 +256,11 @@ export class Backtester {
           });
         }
       } catch (error: any) {
-        console.error("Engine consumer error:", error?.message ?? error);
-
+        if (this.running) {
+          console.error("Engine consumer error:", error?.message ?? error);
+          await sleep(5000);
+        }
+      } finally {
         try {
           await consumer?.close();
         } catch {}
@@ -246,9 +269,25 @@ export class Backtester {
           await client?.close();
         } catch {}
 
-        await sleep(5000);
+        if (this._pulsar_consumer === consumer) {
+          this._pulsar_consumer = undefined;
+        }
+
+        if (this._pulsar_client === client) {
+          this._pulsar_client = undefined;
+        }
       }
     }
+  }
+
+  private async _stopEngine() {
+    try {
+      await this._pulsar_consumer?.close();
+    } catch {}
+
+    try {
+      await this._pulsar_client?.close();
+    } catch {}
   }
 
   private async _getState(): Promise<OutMessage> {
