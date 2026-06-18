@@ -26,7 +26,7 @@ export default defineNuxtConfig({
   css: [
     "~/assets/css/theme.css",
     "~/assets/css/main.css",
-    "~/packages/chart.css",
+    "~/packages/src/chart.css",
   ],
   ui: {
     colorMode: true,

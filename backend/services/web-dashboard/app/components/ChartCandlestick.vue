@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChartEngine } from "@/packages/chart.js";
+import { ChartEngine } from "@/packages/src/chart.js";
 import { useBacktestingTabStore } from "~/stores/tabs";
 
 const props = defineProps({
