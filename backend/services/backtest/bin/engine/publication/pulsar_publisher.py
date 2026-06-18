@@ -1,13 +1,18 @@
 from pulsar import Client, Producer
-from dataclasses import asdict
-import json
+from dataclasses import is_dataclass
+import msgpack
 
+def default(obj):
+    if is_dataclass(obj):
+        return obj.__dict__
+    raise TypeError(f"Cannot serialize {type(obj)}")
 
 def serialize(state) -> bytes:
-    return json.dumps(
-        asdict(state)
-    ).encode("utf-8")
-
+    return msgpack.packb(
+        state,
+        default=default,
+        use_bin_type=True,
+    )
 
 class PulsarPublisher:
     def __init__(
@@ -24,10 +29,13 @@ class PulsarPublisher:
             batching_max_publish_delay_ms=10,
         )
 
+    def _noop(self, result, msg_id):
+        pass
+
     def publish(self, engine_state):
         self.producer.send_async(
             serialize(engine_state),
-            callback=lambda res, msg: None,
+            callback=self._noop,
             partition_key="engine.state",
         )
 

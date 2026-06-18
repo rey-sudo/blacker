@@ -19,6 +19,12 @@ import { OutMessage, Timeframe, TimeframeSchema } from "../types/model.js";
 import { now } from "../utils/now.js";
 import { getRedisClient } from "./redis-client.js";
 import { app } from "../server.js";
+import { Unpackr } from "msgpackr";
+
+const unpackr = new Unpackr({
+   mapsAsObjects: true,
+  int64AsType: "number",
+});
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -215,7 +221,7 @@ export class Backtester {
             batch[i] = {
               event: "ENGINE",
               data: {
-                engineState: JSON.parse(msg.getData().toString()),
+                engineState: unpackr.unpack(msg.getData()),
               },
               timestamp,
             };
