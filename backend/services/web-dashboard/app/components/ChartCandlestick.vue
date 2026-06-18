@@ -1,12 +1,14 @@
 <template>
   <div class="chart-container">
     <div id="chart-area">
+      
       <!-- MAIN PANE -->
+
       <div class="pane" id="pane-main">
         <canvas class="chart-canvas" id="canvas-main"></canvas>
         <canvas class="drawings-canvas" id="canvas-drawings"></canvas>
         <canvas class="pricescale-canvas" id="canvas-pricescale"></canvas>
-        <canvas class="overlay-canvas" id="overlay-main"></canvas>
+        <canvas class="overlay-canvas" id="canvas-overlay"></canvas>
       </div>
 
       <!-- TIME AXIS -->

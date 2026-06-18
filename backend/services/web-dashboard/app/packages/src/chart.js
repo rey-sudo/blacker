@@ -205,7 +205,7 @@ export class ChartEngine {
     this.cMain = document.getElementById("canvas-main");
     this.ctxMain = this.cMain.getContext("2d");
 
-    this.oMain = document.getElementById("overlay-main");
+    this.oMain = document.getElementById("canvas-overlay");
     this.ctxOMain = this.oMain.getContext("2d");
 
     this.cScale = document.getElementById("canvas-pricescale");
