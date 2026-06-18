@@ -20,8 +20,7 @@ import { now } from "../utils/now.js";
 import { getRedisClient } from "./redis-client.js";
 import { app } from "../server.js";
 
-const sleep = (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export type BacktesterState =
   | "pending"
@@ -173,10 +172,10 @@ export class Backtester {
   }
 
   private async _listenEngine() {
-    while (true) {
-      let client: Pulsar.Client | undefined;
-      let consumer: Pulsar.Consumer | undefined;
+    let client: Pulsar.Client | undefined;
+    let consumer: Pulsar.Consumer | undefined;
 
+    while (true) {
       try {
         client = new Pulsar.Client({
           serviceUrl: "pulsar://localhost:6650",
@@ -187,31 +186,44 @@ export class Backtester {
           subscription: "node_consumers",
           subscriptionType: "Exclusive",
           ackTimeoutMs: 60_000,
+          receiverQueueSize: 5000,
+          batchReceivePolicy: {
+            maxNumMessages: 1000,
+            maxNumBytes: 50 * 1024 * 1024,
+            timeoutMs: 10,
+          },
         });
 
         console.log("Listening Pulsar topic 'engine.state'...");
 
-        const batch: OutMessage[] = [];
-
         while (true) {
-          const msg = await consumer.receive();
+          const messages = await consumer.batchReceive();
 
-          const engineState = JSON.parse(msg.getData().toString());
+          const batch: OutMessage[] = [];
 
-          batch.push({
+          let lastMsg: Pulsar.Message | undefined;
+
+          for (const msg of messages) {
+            const data = msg.getData().toString("utf8");
+            const engineState = JSON.parse(data);
+
+            batch.push({
+              event: "ENGINE",
+              data: { engineState },
+              timestamp: now(),
+            });
+
+            lastMsg = msg;
+          }
+
+          this.onEngineUpdate?.({
             event: "ENGINE",
-            data: { engineState },
+            data: batch,
             timestamp: now(),
           });
 
-          await consumer.acknowledge(msg);
-
-          if (batch.length >= 100) {
-            this.onEngineUpdate?.({
-              event: "ENGINE",
-              data: batch.splice(0),
-              timestamp: now(),
-            });
+          if (lastMsg) {
+            void consumer.acknowledgeCumulative(lastMsg).catch(() => {});
           }
         }
       } catch (error: any) {
