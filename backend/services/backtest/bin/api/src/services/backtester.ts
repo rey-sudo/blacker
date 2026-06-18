@@ -199,19 +199,21 @@ export class Backtester {
         while (true) {
           const messages = await consumer.batchReceive();
 
-          const batch: OutMessage[] = [];
+          const batch: OutMessage[] = new Array(messages.length);
 
           let lastMsg: Pulsar.Message | undefined;
 
-          for (const msg of messages) {
+          for (let i = 0; i < messages.length; i++) {
+            const msg = messages[i];
+
             const data = msg.getData().toString("utf8");
             const engineState = JSON.parse(data);
 
-            batch.push({
+            batch[i] = {
               event: "ENGINE",
               data: { engineState },
               timestamp: now(),
-            });
+            };
 
             lastMsg = msg;
           }
@@ -223,7 +225,7 @@ export class Backtester {
           });
 
           if (lastMsg) {
-            void consumer.acknowledgeCumulative(lastMsg).catch(() => {});
+            void consumer.acknowledgeCumulative(lastMsg);
           }
         }
       } catch (error: any) {
