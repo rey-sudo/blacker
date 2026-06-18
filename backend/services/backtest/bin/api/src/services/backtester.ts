@@ -151,16 +151,14 @@ export class Backtester {
       payload: JSON.stringify({}),
     });
 
-    this._stopEngine();
-    this._unwatchState();
-
     this.state = "stopped";
 
     app.log.info("STOP_BACKTESTING command sent to consumers.");
   }
 
   public close() {
-    this.stop();
+    this._unwatchState();
+    this._stopEngine();
     this.state = "closed";
   }
 
@@ -183,99 +181,85 @@ export class Backtester {
   }
 
   private async _listenEngine() {
-    while (true) {
-      if (!this.running) {
-        await sleep(5000);
-        continue;
+    let client: Pulsar.Client | undefined;
+    let consumer: Pulsar.Consumer | undefined;
+
+    try {
+      client = new Pulsar.Client({
+        serviceUrl: "pulsar://localhost:6650",
+      });
+
+      consumer = await client.subscribe({
+        topic: "persistent://public/default/engine.state",
+        subscription: "node_consumers",
+        subscriptionType: "Exclusive",
+        ackTimeoutMs: 60_000,
+        receiverQueueSize: 20000,
+        batchReceivePolicy: {
+          maxNumMessages: 5000,
+          maxNumBytes: 100 * 1024 * 1024,
+          timeoutMs: 5,
+        },
+      });
+
+      console.log("ESCUCHANDO STREAM");
+
+      this._pulsar_client = client;
+      this._pulsar_consumer = consumer;
+
+      const timestamp = now();
+
+      console.log("Listening Pulsar topic 'engine.state'...");
+
+      while (true) {
+        const messages = await consumer.batchReceive();
+
+        if (messages.length > 0) {
+          await consumer.acknowledgeCumulative(messages[messages.length - 1]);
+        }
+
+        const batch: OutMessage[] = new Array(messages.length);
+
+        let lastMsg: Pulsar.Message | undefined;
+
+        for (let i = 0; i < messages.length; i++) {
+          const msg = messages[i];
+
+          batch[i] = {
+            event: "ENGINE",
+            data: {
+              engineState: unpackr.unpack(msg.getData()),
+            },
+            timestamp,
+          };
+
+          lastMsg = msg;
+        }
+
+        this.onEngineUpdate?.({
+          event: "ENGINE",
+          data: batch,
+          timestamp,
+        });
       }
-      
-      console.log("2");
-      let client: Pulsar.Client | undefined;
-      let consumer: Pulsar.Consumer | undefined;
+    } catch (error: any) {
+      console.error("Engine consumer error:", error?.message ?? error);
+      await sleep(5000);
+    } finally {
+      try {
+        await consumer?.close();
+      } catch {}
 
       try {
-        client = new Pulsar.Client({
-          serviceUrl: "pulsar://localhost:6650",
-        });
+        await client?.close();
+      } catch {}
 
-        consumer = await client.subscribe({
-          topic: "persistent://public/default/engine.state",
-          subscription: "node_consumers",
-          subscriptionType: "Exclusive",
-          ackTimeoutMs: 60_000,
-          receiverQueueSize: 20000,
-          batchReceivePolicy: {
-            maxNumMessages: 5000,
-            maxNumBytes: 100 * 1024 * 1024,
-            timeoutMs: 5,
-          },
-        });
+      if (this._pulsar_consumer === consumer) {
+        this._pulsar_consumer = undefined;
+      }
 
-        console.log("ESCUCHANDO STREAM");
-
-        this._pulsar_client = client;
-        this._pulsar_consumer = consumer;
-
-        const timestamp = now();
-
-        console.log("Listening Pulsar topic 'engine.state'...");
-
-        while (this.running) {
-          const messages = await consumer.batchReceive();
-
-          if (!this.running) {
-            break;
-          }
-
-          if (messages.length > 0) {
-            void consumer.acknowledgeCumulative(messages[messages.length - 1]);
-          }
-
-          const batch: OutMessage[] = new Array(messages.length);
-
-          let lastMsg: Pulsar.Message | undefined;
-
-          for (let i = 0; i < messages.length; i++) {
-            const msg = messages[i];
-
-            batch[i] = {
-              event: "ENGINE",
-              data: {
-                engineState: unpackr.unpack(msg.getData()),
-              },
-              timestamp,
-            };
-
-            lastMsg = msg;
-          }
-
-          this.onEngineUpdate?.({
-            event: "ENGINE",
-            data: batch,
-            timestamp,
-          });
-        }
-      } catch (error: any) {
-        if (this.running) {
-          console.error("Engine consumer error:", error?.message ?? error);
-          await sleep(5000);
-        }
-      } finally {
-        try {
-          await consumer?.close();
-        } catch {}
-
-        try {
-          await client?.close();
-        } catch {}
-
-        if (this._pulsar_consumer === consumer) {
-          this._pulsar_consumer = undefined;
-        }
-
-        if (this._pulsar_client === client) {
-          this._pulsar_client = undefined;
-        }
+      if (this._pulsar_client === client) {
+        this._pulsar_client = undefined;
       }
     }
   }
