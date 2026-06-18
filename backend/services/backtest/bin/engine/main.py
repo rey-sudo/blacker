@@ -26,7 +26,16 @@ publisher = PulsarPublisher(
     topic="persistent://public/default/engine.state",
 )
 
+tick_count = 0
+
 def handle_tick(tick):
+    global tick_count
+
+    tick_count += 1
+
+    if tick_count % 1000 == 0:
+        print(f"Procesados {tick_count:,} ticks")
+
     state, signal = engine.on_tick(tick)
 
     if signal:
@@ -35,5 +44,4 @@ def handle_tick(tick):
     publisher.publish(state)
 
 print("Starting...")
-
 consumer.listen(handle_tick)
