@@ -1,13 +1,11 @@
 from pulsar import Client, Producer
 from dataclasses import asdict
-from core.engine import EngineState
-from decimal import Decimal
 import json
+
 
 def serialize(state) -> bytes:
     return json.dumps(
-        asdict(state),
-        default=lambda o: float(o) if isinstance(o, Decimal) else o
+        asdict(state)
     ).encode("utf-8")
 
 
@@ -20,16 +18,20 @@ class PulsarPublisher:
         self.client = Client(service_url)
 
         self.producer: Producer = self.client.create_producer(
-            topic
+            topic,
+            batching_enabled=True,
+            batching_max_messages=1000,
+            batching_max_publish_delay_ms=10,
         )
 
     def publish(self, engine_state):
-        data = serialize(engine_state)
-        return self.producer.send(
-            data,
-            partition_key="engine.state" 
+        self.producer.send_async(
+            serialize(engine_state),
+            callback=lambda res, msg: None,
+            partition_key="engine.state",
         )
 
     def close(self):
+        self.producer.flush()
         self.producer.close()
         self.client.close()
