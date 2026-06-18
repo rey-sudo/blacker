@@ -3,9 +3,9 @@ from ingestion.tick import Tick
 import msgpack
 
 
+SCALE = 1e8
 
 class PulsarConsumer:
-    SCALE = 1e8
     
     def __init__(
         self,
