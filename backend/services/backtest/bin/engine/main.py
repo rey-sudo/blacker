@@ -5,7 +5,7 @@ from ingestion.pulsar_consumer import PulsarConsumer
 from publication.pulsar_publisher import PulsarPublisher
 
 aggregators = [
-    TimeframeAggregator(name="1m", timeframe_ms=1 * 60_000),
+    TimeframeAggregator(name="30m", timeframe_ms=30 * 60_000),
 ]
 
 strategy = MyStrategy()

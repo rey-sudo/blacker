@@ -186,18 +186,24 @@ export class Backtester {
           subscription: "node_consumers",
           subscriptionType: "Exclusive",
           ackTimeoutMs: 60_000,
-          receiverQueueSize: 5000,
+          receiverQueueSize: 20000,
           batchReceivePolicy: {
-            maxNumMessages: 1000,
-            maxNumBytes: 50 * 1024 * 1024,
-            timeoutMs: 10,
+            maxNumMessages: 5000,
+            maxNumBytes: 100 * 1024 * 1024,
+            timeoutMs: 5,
           },
         });
+
+        const timestamp = now();
 
         console.log("Listening Pulsar topic 'engine.state'...");
 
         while (true) {
           const messages = await consumer.batchReceive();
+
+          if (messages.length > 0) {
+            void consumer.acknowledgeCumulative(messages[messages.length - 1]);
+          }
 
           const batch: OutMessage[] = new Array(messages.length);
 
@@ -206,13 +212,12 @@ export class Backtester {
           for (let i = 0; i < messages.length; i++) {
             const msg = messages[i];
 
-            const data = msg.getData().toString("utf8");
-            const engineState = JSON.parse(data);
-
             batch[i] = {
               event: "ENGINE",
-              data: { engineState },
-              timestamp: now(),
+              data: {
+                engineState: JSON.parse(msg.getData().toString()),
+              },
+              timestamp,
             };
 
             lastMsg = msg;
@@ -221,12 +226,8 @@ export class Backtester {
           this.onEngineUpdate?.({
             event: "ENGINE",
             data: batch,
-            timestamp: now(),
+            timestamp,
           });
-
-          if (lastMsg) {
-            void consumer.acknowledgeCumulative(lastMsg);
-          }
         }
       } catch (error: any) {
         console.error("Engine consumer error:", error?.message ?? error);

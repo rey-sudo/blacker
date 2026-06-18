@@ -191,7 +191,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
           const eventData = e.data as any;
          
           _pushLiveCandle(
-            eventData?.engineState?.timeframes?.["1m"]?.live_candle,
+            eventData?.engineState?.timeframes?.["30m"]?.live_candle,
           );
         }
       };
