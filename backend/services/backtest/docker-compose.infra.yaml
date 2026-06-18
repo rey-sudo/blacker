@@ -1,5 +1,4 @@
 services:
-
   pulsar-local:
     image: apachepulsar/pulsar:4.2.2
     container_name: pulsar
@@ -18,7 +17,7 @@ services:
     container_name: redis_local
     restart: unless-stopped
     ports:
-      - "6380:6379"
+      - "6379:6379"
     command: >
       redis-server
       --save ""
@@ -28,29 +27,6 @@ services:
     volumes:
       - redis_data:/data
 
-  backtest-api:
-    build: ./bin/api
-    container_name: backtest_api
-    depends_on:
-      - redis-local   
-    env_file:
-      - ./bin/api/.env       
-    ports:
-      - "8100:8100"
-    restart: unless-stopped
-
-  backtest-tick:
-    build: ./bin/tick
-    container_name: backtest_tick
-    depends_on:
-      - redis-local
-      - backtest-api
-    env_file:
-      - ./bin/tick/.env
-    restart: "no"
-    volumes:
-      - ./bin/tick/output:/app/output
-
 volumes:
-  redis_data:
   pulsar_data:
+  redis_data:

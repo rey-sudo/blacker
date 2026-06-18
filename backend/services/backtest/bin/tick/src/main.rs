@@ -79,13 +79,13 @@ async fn main() -> Result<()> {
 
     // 1. Redis client: create a Redis client using the internal network address.
     let redis_client: redis::Client =
-        redis::Client::open("redis://localhost:6380").expect("URL de Redis inválida");
+        redis::Client::open("redis://localhost:6379").expect("URL de Redis inválida");
 
     // 2. Redis connection: Establish a multiplexed async connection shared across Redis commands.
     let mut redis_conn: MultiplexedConnection = redis_client
         .get_multiplexed_async_connection()
         .await
-        .context("Failed to connect to Redis at redis://localhost:6380")?;
+        .context("Failed to connect to Redis at redis://localhost:6379")?;
 
     // 3. Redis group: Create the consumer group if it does not already exist.
     ensure_redis_consumer_group(&mut redis_conn, STREAM_NAME, GROUP_NAME)
@@ -97,7 +97,8 @@ async fn main() -> Result<()> {
         Pulsar::builder("pulsar://localhost:6650", TokioExecutor)
             .with_outbound_channel_size(10_000)
             .build()
-            .await?;
+            .await
+            .expect("URL de Pulsar inválida");
 
     // 5. Heartbeat : Publish the service availability.
     let _heartbeat_handle: JoinHandle<()> = spawn_redis_heartbeat(redis_conn.clone());

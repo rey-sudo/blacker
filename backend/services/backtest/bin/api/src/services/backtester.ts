@@ -14,10 +14,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import z from "zod";
+import Pulsar from "pulsar-client";
 import { OutMessage, Timeframe, TimeframeSchema } from "../types/model.js";
 import { now } from "../utils/now.js";
 import { getRedisClient } from "./redis-client.js";
 import { app } from "../server.js";
+
+const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 export type BacktesterState =
   | "pending"
@@ -169,73 +173,59 @@ export class Backtester {
   }
 
   private async _listenEngine() {
-    const redis = await getRedisClient();
-
-    const stream = "backtester:engine:stream";
-    const group = "node_consumers";
-    const consumer = "worker_1";
-
-    const ensureGroup = async (fromStart = false) => {
-      try {
-        await redis.xGroupCreate(
-          stream,
-          group,
-          fromStart ? "0" : "$",
-          { MKSTREAM: true },
-        );
-      } catch (error: any) {
-        if (!error?.message?.includes("BUSYGROUP")) throw error;
-      }
-    };
-
-    await ensureGroup(true);
-
-    console.log(`Listening stream '${stream}' as '${consumer}'...`);
-
-    type RedisStreamMessage = { id: string; message: Record<string, string> };
-
     while (true) {
+      let client: Pulsar.Client | undefined;
+      let consumer: Pulsar.Consumer | undefined;
+
       try {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-
-        const response = await redis.xReadGroup(
-          group,
-          consumer,
-          [{ key: stream, id: ">" }],
-          { COUNT: 100, BLOCK: 1000 },
-        );
-
-        const messages = response?.[0]?.messages;
-        if (!messages?.length) continue;
-
-        const batch: OutMessage[] = messages.map(
-          ({ message }: RedisStreamMessage) => ({
-            event: "ENGINE" as const,
-            data: { engineState: JSON.parse(message["state_data"] ?? "{}") },
-            timestamp: now(),
-          }),
-        );
-
-        this.onEngineUpdate?.({
-          event: "ENGINE",
-          data: batch,
-          timestamp: now(),
+        client = new Pulsar.Client({
+          serviceUrl: "pulsar://localhost:6650",
         });
 
-        await redis.xAck(
-          stream,
-          group,
-          messages.map(({ id }: RedisStreamMessage) => id),
-        );
-      } catch (error: any) {
-        if (error?.message?.includes("NOGROUP")) {
-          console.warn("Stream/group lost, recreating...");
-          await ensureGroup(false);
-        } else {
-          console.error("Error reading stream:", error);
-        }
+        consumer = await client.subscribe({
+          topic: "persistent://public/default/engine.state",
+          subscription: "node_consumers",
+          subscriptionType: "Exclusive",
+          ackTimeoutMs: 60_000,
+        });
 
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        console.log("Listening Pulsar topic 'engine.state'...");
+
+        const batch: OutMessage[] = [];
+
+        while (true) {
+          const msg = await consumer.receive();
+
+          const engineState = JSON.parse(msg.getData().toString());
+
+          batch.push({
+            event: "ENGINE",
+            data: { engineState },
+            timestamp: now(),
+          });
+
+          await consumer.acknowledge(msg);
+
+          if (batch.length >= 100) {
+            this.onEngineUpdate?.({
+              event: "ENGINE",
+              data: batch.splice(0),
+              timestamp: now(),
+            });
+          }
+        }
+      } catch (error: any) {
+        console.error("Engine consumer error:", error?.message ?? error);
+
+        try {
+          await consumer?.close();
+        } catch {}
+
+        try {
+          await client?.close();
+        } catch {}
+
+        await sleep(5000);
       }
     }
   }
