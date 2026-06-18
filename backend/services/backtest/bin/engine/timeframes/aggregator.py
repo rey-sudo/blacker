@@ -1,5 +1,3 @@
-from collections import defaultdict
-from decimal import Decimal
 from .candle import Candle
 
 class TimeframeAggregator:

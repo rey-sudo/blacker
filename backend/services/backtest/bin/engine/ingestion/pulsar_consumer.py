@@ -1,11 +1,12 @@
 from pulsar import Client, ConsumerType, ConsumerBatchReceivePolicy
 from ingestion.tick import Tick
-from decimal import Decimal
 import msgpack
 
-class PulsarConsumer:
-    SCALE = Decimal("100000000")
 
+
+class PulsarConsumer:
+    SCALE = 1e8
+    
     def __init__(
         self,
         service_url="pulsar://localhost:6650",
@@ -36,8 +37,8 @@ class PulsarConsumer:
         return Tick(
             trade_id=int(trade_id),
             timestamp_ms=int(timestamp_ms),
-            price=Decimal(price) / self.SCALE,
-            qty=Decimal(qty) / self.SCALE,
+            price=float(price) / SCALE,
+            qty=float(qty) / SCALE,
             side=int(side),
         )
 

@@ -1,12 +1,11 @@
 from dataclasses import dataclass
-from decimal import Decimal
 
 @dataclass(frozen=True)
 class Candle:
-    open: Decimal
-    high: Decimal
-    low: Decimal
-    close: Decimal
-    volume: Decimal
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: float
     start_ts: int
     end_ts: int

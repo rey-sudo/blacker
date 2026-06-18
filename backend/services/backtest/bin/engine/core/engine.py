@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from timeframes.candle import Candle
-import redis
 
 @dataclass
 class TFState:
