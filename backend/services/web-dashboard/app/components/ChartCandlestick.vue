@@ -13,7 +13,7 @@
 
       <!-- TIME AXIS -->
       <div id="time-axis">
-        <canvas id="canvas-time"></canvas>
+        <canvas class="time-canvas" id="canvas-time"></canvas>
       </div>
 
       <!-- SCROLLBAR -->

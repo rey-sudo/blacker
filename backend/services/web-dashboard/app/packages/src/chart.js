@@ -200,23 +200,25 @@ export class ChartEngine {
     });
   }
 
-  // ── DOM SETUP ──────────────────────────────────────────────────────────────
+  /**
+   * Retrieves all chart DOM elements and initializes their
+   * corresponding 2D rendering contexts.
+   */
   _grabCanvases() {
-    //impl verification
     this.legendDiv = document.getElementById("chart-legend");
     this.indicatorsDiv = document.getElementById("chart-indicators");
 
     this.cMain = document.getElementById("canvas-main");
     this.ctxMain = this.cMain.getContext("2d");
 
-    this.oMain = document.getElementById("canvas-overlay");
-    this.ctxOMain = this.oMain.getContext("2d");
+    this.cDrawings = document.getElementById("canvas-drawings");
+    this.ctxDrawings = this.cDrawings.getContext("2d");
 
     this.cScale = document.getElementById("canvas-pricescale");
     this.ctxScale = this.cScale.getContext("2d");
 
-    this.cDrawings = document.getElementById("canvas-drawings");
-    this.ctxDrawings = this.cDrawings.getContext("2d");
+    this.oMain = document.getElementById("canvas-overlay");
+    this.ctxOMain = this.oMain.getContext("2d");
 
     this.cTime = document.getElementById("canvas-time");
     this.ctxTime = this.cTime.getContext("2d");
