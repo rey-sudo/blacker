@@ -188,6 +188,10 @@ export class ChartEngine {
     this._startLoop();
   }
 
+  /**
+   * Applies configured color values as CSS custom properties
+   * on the document root element.
+   */
   _loadCssVariables() {
     const root = document.documentElement;
 
