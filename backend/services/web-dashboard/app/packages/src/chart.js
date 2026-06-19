@@ -248,23 +248,29 @@ export class ChartEngine {
     const dpr = window.devicePixelRatio || 1;
 
     /**
-     * Configures a canvas for HiDPI rendering by:
-     * - Reading the container's visual size.
-     * - Setting the canvas backing-store size in physical pixels.
-     * - Preserving the intended CSS size.
-     * - Scaling the 2D context to DPR coordinates.
+     * Configures a canvas for HiDPI rendering to ensure sharp,
+     * pixel-perfect graphics on high-density displays.
      *
-     * @param {HTMLCanvasElement} canvas Target canvas.
-     * @param {HTMLElement} container Reference container element.
+     * @param {HTMLCanvasElement} canvas Target canvas element.
+     * @param {HTMLElement} container Container used to determine dimensions.
      */
     const setCanvas = (canvas, container) => {
+      // Get the container's current layout dimensions.
       const r = container.getBoundingClientRect();
-      const w = Math.ceil(r.width * dpr); // ← ceil, no truncar
+
+      // Compute the physical canvas width / height using the current DPR.
+      const w = Math.ceil(r.width * dpr);
       const h = Math.ceil(r.height * dpr);
+
+      // Set the canvas backing-store width / height in physical pixels.
       canvas.width = w;
       canvas.height = h;
-      canvas.style.width = w / dpr + "px"; // ← CSS = exactamente lo físico / dpr
+
+      // Preserve the intended visual width / height in CSS pixels.
+      canvas.style.width = w / dpr + "px";
       canvas.style.height = h / dpr + "px";
+
+      // Scale the rendering context to match DPR coordinates.
       canvas.getContext("2d").scale(dpr, dpr);
     };
 
