@@ -214,8 +214,8 @@ export class ChartEngine {
     this.cDrawings = document.getElementById("canvas-drawings");
     this.ctxDrawings = this.cDrawings.getContext("2d");
 
-    this.cScale = document.getElementById("canvas-pricescale");
-    this.ctxScale = this.cScale.getContext("2d");
+    this.pScale = document.getElementById("canvas-pricescale");
+    this.ctxScale = this.pScale.getContext("2d");
 
     this.oMain = document.getElementById("canvas-overlay");
     this.ctxOMain = this.oMain.getContext("2d");
@@ -258,10 +258,10 @@ export class ChartEngine {
     const mainR = pMain.getBoundingClientRect();
     const timeR = tAxis.getBoundingClientRect();
 
-    this.cScale.width = Math.ceil(PRICE_SCALE_W * dpr);
-    this.cScale.height = Math.ceil(mainR.height * dpr);
-    this.cScale.style.width = Math.ceil(PRICE_SCALE_W * dpr) / dpr + "px";
-    this.cScale.style.height = Math.ceil(mainR.height * dpr) / dpr + "px";
+    this.pScale.width = Math.ceil(PRICE_SCALE_W * dpr);
+    this.pScale.height = Math.ceil(mainR.height * dpr);
+    this.pScale.style.width = Math.ceil(PRICE_SCALE_W * dpr) / dpr + "px";
+    this.pScale.style.height = Math.ceil(mainR.height * dpr) / dpr + "px";
 
     this.ctxScale.setTransform(1, 0, 0, 1, 0, 0);
     this.ctxScale.scale(dpr, dpr);
