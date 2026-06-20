@@ -215,7 +215,7 @@ export class ChartEngine {
     this.ctxDrawings = this.cDrawings.getContext("2d");
 
     this.pScale = document.getElementById("canvas-pricescale");
-    this.ctxScale = this.pScale.getContext("2d");
+    this.ctxPScale = this.pScale.getContext("2d");
 
     this.oMain = document.getElementById("canvas-overlay");
     this.ctxOMain = this.oMain.getContext("2d");
@@ -274,7 +274,7 @@ export class ChartEngine {
       canvas.getContext("2d").scale(dpr, dpr);
     };
 
-    // Main chart pane container.
+    // Main chart pane-main container.
     const pMain = document.getElementById("pane-main");
 
     // Bottom time axis container.
@@ -296,15 +296,15 @@ export class ChartEngine {
     const mainR = pMain.getBoundingClientRect();
     const timeR = tAxis.getBoundingClientRect();
 
-    // Resize the fixed-width price scale canvas.
+    // Resize the fixed width / height price scale canvas.
     this.pScale.width = Math.ceil(PRICE_SCALE_W * dpr);
     this.pScale.height = Math.ceil(mainR.height * dpr);
     this.pScale.style.width = Math.ceil(PRICE_SCALE_W * dpr) / dpr + "px";
     this.pScale.style.height = Math.ceil(mainR.height * dpr) / dpr + "px";
 
     // Reset and apply DPR scaling to the price scale context.
-    this.ctxScale.setTransform(1, 0, 0, 1, 0, 0);
-    this.ctxScale.scale(dpr, dpr);
+    this.ctxPScale.setTransform(1, 0, 0, 1, 0, 0);
+    this.ctxPScale.scale(dpr, dpr);
 
     /**
      * Main chart pane geometry and rendering references.
@@ -715,7 +715,7 @@ export class ChartEngine {
   }
 
   _renderPriceScale(priceMin, priceMax) {
-    const ctx = this.ctxScale;
+    const ctx = this.ctxPScale;
     const W = PRICE_SCALE_W;
     const H = this.panes.scale.h;
     const p = this.panes.main; // yOf necesita el pane main para el height
