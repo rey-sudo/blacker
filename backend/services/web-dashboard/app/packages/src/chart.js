@@ -274,22 +274,6 @@ export class ChartEngine {
       canvas.getContext("2d").scale(dpr, dpr);
     };
 
-    const dpr2 = window.devicePixelRatio || 1;
-
-    /**
-     * Resets the canvas transformation matrix and reapplies
-     * the current DPR scaling.
-     *
-     * This prevents scale accumulation across multiple resize calls.
-     *
-     * @param {HTMLCanvasElement} canvas Target canvas.
-     */
-    const resetScale = (canvas) => {
-      const ctx = canvas.getContext("2d");
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.scale(dpr2, dpr2);
-    };
-
     // Main chart pane container.
     const pMain = document.getElementById("pane-main");
 
@@ -300,9 +284,7 @@ export class ChartEngine {
     setCanvas(this.cMain, pMain);
 
     // Reset and resize overlay layer.
-    resetScale(this.oMain);
     setCanvas(this.oMain, pMain);
-    resetScale(this.oMain);
 
     // Resize drawings layer.
     setCanvas(this.cDrawings, pMain);
