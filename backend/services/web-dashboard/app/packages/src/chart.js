@@ -156,8 +156,17 @@ export class ChartEngine {
      * Number of empty bar slots reserved to the right of the last data point.
      */
     this.rightPadBars = 20;
-    this.viewStart = 0; // first visible bar index
-    this.viewEnd = 0; // last  visible bar index  (exclusive; may exceed data.length)
+
+    /**
+     * Index of the first bar currently visible in the viewport.
+     */
+    this.viewStart = 0;
+
+    /**
+     * Exclusive end index of the current visible range. May exceed
+     * data.length due to reserved right-side padding bars.
+     */
+    this.viewEnd = 0;
 
     // Render state
     this.dirty = true;
@@ -1110,7 +1119,7 @@ export class ChartEngine {
         // Calculate the horizontal drag distance from the pan start point.
         const dx = e.clientX - this.panOrigin.x;
 
-        // Convert pixel movement into a bar offset.
+        // Calculate how many bars to shift based on the horizontal pixel movement.
         const shift = -Math.round(dx / this.barWidth);
 
         // Calculate how many bars fit in the current viewport.
