@@ -1236,9 +1236,9 @@ export class ChartEngine {
     });
     window.addEventListener("mousemove", (e) => {
       if (!scrollDragging) return;
-      const sbW = scrollbar.offsetWidth;
+      const scrollbarWidth = scrollbar.offsetWidth;
       const total = this.data.length + this.rightPadBars;
-      const ratio = (e.clientX - scrollOriginX) / sbW;
+      const ratio = (e.clientX - scrollOriginX) / scrollbarWidth;
       const shift = Math.round(ratio * total);
       const capacity = Math.floor(this.chartW / this.barWidth);
       this.viewStart = Math.max(
@@ -1399,18 +1399,18 @@ export class ChartEngine {
     const total = this.data.length + this.rightPadBars;
 
     // Get the current width of the scrollbar track in pixels.
-    const sbW = bar.offsetWidth;
+    const scrollbarWidth = bar.offsetWidth;
 
     // Calculate the number of bars currently visible in the viewport.
     const visible = this.viewEnd - this.viewStart;
 
     // Compute the thumb width proportionally to the visible range,
     // enforcing a minimum width for usability.
-    const thumbW = Math.max(20, sbW * (visible / total));
+    const thumbW = Math.max(20, scrollbarWidth * (visible / total));
 
     // Compute the thumb's horizontal position based on the
     // viewport start index relative to the total range.
-    const thumbL = sbW * (this.viewStart / total);
+    const thumbL = scrollbarWidth * (this.viewStart / total);
 
     // Apply the calculated width to the thumb element.
     thumb.style.width = thumbW + "px";
