@@ -1080,32 +1080,59 @@ export class ChartEngine {
     //----------------------------------------------------------
   }
 
-  // ── INTERACTION ──────────────────────────────────────────────────────────
+  /**
+   * Registers all user interaction and lifecycle event handlers
+   * required by the chart, including mouse, touch, scrolling,
+   * zooming, panning, scrollbar dragging, and window resizing.
+   */
   _bindEvents() {
     const area = document.getElementById("chart-area");
 
-    // Mouse move
+    // Track mouse movement within the chart area.
     area.addEventListener("mousemove", (e) => {
+      // Update the current mouse position and mark it as inside the chart.
       this.mouse = { x: e.clientX, y: e.clientY, inside: true };
+
+      // Handle horizontal panning while dragging.
       if (this.isPanning) {
+        // Calculate the horizontal drag distance from the pan start point.
         const dx = e.clientX - this.panOrigin.x;
+
+        // Convert pixel movement into a bar offset.
         const shift = -Math.round(dx / this.barWidth);
+
+        // Calculate how many bars fit in the current viewport.
         const capacity = Math.floor(this.chartW / this.barWidth);
+
+        // Determine the maximum valid start index for the viewport.
         const maxStart = Math.max(
           0,
           this.data.length + this.rightPadBars - capacity,
         );
+
+        // Update and clamp the viewport start index.
         this.viewStart = Math.max(
           0,
           Math.min(maxStart, this.panOrigin.viewStart + shift),
         );
+
+        // Recalculate the viewport end index.
         this.viewEnd = this.viewStart + capacity;
+
+        // Ensure the visible range remains within valid bounds.
         this._clampView();
+
+        // Mark the main chart layer for redraw.
         this.dirty = true;
+
+        // Synchronize the scrollbar thumb with the new viewport.
         this._updateScrollThumb();
+
+        // Refresh status information displayed to the user.
         this._updateStatus();
       }
 
+      // Mark the overlay layer for redraw.
       this.overlayDirty = true;
     });
 
