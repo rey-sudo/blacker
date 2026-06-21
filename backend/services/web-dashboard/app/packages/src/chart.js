@@ -147,10 +147,15 @@ export class ChartEngine {
     // Map<id, { def, values, enabled }>
     this._series = new Map();
 
-    // Viewport (virtual scroll)
+    /**
+     * Sets the initial width, in pixels, used to render each chart bar.
+     */
     this.barWidth = DEFAULT_BAR_W;
     this.interval = 86400;
-    this.rightPadBars = 20; // empty bar-slots kept to the right of the last candle
+    /**
+     * Number of empty bar slots reserved to the right of the last data point.
+     */
+    this.rightPadBars = 20;
     this.viewStart = 0; // first visible bar index
     this.viewEnd = 0; // last  visible bar index  (exclusive; may exceed data.length)
 
@@ -159,7 +164,10 @@ export class ChartEngine {
     this.overlayDirty = true;
     this.chartType = "candlestick";
 
-    // Interaction
+    /**
+     * Stores the latest mouse coordinates and hover state,
+     * used by overlay elements.
+     */
     this.mouse = { x: 0, y: 0, inside: false };
     this.isPanning = false;
     this.panOrigin = { x: 0, viewStart: 0 };
@@ -180,6 +188,10 @@ export class ChartEngine {
 
     // Panes geometry (computed in resize)
     this.panes = {};
+
+    /**
+     * Stores the drawable chart width, excluding the price scale area.
+     */
     this.chartW = 0;
 
     this._loadCssVariables();
