@@ -133,9 +133,10 @@ export function _mergeoptions(base, patch, opts = {}) {
   return fuse(base, patch, new WeakSet());
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+//--------------------------------------------------------------------------------------------------------------------
 //  CHART ENGINE
-// ═══════════════════════════════════════════════════════════════════════════════
+//--------------------------------------------------------------------------------------------------------------------
+
 export class ChartEngine {
   constructor() {
     this.options = { ...DEFAULT_OPTIONS };
@@ -1209,31 +1210,59 @@ export class ChartEngine {
       }
     });
 
-    // Zoom
+    // Handle mouse wheel zoom interaction on the chart area.
     area.addEventListener(
       "wheel",
       (e) => {
+        // Prevent default page scrolling behavior.
         e.preventDefault();
+
+        // Determine zoom direction based on wheel movement.
         const delta = e.deltaY > 0 ? -1 : 1;
+
+        // Compute zoom factor applied to current bar width.
         const factor = 1 + delta * SCROLL_ZOOM_FACTOR;
+
+        // Compute the new bar width, clamped to allowed zoom limits.
         const newBarW = Math.max(
           MIN_BAR_W,
           Math.min(MAX_BAR_W, this.barWidth * factor),
         );
+
+        // If zoom does not change bar width, exit early.
         if (newBarW === this.barWidth) return;
 
-        // Zoom toward mouse X
+        // Get mouse position relative to the chart content area.
         const localX = e.clientX - this.panes.main.x;
+
+        // Identify the bar index under the cursor (zoom focus point).
         const focusIdx = this._indexAtX(localX);
+
+        // Apply the new zoom level.
         this.barWidth = newBarW;
+
+        // Recalculate how many bars fit in the viewport.
         const capacity = Math.floor(this.chartW / this.barWidth);
-        // Keep focus bar at same relative screen position
+
+        // Compute cursor position as a ratio of chart width.
         const rel = localX / this.chartW;
+
+        // Adjust viewport so the focused bar stays under the cursor.
         this.viewStart = Math.max(0, Math.round(focusIdx - rel * capacity));
+
+        // Recalculate viewport end based on new capacity.
         this.viewEnd = this.viewStart + capacity;
+
+        // Clamp viewport to valid data bounds.
         this._clampView();
+
+        // Mark chart for redraw.
         this.dirty = true;
+
+        // Sync scrollbar thumb with new viewport.
         this._updateScrollThumb();
+
+        // Update UI status indicators.
         this._updateStatus();
       },
       { passive: false },
@@ -1249,7 +1278,6 @@ export class ChartEngine {
       { passive: true },
     );
 
-    // Handle mouse wheel zoom interaction on the chart area.
     area.addEventListener(
       "touchmove",
       (e) => {
