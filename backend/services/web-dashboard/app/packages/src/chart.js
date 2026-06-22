@@ -1286,51 +1286,94 @@ export class ChartEngine {
       { passive: true },
     );
 
+    // Handle touch movement for mobile pan (1 finger) and pinch zoom (2 fingers).
     area.addEventListener(
       "touchmove",
       (e) => {
+        // Prevent default browser behavior (scroll/zoom page).
         e.preventDefault();
+
+        // SINGLE TOUCH: horizontal pan gesture.
         if (e.touches.length === 1 && lastTouches.length === 1) {
+          // Compute horizontal movement since last frame (in pixels).
           const dx = e.touches[0].clientX - lastTouches[0].clientX;
+
+          // Convert pixel movement into bar index shift.
           const shift = -Math.round(dx / this.barWidth);
+
+          // Compute how many bars fit in the visible chart area.
           const capacity = Math.floor(this.chartW / this.barWidth);
+
+          // Compute the maximum valid starting index (right boundary constraint).
           const maxStart = Math.max(
             0,
             this.data.length + this.rightPadBars - capacity,
           );
+
+          // Update viewport start index with clamping to valid range.
           this.viewStart = Math.max(
             0,
             Math.min(maxStart, this.viewStart + shift),
           );
+
+          // Recompute viewport end index based on capacity.
           this.viewEnd = this.viewStart + capacity;
+
+          // Ensure viewport stays within valid data bounds.
           this._clampView();
+
+          // Mark chart for redraw.
           this.dirty = true;
+
+          // Update scrollbar thumb position.
           this._updateScrollThumb();
-        } else if (e.touches.length === 2 && lastTouches.length === 2) {
+        }
+
+        // TWO FINGERS: pinch zoom gesture.
+        else if (e.touches.length === 2 && lastTouches.length === 2) {
+          // Compute previous distance between the two touch points.
           const prev = Math.hypot(
             lastTouches[0].clientX - lastTouches[1].clientX,
             lastTouches[0].clientY - lastTouches[1].clientY,
           );
+
+          // Compute current distance between the two touch points.
           const curr = Math.hypot(
             e.touches[0].clientX - e.touches[1].clientX,
             e.touches[0].clientY - e.touches[1].clientY,
           );
+
+          // Compute zoom factor based on pinch gesture.
           const scale = curr / prev;
+
+          // Apply zoom to bar width while enforcing min/max limits.
           this.barWidth = Math.max(
             MIN_BAR_W,
             Math.min(MAX_BAR_W, this.barWidth * scale),
           );
+          // Compute how many bars fit in the viewport after zoom.
           const barsInView = Math.floor(this.chartW / this.barWidth);
+
+          // Adjust viewport end to match new zoom level.
           this.viewEnd = Math.min(
             this.data.length,
             this.viewStart + barsInView,
           );
+
+          // Ensure viewport remains within valid bounds.
           this._clampView();
+
+          // Mark chart for redraw.
           this.dirty = true;
+
+          // Update scrollbar thumb position.
           this._updateScrollThumb();
         }
+
+        // Update last known touch positions for next move event.
         lastTouches = [...e.touches];
       },
+      // Enable preventDefault because we block native touch scrolling.
       { passive: false },
     );
 
