@@ -179,6 +179,11 @@ export class ChartEngine {
      */
     this.mouse = { x: 0, y: 0, inside: false };
     this.isPanning = false;
+
+    /**
+     * Stores the pointer position and viewport state at the start
+     * of a pan operation, used to calculate drag offsets.
+     */
     this.panOrigin = { x: 0, viewStart: 0 };
 
     // Live update state
@@ -186,7 +191,12 @@ export class ChartEngine {
     this._prevClose = 0; // close of bar before current (for RSI tick)
 
     this._drawingModules = new Map(); // Map<id, handle>
+
+    /**
+     * Indicates whether pointer input is currently owned by another interaction.
+     */
     this._pointerClaimed = false;
+
     this.drawingsDirty = false; // flag para el RAF loop
     this._dmEventHandlers = {}; // listeners internos del engine hacia los módulos
 
@@ -1157,20 +1167,32 @@ export class ChartEngine {
       this.overlayDirty = true;
     });
 
+    // Handle pointer exit from the chart area.
     area.addEventListener("mouseleave", () => {
+      // Mark the mouse as outside the chart bounds.
       this.mouse.inside = false;
+
+      // Redraw overlay elements affected by hover state.
       this.overlayDirty = true;
     });
 
+    // Restore hover state when the pointer enters the chart area.
     area.addEventListener("mouseenter", () => {
       this.mouse.inside = true;
     });
 
-    // Pan
+    // Start a horizontal pan operation when the chart is clicked and dragged.
     area.addEventListener("mousedown", (e) => {
+      // Ignore panning if another tool or interaction has claimed the pointer.
       if (this._pointerClaimed) return;
+
+      // Mark the chart as being actively panned.
       this.isPanning = true;
+
+      // Store the initial pointer position and viewport state for panning calculations.
       this.panOrigin = { x: e.clientX, viewStart: this.viewStart };
+
+      // Update the cursor to indicate an active drag operation.
       area.style.cursor = "grabbing";
     });
 
