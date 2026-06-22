@@ -469,7 +469,11 @@ export class ChartEngine {
     return (i - this.viewStart) * this.barWidth + this.barWidth / 2;
   }
 
-  // X pixel → data index
+  /**
+   * Converts a horizontal pixel position within the chart
+   * into the corresponding data index based on current zoom
+   * (bar width) and viewport offset.
+   */
   _indexAtX(x) {
     return Math.round((x - this.barWidth / 2) / this.barWidth) + this.viewStart;
   }
@@ -1268,13 +1272,17 @@ export class ChartEngine {
       { passive: false },
     );
 
-    // Touch (mobile pan/pinch)
+    // Initialize touch tracking state for mobile interactions (pan and pinch zoom).
     let lastTouches = [];
+
+    // Store initial touch points when the user starts touching the chart.
     area.addEventListener(
       "touchstart",
       (e) => {
+        // Copy current touch points so we can compare movement in touchmove.
         lastTouches = [...e.touches];
       },
+      // Allow the browser to handle default behaviors (no preventDefault here).
       { passive: true },
     );
 
