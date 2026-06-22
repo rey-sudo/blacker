@@ -178,6 +178,11 @@ export class ChartEngine {
      * used by overlay elements.
      */
     this.mouse = { x: 0, y: 0, inside: false };
+
+    /**
+     * Indicates whether a pan (click-and-drag navigation) interaction
+     * is currently active on the chart.
+     */
     this.isPanning = false;
 
     /**
@@ -1196,6 +1201,7 @@ export class ChartEngine {
       area.style.cursor = "grabbing";
     });
 
+    // End the current pan operation when the mouse button is released.
     window.addEventListener("mouseup", (e) => {
       if (this.isPanning) {
         this.isPanning = false;
@@ -1243,6 +1249,7 @@ export class ChartEngine {
       { passive: true },
     );
 
+    // Handle mouse wheel zoom interaction on the chart area.
     area.addEventListener(
       "touchmove",
       (e) => {
@@ -1338,7 +1345,10 @@ export class ChartEngine {
     });
   }
 
-  // ── HELPERS ───────────────────────────────────────────────────────────────
+  //--------------------------------------------------------------------------------------------------------------------
+  //  HELPERS
+  //--------------------------------------------------------------------------------------------------------------------
+
   _nicePriceSteps(min, max, count) {
     const range = max - min;
     const rough = range / count;
@@ -1531,7 +1541,10 @@ export class ChartEngine {
     });
   }
 
-  // ── PUBLIC API ────────────────────────────────────────────────────────────
+  //--------------------------------------------------------------------------------------------------------------------
+  //  PUBLIC API
+  //--------------------------------------------------------------------------------------------------------------------
+
   applyOptions(newOptions) {
     this.options = _mergeoptions(this.options, newOptions);
     this._loadCssVariables();
