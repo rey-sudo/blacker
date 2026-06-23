@@ -245,7 +245,7 @@ export class ChartEngine {
     const chartArea = this.area;
 
     if (!chartArea) {
-      console.error("Not found id 'chart-area'.");
+      console.error("Not found id chart-area");
       return;
     }
 
@@ -551,7 +551,6 @@ export class ChartEngine {
 
   // ── MAIN RAF LOOP ─────────────────────────────────────────────────────────
   _startLoop() {
-    let lastT = performance.now();
     const loop = (now) => {
       requestAnimationFrame(loop);
 
@@ -621,10 +620,10 @@ export class ChartEngine {
     });
 
     // ── Custom series (foreground): line-type series like MA render here — above candles
-    this._series.forEach(({ def, values, enabled }) => {
+    this._series.forEach(({ def, values, enabled, params }) => {
       if (!enabled || def.layer === "background") return;
       ctx.save();
-      def.render(ctx, p, this, values, priceMin, priceMax);
+      def.render(ctx, p, this, values, priceMin, priceMax, params);
       ctx.restore();
     });
   }

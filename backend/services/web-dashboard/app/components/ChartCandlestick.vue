@@ -299,6 +299,7 @@ onMounted(() => {
       values: any[],
       priceMin: any,
       priceMax: any,
+      params: any
     ): void {
       ctx.strokeStyle = "#ffb830";
       ctx.lineWidth = 1.3;
