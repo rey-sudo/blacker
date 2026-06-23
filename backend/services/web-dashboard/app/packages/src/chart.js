@@ -387,7 +387,7 @@ export class ChartEngine {
   }
 
   // ── DATA LOADING ──────────────────────────────────────────────────────────
-  load(data) {
+  setData(data) {
     this.data = data;
 
     if (data.length >= 2) {
@@ -582,15 +582,15 @@ export class ChartEngine {
     });
 
     // Area fill (below close)
-    if (this.chartType === "area") this._drawArea(ctx, p, priceMin, priceMax);
+    //if (this.chartType === "area") this._drawArea(ctx, p, priceMin, priceMax);
 
     // Candles / line
-    if (this.chartType === "candlestick")
-      this._drawCandlesticks(ctx, p, priceMin, priceMax);
-    else if (this.chartType === "line")
-      this._drawLine(ctx, p, priceMin, priceMax);
-    else if (this.chartType === "area")
-      this._drawLine(ctx, p, priceMin, priceMax);
+    //if (this.chartType === "candlestick")
+      //this._drawCandlesticks(ctx, p, priceMin, priceMax);
+    //else if (this.chartType === "line")
+     // this._drawLine(ctx, p, priceMin, priceMax);
+    //else if (this.chartType === "area")
+      //this._drawLine(ctx, p, priceMin, priceMax);
 
     // ── Custom series (foreground): line-type series like MA render here — above candles
     this._series.forEach(({ def, values, enabled }) => {
@@ -631,111 +631,6 @@ export class ChartEngine {
         ctx.lineTo(x, H);
         ctx.stroke();
       }
-    }
-    ctx.restore();
-  }
-
-  _drawCandlesticks(ctx, p, priceMin, priceMax) {
-    const bw = Math.max(1, this.barWidth - 1);
-    const hw = Math.max(1, Math.floor(bw / 2));
-    ctx.save();
-    for (
-      let i = this.viewStart;
-      i < this.viewEnd && i < this.data.length;
-      i++
-    ) {
-      const d = this.data[i];
-      const x = Math.round(this._xOf(i));
-      const yH = Math.round(this._yOf(d.h, p, priceMin, priceMax));
-      const yL = Math.round(this._yOf(d.l, p, priceMin, priceMax));
-      const yO = Math.round(this._yOf(d.o, p, priceMin, priceMax));
-      const yC = Math.round(this._yOf(d.c, p, priceMin, priceMax));
-      const bull = d.c >= d.o;
-      const col = bull ? this.options.colors.bull : this.options.colors.bear;
-
-      // Wick — +0.5 aligns 1px stroke to pixel center
-      ctx.strokeStyle = col;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(x + 0.5, yH);
-      ctx.lineTo(x + 0.5, yL);
-      ctx.stroke();
-
-      const bodyTop = Math.min(yO, yC);
-      const bodyH = Math.max(1, Math.abs(yC - yO));
-      if (bw >= 2) {
-        ctx.fillStyle = col;
-        ctx.fillRect(x - hw + 1, bodyTop, bw - 1, bodyH);
-        if (bw >= 5 && bodyH > 2) {
-          ctx.fillStyle = bull
-            ? "rgba(0,200,122,0.25)"
-            : "rgba(255,64,96,0.25)";
-          ctx.fillRect(x - hw + 2, bodyTop + 1, bw - 3, bodyH - 2);
-        }
-      } else {
-        ctx.strokeStyle = col;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(x + 0.5, bodyTop);
-        ctx.lineTo(x + 0.5, bodyTop + bodyH);
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
-  }
-
-  _drawLine(ctx, p, priceMin, priceMax) {
-    ctx.save();
-    ctx.strokeStyle = this.options.colors.line;
-    ctx.lineWidth = 1.5;
-    ctx.lineJoin = "round";
-    ctx.beginPath();
-    let started = false;
-    for (
-      let i = this.viewStart;
-      i < this.viewEnd && i < this.data.length;
-      i++
-    ) {
-      const x = this._xOf(i);
-      const y = this._yOf(this.data[i].c, p, priceMin, priceMax);
-      if (!started) {
-        ctx.moveTo(x, y);
-        started = true;
-      } else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  _drawArea(ctx, p, priceMin, priceMax) {
-    ctx.save();
-    const baseY = p.h;
-    ctx.beginPath();
-    let started = false;
-    let firstX, lastX;
-    for (
-      let i = this.viewStart;
-      i < this.viewEnd && i < this.data.length;
-      i++
-    ) {
-      const x = this._xOf(i);
-      const y = this._yOf(this.data[i].c, p, priceMin, priceMax);
-      if (!started) {
-        ctx.moveTo(x, y);
-        firstX = x;
-        started = true;
-      } else ctx.lineTo(x, y);
-      lastX = x;
-    }
-    if (started) {
-      ctx.lineTo(lastX, baseY);
-      ctx.lineTo(firstX, baseY);
-      ctx.closePath();
-      const grad = ctx.createLinearGradient(0, 0, 0, p.h);
-      grad.addColorStop(0, this.options.colors.area1);
-      grad.addColorStop(1, this.options.colors.area2);
-      ctx.fillStyle = grad;
-      ctx.fill();
     }
     ctx.restore();
   }
