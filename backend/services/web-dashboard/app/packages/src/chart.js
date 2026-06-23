@@ -221,7 +221,7 @@ export class ChartEngine {
      */
     this.chartW = 0;
 
-    this._events = new AbortController();
+    this._abortController = new AbortController();
 
     this._loadCssVariables();
     this._buildLayout();
@@ -1120,7 +1120,7 @@ export class ChartEngine {
         // Mark the overlay layer for redraw.
         this.overlayDirty = true;
       },
-      { signal: this._events.signal },
+      { signal: this._abortController.signal },
     );
 
     // Handle pointer exit from the chart area.
@@ -1133,7 +1133,7 @@ export class ChartEngine {
         // Redraw overlay elements affected by hover state.
         this.overlayDirty = true;
       },
-      { signal: this._events.signal },
+      { signal: this._abortController.signal },
     );
 
     // Restore hover state when the pointer enters the chart area.
@@ -1142,7 +1142,7 @@ export class ChartEngine {
       () => {
         this.mouse.inside = true;
       },
-      { signal: this._events.signal },
+      { signal: this._abortController.signal },
     );
 
     // Start a horizontal pan operation when the chart is clicked and dragged.
@@ -1161,7 +1161,7 @@ export class ChartEngine {
         // Update the cursor to indicate an active drag operation.
         area.style.cursor = "grabbing";
       },
-      { signal: this._events.signal },
+      { signal: this._abortController.signal },
     );
 
     // End the current pan operation when the mouse button is released.
@@ -1173,7 +1173,7 @@ export class ChartEngine {
           area.style.cursor = "";
         }
       },
-      { signal: this._events.signal },
+      { signal: this._abortController.signal },
     );
 
     // Handle mouse wheel zoom interaction on the chart area.
@@ -1231,7 +1231,7 @@ export class ChartEngine {
         // Update UI status indicators.
         this._updateStatus();
       },
-      { passive: false, signal: this._events.signal },
+      { passive: false, signal: this._abortController.signal },
     );
 
     // Initialize touch tracking state for mobile interactions (pan and pinch zoom).
@@ -1245,7 +1245,7 @@ export class ChartEngine {
         lastTouches = [...e.touches];
       },
       // Allow the browser to handle default behaviors (no preventDefault here).
-      { passive: true, signal: this._events.signal },
+      { passive: true, signal: this._abortController.signal },
     );
 
     // Handle touch movement for mobile pan (1 finger) and pinch zoom (2 fingers).
@@ -1336,7 +1336,7 @@ export class ChartEngine {
         lastTouches = [...e.touches];
       },
       // Enable preventDefault because we block native touch scrolling.
-      { passive: false, signal: this._events.signal },
+      { passive: false, signal: this._abortController.signal },
     );
 
     // Cache references to the scrollbar thumb and track elements.
@@ -1361,7 +1361,7 @@ export class ChartEngine {
         // Prevent the event from triggering chart panning.
         e.stopPropagation();
       },
-      { signal: this._events.signal },
+      { signal: this._abortController.signal },
     );
 
     // Handle thumb dragging while the mouse moves.
@@ -1413,7 +1413,7 @@ export class ChartEngine {
         // Refresh viewport-related status information.
         this._updateStatus();
       },
-      { signal: this._events.signal },
+      { signal: this._abortController.signal },
     );
 
     // End scrollbar dragging when the mouse button is released.
@@ -1422,7 +1422,7 @@ export class ChartEngine {
       () => {
         scrollDragging = false;
       },
-      { signal: this._events.signal },
+      { signal: this._abortController.signal },
     );
 
     // Recalculate chart layout when the browser window is resized.
@@ -1432,7 +1432,7 @@ export class ChartEngine {
         this._resize();
         this.dirty = true;
       },
-      { signal: this._events.signal },
+      { signal: this._abortController.signal },
     );
   }
 
@@ -1637,7 +1637,7 @@ export class ChartEngine {
   //--------------------------------------------------------------------------------------------------------------------
 
   destroy() {
-    this._events.abort();
+    this._abortController.abort();
 
     this._drawingModules.forEach((m) => {
       m.destroy?.();
