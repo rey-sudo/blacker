@@ -1413,7 +1413,6 @@ export class ChartEngine {
         // Refresh viewport-related status information.
         this._updateStatus();
       },
-
       { signal: this._events.signal },
     );
 
