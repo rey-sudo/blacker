@@ -151,6 +151,16 @@ export class ChartEngine {
     this._series = new Map();
 
     /**
+     * Indicates whether the process is currently running.
+     */
+    this._running = false;
+    
+    /**
+     *  Stores the current requestAnimationFrame ID.
+     */
+    this._rafId = null;
+
+    /**
      * Sets the initial width, in pixels, used to render each chart bar.
      */
     this.barWidth = DEFAULT_BAR_W;
@@ -284,23 +294,29 @@ export class ChartEngine {
    * corresponding 2D rendering contexts.
    */
   _grabCanvases() {
-    this.legendDiv = document.getElementById("chart-legend");
-    this.indicatorsDiv = document.getElementById("chart-indicators");
+    const area = this.area;
+    this.legendDiv = area.querySelector("#chart-legend");
+    this.indicatorsDiv = area.querySelector("#chart-indicators");
 
-    this.cMain = document.getElementById("canvas-main");
+    this.cMain = area.querySelector("#canvas-main");
     this.ctxMain = this.cMain.getContext("2d");
-
-    this.cDrawings = document.getElementById("canvas-drawings");
+    this.cDrawings = area.querySelector("#canvas-drawings");
     this.ctxDrawings = this.cDrawings.getContext("2d");
-
-    this.pScale = document.getElementById("canvas-pricescale");
+    this.pScale = area.querySelector("#canvas-pricescale");
     this.ctxPScale = this.pScale.getContext("2d");
-
-    this.oMain = document.getElementById("canvas-overlay");
+    this.oMain = area.querySelector("#canvas-overlay");
     this.ctxOMain = this.oMain.getContext("2d");
-
-    this.cTime = document.getElementById("canvas-time");
+    this.cTime = area.querySelector("#canvas-time");
     this.ctxTime = this.cTime.getContext("2d");
+
+    // Cachear el resto para no volver a tocar document.getElementById
+    this.paneMainEl = area.querySelector("#pane-main");
+    this.timeAxisEl = area.querySelector("#time-axis");
+    this.scrollbarEl = area.querySelector("#scrollbar");
+    this.scrollThumbEl = area.querySelector("#scrollthumb");
+    this.statusFpsEl = area.querySelector("#status-fps");
+    this.statusBarsEl = area.querySelector("#status-bars");
+    this.statusZoomEl = area.querySelector("#status-zoom");
   }
 
   /**
@@ -357,10 +373,10 @@ export class ChartEngine {
     };
 
     // Main chart pane-main container.
-    const pMain = document.getElementById("pane-main");
+    const pMain = this.paneMainEl;
 
     // Bottom time axis container.
-    const tAxis = document.getElementById("time-axis");
+    const tAxis = this.timeAxisEl;
 
     // Resize chart rendering layers.
     setCanvas(this.cMain, pMain);
@@ -556,8 +572,12 @@ export class ChartEngine {
 
   // ── MAIN RAF LOOP ─────────────────────────────────────────────────────────
   _startLoop() {
+    this._running = true;
+
     const loop = (now) => {
-      requestAnimationFrame(loop);
+      if (!this._running) return;
+
+      this._rafId = requestAnimationFrame(loop);
 
       // FPS counter
       this._fpsFrames++;
@@ -565,7 +585,7 @@ export class ChartEngine {
         this.fps = Math.round(this._fpsFrames / ((now - this._fpsTime) / 1000));
         this._fpsFrames = 0;
         this._fpsTime = now;
-        document.getElementById("status-fps").textContent = this.fps + " FPS";
+        this.statusFpsEl.textContent = this.fps + " FPS";
       }
 
       if (this.dirty) {
@@ -585,7 +605,8 @@ export class ChartEngine {
         this.overlayDirty = false;
       }
     };
-    requestAnimationFrame(loop);
+
+    this._rafId = requestAnimationFrame(loop);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1340,8 +1361,8 @@ export class ChartEngine {
     );
 
     // Cache references to the scrollbar thumb and track elements.
-    const thumb = document.getElementById("scrollthumb");
-    const scrollbar = document.getElementById("scrollbar");
+    const thumb = this.scrollThumbEl;
+    const scrollbar = this.scrollbarEl;
 
     // Track scrollbar drag state and drag origin information.
     let scrollDragging = false,
@@ -1561,10 +1582,10 @@ export class ChartEngine {
     if (!this.data.length) return;
 
     // Retrieve the draggable scrollbar thumb element.
-    const thumb = document.getElementById("scrollthumb");
+    const thumb = this.scrollThumbEl;
 
     // Retrieve the scrollbar track element.
-    const bar = document.getElementById("scrollbar");
+    const bar = this.scrollbarEl;
 
     // Calculate the total logical range, including right-side padding.
     const total = this.data.length + this.rightPadBars;
@@ -1591,10 +1612,8 @@ export class ChartEngine {
   }
 
   _updateStatus() {
-    document.getElementById("status-bars").textContent =
-      `${this._barsVisible()} bars`;
-    document.getElementById("status-zoom").textContent =
-      `×${this.barWidth.toFixed(1)}`;
+    this.statusBarsEl.textContent = `${this._barsVisible()} bars`;
+    this.statusZoomEl.textContent = `×${this.barWidth.toFixed(1)}`;
   }
 
   _updateLegend() {
@@ -1637,13 +1656,16 @@ export class ChartEngine {
   //--------------------------------------------------------------------------------------------------------------------
 
   destroy() {
+    this._running = false;
+
+    if (this._rafId) cancelAnimationFrame(this._rafId);
+
     this._abortController.abort();
 
-    this._drawingModules.forEach((m) => {
-      m.destroy?.();
-    });
-
+    this._drawingModules.forEach((handle) => handle.destroy());
     this._drawingModules.clear();
+
+    if (this.area) this.area.innerHTML = "";
   }
 
   applyOptions(newOptions) {
