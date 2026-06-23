@@ -245,7 +245,7 @@ export class ChartEngine {
     const chartArea = this.area;
 
     if (!chartArea) {
-      console.error("No se encontró el elemento con el ID 'chart-area'.");
+      console.error("Not found id 'chart-area'.");
       return;
     }
 
@@ -619,17 +619,6 @@ export class ChartEngine {
       def.render(ctx, p, this, values, priceMin, priceMax, params);
       ctx.restore();
     });
-
-    // Area fill (below close)
-    //if (this.chartType === "area") this._drawArea(ctx, p, priceMin, priceMax);
-
-    // Candles / line
-    //if (this.chartType === "candlestick")
-    //this._drawCandlesticks(ctx, p, priceMin, priceMax);
-    //else if (this.chartType === "line")
-    // this._drawLine(ctx, p, priceMin, priceMax);
-    //else if (this.chartType === "area")
-    //this._drawLine(ctx, p, priceMin, priceMax);
 
     // ── Custom series (foreground): line-type series like MA render here — above candles
     this._series.forEach(({ def, values, enabled }) => {
