@@ -348,7 +348,10 @@ export class ChartEngine {
       canvas.style.height = h / dpr + "px";
 
       // Scale the rendering context to match DPR coordinates.
-      canvas.getContext("2d").scale(dpr, dpr);
+      const ctx = canvas.getContext("2d");
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
     };
 
     // Main chart pane-main container.
