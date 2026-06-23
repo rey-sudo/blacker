@@ -106,8 +106,16 @@ const fakeData = generateCandles(500, {
   volatility: 0.013,
 });
 
+let chart: any = null;
+
+onBeforeUnmount(() => {
+  if (chart) {
+    chart.destroy();
+  }
+});
+
 onMounted(() => {
-  const chart = createChart(document.getElementById("chart-area"));
+  chart = createChart(document.getElementById("chart-area"));
 
   chart.applyOptions({
     colors: {
@@ -299,7 +307,7 @@ onMounted(() => {
       values: any[],
       priceMin: any,
       priceMax: any,
-      params: any
+      params: any,
     ): void {
       ctx.strokeStyle = "#ffb830";
       ctx.lineWidth = 1.3;

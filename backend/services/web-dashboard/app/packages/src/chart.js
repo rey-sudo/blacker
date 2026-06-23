@@ -221,6 +221,8 @@ export class ChartEngine {
      */
     this.chartW = 0;
 
+    this._events = new AbortController();
+
     this._loadCssVariables();
     this._buildLayout();
     this._grabCanvases();
@@ -887,10 +889,27 @@ export class ChartEngine {
     // Live price dash — drawn unconditionally so it survives the !d early-exit below
     if (this._liveMode) this._drawLivePulse(this.ctxOMain, pMain, lo, hi);
 
-    if (!d) return; // cursor is in the empty right-padding zone — crosshair stops here
-
     // Crosshair X (shared across panes)
     const snapX = Math.round(this._xOf(barIdx)) + 0.5;
+
+    if (!d) {
+      const ctx = this.ctxOMain;
+
+      ctx.save();
+
+      ctx.strokeStyle = this.options.colors.cross;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+
+      ctx.beginPath();
+      ctx.moveTo(snapX, 0);
+      ctx.lineTo(snapX, pMain.h);
+      ctx.stroke();
+
+      ctx.restore();
+
+      return;
+    }
 
     // Main pane crosshair
     const ctx = this.ctxOMain;
@@ -1053,89 +1072,109 @@ export class ChartEngine {
     const area = this.area;
 
     // Track mouse movement within the chart area.
-    area.addEventListener("mousemove", (e) => {
-      // Update the current mouse position and mark it as inside the chart.
-      this.mouse = { x: e.clientX, y: e.clientY, inside: true };
+    area.addEventListener(
+      "mousemove",
+      (e) => {
+        // Update the current mouse position and mark it as inside the chart.
+        this.mouse = { x: e.clientX, y: e.clientY, inside: true };
 
-      // Handle horizontal panning while dragging.
-      if (this.isPanning) {
-        // Calculate the horizontal drag distance from the pan start point.
-        const dx = e.clientX - this.panOrigin.x;
+        // Handle horizontal panning while dragging.
+        if (this.isPanning) {
+          // Calculate the horizontal drag distance from the pan start point.
+          const dx = e.clientX - this.panOrigin.x;
 
-        // Calculate how many bars to shift based on the horizontal pixel movement.
-        const shift = -Math.round(dx / this.barWidth);
+          // Calculate how many bars to shift based on the horizontal pixel movement.
+          const shift = -Math.round(dx / this.barWidth);
 
-        // Calculate how many bars fit in the current viewport.
-        const capacity = Math.floor(this.chartW / this.barWidth);
+          // Calculate how many bars fit in the current viewport.
+          const capacity = Math.floor(this.chartW / this.barWidth);
 
-        // Determine the maximum valid start index for the viewport.
-        const maxStart = Math.max(
-          0,
-          this.data.length + this.rightPadBars - capacity,
-        );
+          // Determine the maximum valid start index for the viewport.
+          const maxStart = Math.max(
+            0,
+            this.data.length + this.rightPadBars - capacity,
+          );
 
-        // Update and clamp the viewport start index.
-        this.viewStart = Math.max(
-          0,
-          Math.min(maxStart, this.panOrigin.viewStart + shift),
-        );
+          // Update and clamp the viewport start index.
+          this.viewStart = Math.max(
+            0,
+            Math.min(maxStart, this.panOrigin.viewStart + shift),
+          );
 
-        // Recalculate the viewport end index.
-        this.viewEnd = this.viewStart + capacity;
+          // Recalculate the viewport end index.
+          this.viewEnd = this.viewStart + capacity;
 
-        // Ensure the visible range remains within valid bounds.
-        this._clampView();
+          // Ensure the visible range remains within valid bounds.
+          this._clampView();
 
-        // Mark the main chart layer for redraw.
-        this.dirty = true;
+          // Mark the main chart layer for redraw.
+          this.dirty = true;
 
-        // Synchronize the scrollbar thumb with the new viewport.
-        this._updateScrollThumb();
+          // Synchronize the scrollbar thumb with the new viewport.
+          this._updateScrollThumb();
 
-        // Refresh status information displayed to the user.
-        this._updateStatus();
-      }
+          // Refresh status information displayed to the user.
+          this._updateStatus();
+        }
 
-      // Mark the overlay layer for redraw.
-      this.overlayDirty = true;
-    });
+        // Mark the overlay layer for redraw.
+        this.overlayDirty = true;
+      },
+      { signal: this._events.signal },
+    );
 
     // Handle pointer exit from the chart area.
-    area.addEventListener("mouseleave", () => {
-      // Mark the mouse as outside the chart bounds.
-      this.mouse.inside = false;
+    area.addEventListener(
+      "mouseleave",
+      () => {
+        // Mark the mouse as outside the chart bounds.
+        this.mouse.inside = false;
 
-      // Redraw overlay elements affected by hover state.
-      this.overlayDirty = true;
-    });
+        // Redraw overlay elements affected by hover state.
+        this.overlayDirty = true;
+      },
+      { signal: this._events.signal },
+    );
 
     // Restore hover state when the pointer enters the chart area.
-    area.addEventListener("mouseenter", () => {
-      this.mouse.inside = true;
-    });
+    area.addEventListener(
+      "mouseenter",
+      () => {
+        this.mouse.inside = true;
+      },
+      { signal: this._events.signal },
+    );
 
     // Start a horizontal pan operation when the chart is clicked and dragged.
-    area.addEventListener("mousedown", (e) => {
-      // Ignore panning if another tool or interaction has claimed the pointer.
-      if (this._pointerClaimed) return;
+    area.addEventListener(
+      "mousedown",
+      (e) => {
+        // Ignore panning if another tool or interaction has claimed the pointer.
+        if (this._pointerClaimed) return;
 
-      // Mark the chart as being actively panned.
-      this.isPanning = true;
+        // Mark the chart as being actively panned.
+        this.isPanning = true;
 
-      // Store the initial pointer position and viewport state for panning calculations.
-      this.panOrigin = { x: e.clientX, viewStart: this.viewStart };
+        // Store the initial pointer position and viewport state for panning calculations.
+        this.panOrigin = { x: e.clientX, viewStart: this.viewStart };
 
-      // Update the cursor to indicate an active drag operation.
-      area.style.cursor = "grabbing";
-    });
+        // Update the cursor to indicate an active drag operation.
+        area.style.cursor = "grabbing";
+      },
+      { signal: this._events.signal },
+    );
 
     // End the current pan operation when the mouse button is released.
-    window.addEventListener("mouseup", (e) => {
-      if (this.isPanning) {
-        this.isPanning = false;
-        area.style.cursor = "";
-      }
-    });
+    window.addEventListener(
+      "mouseup",
+      (e) => {
+        if (this.isPanning) {
+          this.isPanning = false;
+          area.style.cursor = "";
+        }
+      },
+      { signal: this._events.signal },
+    );
 
     // Handle mouse wheel zoom interaction on the chart area.
     area.addEventListener(
@@ -1192,7 +1231,7 @@ export class ChartEngine {
         // Update UI status indicators.
         this._updateStatus();
       },
-      { passive: false },
+      { passive: false, signal: this._events.signal },
     );
 
     // Initialize touch tracking state for mobile interactions (pan and pinch zoom).
@@ -1206,7 +1245,7 @@ export class ChartEngine {
         lastTouches = [...e.touches];
       },
       // Allow the browser to handle default behaviors (no preventDefault here).
-      { passive: true },
+      { passive: true, signal: this._events.signal },
     );
 
     // Handle touch movement for mobile pan (1 finger) and pinch zoom (2 fingers).
@@ -1297,7 +1336,7 @@ export class ChartEngine {
         lastTouches = [...e.touches];
       },
       // Enable preventDefault because we block native touch scrolling.
-      { passive: false },
+      { passive: false, signal: this._events.signal },
     );
 
     // Cache references to the scrollbar thumb and track elements.
@@ -1310,75 +1349,92 @@ export class ChartEngine {
       scrollOriginVS = 0;
 
     // Begin scrollbar dragging when the thumb is pressed.
-    thumb.addEventListener("mousedown", (e) => {
-      // Enable scrollbar drag mode.
-      scrollDragging = true;
-      // Store the initial mouse X position.
-      scrollOriginX = e.clientX;
-      // Store the viewport start index at drag start.
-      scrollOriginVS = this.viewStart;
-      // Prevent the event from triggering chart panning.
-      e.stopPropagation();
-    });
+    thumb.addEventListener(
+      "mousedown",
+      (e) => {
+        // Enable scrollbar drag mode.
+        scrollDragging = true;
+        // Store the initial mouse X position.
+        scrollOriginX = e.clientX;
+        // Store the viewport start index at drag start.
+        scrollOriginVS = this.viewStart;
+        // Prevent the event from triggering chart panning.
+        e.stopPropagation();
+      },
+      { signal: this._events.signal },
+    );
 
     // Handle thumb dragging while the mouse moves.
-    window.addEventListener("mousemove", (e) => {
-      // Ignore movement unless a scrollbar drag is active.
-      if (!scrollDragging) return;
+    window.addEventListener(
+      "mousemove",
+      (e) => {
+        // Ignore movement unless a scrollbar drag is active.
+        if (!scrollDragging) return;
 
-      // Get the current scrollbar track width.
-      const scrollbarWidth = scrollbar.offsetWidth;
+        // Get the current scrollbar track width.
+        const scrollbarWidth = scrollbar.offsetWidth;
 
-      // Compute the total scrollable range, including right padding.
-      const total = this.data.length + this.rightPadBars;
+        // Compute the total scrollable range, including right padding.
+        const total = this.data.length + this.rightPadBars;
 
-      // Convert horizontal mouse movement into a scrollbar ratio.
-      const ratio = (e.clientX - scrollOriginX) / scrollbarWidth;
+        // Convert horizontal mouse movement into a scrollbar ratio.
+        const ratio = (e.clientX - scrollOriginX) / scrollbarWidth;
 
-      // Convert scrollbar movement into a bar index offset.
-      const shift = Math.round(ratio * total);
+        // Convert scrollbar movement into a bar index offset.
+        const shift = Math.round(ratio * total);
 
-      // Calculate how many bars fit in the current viewport.
-      const capacity = Math.floor(this.chartW / this.barWidth);
+        // Calculate how many bars fit in the current viewport.
+        const capacity = Math.floor(this.chartW / this.barWidth);
 
-      // Update and clamp the viewport start index.
-      this.viewStart = Math.max(
-        0,
-        Math.min(
-          this.data.length + this.rightPadBars - capacity,
-          scrollOriginVS + shift,
-        ),
-      );
+        // Update and clamp the viewport start index.
+        this.viewStart = Math.max(
+          0,
+          Math.min(
+            this.data.length + this.rightPadBars - capacity,
+            scrollOriginVS + shift,
+          ),
+        );
 
-      // Recalculate the viewport end index.
-      this.viewEnd = Math.min(
-        this.data.length + this.rightPadBars,
-        this.viewStart + capacity,
-      );
+        // Recalculate the viewport end index.
+        this.viewEnd = Math.min(
+          this.data.length + this.rightPadBars,
+          this.viewStart + capacity,
+        );
 
-      // Ensure the viewport remains within valid bounds.
-      this._clampView();
+        // Ensure the viewport remains within valid bounds.
+        this._clampView();
 
-      // Mark the chart for redraw.
-      this.dirty = true;
+        // Mark the chart for redraw.
+        this.dirty = true;
 
-      // Synchronize the scrollbar thumb position and size.
-      this._updateScrollThumb();
+        // Synchronize the scrollbar thumb position and size.
+        this._updateScrollThumb();
 
-      // Refresh viewport-related status information.
-      this._updateStatus();
-    });
+        // Refresh viewport-related status information.
+        this._updateStatus();
+      },
+
+      { signal: this._events.signal },
+    );
 
     // End scrollbar dragging when the mouse button is released.
-    window.addEventListener("mouseup", () => {
-      scrollDragging = false;
-    });
+    window.addEventListener(
+      "mouseup",
+      () => {
+        scrollDragging = false;
+      },
+      { signal: this._events.signal },
+    );
 
     // Recalculate chart layout when the browser window is resized.
-    window.addEventListener("resize", () => {
-      this._resize();
-      this.dirty = true;
-    });
+    window.addEventListener(
+      "resize",
+      () => {
+        this._resize();
+        this.dirty = true;
+      },
+      { signal: this._events.signal },
+    );
   }
 
   //--------------------------------------------------------------------------------------------------------------------
@@ -1580,6 +1636,16 @@ export class ChartEngine {
   //--------------------------------------------------------------------------------------------------------------------
   //  PUBLIC API
   //--------------------------------------------------------------------------------------------------------------------
+
+  destroy() {
+    this._events.abort();
+
+    this._drawingModules.forEach((m) => {
+      m.destroy?.();
+    });
+
+    this._drawingModules.clear();
+  }
 
   applyOptions(newOptions) {
     this.options = _mergeoptions(this.options, newOptions);
