@@ -1377,26 +1377,48 @@ export class ChartEngine {
       { passive: false },
     );
 
-    // Scrollbar drag
+    // Cache references to the scrollbar thumb and track elements.
     const thumb = document.getElementById("scrollthumb");
     const scrollbar = document.getElementById("scrollbar");
+
+    // Track scrollbar drag state and drag origin information.
     let scrollDragging = false,
       scrollOriginX = 0,
       scrollOriginVS = 0;
 
+    // Begin scrollbar dragging when the thumb is pressed.
     thumb.addEventListener("mousedown", (e) => {
+      // Enable scrollbar drag mode.
       scrollDragging = true;
+      // Store the initial mouse X position.
       scrollOriginX = e.clientX;
+      // Store the viewport start index at drag start.
       scrollOriginVS = this.viewStart;
+      // Prevent the event from triggering chart panning.
       e.stopPropagation();
     });
+
+    // Handle thumb dragging while the mouse moves.
     window.addEventListener("mousemove", (e) => {
+      // Ignore movement unless a scrollbar drag is active.
       if (!scrollDragging) return;
+
+      // Get the current scrollbar track width.
       const scrollbarWidth = scrollbar.offsetWidth;
+
+      // Compute the total scrollable range, including right padding.
       const total = this.data.length + this.rightPadBars;
+
+      // Convert horizontal mouse movement into a scrollbar ratio.
       const ratio = (e.clientX - scrollOriginX) / scrollbarWidth;
+
+      // Convert scrollbar movement into a bar index offset.
       const shift = Math.round(ratio * total);
+
+      // Calculate how many bars fit in the current viewport.
       const capacity = Math.floor(this.chartW / this.barWidth);
+
+      // Update and clamp the viewport start index.
       this.viewStart = Math.max(
         0,
         Math.min(
@@ -1404,20 +1426,32 @@ export class ChartEngine {
           scrollOriginVS + shift,
         ),
       );
+
+      // Recalculate the viewport end index.
       this.viewEnd = Math.min(
         this.data.length + this.rightPadBars,
         this.viewStart + capacity,
       );
+
+      // Ensure the viewport remains within valid bounds.
       this._clampView();
+
+      // Mark the chart for redraw.
       this.dirty = true;
+
+      // Synchronize the scrollbar thumb position and size.
       this._updateScrollThumb();
+
+      // Refresh viewport-related status information.
       this._updateStatus();
     });
+
+    // End scrollbar dragging when the mouse button is released.
     window.addEventListener("mouseup", () => {
       scrollDragging = false;
     });
 
-    // Resize
+    // Recalculate chart layout when the browser window is resized.
     window.addEventListener("resize", () => {
       this._resize();
       this.dirty = true;
