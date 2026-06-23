@@ -1,40 +1,11 @@
 <template>
   <div class="chart-container">
-    <div id="chart-area">
-      <!-- MAIN PANE -->
-
-      <div class="pane" id="pane-main">
-        <canvas class="chart-canvas" id="canvas-main"></canvas>
-        <canvas class="drawings-canvas" id="canvas-drawings"></canvas>
-        <canvas class="pricescale-canvas" id="canvas-pricescale"></canvas>
-        <canvas class="overlay-canvas" id="canvas-overlay"></canvas>
-      </div>
-
-      <!-- TIME AXIS -->
-      <div id="time-axis">
-        <canvas class="time-canvas" id="canvas-time"></canvas>
-      </div>
-
-      <!-- SCROLLBAR -->
-      <div id="scrollbar">
-        <div id="scrollthumb"></div>
-      </div>
-
-      <div id="chart-legend"></div>
-      <div id="chart-indicators"></div>
-
-      <div id="statusbar">
-        <span id="status-fps">60 FPS</span>
-        <span id="status-bars"></span>
-        <span id="status-zoom"></span>
-        <span id="status-cursor"></span>
-      </div>
-    </div>
+    <div id="chart-area"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ChartEngine, createChart } from "@/packages/src/chart.js";
+import { createChart } from "@/packages/src/chart.js";
 import { useBacktestingTabStore } from "~/stores/tabs";
 
 const props = defineProps({
@@ -129,6 +100,12 @@ function normalizeCandle(candle: any) {
   };
 }
 
+const fakeData = generateCandles(500, {
+  startPrice: 63332,
+  trend: 0.0002, // alcista
+  volatility: 0.013,
+});
+
 onMounted(() => {
   const chart = createChart(document.getElementById("chart-area"));
 
@@ -141,12 +118,6 @@ onMounted(() => {
       bear: "rgb(242, 54, 69)",
       grid: getCssVariable("--ui-border"),
     },
-  });
-
-  const fakeData = generateCandles(500, {
-    startPrice: 63332,
-    trend: 0.0002, // alcista
-    volatility: 0.013,
   });
 
   chart.setData(normalizeCandles(fakeData));
