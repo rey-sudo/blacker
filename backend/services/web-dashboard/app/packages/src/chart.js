@@ -154,7 +154,7 @@ export class ChartEngine {
      * Indicates whether the process is currently running.
      */
     this._running = false;
-    
+
     /**
      *  Stores the current requestAnimationFrame ID.
      */
@@ -1172,6 +1172,8 @@ export class ChartEngine {
       (e) => {
         // Ignore panning if another tool or interaction has claimed the pointer.
         if (this._pointerClaimed) return;
+        
+        if (e.button !== 0) return;
 
         // Mark the chart as being actively panned.
         this.isPanning = true;
@@ -1312,44 +1314,28 @@ export class ChartEngine {
           this._updateScrollThumb();
         }
 
-        // TWO FINGERS: pinch zoom gesture.
+        // TWO FINGERS: pinch zoom — reemplazar este bloque
         else if (e.touches.length === 2 && lastTouches.length === 2) {
-          // Compute previous distance between the two touch points.
           const prev = Math.hypot(
             lastTouches[0].clientX - lastTouches[1].clientX,
             lastTouches[0].clientY - lastTouches[1].clientY,
           );
-
-          // Compute current distance between the two touch points.
           const curr = Math.hypot(
             e.touches[0].clientX - e.touches[1].clientX,
             e.touches[0].clientY - e.touches[1].clientY,
           );
-
-          // Compute zoom factor based on pinch gesture.
           const scale = curr / prev;
 
-          // Apply zoom to bar width while enforcing min/max limits.
           this.barWidth = Math.max(
             MIN_BAR_W,
             Math.min(MAX_BAR_W, this.barWidth * scale),
           );
-          // Compute how many bars fit in the viewport after zoom.
-          const barsInView = Math.floor(this.chartW / this.barWidth);
 
-          // Adjust viewport end to match new zoom level.
-          this.viewEnd = Math.min(
-            this.data.length,
-            this.viewStart + barsInView,
-          );
-
-          // Ensure viewport remains within valid bounds.
+          const capacity = Math.floor(this.chartW / this.barWidth);
+          this.viewEnd = this.viewStart + capacity; // <- antes: Math.min(this.data.length, ...)
           this._clampView();
 
-          // Mark chart for redraw.
           this.dirty = true;
-
-          // Update scrollbar thumb position.
           this._updateScrollThumb();
         }
 
