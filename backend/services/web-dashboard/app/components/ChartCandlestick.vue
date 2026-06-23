@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChartEngine } from "@/packages/src/chart.js";
+import { ChartEngine, createChart } from "@/packages/src/chart.js";
 import { useBacktestingTabStore } from "~/stores/tabs";
 
 const props = defineProps({
@@ -130,7 +130,7 @@ function normalizeCandle(candle: any) {
 }
 
 onMounted(() => {
-  const chart = new ChartEngine();
+  const chart = createChart(document.getElementById("chart-area"));
 
   chart.applyOptions({
     colors: {

@@ -138,8 +138,10 @@ export function _mergeoptions(base, patch, opts = {}) {
 //--------------------------------------------------------------------------------------------------------------------
 
 export class ChartEngine {
-  constructor() {
+  constructor(area) {
     this.options = { ...DEFAULT_OPTIONS };
+
+    this.area = area;
 
     // Data
     this.data = [];
@@ -586,11 +588,11 @@ export class ChartEngine {
 
     // Candles / line
     //if (this.chartType === "candlestick")
-      //this._drawCandlesticks(ctx, p, priceMin, priceMax);
+    //this._drawCandlesticks(ctx, p, priceMin, priceMax);
     //else if (this.chartType === "line")
-     // this._drawLine(ctx, p, priceMin, priceMax);
+    // this._drawLine(ctx, p, priceMin, priceMax);
     //else if (this.chartType === "area")
-      //this._drawLine(ctx, p, priceMin, priceMax);
+    //this._drawLine(ctx, p, priceMin, priceMax);
 
     // ── Custom series (foreground): line-type series like MA render here — above candles
     this._series.forEach(({ def, values, enabled }) => {
@@ -734,7 +736,7 @@ export class ChartEngine {
 
   _buildDrawingApi() {
     const engine = this;
-    const area = document.getElementById("chart-area");
+    const area = this.area;
 
     return {
       get canvas() {
@@ -791,9 +793,7 @@ export class ChartEngine {
 
       claimPointer(v) {
         engine._pointerClaimed = !!v;
-        document.getElementById("chart-area").style.cursor = v
-          ? "crosshair"
-          : "";
+        this.area.style.cursor = v ? "crosshair" : "";
       },
 
       // Suscripción normalizada a eventos del chart area
@@ -1022,7 +1022,7 @@ export class ChartEngine {
    * zooming, panning, scrollbar dragging, and window resizing.
    */
   _bindEvents() {
-    const area = document.getElementById("chart-area");
+    const area = this.area;
 
     // Track mouse movement within the chart area.
     area.addEventListener("mousemove", (e) => {
@@ -1767,4 +1767,10 @@ export class ChartEngine {
   removeDrawingModule(id) {
     this._drawingModules.get(id)?.destroy();
   }
+}
+
+export function createChart(container) {
+  const chart = new ChartEngine(container);
+
+  return chart;
 }
