@@ -1,36 +1,4 @@
-use std::time::Instant;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum MasterState {
-    Starting,
-    WaitingForSlaves,
-    Ready,
-    Running,
-    Error,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SlaveStatus {
-    Offline,
-    Online,
-}
-
-#[derive(Debug)]
-pub struct Slave {
-    pub connected: bool,
-    pub status: SlaveStatus,
-    pub last_seen: Instant,
-}
-
-impl Slave {
-    pub fn new() -> Self {
-        Self {
-            connected: false,
-            status: SlaveStatus::Offline,
-            last_seen: Instant::now(),
-        }
-    }
-}
+use crate::{common::SlaveId, master::MasterState, slave::Slave};
 
 #[derive(Debug)]
 pub struct App {
@@ -46,9 +14,9 @@ impl App {
         Self {
             state: MasterState::Starting,
 
-            tick: Slave::new(),
+            tick: Slave::new(SlaveId::Tick),
 
-            engine: Slave::new(),
+            engine: Slave::new(SlaveId::Engine),
         }
     }
 

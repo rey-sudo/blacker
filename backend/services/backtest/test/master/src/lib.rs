@@ -1,6 +1,11 @@
 pub mod app;
 pub mod common;
 pub mod connection;
+pub mod handle_ack;
+pub mod handle_command;
 pub mod master;
+pub mod protocol;
+pub mod register_client;
 pub mod session;
+pub mod slave;
 pub mod websocket;
