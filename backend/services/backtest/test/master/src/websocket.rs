@@ -54,11 +54,11 @@ async fn process_message(
         }
 
         ClientMessage::Command(cmd) => {
-            handle_command(cmd, state).await?;
+            handle_command(cmd, state.clone()).await?;
         }
 
         ClientMessage::Ack(ack) => {
-            handle_ack(ack, client_id.clone(), state).await?;
+            handle_ack(ack, client_id, state.clone()).await?;
         }
     }
 
