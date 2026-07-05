@@ -1,55 +1,27 @@
-use axum::{
-    Router,
-    extract::ws::{WebSocket, WebSocketUpgrade},
-    response::IntoResponse,
-    routing::get,
-};
-use axum::extract::ws::Message;
-use futures_util::{SinkExt, StreamExt};
-use master::common::Packet;
+use axum::{Router, routing::get};
+use master::app::App;
+use master::websocket::{self, SharedApp};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 #[tokio::main]
 async fn main() {
-    let app: Router = Router::new().route("/ws", get(ws_handler));
+    let app_state: SharedApp = Arc::new(RwLock::new(App::new()));
 
-    let listener: tokio::net::TcpListener =
-        tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let app: Router = Router::new()
+        .route("/ws", get(websocket::ws_handler))
+        .with_state(app_state);
 
-    println!("Master escuchando en puerto 3000");
+    let listener: tokio::net::TcpListener = tokio::net::TcpListener::bind("0.0.0.0:3000")
+        .await
+        .expect("No se pudo abrir el puerto 3000");
 
-    axum::serve(listener, app).await.unwrap();
-}
+    println!("=================================");
+    println!(" Master iniciado");
+    println!(" Escuchando en ws://0.0.0.0:3000/ws");
+    println!("=================================");
 
-async fn ws_handler(ws: WebSocketUpgrade) -> impl IntoResponse {
-    ws.on_upgrade(handle_socket)
-}
-
-async fn handle_socket(mut socket: WebSocket) {
-    println!("Nuevo slave conectado");
-
-    while let Some(Ok(msg)) = socket.next().await {
-        match msg {
-            Message::Text(text) => {
-                match serde_json::from_str::<Packet>(&text) {
-                    Ok(packet) => {
-                        println!("{packet:?}");
-
-                        match packet {
-                            Packet::Hello { id } => {
-                                println!("Slave identificado: {}", id);
-                            }
-                        }
-                    }
-
-                    Err(err) => {
-                        println!("Error parseando Packet: {}", err);
-                    }
-                }
-            }
-
-            _ => {}
-        }
-    }
-
-    println!("Slave desconectado");
+    axum::serve(listener, app)
+        .await
+        .expect("Error del servidor");
 }

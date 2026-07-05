@@ -1,10 +1,9 @@
 use futures_util::SinkExt;
-use tick::common::Packet;
+use tick::common::{Packet, SlaveId::Tick};
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-
     let url: &str = "ws://127.0.0.1:3000/ws";
 
     println!("Conectando...");
@@ -13,9 +12,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Conectado.");
 
-    let packet = Packet::Hello {
-        id: "slave1".to_string(),
-    };
+    let packet: Packet = Packet::Hello { id: Tick };
 
     let json = serde_json::to_string(&packet)?;
 
