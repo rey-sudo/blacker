@@ -1,6 +1,8 @@
 use axum::Router;
 use master::{routes, state::AppState};
-use std::time::{Duration, SystemTime};
+use std::collections::HashMap;
+use std::time::{Duration};
+use tokio::sync::RwLockWriteGuard;
 use tokio::time;
 use tracing::info;
 
@@ -11,7 +13,8 @@ pub fn start_slave_monitor(state: AppState) {
         loop {
             interval.tick().await;
 
-            let mut slaves = state.slaves.write().await;
+            let mut slaves: RwLockWriteGuard<'_, HashMap<String, master::state::SlaveState>> =
+                state.slaves.write().await;
 
             for slave in slaves.values_mut() {
                 if slave.connected && slave.last_seen.elapsed() >= Duration::from_secs(60) {

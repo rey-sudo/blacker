@@ -6,7 +6,7 @@ use std::time::Instant;
 use tokio::sync::RwLock;
 
 #[derive(Debug, Clone)]
-pub struct SlaveStatus {
+pub struct SlaveState {
     pub connected: bool,
     pub last_seen: Instant,
     pub status: String,
@@ -14,7 +14,7 @@ pub struct SlaveStatus {
 
 #[derive(Clone)]
 pub struct AppState {
-    pub slaves: Arc<RwLock<HashMap<String, SlaveStatus>>>,
+    pub slaves: Arc<RwLock<HashMap<String, SlaveState>>>,
 }
 
 impl AppState {
