@@ -1,6 +1,6 @@
-use tick::monitor::{start_master_report_task};
 use tick::server::start_http_server;
 use tick::state::AppState;
+use tick::tasks::start_master_report_task;
 
 #[tokio::main]
 async fn main() {

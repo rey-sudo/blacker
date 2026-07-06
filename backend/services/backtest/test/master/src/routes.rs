@@ -6,6 +6,6 @@ use axum::{Router, routing::{get, post}};
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/report-state", post(report_state_handler))
-        .route("/get-state", get(get_state_handler))
+        .route("/master/report-state", post(report_state_handler))
+        .route("/master/get-state", get(get_state_handler))
 }

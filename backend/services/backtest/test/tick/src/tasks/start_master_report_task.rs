@@ -34,7 +34,7 @@ pub fn start_master_report_task(state: AppState) {
             };
 
             match client
-                .post("http://localhost:3000/report-state")
+                .post("http://localhost:3000/master/report-state")
                 .json(&body)
                 .send()
                 .await
