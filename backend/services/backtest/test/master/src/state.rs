@@ -1,8 +1,5 @@
-use std::{
-    collections::HashMap,
-    sync::Arc,
-};
 use std::time::Instant;
+use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 
 #[derive(Debug, Clone)]
@@ -12,15 +9,34 @@ pub struct SlaveState {
     pub status: String,
 }
 
+#[derive(Debug, Clone)]
+pub enum MasterStatus {
+    Pending,
+    Ready,
+    Starting,
+    Running,
+    Degraded,
+    Maintenance,
+    Stopping,
+}
+
+pub struct MasterState {
+    pub status: MasterStatus,
+    pub slaves: HashMap<String, SlaveState>,
+}
+
 #[derive(Clone)]
 pub struct AppState {
-    pub slaves: Arc<RwLock<HashMap<String, SlaveState>>>,
+    pub master: Arc<RwLock<MasterState>>,
 }
 
 impl AppState {
     pub fn new() -> Self {
         Self {
-            slaves: Arc::new(RwLock::new(HashMap::new())),
+            master: Arc::new(RwLock::new(MasterState {
+                status: MasterStatus::Starting,
+                slaves: HashMap::new(),
+            })),
         }
     }
 }

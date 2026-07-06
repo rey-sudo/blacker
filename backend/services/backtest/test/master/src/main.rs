@@ -1,30 +1,6 @@
 use axum::Router;
+use master::monitor::{start_master_monitor, start_slave_monitor};
 use master::{routes, state::AppState};
-use std::collections::HashMap;
-use std::time::{Duration};
-use tokio::sync::RwLockWriteGuard;
-use tokio::time;
-use tracing::info;
-
-pub fn start_slave_monitor(state: AppState) {
-    tokio::spawn(async move {
-        let mut interval: time::Interval = time::interval(Duration::from_secs(10));
-
-        loop {
-            interval.tick().await;
-
-            let mut slaves: RwLockWriteGuard<'_, HashMap<String, master::state::SlaveState>> =
-                state.slaves.write().await;
-
-            for slave in slaves.values_mut() {
-                if slave.connected && slave.last_seen.elapsed() >= Duration::from_secs(60) {
-                    slave.connected = false;
-                    info!(?slave, "Slave desconectado por timeout");
-                }
-            }
-        }
-    });
-}
 
 #[tokio::main]
 async fn main() {
@@ -32,6 +8,7 @@ async fn main() {
 
     let state: master::state::AppState = AppState::new();
 
+    start_master_monitor(state.clone());
     start_slave_monitor(state.clone());
 
     let app: Router = Router::new().merge(routes::router()).with_state(state);

@@ -1,7 +1,6 @@
-use crate::state::{AppState, SlaveState};
+use crate::state::{AppState, MasterState, SlaveState};
 use axum::{Json, Router, extract::State, http::StatusCode, routing::post};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::time::Instant;
 use tokio::sync::RwLockWriteGuard;
 use tracing::info;
@@ -25,9 +24,9 @@ async fn report_state_handler(
     State(state): State<AppState>,
     Json(req): Json<ReportRequest>,
 ) -> (StatusCode, Json<ReportResponse>) {
-    let mut slaves: RwLockWriteGuard<'_, HashMap<String, SlaveState>> = state.slaves.write().await;
+    let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
-    slaves.insert(
+    master.slaves.insert(
         req.id,
         SlaveState {
             connected: true,
@@ -36,7 +35,7 @@ async fn report_state_handler(
         },
     );
 
-    info!(?slaves, "Estado actualizado");
+    info!(?master.slaves, "Estado actualizado");
 
     (StatusCode::OK, Json(ReportResponse { ok: true }))
 }
