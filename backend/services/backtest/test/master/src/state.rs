@@ -1,15 +1,10 @@
-use std::time::Instant;
 use std::{collections::HashMap, sync::Arc};
+use serde::Serialize;
 use tokio::sync::RwLock;
+use crate::slave::SlaveState;
 
-#[derive(Debug, Clone)]
-pub struct SlaveState {
-    pub connected: bool,
-    pub last_seen: Instant,
-    pub status: String,
-}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum MasterStatus {
     Pending,
     Ready,
@@ -20,6 +15,7 @@ pub enum MasterStatus {
     Stopping,
 }
 
+#[derive(Debug, Clone, Serialize)]
 pub struct MasterState {
     pub status: MasterStatus,
     pub slaves: HashMap<String, SlaveState>,

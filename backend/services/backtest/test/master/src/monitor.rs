@@ -1,4 +1,5 @@
-use crate::state::{AppState, MasterState, MasterStatus, SlaveState};
+use crate::slave::SlaveState;
+use crate::state::{AppState, MasterState, MasterStatus};
 use std::time::Duration;
 use tokio::sync::RwLockWriteGuard;
 use tokio::time;
@@ -14,7 +15,7 @@ pub fn start_slave_monitor(state: AppState) {
             let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
             for slave in master.slaves.values_mut() {
-                if slave.connected && slave.last_seen.elapsed() >= Duration::from_secs(60) {
+                if slave.connected && slave.last_seen.elapsed() >= Duration::from_secs(30) {
                     slave.connected = false;
                     info!(?slave, "Slave desconectado por timeout");
                 }
