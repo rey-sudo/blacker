@@ -8,7 +8,7 @@ async fn main() {
 
     let state: tick::state::AppState = AppState::new();
 
-    start_master_report_task();
+    start_master_report_task(state.clone());
 
     start_http_server(state).await;
 }

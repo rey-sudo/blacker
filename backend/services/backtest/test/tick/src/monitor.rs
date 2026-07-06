@@ -1,6 +1,8 @@
+use crate::state::{AppState, SlaveState};
 use reqwest::Client;
 use serde::Serialize;
 use std::time::Duration;
+use tokio::sync::RwLockReadGuard;
 use tokio::time;
 use tracing::{error, info};
 
@@ -10,7 +12,7 @@ struct ReportStateRequest {
     status: String,
 }
 
-pub fn start_master_report_task() {
+pub fn start_master_report_task(state: AppState) {
     tokio::spawn(async move {
         let client: Client = Client::builder()
             .pool_idle_timeout(Duration::from_secs(300))
@@ -24,9 +26,11 @@ pub fn start_master_report_task() {
         loop {
             interval.tick().await;
 
+            let slave: RwLockReadGuard<'_, SlaveState> = state.slave.read().await;
+
             let body: ReportStateRequest = ReportStateRequest {
-                id: "tick".to_string(),
-                status: "Running".to_string(),
+                id: format!("{:?}", slave.id),
+                status: format!("{:?}", slave.status),
             };
 
             match client

@@ -1,37 +1,31 @@
-use std::{collections::HashMap, sync::Arc};
 use serde::Serialize;
+use std::sync::Arc;
 use tokio::sync::RwLock;
-use crate::slave::SlaveState;
-
+use crate::common::SlaveId;
 
 #[derive(Debug, Clone, Serialize)]
-pub enum MasterStatus {
+pub enum SlaveStatus {
     Pending,
     Ready,
-    Starting,
-    Running,
-    Degraded,
-    Maintenance,
-    Stopping,
 }
 
 #[derive(Debug, Clone, Serialize)]
-pub struct MasterState {
-    pub status: MasterStatus,
-    pub slaves: HashMap<String, SlaveState>,
+pub struct SlaveState {
+    pub id: SlaveId,
+    pub status: SlaveStatus,
 }
 
 #[derive(Clone)]
 pub struct AppState {
-    pub master: Arc<RwLock<MasterState>>,
+    pub slave: Arc<RwLock<SlaveState>>,
 }
 
 impl AppState {
     pub fn new() -> Self {
         Self {
-            master: Arc::new(RwLock::new(MasterState {
-                status: MasterStatus::Starting,
-                slaves: HashMap::new(),
+            slave: Arc::new(RwLock::new(SlaveState {
+                id: SlaveId::Tick,
+                status: SlaveStatus::Pending,
             })),
         }
     }
