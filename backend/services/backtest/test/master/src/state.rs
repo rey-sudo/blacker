@@ -1,8 +1,7 @@
-use std::{collections::HashMap, sync::Arc};
+use crate::{common::SlaveId, slave::ConnectedSlaveState};
 use serde::Serialize;
+use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
-use crate::slave::SlaveState;
-
 
 #[derive(Debug, Clone, Serialize)]
 pub enum MasterStatus {
@@ -18,7 +17,7 @@ pub enum MasterStatus {
 #[derive(Debug, Clone, Serialize)]
 pub struct MasterState {
     pub status: MasterStatus,
-    pub slaves: HashMap<String, SlaveState>,
+    pub slaves: HashMap<SlaveId, ConnectedSlaveState>,
 }
 
 #[derive(Clone)]

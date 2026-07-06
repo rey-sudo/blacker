@@ -1,6 +1,6 @@
-use master::monitor::{start_master_monitor, start_slave_monitor};
 use master::server::start_http_server;
 use master::state::AppState;
+use master::tasks::{start_master_monitor, start_slave_monitor};
 
 #[tokio::main]
 async fn main() {

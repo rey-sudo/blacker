@@ -1,15 +1,14 @@
 use crate::{
-    slave::SlaveState, state::{AppState, MasterState},
+    common::SlaveId, slave::ConnectedSlaveState, state::{AppState, MasterState},
 };
 use axum::{Json, extract::State, http::StatusCode};
 use std::time::Instant;
 use tokio::sync::RwLockWriteGuard;
-use tracing::info;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 pub struct ReportRequest {
-    pub id: String,
+    pub id: SlaveId,
     pub status: String,
 }
 
@@ -26,14 +25,12 @@ pub async fn report_state_handler(
 
     master.slaves.insert(
         req.id,
-        SlaveState {
+        ConnectedSlaveState {
             connected: true,
             status: req.status,
             last_seen: Instant::now(),
         },
     );
-
-    info!(?master.slaves, "Estado actualizado");
 
     (StatusCode::OK, Json(ReportResponse { ok: true }))
 }
