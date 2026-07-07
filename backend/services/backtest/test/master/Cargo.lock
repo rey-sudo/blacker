@@ -545,9 +545,9 @@ dependencies = [
 
 [[package]]
 name = "tickdb"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c12727405589346f7e615a6b8c7eb8850a20c7477860cee43cf412eabf7aa0d0"
+checksum = "9827309e6ea376c6805981e24a761172830b17d5e00e4fd73cca447aaaf40ba6"
 dependencies = [
  "anyhow",
  "csv",
