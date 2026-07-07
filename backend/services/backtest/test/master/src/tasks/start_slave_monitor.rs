@@ -16,7 +16,7 @@ pub fn start_slave_monitor(state: AppState) {
             for slave in master.slaves.values_mut() {
                 if slave.connected && slave.last_seen.elapsed() >= Duration::from_secs(3) {
                     slave.connected = false;
-                    info!(?slave, "Slave desconectado por timeout");
+                    info!(?slave.id, "Slave disconnected by timeout");
                 }
             }
         }

@@ -9,10 +9,6 @@ pub enum SlaveId {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum MasterStatus {
     Pending,
-    Ready,
-    Starting,
-    Running,
-    Degraded,
-    Maintenance,
-    Stopping,
+    Unsync,
+    Ready
 }

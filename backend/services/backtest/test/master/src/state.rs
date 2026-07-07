@@ -10,6 +10,7 @@ use tokio::sync::RwLock;
 pub struct MasterState {
     pub status: MasterStatus,
     pub slaves: HashMap<SlaveId, ConnectedSlaveState>,
+    pub version: u64,
 }
 
 #[derive(Clone)]
@@ -21,8 +22,9 @@ impl AppState {
     pub fn new() -> Self {
         Self {
             master: Arc::new(RwLock::new(MasterState {
-                status: MasterStatus::Starting,
+                status: MasterStatus::Pending,
                 slaves: HashMap::new(),
+                version: 10
             })),
         }
     }

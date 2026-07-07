@@ -1,7 +1,7 @@
+use crate::common::SlaveId;
 use serde::Serialize;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use crate::common::SlaveId;
 
 #[derive(Debug, Clone, Serialize)]
 pub enum SlaveStatus {
@@ -13,6 +13,7 @@ pub enum SlaveStatus {
 pub struct SlaveState {
     pub id: SlaveId,
     pub status: SlaveStatus,
+    pub version: u64,
 }
 
 #[derive(Clone)]
@@ -26,6 +27,7 @@ impl AppState {
             slave: Arc::new(RwLock::new(SlaveState {
                 id: SlaveId::Tick,
                 status: SlaveStatus::Pending,
+                version: 0,
             })),
         }
     }
