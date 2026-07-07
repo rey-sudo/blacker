@@ -7,12 +7,11 @@ use tickdb::binary::BinaryFile;
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
-    let tickdb: BinaryFile = BinaryFile::open("./input/ticks.bin")?;
+    let db: BinaryFile = BinaryFile::open("./input/ticks.bin")?;
 
-    tracing::info!(
-        trades = tickdb.len(),
-        "Tick database loaded"
-    );
+    let mut cursor = db.cursor();
+
+    println!("{:?}", cursor.current());
 
     let state: AppState = AppState::new();
 
