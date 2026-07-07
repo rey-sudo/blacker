@@ -1,15 +1,22 @@
+use crate::common::MasterStatus;
 use crate::state::{AppState, SlaveState};
 use reqwest::Client;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::time::Duration;
 use tokio::sync::RwLockReadGuard;
 use tokio::time;
 use tracing::{error, info};
 
 #[derive(Serialize)]
-struct ReportStateRequest {
+struct ReportStateBody {
     id: String,
     status: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReportResponse {
+    ok: bool,
+    master: MasterStatus,
 }
 
 pub fn start_master_report_task(state: AppState) {
@@ -28,10 +35,12 @@ pub fn start_master_report_task(state: AppState) {
 
             let slave: RwLockReadGuard<'_, SlaveState> = state.slave.read().await;
 
-            let body: ReportStateRequest = ReportStateRequest {
+            let body: ReportStateBody = ReportStateBody {
                 id: format!("{:?}", slave.id),
                 status: format!("{:?}", slave.status),
             };
+
+            drop(slave);
 
             match client
                 .post("http://localhost:3000/master/report-state")
@@ -40,7 +49,9 @@ pub fn start_master_report_task(state: AppState) {
                 .await
             {
                 Ok(response) => {
-                    info!("Heartbeat enviado. Status: {}", response.status());
+                    let report: ReportResponse = response.json().await.unwrap();
+
+                    info!(?report);
                 }
                 Err(err) => {
                     error!("No se pudo contactar al master: {}", err);

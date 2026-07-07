@@ -1,5 +1,6 @@
+use crate::common::MasterStatus;
 use crate::slave::ConnectedSlaveState;
-use crate::state::{AppState, MasterState, MasterStatus};
+use crate::state::{AppState, MasterState};
 use std::time::Duration;
 use tokio::sync::RwLockWriteGuard;
 use tokio::time;

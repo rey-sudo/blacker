@@ -5,3 +5,14 @@ pub enum SlaveId {
     Tick,
     Engine
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum MasterStatus {
+    Pending,
+    Ready,
+    Starting,
+    Running,
+    Degraded,
+    Maintenance,
+    Stopping,
+}
