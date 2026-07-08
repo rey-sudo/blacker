@@ -14,9 +14,6 @@ enum ReplayStep {
 pub fn start_replay_task(state: AppState) {
     tokio::spawn(async move {
         loop {
-            //
-            // Esperar a que /start-backtest inicie el replay.
-            //
             state.replay_notify.notified().await;
 
             let mut step: ReplayStep = ReplayStep::PublishTick;
@@ -33,16 +30,20 @@ pub fn start_replay_task(state: AppState) {
 
                 match step {
                     ReplayStep::PublishTick => {
-                        let tick_info: TickInfo = match {
+                        let current_tick: Option<TickInfo> = {
                             let master: RwLockReadGuard<'_, MasterState> =
                                 state.master.read().await;
+
                             master.current_tick_info()
-                        } {
+                        };
+
+                        let tick_info: TickInfo = match current_tick {
                             Some(tick_info) => tick_info,
 
                             None => {
                                 let mut master: RwLockWriteGuard<'_, MasterState> =
                                     state.master.write().await;
+                                    
                                 master.replay_status = ReplayStatus::Stopped;
 
                                 info!("Replay finished.");
@@ -62,7 +63,6 @@ pub fn start_replay_task(state: AppState) {
                         step = ReplayStep::WaitEngine;
                     }
                     ReplayStep::WaitEngine => {
-
                         state.engine_notify.notified().await;
 
                         info!("EngineState received.");

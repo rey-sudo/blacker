@@ -1,6 +1,5 @@
 use crate::{
-    common::{MasterStatus, SlaveId},
-    slave::{ConnectedSlaveState, EngineState, ExecutionState},
+    common::{MasterStatus, SlaveId}, engine::EngineState, slave::{ConnectedSlaveState, ExecutionState},
 };
 use serde::Serialize;
 use std::{collections::HashMap, sync::Arc};
