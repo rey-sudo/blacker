@@ -13,7 +13,7 @@ async fn main() -> anyhow::Result<()> {
 
     let pulsar: Arc<Pulsar<TokioExecutor>> = Arc::new(
         Pulsar::builder("pulsar://localhost:6650", TokioExecutor)
-            .with_outbound_channel_size(10_000)
+            .with_outbound_channel_size(1000)
             .build()
             .await
             .expect("Invalid Pulsar URL"),
@@ -27,9 +27,9 @@ async fn main() -> anyhow::Result<()> {
 
     start_slave_monitor(state.clone());
 
-    start_replay_task(state.clone());
+    start_replay_task(state.clone(), pulsar.clone());
 
-    start_engine_consumer(state.clone(), pulsar.clone());
+    //start_engine_consumer(state.clone(), pulsar.clone());
 
     // start_execution_state_consumer();
 
