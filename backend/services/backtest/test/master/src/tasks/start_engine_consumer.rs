@@ -2,7 +2,7 @@ use crate::engine::EngineState;
 use crate::state::{AppState, MasterState, ReplayStatus};
 use futures::TryStreamExt;
 use pulsar::consumer::Message;
-use pulsar::{Consumer, DeserializeMessage, Payload, Pulsar, TokioExecutor};
+use pulsar::{Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor};
 use std::sync::Arc;
 use tracing::{error, info};
 
@@ -18,8 +18,9 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
     tokio::spawn(async move {
         let mut consumer: Consumer<EngineState, TokioExecutor> = match pulsar
             .consumer()
-            .with_topic("engine-state")
-            .with_subscription("master")
+            .with_topic("persistent://public/default/engine.state")
+            .with_subscription_type(SubType::Exclusive)
+            .with_subscription("master-sub")
             .build()
             .await
         {

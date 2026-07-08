@@ -29,7 +29,7 @@ async fn main() -> anyhow::Result<()> {
 
     start_replay_task(state.clone(), pulsar.clone());
 
-    //start_engine_consumer(state.clone(), pulsar.clone());
+    start_engine_consumer(state.clone(), pulsar.clone());
 
     // start_execution_state_consumer();
 
