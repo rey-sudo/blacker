@@ -1,17 +1,18 @@
 use crate::{
+    common::ReplayStatus,
+    engine::EngineState,
     state::{AppState, MasterState},
 };
-use tokio::sync::RwLockWriteGuard;
 use tracing::{error, info};
 
 pub fn start_engine_consumer(
     state: AppState,
-    mut consumer: /* Pulsar Consumer */,
+    mut consumer: /* pulsar::Consumer<EngineState> */,
 ) {
     tokio::spawn(async move {
         loop {
             //
-            // Esperar EngineState desde Pulsar.
+            // Esperar mensaje.
             //
             let message = match consumer.receive().await {
                 Ok(message) => message,
@@ -23,7 +24,7 @@ pub fn start_engine_consumer(
 
             //
             // TODO:
-            // Deserializar el payload.
+            // Deserialize payload.
             //
             let engine_state: EngineState = /* deserialize(message.payload()) */;
 
@@ -31,29 +32,16 @@ pub fn start_engine_consumer(
             // Validar y almacenar.
             //
             {
-                let mut master: RwLockWriteGuard<'_, MasterState> =
-                    state.master.write().await;
+                let mut master = state.master.write().await;
 
-                if master.replay_status != ReplayStatus::Running {
-                    continue;
-                }
+                if let Err(reason) = validate_engine_state(&master, &engine_state) {
+                    error!(reason, "Rejected EngineState.");
 
-                if engine_state.version != master.version {
-                    error!(
-                        expected = master.version,
-                        received = engine_state.version,
-                        "Unexpected EngineState version."
-                    );
+                    drop(master);
 
-                    continue;
-                }
-
-                if engine_state.tick_index != master.tick_index {
-                    error!(
-                        expected = master.tick_index,
-                        received = engine_state.tick_index,
-                        "Unexpected EngineState tick_index."
-                    );
+                    if let Err(error) = consumer.nack(&message).await {
+                        error!(?error, "Failed to NACK EngineState.");
+                    }
 
                     continue;
                 }
@@ -87,4 +75,23 @@ pub fn start_engine_consumer(
             info!("EngineState ACK.");
         }
     });
+}
+
+fn validate_engine_state(
+    master: &MasterState,
+    engine: &EngineState,
+) -> Result<(), &'static str> {
+    if master.replay_status != ReplayStatus::Running {
+        return Err("Replay is not running.");
+    }
+
+    if engine.version != master.version {
+        return Err("Unexpected version.");
+    }
+
+    if engine.tick_index != master.tick_index {
+        return Err("Unexpected tick_index.");
+    }
+
+    Ok(())
 }
