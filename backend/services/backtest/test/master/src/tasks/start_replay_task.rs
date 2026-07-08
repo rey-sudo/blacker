@@ -1,101 +1,92 @@
 use crate::state::{AppState, MasterState, ReplayStatus};
-use std::time::Duration;
-use tokio::{
-    sync::{RwLockWriteGuard, mpsc},
-    time,
-};
-use tracing::info;
+use tokio::sync::RwLockWriteGuard;
 
-
-#[derive(Debug, Clone)]
-pub struct EngineState {
-    pub version: u64,
-    pub tick_index: usize,
-}
-
-#[derive(Debug, Clone)]
-pub struct ExecutionState {
-    pub version: u64,
-    pub tick_index: usize,
-}
-
-#[derive(Debug, Clone)]
-pub enum ReplayEvent {
-    EngineState(EngineState),
-    ExecutionState(ExecutionState),
-}
-
-pub enum ReplayStep {
-    SendTick,
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ReplayStep {
+    PublishTick,
     WaitEngine,
     WaitExecution,
 }
 
-pub fn start_replay_task(state: AppState, mut replay_rx: mpsc::Receiver<ReplayEvent>) {
+pub fn start_replay_task(state: AppState) {
     tokio::spawn(async move {
-        let mut step: ReplayStep = ReplayStep::SendTick;
+        let mut step = ReplayStep::PublishTick;
 
         loop {
+            state.replay_notify.notified().await;
+
+            let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
+
+            if master.replay_status != ReplayStatus::Running {
+                step = ReplayStep::PublishTick;
+                continue;
+            }
+
             match step {
-                ReplayStep::SendTick => {
-                    let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
+                ReplayStep::PublishTick => {
+                    match master.current_tick() {
+                        Some(tick) => {
+                            tracing::info!(
+                                tick_index = master.tick_index,
+                                id = tick.id,
+                                "Publish Tick"
+                            );
 
-                    if master.replay_status != ReplayStatus::Running {
-                        drop(master);
+                            // TODO:
+                            // publish_tick(tick).await;
 
-                        tokio::time::sleep(Duration::from_millis(100)).await;
+                            step = ReplayStep::WaitEngine;
+                        }
 
-                        continue;
+                        None => {
+                            master.replay_status = ReplayStatus::Stopped;
+                        }
                     }
-
-                    let Some(tick) = master.current_tick() else {
-                        master.replay_status = ReplayStatus::Stopped;
-
-                        tracing::info!("Replay finished.");
-
-                        continue;
-                    };
-
-                    tracing::info!(tick_index = master.tick_index, id = tick.id, "Send Tick");
-
-                    // TODO:
-                    // publish tick to Pulsar
-
-                    step = ReplayStep::WaitEngine;
                 }
 
-                ReplayStep::WaitEngine => match replay_rx.recv().await {
-                    Some(ReplayEvent::EngineState(engine_state)) => {
-                        tracing::info!(version = engine_state.version, "EngineState received");
-
-                        step = ReplayStep::WaitExecution;
+                ReplayStep::WaitEngine => {
+                    if master.engine_state.is_none() {
+                        continue;
                     }
 
-                    Some(_) => {}
+                    tracing::info!(tick_index = master.tick_index, "EngineState received");
 
-                    None => break,
-                },
+                    step = ReplayStep::WaitExecution;
+                }
 
-                ReplayStep::WaitExecution => match replay_rx.recv().await {
-                    Some(ReplayEvent::ExecutionState(execution_state)) => {
-                        tracing::info!(
-                            version = execution_state.version,
-                            "ExecutionState received"
-                        );
+                ReplayStep::WaitExecution => {
+                    if master.execution_state.is_none() {
+                        continue;
+                    }
 
+                    tracing::info!(tick_index = master.tick_index, "ExecutionState received");
+
+                    //
+                    // TODO:
+                    // Persistir snapshot global.
+                    //
+
+                    master.engine_state = None;
+                    master.execution_state = None;
+                    master.tick_index += 1;
+
+                    let finished = master.current_tick().is_none();
+
+                    drop(master);
+
+                    state.engine_ack_notify.notify_one();
+                    state.execution_ack_notify.notify_one();
+
+                    if finished {
                         let mut master = state.master.write().await;
+                        master.replay_status = ReplayStatus::Stopped;
+                    } else {
+                        step = ReplayStep::PublishTick;
 
-                        //PERSISTENCE
-
-                        master.tick_index += 1;
-
-                        step = ReplayStep::SendTick;
+                        // Despertar inmediatamente para publicar el siguiente tick.
+                        state.replay_notify.notify_one();
                     }
-
-                    Some(_) => {}
-
-                    None => break,
-                },
+                }
             }
         }
     });

@@ -11,3 +11,15 @@ pub struct ConnectedSlaveState {
     pub status: String,
     pub version: u64,
 }
+
+#[derive(Debug, Clone)]
+pub struct EngineState {
+    pub version: u64,
+    pub tick_index: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct ExecutionState {
+    pub version: u64,
+    pub tick_index: usize,
+}
