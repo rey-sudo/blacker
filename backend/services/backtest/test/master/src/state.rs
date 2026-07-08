@@ -7,6 +7,12 @@ use std::{collections::HashMap, sync::Arc};
 use tickdb::{binary::BinaryFile, trade::Trade};
 use tokio::sync::{Notify, RwLock};
 
+#[derive(Debug, Clone, Copy)]
+pub struct TickInfo {
+    pub tick_index: usize,
+    pub tick: Trade,
+}
+
 #[derive(Clone, Serialize, PartialEq)]
 pub enum ReplayStatus {
     Stopped,
@@ -46,6 +52,13 @@ impl MasterState {
     pub fn has_next_tick(&self) -> bool {
         self.tick_index + 1 < self.tick_data.len()
     }
+
+    pub fn current_tick_info(&self) -> Option<TickInfo> {
+        self.current_tick().copied().map(|tick: Trade| TickInfo {
+            tick_index: self.tick_index,
+            tick,
+        })
+    }
 }
 
 #[derive(Clone)]
@@ -54,6 +67,9 @@ pub struct AppState {
 
     // Despierta la ReplayTask cuando llega un EngineState o ExecutionState
     pub replay_notify: Arc<Notify>,
+    pub engine_notify: Arc<Notify>,
+    pub execution_notify: Arc<Notify>,
+
     pub engine_ack_notify: Arc<Notify>,
     pub execution_ack_notify: Arc<Notify>,
 }
@@ -73,6 +89,9 @@ impl AppState {
             })),
 
             replay_notify: Arc::new(Notify::new()),
+            engine_notify: Arc::new(Notify::new()),
+            execution_notify: Arc::new(Notify::new()),
+
             engine_ack_notify: Arc::new(Notify::new()),
             execution_ack_notify: Arc::new(Notify::new()),
         }
