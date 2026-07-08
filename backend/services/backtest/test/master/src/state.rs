@@ -7,9 +7,17 @@ use std::{collections::HashMap, sync::Arc};
 use tickdb::{binary::BinaryFile, trade::Trade};
 use tokio::sync::RwLock;
 
+#[derive(Clone, Serialize, PartialEq)]
+pub enum ReplayStatus {
+    Stopped,
+    Running,
+    Stopping,
+}
+
 #[derive(Clone, Serialize)]
 pub struct MasterState {
     pub status: MasterStatus,
+    pub replay_status: ReplayStatus,
     pub slaves: HashMap<SlaveId, ConnectedSlaveState>,
     pub version: u64,
     #[serde(skip)]
@@ -44,6 +52,7 @@ impl AppState {
         Self {
             master: Arc::new(RwLock::new(MasterState {
                 status: MasterStatus::Pending,
+                replay_status: ReplayStatus::Stopped,
                 slaves: HashMap::new(),
                 version: 10,
                 tick_data,

@@ -1,6 +1,5 @@
 use crate::{
-    handlers::{get_state_handler, report_state_handler},
-    state::AppState,
+    handlers::{get_state_handler, report_state_handler, start_backtest_handler}, state::AppState,
 };
 use axum::{
     Router,
@@ -11,5 +10,5 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/master/report-state", post(report_state_handler))
         .route("/master/get-state", get(get_state_handler))
-    //.route("/master/start-backtest", post(report_state_handler))
+        .route("/master/start-backtest", post(start_backtest_handler))
 }
