@@ -10,6 +10,7 @@ use tickdb::trade::Trade;
 use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
 use tracing::{error, info};
 
+/// Serializable trade payload published to Pulsar during replay.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TradeMessage {
     pub tick_index: usize,
@@ -21,6 +22,7 @@ pub struct TradeMessage {
 }
 
 impl TradeMessage {
+    /// Creates a replay message from a trade and its tick index.
     pub fn new(tick_index: usize, trade: Trade) -> Self {
         Self {
             tick_index,
@@ -32,7 +34,9 @@ impl TradeMessage {
         }
     }
 }
+
 impl SerializeMessage for TradeMessage {
+    /// Serializes the trade message into a JSON payload for Pulsar.
     fn serialize_message(input: Self) -> Result<producer::Message, PulsarError> {
         let payload: Vec<u8> = serde_json::to_vec(&input)
             .map_err(|e: serde_json::Error| PulsarError::Custom(e.to_string()))?;
@@ -44,6 +48,7 @@ impl SerializeMessage for TradeMessage {
     }
 }
 
+/// Replay state machine.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ReplayStep {
     PublishTick,
@@ -52,8 +57,10 @@ enum ReplayStep {
     Persist,
 }
 
+/// Starts the asynchronous replay worker.
 pub fn start_replay_task(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
     tokio::spawn(async move {
+        // 1. Pulsar Producer: create the pulsar producer.
         let mut producer: Producer<TokioExecutor> = match pulsar
             .producer()
             .with_topic("persistent://public/default/master.tick")
@@ -68,23 +75,25 @@ pub fn start_replay_task(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
         {
             Ok(p) => p,
             Err(error) => {
-                error!(?error, "Failed to create Replay producer");
-                return;
+                error!("Failed to create Replay producer: {error}");
+                std::process::exit(1);
             }
         };
 
+        // 2. Main loop: Start the main loop.
         loop {
             state.replay_notify.notified().await;
             match run_replay(state.clone(), &mut producer).await {
                 Ok(()) => {}
                 Err(error) => {
-                    tracing::error!(?error, "Replay failed.");
+                    error!(?error, "Replay failed.");
                 }
             }
         }
     });
 }
 
+/// Executes the replay state machine until the replay finishes or is stopped.
 async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> anyhow::Result<()> {
     let mut step: ReplayStep = ReplayStep::PublishTick;
 
