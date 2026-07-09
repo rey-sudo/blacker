@@ -12,6 +12,7 @@ use tracing::{error, info};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TradeMessage {
+    pub tick_index: usize,
     pub id: u64,
     pub time: u64,
     pub price: u64,
@@ -19,9 +20,10 @@ pub struct TradeMessage {
     pub is_buyer_maker: u8,
 }
 
-impl From<Trade> for TradeMessage {
-    fn from(trade: Trade) -> Self {
+impl TradeMessage {
+    pub fn new(tick_index: usize, trade: Trade) -> Self {
         Self {
+            tick_index,
             id: trade.id,
             time: trade.time,
             price: trade.price,
@@ -30,12 +32,11 @@ impl From<Trade> for TradeMessage {
         }
     }
 }
-
 impl SerializeMessage for TradeMessage {
     fn serialize_message(input: Self) -> Result<producer::Message, PulsarError> {
         let payload: Vec<u8> = serde_json::to_vec(&input)
             .map_err(|e: serde_json::Error| PulsarError::Custom(e.to_string()))?;
-        
+
         Ok(producer::Message {
             payload,
             ..Default::default()
@@ -120,7 +121,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                     }
                 };
 
-                let message: TradeMessage = TradeMessage::from(tick_info.tick);
+                let message: TradeMessage = TradeMessage::new(tick_info.tick_index, tick_info.tick);
 
                 let send_future: SendFuture = producer.send_non_blocking(message).await?;
                 let receipt: CommandSendReceipt = send_future.await?;
@@ -144,7 +145,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
             }
 
             ReplayStep::WaitExecution => {
-                state.execution_notify.notified().await;
+                //state.execution_notify.notified().await;
 
                 info!("ExecutionState received.");
 

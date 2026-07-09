@@ -16,5 +16,5 @@ while true; do
       "status": "Ready",
       "version": 10
     }'
-  sleep 3
+  sleep 1
 done

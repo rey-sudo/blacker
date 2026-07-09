@@ -49,7 +49,8 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
                 Err(error) => {
                     error!(?error, "Failed to deserialize EngineState.");
 
-                    if let Err(error) = consumer.nack(&message).await {
+                    if let Err(error) = consumer.ack(&message).await {
+                        //TODO: HANDLE CRITICAL ERROR
                         error!(?error, "Failed to NACK EngineState.");
                     }
 
