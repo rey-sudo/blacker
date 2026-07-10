@@ -60,7 +60,7 @@ enum ReplayStep {
 /// Starts the asynchronous replay worker.
 pub fn start_replay_task(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
     tokio::spawn(async move {
-        // 1. Pulsar Producer: create the pulsar producer.
+        // 1. Pulsar Producer: Create the pulsar producer.
         let mut producer: Producer<TokioExecutor> = match pulsar
             .producer()
             .with_topic("persistent://public/default/master.tick")
@@ -99,10 +99,11 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
     loop {
         {
+            // Stop the replay loop if replay is no longer running.
             let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
             if master.replay_status != ReplayStatus::Running {
-                info!("Replay stopped.");
+                info!("Replay Stopped.");
                 break;
             }
         }
