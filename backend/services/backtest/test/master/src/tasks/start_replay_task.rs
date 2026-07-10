@@ -6,9 +6,17 @@ use pulsar::{Producer, SerializeMessage, producer};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
-
 use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
 use tracing::{debug, error, info};
+
+/// Replay state machine.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ReplayStep {
+    PublishTick,
+    WaitEngine,
+    WaitExecution,
+    Persist,
+}
 
 /// Serializable trade payload published to Pulsar during replay.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -46,51 +54,6 @@ impl SerializeMessage for TickMessage {
             ..Default::default()
         })
     }
-}
-
-/// Replay state machine.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum ReplayStep {
-    PublishTick,
-    WaitEngine,
-    WaitExecution,
-    Persist,
-}
-
-/// Starts the asynchronous replay worker.
-pub fn start_replay_task(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
-    tokio::spawn(async move {
-        // 1. Pulsar Producer: Create the pulsar producer.
-        let mut producer: Producer<TokioExecutor> = match pulsar
-            .producer()
-            .with_topic("persistent://public/default/master.tick")
-            .with_options(ProducerOptions {
-                batch_size: Some(0),
-                batch_timeout: Some(Duration::from_millis(1)),
-                block_queue_if_full: true,
-                ..Default::default()
-            })
-            .build()
-            .await
-        {
-            Ok(p) => p,
-            Err(error) => {
-                error!("Failed to create Replay producer: {error}");
-                std::process::exit(1);
-            }
-        };
-
-        // 2. Main loop: Start the main loop.
-        loop {
-            state.replay_notify.notified().await;
-            match run_replay(state.clone(), &mut producer).await {
-                Ok(()) => {}
-                Err(error) => {
-                    error!(?error, "Replay failed.");
-                }
-            }
-        }
-    });
 }
 
 /// Executes the replay state machine until the replay finishes or is stopped.
@@ -194,4 +157,40 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
     }
 
     Ok(())
+}
+
+/// Starts the asynchronous replay worker.
+pub fn start_replay_task(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
+    tokio::spawn(async move {
+        // 1. Pulsar Producer: Create the pulsar producer.
+        let mut producer: Producer<TokioExecutor> = match pulsar
+            .producer()
+            .with_topic("persistent://public/default/master.tick")
+            .with_options(ProducerOptions {
+                batch_size: Some(0),
+                batch_timeout: Some(Duration::from_millis(1)),
+                block_queue_if_full: true,
+                ..Default::default()
+            })
+            .build()
+            .await
+        {
+            Ok(p) => p,
+            Err(error) => {
+                error!("Failed to create Replay producer: {error}");
+                std::process::exit(1);
+            }
+        };
+
+        // 2. Main loop: Start the main loop.
+        loop {
+            state.replay_notify.notified().await;
+            match run_replay(state.clone(), &mut producer).await {
+                Ok(()) => {}
+                Err(error) => {
+                    error!(?error, "Replay failed.");
+                }
+            }
+        }
+    });
 }
