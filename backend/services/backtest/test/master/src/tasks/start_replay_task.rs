@@ -1,4 +1,4 @@
-use crate::state::{AppState, MasterState, ReplayStatus, TickInfo};
+use crate::state::{AppState, MasterState, ReplayStatus, Tick, TickInfo};
 use producer::SendFuture;
 use pulsar::{CommandSendReceipt, ProducerOptions};
 use pulsar::{Error as PulsarError, Pulsar, TokioExecutor};
@@ -6,13 +6,13 @@ use pulsar::{Producer, SerializeMessage, producer};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
-use tickdb::trade::Trade;
+
 use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
-use tracing::{error, info};
+use tracing::{debug, error, info};
 
 /// Serializable trade payload published to Pulsar during replay.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TradeMessage {
+pub struct TickMessage {
     pub tick_index: usize,
     pub id: u64,
     pub time: u64,
@@ -21,21 +21,21 @@ pub struct TradeMessage {
     pub is_buyer_maker: u8,
 }
 
-impl TradeMessage {
+impl TickMessage {
     /// Creates a replay message from a trade and its tick index.
-    pub fn new(tick_index: usize, trade: Trade) -> Self {
+    pub fn new(tick_index: usize, tick: Tick) -> Self {
         Self {
             tick_index,
-            id: trade.id,
-            time: trade.time,
-            price: trade.price,
-            qty: trade.qty,
-            is_buyer_maker: trade.is_buyer_maker,
+            id: tick.id,
+            time: tick.time,
+            price: tick.price,
+            qty: tick.qty,
+            is_buyer_maker: tick.is_buyer_maker,
         }
     }
 }
 
-impl SerializeMessage for TradeMessage {
+impl SerializeMessage for TickMessage {
     /// Serializes the trade message into a JSON payload for Pulsar.
     fn serialize_message(input: Self) -> Result<producer::Message, PulsarError> {
         let payload: Vec<u8> = serde_json::to_vec(&input)
@@ -110,12 +110,14 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
         match step {
             ReplayStep::PublishTick => {
+                // Fetch the current replay tick/trade.
                 let current_tick: Option<TickInfo> = {
                     let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
                     master.current_tick_info()
                 };
 
+                // Stop the replay when there are no more ticks to publish.
                 let tick_info: TickInfo = match current_tick {
                     Some(tick_info) => tick_info,
 
@@ -131,12 +133,12 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                     }
                 };
 
-                let message: TradeMessage = TradeMessage::new(tick_info.tick_index, tick_info.tick);
+                let message: TickMessage = TickMessage::new(tick_info.tick_index, tick_info.tick);
 
                 let send_future: SendFuture = producer.send_non_blocking(message).await?;
                 let receipt: CommandSendReceipt = send_future.await?;
 
-                info!(
+                debug!(
                     tick_index = tick_info.tick_index,
                     id = tick_info.tick.id,
                     r = ?receipt,

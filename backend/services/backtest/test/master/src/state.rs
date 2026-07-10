@@ -1,15 +1,19 @@
 use crate::{
-    common::{MasterStatus, SlaveId}, engine::EngineState, slave::{ConnectedSlaveState, ExecutionState},
+    common::{MasterStatus, SlaveId},
+    engine::EngineState,
+    slave::{ConnectedSlaveState, ExecutionState},
 };
 use serde::Serialize;
 use std::{collections::HashMap, sync::Arc};
 use tickdb::{binary::BinaryFile, trade::Trade};
 use tokio::sync::{Notify, RwLock};
 
+pub type Tick = Trade;
+
 #[derive(Debug, Clone, Copy)]
 pub struct TickInfo {
     pub tick_index: usize,
-    pub tick: Trade,
+    pub tick: Tick,
 }
 
 #[derive(Clone, Serialize, PartialEq)]
@@ -38,12 +42,12 @@ pub struct MasterState {
 
 impl MasterState {
     #[inline]
-    pub fn trade(&self, index: usize) -> Option<&Trade> {
+    pub fn tick_by_index(&self, index: usize) -> Option<&Tick> {
         self.tick_data.trade(index)
     }
 
     #[inline]
-    pub fn current_tick(&self) -> Option<&Trade> {
+    pub fn current_tick(&self) -> Option<&Tick> {
         self.tick_data.trade(self.tick_index)
     }
 
@@ -53,7 +57,7 @@ impl MasterState {
     }
 
     pub fn current_tick_info(&self) -> Option<TickInfo> {
-        self.current_tick().copied().map(|tick: Trade| TickInfo {
+        self.current_tick().copied().map(|tick: Tick| TickInfo {
             tick_index: self.tick_index,
             tick,
         })
