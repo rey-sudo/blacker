@@ -1,4 +1,4 @@
-use crate::engine::EngineState;
+use crate::slaves::engine::EngineState;
 use crate::state::{AppState, MasterState, ReplayStatus};
 use futures::TryStreamExt;
 use pulsar::consumer::Message;

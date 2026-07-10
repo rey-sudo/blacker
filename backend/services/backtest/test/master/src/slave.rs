@@ -1,6 +1,6 @@
-use serde::Serialize;
-use std::time::Instant;
 use crate::common::SlaveId;
+use serde::{Deserialize, Serialize};
+use std::time::Instant;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ConnectedSlaveState {
@@ -12,7 +12,7 @@ pub struct ConnectedSlaveState {
     pub version: u64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutionState {
     pub version: u64,
     pub tick_index: usize,
