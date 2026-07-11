@@ -14,7 +14,7 @@ pub fn start_slave_monitor(state: AppState) {
             let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
             for slave in master.slaves.values_mut() {
-                if slave.connected && slave.last_seen.elapsed() >= Duration::from_secs(3) {
+                if slave.connected && slave.last_seen.elapsed() >= Duration::from_secs(5) {
                     slave.connected = false;
                     info!(?slave.id, "Slave disconnected by timeout");
                 }

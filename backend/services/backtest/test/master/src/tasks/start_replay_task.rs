@@ -67,7 +67,8 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
             let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
             if !master.can_publish() {
-                break;
+                tokio::time::sleep(Duration::from_millis(1_000)).await;
+                continue;
             }
         }
 
@@ -77,9 +78,9 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 let current_tick: Option<TickInfo> = {
                     let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
-                    info!("aca {}", master.tick_index);
+                    info!("tick actual {}", master.tick_index); //
 
-                    tokio::time::sleep(Duration::from_millis(15_000)).await;
+                    tokio::time::sleep(Duration::from_millis(5_000)).await; //
 
                     master.current_tick_info()
                 };
@@ -108,7 +109,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                     tick_index = tick_info.tick_index,
                     id = tick_info.tick.id,
                     "Tick published."
-                );
+                ); //
 
                 step = ReplayStep::WaitEngine;
             }
@@ -167,22 +168,20 @@ pub fn start_replay_task(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
         {
             Ok(p) => p,
             Err(error) => {
-                error!("Failed to create Replay producer: {error}");
+                error!(?error, "Failed to create Replay producer.");
                 std::process::exit(1);
             }
         };
 
-        info!("Replay task started.");
-
         // 2. Main loop: Start the main loop.
-        loop {
-            state.replay_notify.notified().await;
-            match run_replay(state.clone(), &mut producer).await {
-                Ok(()) => {}
-                Err(error) => {
-                    error!(?error, "Replay failed.");
-                }
+        match run_replay(state.clone(), &mut producer).await {
+            Ok(()) => {}
+            Err(error) => {
+                error!(?error, "Replay failed with fatal error.");
+                std::process::exit(1);
             }
         }
+
+        info!("Replay task terminated.");
     });
 }

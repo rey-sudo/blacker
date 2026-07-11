@@ -31,7 +31,7 @@ try:
                 f"tick_index={trade_message['tick_index']}"
             )
 
-            time.sleep(15)
+            time.sleep(5)
 
             engine_state = {
                 "data": "hola",
