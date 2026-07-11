@@ -55,19 +55,6 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
 
         // 1. Start Loop: start the main loop.
         loop {
-            //  Wait until the master is ready and the replay is running.
-            let ready_to_receive: bool = {
-                let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
-
-                master.status == MasterStatus::Ready
-                    && master.replay_status == ReplayStatus::Running
-            };
-
-            if !ready_to_receive {
-                tokio::time::sleep(Duration::from_millis(100)).await;
-                continue;
-            }
-
             //  Receive the next EngineState message from Pulsar.
             let message: Message<EngineState> = match consumer.try_next().await {
                 Ok(Some(msg)) => msg,

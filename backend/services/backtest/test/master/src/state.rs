@@ -83,10 +83,6 @@ impl MasterState {
     pub fn can_publish(&self) -> bool {
         self.status == MasterStatus::Ready && self.replay_status == ReplayStatus::Running
     }
-
-    pub fn can_receive(&self) -> bool {
-        self.status == MasterStatus::Ready && self.replay_status == ReplayStatus::Running
-    }
 }
 
 #[derive(Clone)]
