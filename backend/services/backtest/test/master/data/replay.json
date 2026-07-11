@@ -1,6 +1,10 @@
 {
   "version": 10,
-  "tick_index": 9,
-  "engine_state": null,
+  "tick_index": 30,
+  "engine_state": {
+    "data": "hola",
+    "version": 10,
+    "tick_index": 29
+  },
   "execution_state": null
 }

@@ -1,3 +1,4 @@
+use crate::common::MasterStatus;
 use crate::snapshot::save_snapshot;
 use crate::state::{AppState, MasterState, ReplayStatus, Tick, TickInfo};
 use producer::SendFuture;
@@ -63,11 +64,9 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
     loop {
         {
-            // Stop the replay loop if replay is no longer running.
             let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
-            if master.replay_status != ReplayStatus::Running {
-                info!("Replay Stopped.");
+            if !master.can_publish() {
                 break;
             }
         }
@@ -102,16 +101,13 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 };
 
                 let message: TickMessage = TickMessage::new(tick_info.tick_index, tick_info.tick);
-
                 let send_future: SendFuture = producer.send_non_blocking(message).await?;
-                let receipt: CommandSendReceipt = send_future.await?;
+                let _receipt: CommandSendReceipt = send_future.await?;
 
                 info!(
                     tick_index = tick_info.tick_index,
                     id = tick_info.tick.id,
-                    r = ?receipt,
-                    tick = ?current_tick.unwrap().tick_index,
-                    "Publish Tick"
+                    "Tick published."
                 );
 
                 step = ReplayStep::WaitEngine;
@@ -136,23 +132,12 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
             ReplayStep::Persist => {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
-                //
-                // Prepare next tick.
-                //
-                master.engine_state = None;
-                master.execution_state = None;
                 master.tick_index += 1;
 
-                //
-                // Persist the point from which we should resume.
-                //
                 save_snapshot(&master).await?;
 
                 drop(master);
 
-                //
-                // Now it is safe to acknowledge both messages.
-                //
                 state.engine_ack_notify.notify_one();
                 state.execution_ack_notify.notify_one();
 

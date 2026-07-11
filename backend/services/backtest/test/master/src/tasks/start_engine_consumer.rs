@@ -86,31 +86,20 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
                 Ok(state) => state,
 
                 Err(error) => {
-                    error!(
-                        message_id = ?message.message_id(),
-                        ?error,
-                        "Failed to deserialize EngineState. Replay aborted."
-                    );
-
-                    {
-                        let mut master: RwLockWriteGuard<'_, MasterState> =
-                            state.master.write().await;
-
-                        master.replay_status = ReplayStatus::Error;
-                    }
+                    error!(?error, "Failed to deserialize EngineState. Aborting.");
 
                     if let Err(error) = consumer.ack(&message).await {
                         error!(?error, "Failed to ACK invalid EngineState.");
                     }
 
-                    break;
+                    std::process::exit(1);
                 }
             };
 
+            let engine_tick_index: usize = engine_state.tick_index;
+
             {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
-
-                info!(engine_state.tick_index, master.tick_index);
 
                 if let Err(reason) = validate_engine_state(&master, &engine_state) {
                     error!(reason, "Rejected EngineState.");
@@ -126,22 +115,16 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
 
                 master.engine_state = Some(engine_state);
 
-                info!(tick_index = master.tick_index, "EngineState received.");
+                info!(
+                    master_tick_index = master.tick_index,
+                    engine_tick_index, "EngineState received."
+                );
             }
 
-            //
-            // Despertar ReplayTask.
-            //
             state.engine_notify.notify_one();
 
-            //
-            // Esperar autorización para ACK.
-            //
             state.engine_ack_notify.notified().await;
 
-            //
-            // Confirmar el mensaje.
-            //
             if let Err(error) = consumer.ack(&message).await {
                 error!(?error, "Failed to ACK EngineState.");
                 continue;

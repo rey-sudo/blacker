@@ -23,8 +23,7 @@ pub struct TickInfo {
 pub enum ReplayStatus {
     Stopped,
     Running,
-    Stopping,
-    Error
+    Stopping
 }
 
 #[derive(Clone, Serialize)]
@@ -79,6 +78,14 @@ impl MasterState {
             tick_index: self.tick_index,
             tick,
         })
+    }
+
+    pub fn can_publish(&self) -> bool {
+        self.status == MasterStatus::Ready && self.replay_status == ReplayStatus::Running
+    }
+
+    pub fn can_receive(&self) -> bool {
+        self.status == MasterStatus::Ready && self.replay_status == ReplayStatus::Running
     }
 }
 

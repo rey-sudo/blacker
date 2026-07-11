@@ -26,6 +26,11 @@ try:
         try:
             trade_message = json.loads(msg.data())
 
+            print(
+                f"Received tick "
+                f"tick_index={trade_message['tick_index']}"
+            )
+
             time.sleep(15)
 
             engine_state = {
@@ -38,10 +43,7 @@ try:
                 json.dumps(engine_state).encode("utf-8")
             )
 
-            print(
-                f"Published EngineState "
-                f"tick_index={engine_state['tick_index']}"
-            )
+
 
             consumer.acknowledge(msg)
 
