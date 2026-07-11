@@ -22,10 +22,6 @@ fn validate_engine_state(master: &MasterState, engine: &EngineState) -> Result<(
         return Err("Replay is not running.");
     }
 
-    if engine.version != master.version {
-        return Err("Unexpected version.");
-    }
-
     if engine.tick_index != master.tick_index {
         return Err("Unexpected tick_index.");
     }

@@ -6,9 +6,7 @@ use tokio::fs;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReplaySnapshot {
-    pub version: u64,
     pub tick_index: usize,
-
     pub engine_state: Option<EngineState>,
     pub execution_state: Option<ExecutionState>,
 }
@@ -22,7 +20,6 @@ pub async fn save_snapshot(master: &MasterState) -> Result<()> {
 
     let snapshot: ReplaySnapshot = ReplaySnapshot {
         tick_index: master.tick_index,
-        version: master.version,
         engine_state: master.engine_state.clone(),
         execution_state: master.execution_state.clone(),
     };

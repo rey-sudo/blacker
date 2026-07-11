@@ -8,12 +8,10 @@ pub struct ConnectedSlaveState {
     pub connected: bool,
     #[serde(skip)]
     pub last_seen: Instant,
-    pub status: String,
-    pub version: u64,
+    pub status: String
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExecutionState {
-    pub version: u64,
     pub tick_index: usize,
 }

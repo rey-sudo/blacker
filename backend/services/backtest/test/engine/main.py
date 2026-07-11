@@ -35,7 +35,6 @@ try:
 
             engine_state = {
                 "data": "hola",
-                "version": 10,
                 "tick_index": trade_message['tick_index'],
             }
 

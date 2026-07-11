@@ -11,15 +11,13 @@ use tokio::sync::RwLockWriteGuard;
 #[derive(Deserialize)]
 pub struct ReportRequest {
     pub id: SlaveId,
-    pub status: String,
-    pub version: u64,
+    pub status: String
 }
 
 #[derive(Serialize)]
 pub struct ReportResponse {
     pub ok: bool,
-    pub master: MasterStatus,
-    pub version: u64
+    pub master: MasterStatus
 }
 
 pub async fn report_state_handler(
@@ -35,15 +33,13 @@ pub async fn report_state_handler(
                 id: req.id,
                 connected: true,
                 status: req.status,
-                last_seen: Instant::now(),
-                version: req.version,
+                last_seen: Instant::now()
             },
         );
 
         ReportResponse {
             ok: true,
-            master: master.status.clone(),
-            version: master.version.clone()
+            master: master.status.clone()
         }
     };
 

@@ -31,7 +31,6 @@ pub struct MasterState {
     pub status: MasterStatus,
     pub replay_status: ReplayStatus,
     pub slaves: HashMap<SlaveId, ConnectedSlaveState>,
-    pub version: u64,
     #[serde(skip)]
     pub tick_data: Arc<BinaryFile>,
     pub tick_index: usize,
@@ -49,7 +48,6 @@ impl fmt::Debug for MasterState {
             .field("status", &self.status)
             .field("replay_status", &self.replay_status)
             .field("slaves", &self.slaves)
-            .field("version", &self.version)
             .field("tick_index", &self.tick_index)
             .field("engine_state", &self.engine_state)
             .field("execution_state", &self.execution_state)
@@ -102,15 +100,14 @@ impl AppState {
     pub fn new(tick_data: Arc<BinaryFile>, snapshot: Option<ReplaySnapshot>) -> Self {
         info!("cargado snapshot, {:?}", snapshot);
 
-        let (version, tick_index, engine_state, execution_state) = match snapshot {
+        let (tick_index, engine_state, execution_state) = match snapshot {
             Some(snapshot) => (
-                snapshot.version,
                 snapshot.tick_index,
                 snapshot.engine_state,
                 snapshot.execution_state,
             ),
 
-            None => (10, 0, None, None),
+            None => (0, None, None),
         };
 
         Self {
@@ -118,7 +115,6 @@ impl AppState {
                 status: MasterStatus::Pending,
                 replay_status: ReplayStatus::Stopped,
                 slaves: HashMap::new(),
-                version,
                 tick_data,
                 tick_index,
                 engine_state,
