@@ -19,7 +19,5 @@ pub async fn start_backtest_handler(
 
     drop(master);
 
-    state.replay_notify.notify_one();
-
     Ok(StatusCode::OK)
 }
