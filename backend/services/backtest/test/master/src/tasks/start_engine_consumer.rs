@@ -17,8 +17,25 @@ impl DeserializeMessage for EngineState {
     }
 }
 
+fn validate_engine_state(master: &MasterState, engine: &EngineState) -> Result<(), &'static str> {
+    if master.replay_status != ReplayStatus::Running {
+        return Err("Replay is not running.");
+    }
+
+    if engine.version != master.version {
+        return Err("Unexpected version.");
+    }
+
+    if engine.tick_index != master.tick_index {
+        return Err("Unexpected tick_index.");
+    }
+
+    Ok(())
+}
+
 pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
     tokio::spawn(async move {
+        // 1. Create Consumer: create pulsar consumer.
         let mut consumer: Consumer<EngineState, TokioExecutor> = match pulsar
             .consumer()
             .with_topic("persistent://public/default/engine.state")
@@ -27,7 +44,7 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
             .build()
             .await
         {
-            Ok(consumer) => consumer,
+            Ok(con) => con,
             Err(error) => {
                 error!(?error, "Failed to create EngineState consumer.");
                 return;
@@ -36,7 +53,9 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
 
         info!("Engine consumer started.");
 
+        // 1. Start Loop: start the main loop.
         loop {
+            //  Wait until the master is ready and the replay is running.
             let ready_to_receive: bool = {
                 let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
@@ -49,10 +68,11 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
                 continue;
             }
 
+            //  Receive the next EngineState message from Pulsar.
             let message: Message<EngineState> = match consumer.try_next().await {
                 Ok(Some(msg)) => msg,
                 Ok(None) => {
-                    info!("EngineState consumer closed.");
+                    info!("Engine consumer closed.");
                     break;
                 }
                 Err(error) => {
@@ -61,17 +81,29 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
                 }
             };
 
+            // Deserialize the received EngineState message.
             let engine_state: EngineState = match message.deserialize() {
                 Ok(state) => state,
-                Err(error) => {
-                    error!(?error, "Failed to deserialize EngineState.");
 
-                    if let Err(error) = consumer.ack(&message).await {
-                        //TODO: HANDLE CRITICAL ERROR
-                        error!(?error, "Failed to NACK EngineState.");
+                Err(error) => {
+                    error!(
+                        message_id = ?message.message_id(),
+                        ?error,
+                        "Failed to deserialize EngineState. Replay aborted."
+                    );
+
+                    {
+                        let mut master: RwLockWriteGuard<'_, MasterState> =
+                            state.master.write().await;
+
+                        master.replay_status = ReplayStatus::Error;
                     }
 
-                    continue;
+                    if let Err(error) = consumer.ack(&message).await {
+                        error!(?error, "Failed to ACK invalid EngineState.");
+                    }
+
+                    break;
                 }
             };
 
@@ -117,21 +149,7 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
 
             info!("EngineState ACK.");
         }
+
+        info!("Engine consumer finished.");
     });
-}
-
-fn validate_engine_state(master: &MasterState, engine: &EngineState) -> Result<(), &'static str> {
-    if master.replay_status != ReplayStatus::Running {
-        return Err("Replay is not running.");
-    }
-
-    if engine.version != master.version {
-        return Err("Unexpected version.");
-    }
-
-    if engine.tick_index != master.tick_index {
-        return Err("Unexpected tick_index.");
-    }
-
-    Ok(())
 }

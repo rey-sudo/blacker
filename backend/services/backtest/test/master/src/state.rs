@@ -24,6 +24,7 @@ pub enum ReplayStatus {
     Stopped,
     Running,
     Stopping,
+    Error
 }
 
 #[derive(Clone, Serialize)]

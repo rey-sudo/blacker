@@ -87,7 +87,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                 // Stop the replay when there are no more ticks to publish.
                 let tick_info: TickInfo = match current_tick {
-                    Some(tick_info) => tick_info,
+                    Some(ti) => ti,
 
                     None => {
                         let mut master: RwLockWriteGuard<'_, MasterState> =
