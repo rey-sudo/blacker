@@ -18,10 +18,6 @@ impl DeserializeMessage for EngineState {
 }
 
 fn validate_engine_state(master: &MasterState, engine: &EngineState) -> Result<(), &'static str> {
-    if master.replay_status != ReplayStatus::Running {
-        return Err("Replay is not running.");
-    }
-
     if engine.tick_index != master.tick_index {
         return Err("Unexpected tick_index.");
     }
