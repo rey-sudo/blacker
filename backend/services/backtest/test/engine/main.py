@@ -12,7 +12,7 @@ client = pulsar.Client(PULSAR_URL)
 consumer = client.subscribe(
     MASTER_TICK_TOPIC,
     subscription_name="engine-sub",
-    consumer_type=pulsar.ConsumerType.Exclusive,
+    consumer_type=pulsar.ConsumerType.Exclusive
 )
 
 producer = client.create_producer(ENGINE_STATE_TOPIC)
@@ -26,7 +26,7 @@ try:
         try:
             trade_message = json.loads(msg.data())
 
-            time.sleep(1)
+            time.sleep(15)
 
             engine_state = {
                 "data": "hola",

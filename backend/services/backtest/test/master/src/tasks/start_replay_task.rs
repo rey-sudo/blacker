@@ -1,3 +1,4 @@
+use crate::snapshot::save_snapshot;
 use crate::state::{AppState, MasterState, ReplayStatus, Tick, TickInfo};
 use producer::SendFuture;
 use pulsar::{CommandSendReceipt, ProducerOptions};
@@ -7,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
-use tracing::{debug, error, info};
+use tracing::{error, info};
 
 /// Replay state machine.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -77,6 +78,10 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 let current_tick: Option<TickInfo> = {
                     let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
+                    info!("aca {}", master.tick_index);
+
+                    tokio::time::sleep(Duration::from_millis(15_000)).await;
+
                     master.current_tick_info()
                 };
 
@@ -101,10 +106,11 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 let send_future: SendFuture = producer.send_non_blocking(message).await?;
                 let receipt: CommandSendReceipt = send_future.await?;
 
-                debug!(
+                info!(
                     tick_index = tick_info.tick_index,
                     id = tick_info.tick.id,
                     r = ?receipt,
+                    tick = ?current_tick.unwrap().tick_index,
                     "Publish Tick"
                 );
 
@@ -131,22 +137,21 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
                 //
-                // TODO:
-                // Persistir snapshot global:
+                // Prepare next tick.
                 //
-                // master.tick_index
-                // master.engine_state
-                // master.execution_state
-                //
-
                 master.engine_state = None;
                 master.execution_state = None;
                 master.tick_index += 1;
 
+                //
+                // Persist the point from which we should resume.
+                //
+                save_snapshot(&master).await?;
+
                 drop(master);
 
                 //
-                // Ahora sí autorizamos el ACK.
+                // Now it is safe to acknowledge both messages.
                 //
                 state.engine_ack_notify.notify_one();
                 state.execution_ack_notify.notify_one();
@@ -181,6 +186,8 @@ pub fn start_replay_task(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
                 std::process::exit(1);
             }
         };
+
+        info!("Replay task started.");
 
         // 2. Main loop: Start the main loop.
         loop {

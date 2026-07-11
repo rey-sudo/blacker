@@ -15,7 +15,6 @@ pub async fn start_backtest_handler(
         return Err(StatusCode::CONFLICT);
     }
 
-    master.tick_index = 0;
     master.replay_status = ReplayStatus::Running;
 
     drop(master);

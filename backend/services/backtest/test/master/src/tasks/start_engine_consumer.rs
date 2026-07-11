@@ -1,9 +1,12 @@
+use crate::common::MasterStatus;
 use crate::slaves::engine::EngineState;
 use crate::state::{AppState, MasterState, ReplayStatus};
 use futures::TryStreamExt;
 use pulsar::consumer::Message;
 use pulsar::{Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor};
 use std::sync::Arc;
+use std::time::Duration;
+use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
 use tracing::{error, info};
 
 impl DeserializeMessage for EngineState {
@@ -31,9 +34,23 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
             }
         };
 
+        info!("Engine consumer started.");
+
         loop {
+            let ready_to_receive: bool = {
+                let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
+
+                master.status == MasterStatus::Ready
+                    && master.replay_status == ReplayStatus::Running
+            };
+
+            if !ready_to_receive {
+                tokio::time::sleep(Duration::from_millis(100)).await;
+                continue;
+            }
+
             let message: Message<EngineState> = match consumer.try_next().await {
-                Ok(Some(message)) => message,
+                Ok(Some(msg)) => msg,
                 Ok(None) => {
                     info!("EngineState consumer closed.");
                     break;
@@ -59,8 +76,9 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
             };
 
             {
-                let mut master: tokio::sync::RwLockWriteGuard<'_, MasterState> =
-                    state.master.write().await;
+                let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
+
+                info!(engine_state.tick_index, master.tick_index);
 
                 if let Err(reason) = validate_engine_state(&master, &engine_state) {
                     error!(reason, "Rejected EngineState.");

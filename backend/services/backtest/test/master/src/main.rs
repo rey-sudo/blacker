@@ -1,4 +1,5 @@
 use master::server::start_http_server;
+use master::snapshot::{ReplaySnapshot, load_snapshot};
 use master::state::AppState;
 use master::tasks::{
     start_engine_consumer, start_master_monitor, start_replay_task, start_slave_monitor,
@@ -21,7 +22,9 @@ async fn main() -> anyhow::Result<()> {
 
     let tick_data: Arc<BinaryFile> = Arc::new(BinaryFile::open("./input/ticks.bin")?);
 
-    let state: AppState = AppState::new(tick_data);
+    let snapshot: Option<ReplaySnapshot> = load_snapshot().await?;
+
+    let state: AppState = AppState::new(tick_data, snapshot);
 
     start_master_monitor(state.clone());
 

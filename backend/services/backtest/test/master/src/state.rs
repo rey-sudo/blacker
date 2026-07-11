@@ -2,11 +2,14 @@ use crate::{
     common::{MasterStatus, SlaveId},
     slave::{ConnectedSlaveState, ExecutionState},
     slaves::engine::EngineState,
+    snapshot::ReplaySnapshot,
 };
 use serde::Serialize;
+use std::fmt;
 use std::{collections::HashMap, sync::Arc};
 use tickdb::{binary::BinaryFile, trade::Trade};
 use tokio::sync::{Notify, RwLock};
+use tracing::info;
 
 pub type Tick = Trade;
 
@@ -16,7 +19,7 @@ pub struct TickInfo {
     pub tick: Tick,
 }
 
-#[derive(Clone, Serialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 pub enum ReplayStatus {
     Stopped,
     Running,
@@ -38,6 +41,20 @@ pub struct MasterState {
 
     #[serde(skip)]
     pub execution_state: Option<ExecutionState>,
+}
+
+impl fmt::Debug for MasterState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("MasterState")
+            .field("status", &self.status)
+            .field("replay_status", &self.replay_status)
+            .field("slaves", &self.slaves)
+            .field("version", &self.version)
+            .field("tick_index", &self.tick_index)
+            .field("engine_state", &self.engine_state)
+            .field("execution_state", &self.execution_state)
+            .finish()
+    }
 }
 
 impl MasterState {
@@ -78,17 +95,30 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(tick_data: Arc<BinaryFile>) -> Self {
+    pub fn new(tick_data: Arc<BinaryFile>, snapshot: Option<ReplaySnapshot>) -> Self {
+        info!("cargado snapshot, {:?}", snapshot);
+
+        let (version, tick_index, engine_state, execution_state) = match snapshot {
+            Some(snapshot) => (
+                snapshot.version,
+                snapshot.tick_index,
+                snapshot.engine_state,
+                snapshot.execution_state,
+            ),
+
+            None => (10, 0, None, None),
+        };
+
         Self {
             master: Arc::new(RwLock::new(MasterState {
                 status: MasterStatus::Pending,
                 replay_status: ReplayStatus::Stopped,
                 slaves: HashMap::new(),
-                version: 10,
+                version,
                 tick_data,
-                tick_index: 0,
-                engine_state: None,
-                execution_state: None,
+                tick_index,
+                engine_state,
+                execution_state,
             })),
 
             replay_notify: Arc::new(Notify::new()),
