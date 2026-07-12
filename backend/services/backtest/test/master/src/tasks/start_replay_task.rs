@@ -133,10 +133,10 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
             ReplayStep::Persist => {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
+                master.tick_index += 1;
+
                 save_snapshot(&master).await?;
 
-                master.tick_index += 1;
-                
                 drop(master);
 
                 state.engine_ack_notify.notify_one();

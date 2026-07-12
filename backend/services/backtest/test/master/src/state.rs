@@ -102,7 +102,7 @@ impl AppState {
 
         let (tick_index, engine_state, execution_state) = match snapshot {
             Some(snapshot) => (
-                snapshot.tick_index + 1,
+                snapshot.tick_index,
                 snapshot.engine_state,
                 snapshot.execution_state,
             ),
