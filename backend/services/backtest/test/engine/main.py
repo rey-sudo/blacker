@@ -1,69 +1,53 @@
-import json
-import time as t
-import pulsar
-import msgpack
+import time
+from core.engine import TradingEngine
+from strategy.my_strategy import MyStrategy
+from timeframes.aggregator import TimeframeAggregator
+from ingestion.pulsar_consumer import PulsarConsumer
+from publication.pulsar_publisher import PulsarPublisher
 
-PULSAR_URL = "pulsar://localhost:6650"
+aggregators = [
+    TimeframeAggregator(name="30m", timeframe_ms=30 * 60_000),
+]
 
-MASTER_TICK_TOPIC = "persistent://public/default/master.tick"
-ENGINE_STATE_TOPIC = "persistent://public/default/engine.state"
+strategy = MyStrategy()
 
-client = pulsar.Client(PULSAR_URL)
-
-consumer = client.subscribe(
-    MASTER_TICK_TOPIC,
-    subscription_name="engine-sub",
-    consumer_type=pulsar.ConsumerType.Exclusive
+engine = TradingEngine(
+    strategy=strategy,
+    aggregators=aggregators
 )
 
-producer = client.create_producer(ENGINE_STATE_TOPIC)
+consumer = PulsarConsumer(
+        service_url="pulsar://localhost:6650",
+        topic="persistent://public/default/master.tick",
+        subscription="engine-sub"
+)
 
-print("Engine service started.")
+publisher = PulsarPublisher(
+    service_url="pulsar://localhost:6650",
+    topic="persistent://public/default/engine.state",
+)
 
-try:
-    while True:
-        msg = consumer.receive()
+tick_count = 0
 
-        try:
-            t.sleep(5)
+def handle_tick(tick):
 
-            (
-                tick_index,
-                trade_id,
-                time,
-                price,
-                qty,
-                is_buyer_maker,
-            ) = msgpack.unpackb(msg.data(), raw=False)
+    print(tick)
 
-            print(
-                f"Received tick "
-                f"tick_index={tick_index}"
-            )
+    global tick_count
 
-           
+    tick_count += 1
 
-            engine_state = {
-                "data": "hola",
-                "tick_index": tick_index,
-            }
+    if tick_count % 1000 == 0:
+        print(f"Procesados {tick_count:,} ticks")
 
-            producer.send(
-                json.dumps(engine_state).encode("utf-8")
-            )
+    time.sleep(5)    
 
+    state, signal = engine.on_tick(tick)
 
+    if signal:
+        print("SIGNAL:", signal)
+    
+    publisher.publish(state)
 
-            consumer.acknowledge(msg)
-
-        except Exception as e:
-            print(f"Processing error: {e}")
-            consumer.negative_acknowledge(msg)
-
-except KeyboardInterrupt:
-    print("Stopping...")
-
-finally:
-    producer.close()
-    consumer.close()
-    client.close()
+print("Starting...")
+consumer.listen(handle_tick)
