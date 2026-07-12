@@ -1,9 +1,0 @@
-{
-  "tick_index": 267,
-  "replay_step": "Persist",
-  "engine_state": {
-    "data": "hola",
-    "tick_index": 267
-  },
-  "execution_state": null
-}
