@@ -1,8 +1,9 @@
 {
-  "tick_index": 94,
+  "tick_index": 21,
+  "replay_step": "WaitEngine",
   "engine_state": {
     "data": "hola",
-    "tick_index": 94
+    "tick_index": 20
   },
   "execution_state": null
 }

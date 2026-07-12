@@ -3,6 +3,7 @@ use crate::{
     slave::{ConnectedSlaveState, ExecutionState},
     slaves::engine::EngineState,
     snapshot::ReplaySnapshot,
+    tasks::ReplayStep,
 };
 use serde::Serialize;
 use std::fmt;
@@ -23,13 +24,15 @@ pub struct TickInfo {
 pub enum ReplayStatus {
     Stopped,
     Running,
-    Stopping
+    Stopping,
 }
 
 #[derive(Clone, Serialize)]
 pub struct MasterState {
     pub status: MasterStatus,
     pub replay_status: ReplayStatus,
+    pub replay_step: ReplayStep,
+
     pub slaves: HashMap<SlaveId, ConnectedSlaveState>,
     #[serde(skip)]
     pub tick_data: Arc<BinaryFile>,
@@ -100,20 +103,22 @@ impl AppState {
     pub fn new(tick_data: Arc<BinaryFile>, snapshot: Option<ReplaySnapshot>) -> Self {
         info!("cargado snapshot, {:?}", snapshot);
 
-        let (tick_index, engine_state, execution_state) = match snapshot {
+        let (tick_index, replay_step, engine_state, execution_state) = match snapshot {
             Some(snapshot) => (
                 snapshot.tick_index,
+                snapshot.replay_step,
                 snapshot.engine_state,
                 snapshot.execution_state,
             ),
 
-            None => (0, None, None),
+            None => (0, ReplayStep::PublishTick, None, None),
         };
 
         Self {
             master: Arc::new(RwLock::new(MasterState {
                 status: MasterStatus::Pending,
                 replay_status: ReplayStatus::Stopped,
+                replay_step,
                 slaves: HashMap::new(),
                 tick_data,
                 tick_index,

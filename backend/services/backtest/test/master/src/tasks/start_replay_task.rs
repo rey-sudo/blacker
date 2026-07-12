@@ -12,8 +12,8 @@ use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
 use tracing::{error, info};
 
 /// Replay state machine.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum ReplayStep {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ReplayStep {
     PublishTick,
     WaitEngine,
     WaitExecution,
@@ -60,8 +60,6 @@ impl SerializeMessage for TickMessage {
 
 /// Executes the replay state machine until the replay finishes or is stopped.
 async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> anyhow::Result<()> {
-    let mut step: ReplayStep = ReplayStep::PublishTick;
-
     loop {
         {
             let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
@@ -72,7 +70,12 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
             }
         }
 
-        match step {
+        let replay_step: ReplayStep = {
+            let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
+            master.replay_step
+        };
+
+        match replay_step {
             ReplayStep::PublishTick => {
                 // Fetch the current replay tick/trade.
                 let current_tick: Option<TickInfo> = {
@@ -80,7 +83,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                     info!("tick actual {}", master.tick_index); //
 
-                    tokio::time::sleep(Duration::from_millis(5_000)).await; //
+                    tokio::time::sleep(Duration::from_millis(50_000)).await; //
 
                     master.current_tick_info()
                 };
@@ -111,7 +114,11 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                     "Tick published."
                 ); //
 
-                step = ReplayStep::WaitEngine;
+                let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
+
+                master.replay_step = ReplayStep::WaitEngine;
+
+                save_snapshot(&master).await?;
             }
 
             ReplayStep::WaitEngine => {
@@ -119,7 +126,11 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                 info!("EngineState received.");
 
-                step = ReplayStep::WaitExecution;
+                let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
+
+                master.replay_step = ReplayStep::WaitExecution;
+
+                save_snapshot(&master).await?;
             }
 
             ReplayStep::WaitExecution => {
@@ -127,13 +138,18 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                 info!("ExecutionState received.");
 
-                step = ReplayStep::Persist;
+                let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
+
+                master.replay_step = ReplayStep::Persist;
+
+                save_snapshot(&master).await?;
             }
 
             ReplayStep::Persist => {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
                 master.tick_index += 1;
+                master.replay_step = ReplayStep::PublishTick;
 
                 save_snapshot(&master).await?;
 
@@ -141,8 +157,6 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                 state.engine_ack_notify.notify_one();
                 state.execution_ack_notify.notify_one();
-
-                step = ReplayStep::PublishTick;
             }
         }
     }

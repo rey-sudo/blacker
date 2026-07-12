@@ -1,12 +1,17 @@
-use crate::{slave::ExecutionState, slaves::engine::EngineState, state::MasterState};
+use crate::{
+    slave::ExecutionState, slaves::engine::EngineState, state::MasterState, tasks::ReplayStep,
+};
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use tracing::info;
 use std::path::Path;
 use tokio::fs;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReplaySnapshot {
     pub tick_index: usize,
+    pub replay_step: ReplayStep,
+
     pub engine_state: Option<EngineState>,
     pub execution_state: Option<ExecutionState>,
 }
@@ -20,9 +25,12 @@ pub async fn save_snapshot(master: &MasterState) -> Result<()> {
 
     let snapshot: ReplaySnapshot = ReplaySnapshot {
         tick_index: master.tick_index,
+        replay_step: master.replay_step,
         engine_state: master.engine_state.clone(),
         execution_state: master.execution_state.clone(),
     };
+
+    info!("SAVED, {:?}", snapshot);
 
     let json: Vec<u8> = serde_json::to_vec_pretty(&snapshot)?;
 
@@ -35,9 +43,7 @@ pub async fn load_snapshot() -> Result<Option<ReplaySnapshot>> {
     match fs::read(SNAPSHOT_PATH).await {
         Ok(bytes) => Ok(Some(serde_json::from_slice(&bytes)?)),
 
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            Ok(None)
-        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
 
         Err(error) => Err(error.into()),
     }
