@@ -4,5 +4,5 @@ pub mod routes;
 pub mod server;
 pub mod slaves;
 pub mod snapshot;
-pub mod state;
+pub mod master;
 pub mod tasks;

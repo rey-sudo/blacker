@@ -1,5 +1,5 @@
 use crate::common::SlaveId;
-use serde::{Deserialize, Serialize};
+use serde::{Serialize};
 use std::time::Instant;
 
 #[derive(Debug, Clone, Serialize)]

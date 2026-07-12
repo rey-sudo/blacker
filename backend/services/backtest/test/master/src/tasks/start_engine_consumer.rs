@@ -1,5 +1,5 @@
 use crate::slaves::engine::EngineState;
-use crate::state::{AppState, MasterState};
+use crate::master::state::{AppState, MasterState};
 use futures::TryStreamExt;
 use pulsar::consumer::Message;
 use pulsar::{Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor};

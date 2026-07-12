@@ -1,5 +1,6 @@
 use crate::{
-    handlers::{get_state_handler, report_state_handler, start_backtest_handler}, state::AppState,
+    handlers::{get_state_handler, report_state_handler, start_backtest_handler},
+    master::state::AppState,
 };
 use axum::{
     Router,

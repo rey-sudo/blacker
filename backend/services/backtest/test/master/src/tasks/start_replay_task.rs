@@ -1,5 +1,5 @@
 use crate::snapshot::save_snapshot;
-use crate::state::{AppState, MasterState, ReplayStatus, Tick, TickInfo};
+use crate::master::state::{AppState, MasterState, ReplayStatus, Tick, TickInfo};
 use producer::SendFuture;
 use pulsar::ProducerOptions;
 use pulsar::{Error as PulsarError, Pulsar, TokioExecutor};

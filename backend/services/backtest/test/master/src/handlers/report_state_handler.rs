@@ -1,5 +1,7 @@
 use crate::{
-    common::SlaveId, slaves::slave::ConnectedSlaveState, state::{AppState, MasterState, MasterStatus},
+    common::SlaveId,
+    master::state::{AppState, MasterState, MasterStatus},
+    slaves::slave::ConnectedSlaveState,
 };
 use axum::{Json, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};
@@ -9,13 +11,13 @@ use tokio::sync::RwLockWriteGuard;
 #[derive(Deserialize)]
 pub struct ReportRequest {
     pub id: SlaveId,
-    pub status: String
+    pub status: String,
 }
 
 #[derive(Serialize)]
 pub struct ReportResponse {
     pub ok: bool,
-    pub master: MasterStatus
+    pub master: MasterStatus,
 }
 
 pub async fn report_state_handler(
@@ -31,13 +33,13 @@ pub async fn report_state_handler(
                 id: req.id,
                 connected: true,
                 status: req.status,
-                last_seen: Instant::now()
+                last_seen: Instant::now(),
             },
         );
 
         ReportResponse {
             ok: true,
-            master: master.status.clone()
+            master: master.status.clone(),
         }
     };
 

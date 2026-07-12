@@ -1,6 +1,6 @@
 use crate::{
+    master::state::MasterState,
     slaves::{engine::EngineState, execution::ExecutionState},
-    state::MasterState,
     tasks::ReplayStep,
 };
 use anyhow::{Context, Result, bail};

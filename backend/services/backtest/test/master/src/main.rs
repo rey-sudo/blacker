@@ -1,6 +1,6 @@
+use master::master::state::AppState;
 use master::server::start_http_server;
 use master::snapshot::{ReplaySnapshot, load_snapshot};
-use master::state::AppState;
 use master::tasks::{
     start_engine_consumer, start_master_monitor, start_replay_task, start_slave_monitor,
 };

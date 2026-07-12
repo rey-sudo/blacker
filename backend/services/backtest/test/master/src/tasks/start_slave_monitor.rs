@@ -1,4 +1,4 @@
-use crate::state::{AppState, MasterState};
+use crate::master::state::{AppState, MasterState};
 use std::time::Duration;
 use tokio::sync::RwLockWriteGuard;
 use tokio::time;
