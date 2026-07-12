@@ -1,4 +1,3 @@
-use crate::common::MasterStatus;
 use crate::snapshot::save_snapshot;
 use crate::state::{AppState, MasterState, ReplayStatus, Tick, TickInfo};
 use producer::SendFuture;
@@ -61,6 +60,8 @@ impl SerializeMessage for TickMessage {
 /// Executes the replay state machine until the replay finishes or is stopped.
 async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> anyhow::Result<()> {
     loop {
+        tokio::time::sleep(Duration::from_millis(5_000)).await; //DEBUG
+
         {
             let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
@@ -82,8 +83,6 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                     let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
                     info!("tick actual {}", master.tick_index); //
-
-                    tokio::time::sleep(Duration::from_millis(50_000)).await; //
 
                     master.current_tick_info()
                 };
