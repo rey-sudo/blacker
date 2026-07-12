@@ -1,7 +1,5 @@
 use crate::{
-    common::{MasterStatus, SlaveId},
-    slave::ConnectedSlaveState,
-    state::{AppState, MasterState},
+    common::SlaveId, slaves::slave::ConnectedSlaveState, state::{AppState, MasterState, MasterStatus},
 };
 use axum::{Json, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};

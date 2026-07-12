@@ -1,12 +1,10 @@
-use crate::common::MasterStatus;
 use crate::slaves::engine::EngineState;
-use crate::state::{AppState, MasterState, ReplayStatus};
+use crate::state::{AppState, MasterState};
 use futures::TryStreamExt;
 use pulsar::consumer::Message;
 use pulsar::{Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor};
 use std::sync::Arc;
-use std::time::Duration;
-use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
+use tokio::sync::{RwLockWriteGuard};
 use tracing::{error, info};
 
 impl DeserializeMessage for EngineState {

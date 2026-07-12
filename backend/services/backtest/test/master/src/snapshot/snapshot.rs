@@ -1,14 +1,15 @@
 use crate::{
-    slave::ExecutionState, slaves::engine::EngineState, state::MasterState, tasks::ReplayStep,
+    slaves::{engine::EngineState, execution::ExecutionState},
+    state::MasterState,
+    tasks::ReplayStep,
 };
-
 use anyhow::{Context, Result, bail};
 use crc32fast::Hasher;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 use tokio::fs;
-use tracing::info;
 use tokio::io::AsyncWriteExt;
+use tracing::info;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReplaySnapshot {

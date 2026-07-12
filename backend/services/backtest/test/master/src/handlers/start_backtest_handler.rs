@@ -1,4 +1,4 @@
-use crate::{common::MasterStatus, state::{AppState, MasterState, ReplayStatus}};
+use crate::state::{AppState, MasterState, MasterStatus, ReplayStatus};
 use axum::{extract::State, http::StatusCode};
 use tokio::sync::RwLockWriteGuard;
 

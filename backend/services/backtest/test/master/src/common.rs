@@ -6,9 +6,3 @@ pub enum SlaveId {
     Execution
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub enum MasterStatus {
-    Pending,
-    Unsync,
-    Ready
-}

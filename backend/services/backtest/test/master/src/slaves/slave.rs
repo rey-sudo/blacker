@@ -10,8 +10,3 @@ pub struct ConnectedSlaveState {
     pub last_seen: Instant,
     pub status: String
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExecutionState {
-    pub tick_index: usize,
-}

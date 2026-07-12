@@ -1,11 +1,10 @@
 use crate::{
-    common::{MasterStatus, SlaveId},
-    slave::{ConnectedSlaveState, ExecutionState},
-    slaves::engine::EngineState,
+    common::SlaveId,
+    slaves::{engine::EngineState, execution::ExecutionState, slave::ConnectedSlaveState},
     snapshot::ReplaySnapshot,
     tasks::ReplayStep,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::{collections::HashMap, sync::Arc};
 use tickdb::{binary::BinaryFile, trade::Trade};
@@ -25,6 +24,13 @@ pub enum ReplayStatus {
     Stopped,
     Running,
     Stopping,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum MasterStatus {
+    Pending,
+    Unsync,
+    Ready,
 }
 
 #[derive(Clone, Serialize)]
