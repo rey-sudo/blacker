@@ -1,14 +1,14 @@
 use crate::snapshot::save_snapshot;
 use crate::state::{AppState, MasterState, ReplayStatus, Tick, TickInfo};
 use producer::SendFuture;
-use pulsar::{CommandSendReceipt, ProducerOptions};
+use pulsar::ProducerOptions;
 use pulsar::{Error as PulsarError, Pulsar, TokioExecutor};
 use pulsar::{Producer, SerializeMessage, producer};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
-use tracing::{error, info};
+use tracing::{error, info, warn};
 
 /// Replay state machine.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -82,7 +82,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 let current_tick: Option<TickInfo> = {
                     let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
-                    info!("tick actual {}", master.tick_index); //
+                    info!("TICK {}", master.tick_index); //DEBUG
 
                     master.current_tick_info()
                 };
@@ -104,19 +104,39 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 };
 
                 let message: TickMessage = TickMessage::new(tick_info.tick_index, tick_info.tick);
-                let send_future: SendFuture = producer.send_non_blocking(message).await?;
-                let _receipt: CommandSendReceipt = send_future.await?;
 
-                info!(
-                    tick_index = tick_info.tick_index,
-                    id = tick_info.tick.id,
-                    "Tick published."
-                ); //
+                let send_future: SendFuture = match producer.send_non_blocking(message).await {
+                    Ok(f) => f,
+                    Err(e) => {
+                        warn!(
+                            tick_index = tick_info.tick_index,
+                            error = %e,
+                            "Producer send failed (non-fatal), will retry."
+                        );
+                        continue;
+                    }
+                };
+
+                match send_future.await {
+                    Ok(_receipt) => {
+                        info!(
+                            tick_index = tick_info.tick_index,
+                            id = tick_info.tick.id,
+                            "Tick published."
+                        );
+                    }
+                    Err(e) => {
+                        warn!(
+                            tick_index = tick_info.tick_index,
+                            error = %e,
+                            "Producer receipt failed (non-fatal), will retry."
+                        );
+                        continue;
+                    }
+                }
 
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
-
                 master.replay_step = ReplayStep::WaitEngine;
-
                 save_snapshot(&master).await?;
             }
 
@@ -126,9 +146,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 info!("EngineState received.");
 
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
-
                 master.replay_step = ReplayStep::WaitExecution;
-
                 save_snapshot(&master).await?;
             }
 
@@ -138,18 +156,14 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 info!("ExecutionState received.");
 
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
-
                 master.replay_step = ReplayStep::Persist;
-
                 save_snapshot(&master).await?;
             }
 
             ReplayStep::Persist => {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
-
                 master.tick_index += 1;
                 master.replay_step = ReplayStep::PublishTick;
-
                 save_snapshot(&master).await?;
 
                 drop(master);
