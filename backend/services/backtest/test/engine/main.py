@@ -1,19 +1,19 @@
 import time
 from core.engine import TradingEngine
 from strategy.my_strategy import MyStrategy
-from timeframes.aggregator import TimeframeAggregator
+from engine.timeframes.timeframe import Timeframe
 from ingestion.pulsar_consumer import PulsarConsumer
 from publication.pulsar_publisher import PulsarPublisher
 
-aggregators = [
-    TimeframeAggregator(name="30m", timeframe_ms=30 * 60_000),
+timeframes = [
+    Timeframe(name="30m", timeframe_ms=30 * 60_000),
 ]
 
 strategy = MyStrategy()
 
 engine = TradingEngine(
     strategy=strategy,
-    aggregators=aggregators
+    timeframes=timeframes
 )
 
 consumer = PulsarConsumer(

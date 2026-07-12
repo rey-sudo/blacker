@@ -8,6 +8,7 @@ class EngineState:
 
 class TradingEngine:
     def __init__(self, strategy, timeframes):
+        self.state = None
         self.strategy = strategy
         self.timeframes = timeframes
 
