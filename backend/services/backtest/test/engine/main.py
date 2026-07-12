@@ -1,6 +1,7 @@
 import json
-import time
+import time as t
 import pulsar
+import msgpack
 
 PULSAR_URL = "pulsar://localhost:6650"
 
@@ -24,18 +25,27 @@ try:
         msg = consumer.receive()
 
         try:
-            trade_message = json.loads(msg.data())
+            t.sleep(5)
+
+            (
+                tick_index,
+                trade_id,
+                time,
+                price,
+                qty,
+                is_buyer_maker,
+            ) = msgpack.unpackb(msg.data(), raw=False)
 
             print(
                 f"Received tick "
-                f"tick_index={trade_message['tick_index']}"
+                f"tick_index={tick_index}"
             )
 
-            time.sleep(5)
+           
 
             engine_state = {
                 "data": "hola",
-                "tick_index": trade_message['tick_index'],
+                "tick_index": tick_index,
             }
 
             producer.send(

@@ -1,5 +1,5 @@
-use crate::snapshot::save_snapshot;
 use crate::master::state::{AppState, MasterState, ReplayStatus, Tick, TickInfo};
+use crate::snapshot::save_snapshot;
 use producer::SendFuture;
 use pulsar::ProducerOptions;
 use pulsar::{Error as PulsarError, Pulsar, TokioExecutor};
@@ -45,10 +45,10 @@ impl TickMessage {
 }
 
 impl SerializeMessage for TickMessage {
-    /// Serializes the trade message into a JSON payload for Pulsar.
+    /// Serializes the tick message into a MessagePack payload for Pulsar.
     fn serialize_message(input: Self) -> Result<producer::Message, PulsarError> {
-        let payload: Vec<u8> = serde_json::to_vec(&input)
-            .map_err(|e: serde_json::Error| PulsarError::Custom(e.to_string()))?;
+        let payload: Vec<u8> = rmp_serde::to_vec(&input)
+            .map_err(|e: rmp_serde::encode::Error| PulsarError::Custom(e.to_string()))?;
 
         Ok(producer::Message {
             payload,
