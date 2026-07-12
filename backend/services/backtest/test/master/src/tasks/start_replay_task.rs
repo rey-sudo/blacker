@@ -103,7 +103,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                         master.replay_status = ReplayStatus::Stopped;
 
-                        info!("Replay finished.");
+                        info!("Replay no more ticks");
 
                         continue;
                     }
