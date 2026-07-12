@@ -1,9 +1,9 @@
 {
-  "tick_index": 249,
-  "replay_step": "PublishTick",
+  "tick_index": 267,
+  "replay_step": "Persist",
   "engine_state": {
     "data": "hola",
-    "tick_index": 248
+    "tick_index": 267
   },
   "execution_state": null
 }

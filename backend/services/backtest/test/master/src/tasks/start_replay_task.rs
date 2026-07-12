@@ -57,12 +57,17 @@ impl SerializeMessage for TickMessage {
     }
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+// REPLAY STATE MACHINE LOGIC
+//----------------------------------------------------------------------------------------------------------------------
+
 /// Executes the replay state machine until the replay finishes or is stopped.
 async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> anyhow::Result<()> {
     loop {
         tokio::time::sleep(Duration::from_millis(5_000)).await; //DEBUG
 
         {
+            // Verify if the master is Ready and the replay is Running.
             let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
             if !master.can_publish() {
@@ -71,6 +76,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
             }
         }
 
+        // Replay state machine.
         let replay_step: ReplayStep = {
             let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
             master.replay_step
@@ -78,7 +84,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
         match replay_step {
             ReplayStep::PublishTick => {
-                // Fetch the current replay tick/trade.
+                // 1. Fetch the current replay tick/trade.
                 let current_tick: Option<TickInfo> = {
                     let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
@@ -87,7 +93,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                     master.current_tick_info()
                 };
 
-                // Stop the replay when there are no more ticks to publish.
+                // 2. Stop the replay when there are no more ticks to publish.
                 let tick_info: TickInfo = match current_tick {
                     Some(ti) => ti,
 
@@ -99,10 +105,11 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                         info!("Replay finished.");
 
-                        break;
+                        continue;
                     }
                 };
 
+                // 3. Send the message via pulsar topic.
                 let message: TickMessage = TickMessage::new(tick_info.tick_index, tick_info.tick);
 
                 let send_future: SendFuture = match producer.send_non_blocking(message).await {
@@ -135,6 +142,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                     }
                 }
 
+                // 4. Persist state only if the message sending was successful.
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
                 master.replay_step = ReplayStep::WaitEngine;
                 save_snapshot(&master).await?;
