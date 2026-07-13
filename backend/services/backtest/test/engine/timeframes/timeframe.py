@@ -1,31 +1,28 @@
-from engine.series.serie import Series
+from engine.series.series import Series
 from engine.ingestion.tick import Tick
 
 class Timeframe:
-    """
-    Represents a market timeframe.
 
-    Series are updated in registration order.
-    """
-
-    def __init__(self, name: str):
+    def __init__(self, name: str, timeframe_ms: int):
         self.name = name
-        self.series: list[Series] = []
+        self.timeframe_ms = timeframe_ms
+        self.series: dict[str, Series] = {}
 
-    def add_series(self, new_series: Series) -> None:
-        """
-        Registers a series into this timeframe.
-        """
+    def add_series(self, series: Series):
 
-        new_series.timeframe = self
-        self.series.append(new_series)
+        series.timeframe = self
+
+        self.series[series.name] = series
 
         return self
 
+    def get_series(self, name: str):
+        return self.series[name]
+        
     def update(self, tick: Tick) -> None:
         """
         Updates all registered series.
         """
-
         for series in self.series:
             series.update(tick)
+

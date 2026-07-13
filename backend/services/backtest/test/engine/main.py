@@ -1,23 +1,28 @@
 import time
-from engine.series import CandleSeries
 from core.engine import TradingEngine
-from strategy.my_strategy import MyStrategy
-from engine.timeframes.timeframe import Timeframe
 from ingestion.pulsar_consumer import PulsarConsumer
 from publication.pulsar_publisher import PulsarPublisher
 
-tf30 = Timeframe(name="30m", timeframe_ms=30 * 60_000).add_series(CandleSeries)
+engine_config = {
+  "timeframes": [
+    {
+      "name": "30m",
+      "timeframe_ms": 1800000,
+      "series": [ 
+        {
+          "type": "CandleSeries",
+          "params": {}
+        }
+      ]
+    }
+  ],
+  "strategy": {
+    "type": "MyStrategy",
+    "params": {}
+  }
+}
 
-timeframes = [
-    tf30,
-]
-
-strategy = MyStrategy()
-
-engine = TradingEngine(
-    strategy=strategy,
-    timeframes=timeframes
-)
+engine = TradingEngine.from_config(engine_config)
 
 consumer = PulsarConsumer(
         service_url="pulsar://localhost:6650",

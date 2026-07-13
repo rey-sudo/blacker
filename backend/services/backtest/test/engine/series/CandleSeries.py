@@ -1,4 +1,4 @@
-from engine.series.serie import Series
+from engine.series.series import Series
 from engine.ingestion.tick import Tick
 from dataclasses import dataclass
 
@@ -17,10 +17,8 @@ class CandleSeries(Series):
     Aggregates market ticks into OHLCV candles.
     """
 
-    def __init__(self, timeframe_ms: int):
-        super().__init__()
-
-        self.timeframe_ms = timeframe_ms
+    def __init__(self):
+        super().__init__("CandleSeries")
 
         self.live: Candle | None = None
         self.history: list[Candle] = []
