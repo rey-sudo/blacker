@@ -67,15 +67,18 @@ engine_state = {
 def apply_state(data):
     #if engine.state == None
       #engine.set_state(data['engine_state'])
+      #return
 
     #if boot_id != engine.boot_id
+      #engine.state = None
       #engine.status = Stopped  
-
-    #print(data['engine_state'])
     
     return
 
 def handle_tick(tick: Tick):
+    #if !engine.can_listen:
+      #NACK ERROR
+
     #if engine.boot_id != tick.boot_id
       #ACK
 
@@ -100,8 +103,8 @@ heartbeat = HeartbeatTask(
     apply_state=apply_state,
 )
 
-heartbeat.start()
+def main():
+    heartbeat.start()
+    consumer.listen(handle_tick)
 
-
-# if engine can listen
-consumer.listen(handle_tick)
+main()
