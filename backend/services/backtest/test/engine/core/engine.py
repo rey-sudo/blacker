@@ -8,7 +8,12 @@ from series.registry import SERIES_REGISTRY
 class TradingEngine:
 
     def __init__(self, strategy, timeframes):
+        self.status = 'init'
+
+        self.boot_id = None
+        self.tick_index = None
         self.state = None
+
         self.strategy = strategy
         self.timeframes = timeframes
 
@@ -54,7 +59,6 @@ class TradingEngine:
         )
 
     def on_tick(self, tick: Tick):
-
         for timeframe in self.timeframes.values():
             timeframe.update(tick)
 
