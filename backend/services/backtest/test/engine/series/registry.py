@@ -1,4 +1,4 @@
-from engine.series.CandleSeries import CandleSeries
+from series.CandleSeries import CandleSeries
 
 SERIES_REGISTRY = {
     "CandleSeries": CandleSeries

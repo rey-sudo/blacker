@@ -1,5 +1,5 @@
-from engine.series.series import Series
-from engine.ingestion.tick import Tick
+from series.series import Series
+from ingestion.tick import Tick
 from dataclasses import dataclass
 
 @dataclass(frozen=True)

@@ -47,7 +47,7 @@ class PulsarConsumer:
                 tick = self._decode_tick(msg)
                 callback(tick)
                 
-                self.consumer.acknowledge(msg)
+                #self.consumer.acknowledge(msg)
 
             except Exception:
                 self.consumer.negative_acknowledge(msg)

@@ -1,13 +1,9 @@
-from dataclasses import dataclass
-from engine.strategy.registry import STRATEGY_REGISTRY
-from engine.ingestion.tick import Tick
-from engine.timeframes.timeframe import Timeframe
-from engine.series.registry import SERIES_REGISTRY
+from core.engine_state import EngineState
+from strategy.registry import STRATEGY_REGISTRY
+from ingestion.tick import Tick
+from timeframes.timeframe import Timeframe
+from series.registry import SERIES_REGISTRY
 
-@dataclass
-class EngineState:
-    time: int
-    timeframes: dict
 
 class TradingEngine:
 

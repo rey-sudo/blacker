@@ -1,3 +1,4 @@
+from pprint import pprint
 import time
 from core.engine import TradingEngine
 from ingestion.pulsar_consumer import PulsarConsumer
@@ -52,10 +53,12 @@ def handle_tick(tick):
 
     state, signal = engine.on_tick(tick)
 
+    pprint(engine.state)
+
     if signal:
         print("SIGNAL:", signal)
     
-    publisher.publish(state)
+    #publisher.publish(state)
 
 print("Starting...")
 consumer.listen(handle_tick)

@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-
-from engine.ingestion.tick import Tick
+from ingestion.tick import Tick
 
 
 class Series(ABC):

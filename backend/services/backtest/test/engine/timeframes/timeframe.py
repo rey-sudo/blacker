@@ -1,6 +1,8 @@
-from engine.series.series import Series
-from engine.ingestion.tick import Tick
+from dataclasses import dataclass
+from series.series import Series
+from ingestion.tick import Tick
 
+@dataclass
 class Timeframe:
 
     def __init__(self, name: str, timeframe_ms: int):
@@ -23,6 +25,6 @@ class Timeframe:
         """
         Updates all registered series.
         """
-        for series in self.series:
+        for series in self.series.values():
             series.update(tick)
 
