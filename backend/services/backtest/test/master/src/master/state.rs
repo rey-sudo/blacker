@@ -10,6 +10,7 @@ use std::{collections::HashMap, sync::Arc};
 use tickdb::{binary::BinaryFile, trade::Trade};
 use tokio::sync::{Notify, RwLock};
 use tracing::info;
+use uuid::Uuid;
 
 pub type Tick = Trade;
 
@@ -43,7 +44,7 @@ pub struct MasterState {
     #[serde(skip)]
     pub tick_data: Arc<BinaryFile>,
     pub tick_index: usize,
-    
+
     pub engine_state: Option<EngineState>,
 
     #[serde(skip)]
@@ -93,6 +94,8 @@ impl MasterState {
 
 #[derive(Clone)]
 pub struct AppState {
+    pub boot_id: String,
+
     pub master: Arc<RwLock<MasterState>>,
 
     // Despierta la ReplayTask cuando llega un EngineState o ExecutionState
@@ -120,6 +123,8 @@ impl AppState {
         };
 
         Self {
+            boot_id: Uuid::new_v4().to_string(),
+
             master: Arc::new(RwLock::new(MasterState {
                 status: MasterStatus::Pending,
                 replay_status: ReplayStatus::Stopped,

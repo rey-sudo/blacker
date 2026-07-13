@@ -1,7 +1,7 @@
 use crate::{
     common::SlaveId,
     master::state::{AppState, MasterState, MasterStatus},
-    slaves::slave::ConnectedSlaveState,
+    slaves::{engine::EngineState, slave::ConnectedSlaveState},
 };
 use axum::{Json, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};
@@ -17,7 +17,9 @@ pub struct ReportRequest {
 #[derive(Serialize)]
 pub struct ReportResponse {
     pub ok: bool,
+    pub boot_id: String,
     pub master: MasterStatus,
+    pub engine_state: Option<EngineState>,
 }
 
 pub async fn report_state_handler(
@@ -39,7 +41,9 @@ pub async fn report_state_handler(
 
         ReportResponse {
             ok: true,
+            boot_id: state.boot_id.clone(),
             master: master.status.clone(),
+            engine_state: master.engine_state.clone(),
         }
     };
 

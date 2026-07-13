@@ -22,7 +22,8 @@ class PulsarConsumer:
         )
 
     def _decode_tick(self, msg):
-        (
+        (   
+            boot_id,
             tick_index,
             trade_id,
             time,
@@ -32,6 +33,7 @@ class PulsarConsumer:
         ) = msgpack.unpackb(msg.data(), raw=False)
 
         return Tick(
+            boot_id=boot_id,
             tick_index=tick_index,
             trade_id=trade_id,
             time=time,
@@ -41,6 +43,7 @@ class PulsarConsumer:
         )
 
     def listen(self, callback):
+        print("Consumer listening.")
         while True:
             msg = self.consumer.receive()
 

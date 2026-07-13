@@ -22,6 +22,7 @@ pub enum ReplayStep {
 /// Serializable trade payload published to Pulsar during replay.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TickMessage {
+    pub boot_id: String,
     pub tick_index: usize,
     pub id: u64,
     pub time: u64,
@@ -32,8 +33,9 @@ pub struct TickMessage {
 
 impl TickMessage {
     /// Creates a replay message from a trade and its tick index.
-    pub fn new(tick_index: usize, tick: Tick) -> Self {
+    pub fn new(boot_id: String, tick_index: usize, tick: Tick) -> Self {
         Self {
+            boot_id,
             tick_index,
             id: tick.id,
             time: tick.time,
@@ -108,7 +110,8 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 };
 
                 // 3. Send the message via pulsar topic.
-                let message: TickMessage = TickMessage::new(tick_info.tick_index, tick_info.tick);
+                let message: TickMessage =
+                    TickMessage::new(state.boot_id.clone(), tick_info.tick_index, tick_info.tick);
 
                 let send_future: SendFuture = match producer.send_non_blocking(message).await {
                     Ok(f) => f,
