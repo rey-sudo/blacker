@@ -65,22 +65,22 @@ engine_state = {
 }
 
 def apply_state(data):
+    #if engine.state == None
+      #engine.set_state(data['engine_state'])
+
+    #if boot_id != engine.boot_id
+      #engine.status = Stopped  
+
     #print(data['engine_state'])
-    #engine.set_state(data['engine_state'])
+    
     return
 
-heartbeat = HeartbeatTask(
-    master_url="http://localhost:3000/master/report-state",
-    apply_state=apply_state,
-)
-
-heartbeat.start()
-
-
 def handle_tick(tick: Tick):
-    #check if state is set
+    #if engine.boot_id != tick.boot_id
+      #ACK
 
-    #check if tick_index < self.tick_index
+    #check if tick_index - 1 != self.tick_index
+      #ACK
 
     time.sleep(5)   
 
@@ -95,5 +95,13 @@ def handle_tick(tick: Tick):
 
     publisher.publish(state)
 
+heartbeat = HeartbeatTask(
+    master_url="http://localhost:3000/master/report-state",
+    apply_state=apply_state,
+)
 
+heartbeat.start()
+
+
+# if engine can listen
 consumer.listen(handle_tick)
