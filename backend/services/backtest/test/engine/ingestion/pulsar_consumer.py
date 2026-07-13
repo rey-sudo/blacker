@@ -2,7 +2,6 @@ from pulsar import Client, ConsumerType
 from ingestion.tick import Tick
 import msgpack
 
-
 SCALE = 1e8
 
 class PulsarConsumer:
