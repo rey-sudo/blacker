@@ -10,7 +10,7 @@ class Series(ABC):
     and updates itself from incoming ticks.
     """
     def __init__(self, name: str):
-        self.name = name,
+        self.name = name
         self.timeframe = None
 
     @property

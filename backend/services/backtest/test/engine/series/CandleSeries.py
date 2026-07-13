@@ -1,6 +1,6 @@
 from series.series import Series
 from ingestion.tick import Tick
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 @dataclass(frozen=True)
 class Candle:
@@ -22,9 +22,16 @@ class CandleSeries(Series):
 
         self.live: Candle | None = None
         self.history: list[Candle] = []
-
         self.is_new: bool = False
-
+        
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "live": asdict(self.live) if self.live is not None else None,
+            "history": [asdict(candle) for candle in self.history],
+            "is_new": self.is_new,
+        }
+    
     def update(self, tick: Tick) -> None:
         bucket = tick.time // self.timeframe_ms
 

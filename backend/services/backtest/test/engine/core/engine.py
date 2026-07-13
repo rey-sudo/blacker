@@ -59,6 +59,7 @@ class TradingEngine:
             timeframe.update(tick)
 
         self.state = EngineState(
+            tick_index=tick.tick_index,
             time=tick.time,
             timeframes=self.timeframes,
         )
