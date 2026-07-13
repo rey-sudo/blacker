@@ -38,6 +38,7 @@ publisher = PulsarPublisher(
 tick_count = 0
 
 def handle_tick(tick):
+    time.sleep(5)   
 
     print(tick)
 
@@ -47,19 +48,16 @@ def handle_tick(tick):
 
     if tick_count % 1000 == 0:
         print(f"Procesados {tick_count:,} ticks")
-
-    time.sleep(5)    
+ 
 
     state, signal = engine.on_tick(tick)
-
-    payload = state.to_json()
-
-    print(payload)
 
     if signal:
         print("SIGNAL:", signal)
     
-    #publisher.publish(state)
+    print(state.to_json())
+
+    publisher.publish(state)
 
 print("Starting...")
 consumer.listen(handle_tick)

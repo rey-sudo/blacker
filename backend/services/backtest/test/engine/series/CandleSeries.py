@@ -43,13 +43,14 @@ class CandleSeries(Series):
             self.is_new = True
             return
 
-        current_bucket = self.live.start_ts // self.timeframe_ms
+        live = self.live
+        current_bucket = live.start_ts // self.timeframe_ms
 
         #
         # New candle.
         #
         if bucket != current_bucket:
-            self.history.append(self.live)
+            self.history.append(live)
 
             self.live = self._new_candle(bucket, tick)
             self.is_new = True
@@ -58,10 +59,15 @@ class CandleSeries(Series):
         #
         # Update current candle.
         #
-        self.live.high = max(self.live.high, tick.price)
-        self.live.low = min(self.live.low, tick.price)
-        self.live.close = tick.price
-        self.live.volume += tick.qty
+        self.live = Candle(
+            open=live.open,
+            high=max(live.high, tick.price),
+            low=min(live.low, tick.price),
+            close=tick.price,
+            volume=live.volume + tick.qty,
+            start_ts=live.start_ts,
+            end_ts=live.end_ts,
+        )
 
         self.is_new = False
 

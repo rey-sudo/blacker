@@ -1,17 +1,17 @@
-use crate::slaves::engine::EngineState;
 use crate::master::state::{AppState, MasterState};
+use crate::slaves::engine::EngineState;
 use futures::TryStreamExt;
 use pulsar::consumer::Message;
 use pulsar::{Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor};
 use std::sync::Arc;
-use tokio::sync::{RwLockWriteGuard};
+use tokio::sync::RwLockWriteGuard;
 use tracing::{error, info};
 
 impl DeserializeMessage for EngineState {
-    type Output = Result<EngineState, serde_json::Error>;
+    type Output = Result<EngineState, rmp_serde::decode::Error>;
 
     fn deserialize_message(payload: &Payload) -> Self::Output {
-        serde_json::from_slice(&payload.data)
+        rmp_serde::from_slice(&payload.data)
     }
 }
 

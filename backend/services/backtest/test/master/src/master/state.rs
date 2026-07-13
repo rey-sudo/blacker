@@ -43,8 +43,7 @@ pub struct MasterState {
     #[serde(skip)]
     pub tick_data: Arc<BinaryFile>,
     pub tick_index: usize,
-
-    #[serde(skip)]
+    
     pub engine_state: Option<EngineState>,
 
     #[serde(skip)]
