@@ -79,12 +79,12 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
                 if let Err(reason) = validate_engine_state(&master, &engine_state) {
-                    error!(reason, "Rejected EngineState.");
+                    error!(reason, "Rejected EngineState ACKing...");
 
                     drop(master);
 
-                    if let Err(error) = consumer.nack(&message).await {
-                        error!(?error, "Failed to NACK EngineState.");
+                    if let Err(error) = consumer.ack(&message).await {
+                        error!(?error, "Failed to early ACK EngineState.");
                     }
 
                     continue;

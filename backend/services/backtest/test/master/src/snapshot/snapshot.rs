@@ -44,7 +44,7 @@ pub async fn save_snapshot(master: &MasterState) -> Result<()> {
         execution_state: master.execution_state.clone(),
     };
 
-    let payload = bincode::serde::encode_to_vec(&snapshot, bincode::config::standard())?;
+    let payload: Vec<u8> = rmp_serde::to_vec(&snapshot)?;
 
     let mut hasher = Hasher::new();
     hasher.update(&payload);
@@ -136,13 +136,8 @@ pub async fn load_snapshot() -> Result<Option<ReplaySnapshot>> {
         bail!("Snapshot CRC mismatch (file is corrupted)");
     }
 
-    let (snapshot, consumed): (ReplaySnapshot, usize) =
-        bincode::serde::decode_from_slice(payload, bincode::config::standard())
-            .context("Unable to decode snapshot")?;
-
-    if consumed != payload.len() {
-        bail!("Snapshot contains trailing bytes");
-    }
+    let snapshot: ReplaySnapshot = rmp_serde::from_slice(payload)
+    .context("Unable to decode snapshot")?;
 
     info!(
         "Snapshot loaded (tick={}, {} bytes)",

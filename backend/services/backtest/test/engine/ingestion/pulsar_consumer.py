@@ -1,4 +1,4 @@
-from pulsar import Client, ConsumerType
+from pulsar import Client, ConsumerType, InitialPosition
 from ingestion.tick import Tick
 import msgpack
 
@@ -18,6 +18,7 @@ class PulsarConsumer:
             topic,
             subscription_name=subscription,
             consumer_type=ConsumerType.Exclusive,
+            initial_position=InitialPosition.Latest
         )
 
     def _decode_tick(self, msg):
@@ -47,7 +48,7 @@ class PulsarConsumer:
                 tick = self._decode_tick(msg)
                 callback(tick)
                 
-                #self.consumer.acknowledge(msg)
+                self.consumer.acknowledge(msg)
 
             except Exception:
                 self.consumer.negative_acknowledge(msg)

@@ -88,8 +88,6 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 let current_tick: Option<TickInfo> = {
                     let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
-                    info!("TICK {}", master.tick_index); //DEBUG
-
                     master.current_tick_info()
                 };
 
@@ -145,27 +143,20 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 // 4. Persist state only if the message sending was successful.
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
                 master.replay_step = ReplayStep::WaitEngine;
-                save_snapshot(&master).await?;
             }
 
             ReplayStep::WaitEngine => {
                 state.engine_notify.notified().await;
 
-                info!("EngineState received.");
-
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
                 master.replay_step = ReplayStep::WaitExecution;
-                save_snapshot(&master).await?;
             }
 
             ReplayStep::WaitExecution => {
                 //state.execution_notify.notified().await;
 
-                info!("ExecutionState received.");
-
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
                 master.replay_step = ReplayStep::Persist;
-                save_snapshot(&master).await?;
             }
 
             ReplayStep::Persist => {

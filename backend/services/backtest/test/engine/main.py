@@ -1,4 +1,5 @@
 import time
+from ingestion.tick import Tick
 from core.engine import TradingEngine
 from ingestion.pulsar_consumer import PulsarConsumer
 from publication.pulsar_publisher import PulsarPublisher
@@ -27,7 +28,7 @@ engine = TradingEngine.from_config(engine_config)
 consumer = PulsarConsumer(
         service_url="pulsar://localhost:6650",
         topic="persistent://public/default/master.tick",
-        subscription="engine-sub"
+        subscription="engine-sub",
 )
 
 publisher = PulsarPublisher(
@@ -37,10 +38,10 @@ publisher = PulsarPublisher(
 
 tick_count = 0
 
-def handle_tick(tick):
+def handle_tick(tick: Tick):
     time.sleep(5)   
 
-    print(tick)
+    print(tick.tick_index)
 
     global tick_count
 
@@ -55,7 +56,7 @@ def handle_tick(tick):
     if signal:
         print("SIGNAL:", signal)
     
-    print(state.to_json())
+    #print(state.to_json())
 
     publisher.publish(state)
 
