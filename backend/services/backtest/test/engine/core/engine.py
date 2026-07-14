@@ -90,6 +90,7 @@ class TradingEngine:
         self.timeframes = timeframes
 
         self.state = EngineState(
+            boot_id=self.boot_id,
             tick_index=engine_state["tick_index"],
             time=engine_state["time"],
             timeframes=self.timeframes,
@@ -100,6 +101,7 @@ class TradingEngine:
             timeframe.update(tick)
 
         self.state = EngineState(
+            boot_id=self.boot_id,
             tick_index=tick.tick_index,
             time=tick.time,
             timeframes=self.timeframes,

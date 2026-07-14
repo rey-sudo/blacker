@@ -1,3 +1,4 @@
+from core.engine import EngineState
 from pulsar import Client, Producer
 
 class PulsarPublisher:
@@ -11,7 +12,7 @@ class PulsarPublisher:
         self.producer: Producer = self.client.create_producer(topic)
 
 
-    def publish(self, engine_state):
+    def publish(self, engine_state: EngineState):
         self.producer.send(engine_state.to_msgpack())
 
     def close(self):

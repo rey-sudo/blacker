@@ -4,12 +4,14 @@ from dataclasses import dataclass
 
 @dataclass
 class EngineState:
+    boot_id: str
     tick_index: int
     time: int
     timeframes: dict
 
     def to_dict(self):
         return {
+            "boot_id": self.boot_id,
             "tick_index": self.tick_index,
             "time": self.time,
             "timeframes": {

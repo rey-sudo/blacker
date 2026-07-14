@@ -1,5 +1,5 @@
 use crate::master::state::{AppState, MasterState};
-use crate::slaves::engine::EngineState;
+use crate::slaves::engine::{EngineState, EngineStateMessage};
 use futures::TryStreamExt;
 use pulsar::consumer::Message;
 use pulsar::{Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor};
@@ -7,15 +7,19 @@ use std::sync::Arc;
 use tokio::sync::RwLockWriteGuard;
 use tracing::{error, info};
 
-impl DeserializeMessage for EngineState {
-    type Output = Result<EngineState, rmp_serde::decode::Error>;
+impl DeserializeMessage for EngineStateMessage {
+    type Output = Result<EngineStateMessage, rmp_serde::decode::Error>;
 
     fn deserialize_message(payload: &Payload) -> Self::Output {
         rmp_serde::from_slice(&payload.data)
     }
 }
 
-fn validate_engine_state(master: &MasterState, engine: &EngineState) -> Result<(), &'static str> {
+fn validate_engine_state(boot_id: &str, master: &MasterState, engine: &EngineStateMessage) -> Result<(), &'static str> {
+    if engine.boot_id != boot_id {
+        return Err("Unexpected boot_id.");
+    }
+
     if engine.tick_index != master.tick_index {
         return Err("Unexpected tick_index.");
     }
@@ -26,7 +30,7 @@ fn validate_engine_state(master: &MasterState, engine: &EngineState) -> Result<(
 pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
     tokio::spawn(async move {
         // 1. Create Consumer: create pulsar consumer.
-        let mut consumer: Consumer<EngineState, TokioExecutor> = match pulsar
+        let mut consumer: Consumer<EngineStateMessage, TokioExecutor> = match pulsar
             .consumer()
             .with_topic("persistent://public/default/engine.state")
             .with_subscription_type(SubType::Exclusive)
@@ -46,7 +50,7 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
         // 1. Start Loop: start the main loop.
         loop {
             //  Receive the next EngineState message from Pulsar.
-            let message: Message<EngineState> = match consumer.try_next().await {
+            let message: Message<EngineStateMessage> = match consumer.try_next().await {
                 Ok(Some(msg)) => msg,
                 Ok(None) => {
                     info!("Engine consumer closed.");
@@ -59,7 +63,7 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
             };
 
             // Deserialize the received EngineState message.
-            let engine_state: EngineState = match message.deserialize() {
+            let engine_state: EngineStateMessage = match message.deserialize() {
                 Ok(state) => state,
 
                 Err(error) => {
@@ -78,7 +82,7 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
             {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
-                if let Err(reason) = validate_engine_state(&master, &engine_state) {
+                if let Err(reason) = validate_engine_state(state.boot_id.as_str(),&master, &engine_state) {
                     error!(reason, "Rejected EngineState ACKing...");
 
                     drop(master);
@@ -90,7 +94,7 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
                     continue;
                 }
 
-                master.engine_state = Some(engine_state);
+                master.engine_state = Some(engine_state.into());
 
                 info!(
                     master_tick_index = master.tick_index,
