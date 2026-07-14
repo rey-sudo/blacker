@@ -3,20 +3,22 @@ import requests
 
 class HeartbeatTask():
     def __init__(self, master_url, apply_state):
+        self.initialized = False
         self.master_url = master_url
         self.engine_id = "Engine"
         self.callback = apply_state
 
     def start(self):
-        payload = {
-            "id": self.engine_id,
-            "status": "Ready"
-        }
-        
         print("Running heartbeat task.")
         
         while True:
             try:
+                payload = {
+                    "id": self.engine_id,
+                    "status": "Ready",
+                    "initialized": self.initialized
+                }
+          
                 time.sleep(1)
 
                 response = requests.post(
@@ -29,8 +31,8 @@ class HeartbeatTask():
 
                 data = response.json()
 
-                self.callback(data)
-                
+                self.initialized = self.callback(data)
+
             except Exception as e:
                 print(f"No se pudo registrar: {e}")
                 continue

@@ -6,7 +6,8 @@ while true; do
     -d '{
       "id": "Execution",
       "status": "Ready",
-      "version": 10
+      "version": 10,
+      "initialized": true
     }'
   sleep 1
 done

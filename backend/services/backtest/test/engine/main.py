@@ -92,7 +92,7 @@ def listen():
 # HANDLE STATE
 #----------------------------------------------------------------------------------------------------------------------- 
 
-def handle_state(data):
+def handle_state(data) -> bool:
     boot_id = data['boot_id']
     state = data['engine_state']
 
@@ -103,13 +103,13 @@ def handle_state(data):
             engine.boot_id = boot_id
             engine.status = 'ready'
             listen()
-            return
+            return True
         else:
             engine.boot_id = boot_id
             engine.set_state(engine_state=state)
             engine.status = 'ready'
             listen()
-            return
+            return True
         
     if engine.status == 'ready':
         if engine.boot_id != boot_id:
@@ -117,8 +117,9 @@ def handle_state(data):
             engine.boot_id = None
             engine.state = None
             print("engine boot_it is diferent, reseting engine state")
-
-  
+    
+    return True   
+     
 heartbeat = HeartbeatTask(
     master_url="http://localhost:3000/master/report-state",
     apply_state=handle_state,

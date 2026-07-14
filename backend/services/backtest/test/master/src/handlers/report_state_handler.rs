@@ -12,6 +12,7 @@ use tokio::sync::RwLockWriteGuard;
 pub struct ReportRequest {
     pub id: SlaveId,
     pub status: String,
+    pub initialized: bool,
 }
 
 #[derive(Serialize)]
@@ -38,10 +39,16 @@ pub async fn report_state_handler(
             },
         );
 
+        let engine_state: Option<EngineState> = if !req.initialized {
+            master.engine_state.clone()
+        } else {
+            None
+        };
+
         ReportResponse {
             ok: true,
             boot_id: state.boot_id.clone(),
-            engine_state: master.engine_state.clone(),
+            engine_state
         }
     };
 
