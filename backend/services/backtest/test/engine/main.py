@@ -65,12 +65,14 @@ def handle_tick(tick: Tick):
 
     time.sleep(5)   
 
-    print(tick.tick_index)
+
 
     state, signal = engine.on_tick(tick)
 
     if signal:
         print("SIGNAL:", signal)
+    
+    print(f"Processed: {tick.tick_index}")
     
     publisher.publish(state)
 

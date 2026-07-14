@@ -15,7 +15,11 @@ impl DeserializeMessage for EngineStateMessage {
     }
 }
 
-fn validate_engine_state(boot_id: &str, master: &MasterState, engine: &EngineStateMessage) -> Result<(), &'static str> {
+fn validate_engine_state(
+    boot_id: &str,
+    master: &MasterState,
+    engine: &EngineStateMessage,
+) -> Result<(), &'static str> {
     if engine.boot_id != boot_id {
         return Err("Unexpected boot_id.");
     }
@@ -82,7 +86,9 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
             {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
-                if let Err(reason) = validate_engine_state(state.boot_id.as_str(),&master, &engine_state) {
+                if let Err(reason) =
+                    validate_engine_state(state.boot_id.as_str(), &master, &engine_state)
+                {
                     error!(reason, "Rejected EngineState ACKing...");
 
                     drop(master);
@@ -106,12 +112,16 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
 
             state.engine_ack_notify.notified().await;
 
-            if let Err(error) = consumer.ack(&message).await {
-                error!(?error, "Failed to ACK EngineState.");
-                continue;
+            match consumer.ack(&message).await {
+                Ok(_) => {
+                    info!("EngineState ACK.");
+                }
+                Err(error) => {
+                    error!(?error, "Failed to ACK EngineState.");
+                    continue;
+                }
             }
-
-            info!("EngineState ACK.");
+            
         }
 
         info!("Engine consumer finished.");
