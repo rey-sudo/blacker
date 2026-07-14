@@ -86,26 +86,27 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
             {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
-                if let Err(reason) =
-                    validate_engine_state(state.boot_id.as_str(), &master, &engine_state)
-                {
-                    error!(reason, "Rejected EngineState ACKing...");
+                match validate_engine_state(state.boot_id.as_str(), &master, &engine_state) {
+                    Ok(()) => {
+                        master.engine_state = Some(engine_state.into());
 
-                    drop(master);
-
-                    if let Err(error) = consumer.ack(&message).await {
-                        error!(?error, "Failed to early ACK EngineState.");
+                        info!(
+                            master_tick_index = master.tick_index,
+                            engine_tick_index, "EngineState received."
+                        );
                     }
+                    Err(reason) => {
+                        error!(reason, "Rejected EngineState ACKing...");
 
-                    continue;
+                        drop(master);
+
+                        if let Err(error) = consumer.ack(&message).await {
+                            error!(?error, "Failed to early ACK EngineState.");
+                        }
+
+                        continue;
+                    }
                 }
-
-                master.engine_state = Some(engine_state.into());
-
-                info!(
-                    master_tick_index = master.tick_index,
-                    engine_tick_index, "EngineState received."
-                );
             }
 
             state.engine_notify.notify_one();
@@ -121,7 +122,6 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
                     continue;
                 }
             }
-            
         }
 
         info!("Engine consumer finished.");
