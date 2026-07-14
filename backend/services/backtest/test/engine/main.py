@@ -117,6 +117,7 @@ def handle_state(data) -> bool:
             engine.boot_id = None
             engine.state = None
             print("engine boot_it is diferent, reseting engine state")
+            return False
     
     return True   
      
