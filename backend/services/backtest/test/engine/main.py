@@ -38,6 +38,10 @@ publisher = PulsarPublisher(
 
 engine = TradingEngine.from_config(engine_config)
 
+#-----------------------------------------------------------------------------------------------------------------------
+# HANDLE TICKS
+#----------------------------------------------------------------------------------------------------------------------- 
+
 def handle_tick(tick: Tick):
     if engine.status != 'ready':
         raise Exception("Engine is not ready.")
@@ -83,10 +87,16 @@ def listen():
     )
 
     thread.start()
-    
-def apply_state(data):
+
+#-----------------------------------------------------------------------------------------------------------------------
+# HANDLE STATE
+#----------------------------------------------------------------------------------------------------------------------- 
+
+def handle_state(data):
     boot_id = data['boot_id']
     state = data['engine_state']
+
+    #TODO: CHECK STRUCT
 
     if engine.status == 'init':
         if state == None:
@@ -107,14 +117,16 @@ def apply_state(data):
             engine.boot_id = None
             engine.state = None
             print("engine boot_it is diferent, reseting engine state")
-    
-        return
 
   
 heartbeat = HeartbeatTask(
     master_url="http://localhost:3000/master/report-state",
-    apply_state=apply_state,
+    apply_state=handle_state,
 )
+
+#-----------------------------------------------------------------------------------------------------------------------
+# MAIN
+#----------------------------------------------------------------------------------------------------------------------- 
 
 def main():
     heartbeat.start()

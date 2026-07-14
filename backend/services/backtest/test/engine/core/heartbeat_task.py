@@ -5,7 +5,7 @@ class HeartbeatTask():
     def __init__(self, master_url, apply_state):
         self.master_url = master_url
         self.engine_id = "Engine"
-        self.apply_state = apply_state
+        self.callback = apply_state
 
     def start(self):
         payload = {
@@ -29,7 +29,7 @@ class HeartbeatTask():
 
                 data = response.json()
 
-                self.apply_state(data)
+                self.callback(data)
                 
             except Exception as e:
                 print(f"No se pudo registrar: {e}")
