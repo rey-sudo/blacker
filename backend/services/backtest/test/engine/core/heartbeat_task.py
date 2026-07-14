@@ -1,23 +1,23 @@
-import threading
 import time
 import requests
 
-class HeartbeatTask(threading.Thread):
+class HeartbeatTask():
     def __init__(self, master_url, apply_state):
-        super().__init__(daemon=True)
         self.master_url = master_url
         self.engine_id = "Engine"
         self.apply_state = apply_state
 
-    def run(self):
+    def start(self):
         payload = {
             "id": self.engine_id,
             "status": "Ready"
         }
-
+        
+        print("Running heartbeat task.")
+        
         while True:
             try:
-                time.sleep(3)
+                time.sleep(1)
 
                 response = requests.post(
                     self.master_url,
@@ -33,3 +33,4 @@ class HeartbeatTask(threading.Thread):
                 
             except Exception as e:
                 print(f"No se pudo registrar: {e}")
+                continue

@@ -53,9 +53,10 @@ class PulsarConsumer:
                 
                 self.consumer.acknowledge(msg)
 
-            except Exception:
+            except Exception as e:
                 self.consumer.negative_acknowledge(msg)
-                raise
+                print(f"Error listening message: {e}")
+                continue
 
     def close(self):
         self.consumer.close()

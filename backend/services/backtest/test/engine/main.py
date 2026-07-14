@@ -1,3 +1,4 @@
+import threading
 import time
 from core.heartbeat_task import HeartbeatTask
 from ingestion.tick import Tick
@@ -24,33 +25,6 @@ engine_config = {
   }
 }
 
-engine_state = {
-  "tick_index": 4,
-  "time": 1783209601129,
-  "timeframes": {
-    "30m": {
-      "name": "30m",
-      "series": {
-        "CandleSeries": {
-          "history": [],
-          "is_new": True,
-          "live": {
-            "close": 63114.8,
-            "end_ts": 1783211400000,
-            "high": 63114.8,
-            "low": 63114.8,
-            "open": 63114.8,
-            "start_ts": 1783209600000,
-            "volume": 0.027
-          },
-          "name": "CandleSeries"
-        }
-      },
-      "timeframe_ms": 1800000
-    }
-  }
-}
-
 consumer = PulsarConsumer(
         service_url="pulsar://localhost:6650",
         topic="persistent://public/default/master.tick",
@@ -64,39 +38,26 @@ publisher = PulsarPublisher(
 
 engine = TradingEngine.from_config(engine_config)
 
-def apply_state(data):
-    print(data)
-    if engine.status == 'init':
-        engine.set_state(
-            boot_id=data['boot_id'],
-            tick_index=data['tick_index'],
-            engine_state=data['engine_state']
-            )
-        
-        engine.status = 'ready'
-        return
-
-    if engine.boot_id != data['boot_id']:
-        engine.status = 'init'
-        engine.tick_index = None
-        engine.state = None
-  
-heartbeat = HeartbeatTask(
-    master_url="http://localhost:3000/master/report-state",
-    apply_state=apply_state,
-)
-
 def handle_tick(tick: Tick):
     if engine.status != 'ready':
         raise Exception("Engine is not ready.")
 
     if engine.boot_id != tick.boot_id:
-        print("Ignoring tick different boot_id")
+        print(
+            f"Ignoring tick with different boot_id. "
+            f"engine.boot_id={engine.boot_id}, tick.boot_id={tick.boot_id}"
+        )
         return
-     
-    if engine.tick_index != tick.tick_index - 1:
-        print("Ignoring tick index.")
-        return
+    
+    if engine.state != None:
+        if engine.state.tick_index != tick.tick_index - 1:
+            print(
+                f"Ignoring tick index. "
+                f"engine.state.tick_index={engine.state.tick_index}, "
+                f"tick.tick_index={tick.tick_index}, "
+                f"expected={engine.state.tick_index + 1}"
+            )
+            return
 
     time.sleep(5)   
 
@@ -107,12 +68,55 @@ def handle_tick(tick: Tick):
     if signal:
         print("SIGNAL:", signal)
     
-    #print(state.to_json())
-
     publisher.publish(state)
+
+def listen():
+    if engine.listening:
+        return
+    
+    engine.listening = True
+    
+    thread = threading.Thread(
+        target=consumer.listen,
+        args=(handle_tick,),
+        daemon=True,
+    )
+
+    thread.start()
+    
+def apply_state(data):
+    boot_id = data['boot_id']
+    state = data['engine_state']
+
+    if engine.status == 'init':
+        if state == None:
+            engine.boot_id = boot_id
+            engine.status = 'ready'
+            listen()
+            return
+        else:
+            engine.boot_id = boot_id
+            engine.set_state(engine_state=state)
+            engine.status = 'ready'
+            listen()
+            return
+        
+    if engine.status == 'ready':
+        if engine.boot_id != boot_id:
+            engine.status = 'init'
+            engine.boot_id = None
+            engine.state = None
+            print("engine boot_it is diferent, reseting engine state")
+    
+        return
+
+  
+heartbeat = HeartbeatTask(
+    master_url="http://localhost:3000/master/report-state",
+    apply_state=apply_state,
+)
 
 def main():
     heartbeat.start()
-    consumer.listen(handle_tick)
 
 main()

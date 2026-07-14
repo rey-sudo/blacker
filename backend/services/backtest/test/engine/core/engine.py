@@ -6,13 +6,16 @@ from series.registry import SERIES_REGISTRY
 
 
 class TradingEngine:
+    status: str
+    boot_id: str | None
+    listening: bool
 
     def __init__(self, strategy, timeframes):
         self.status = 'init'
 
         self.boot_id = None
-        self.tick_index = None
         self.state = None
+        self.listening = False
 
         self.strategy = strategy
         self.timeframes = timeframes
@@ -56,6 +59,40 @@ class TradingEngine:
         return cls(
             strategy=strategy,
             timeframes=timeframes,
+        )
+
+    def set_state(self, engine_state: dict) -> None:
+        """
+        Restores the engine state from a serialized dictionary.
+        """
+
+        timeframes = {}
+
+        for tf_name, tf_state in engine_state["timeframes"].items():
+
+            timeframe = Timeframe(
+                name=tf_state["name"],
+                timeframe_ms=tf_state["timeframe_ms"],
+            )
+
+            for series_type, series_state in tf_state["series"].items():
+
+                series_cls = SERIES_REGISTRY[series_type]
+
+                series = series_cls()
+
+                series.set_state(series_state)
+
+                timeframe.add_series(series)
+
+            timeframes[tf_name] = timeframe
+
+        self.timeframes = timeframes
+
+        self.state = EngineState(
+            tick_index=engine_state["tick_index"],
+            time=engine_state["time"],
+            timeframes=self.timeframes,
         )
 
     def on_tick(self, tick: Tick):

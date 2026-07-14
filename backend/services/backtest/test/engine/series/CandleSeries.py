@@ -32,6 +32,26 @@ class CandleSeries(Series):
             "is_new": self.is_new,
         }
     
+    def set_state(self, state: dict) -> None:
+        """
+        Restores the series from a serialized state.
+        """
+
+        self.name = state["name"]
+
+        self.live = (
+            Candle(**state["live"])
+            if state["live"] is not None
+            else None
+        )
+
+        self.history = [
+            Candle(**candle)
+            for candle in state["history"]
+        ]
+
+        self.is_new = state["is_new"]
+
     def update(self, tick: Tick) -> None:
         bucket = tick.time // self.timeframe_ms
 
