@@ -123,7 +123,7 @@ impl AppState {
         };
 
         Self {
-            boot_id: Uuid::new_v4().to_string(),
+            boot_id:  Uuid::now_v7().to_string(),
 
             master: Arc::new(RwLock::new(MasterState {
                 status: MasterStatus::Pending,

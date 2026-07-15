@@ -43,15 +43,22 @@ engine = TradingEngine.from_config(engine_config)
 #----------------------------------------------------------------------------------------------------------------------- 
 
 def handle_tick(tick: Tick):
+    time.sleep(5) #DEBUG
+
     if engine.status != 'ready':
-        raise Exception("Engine is not ready.")
+        raise Exception("Engine is not ready.")  #NACK
 
     if engine.boot_id != tick.boot_id:
         print(
-            f"Ignoring tick with different boot_id. "
+            f"Incorrect boot_id."
             f"engine.boot_id={engine.boot_id}, tick.boot_id={tick.boot_id}"
         )
-        return
+
+        if tick.boot_id > engine.boot_id:
+            raise Exception("Incorrect upper boot_id.")  #NACK
+        else:
+            print("Ignoring old tick.")
+            return #ACK
     
     if engine.state != None:
         if engine.state.tick_index != tick.tick_index - 1:
@@ -61,12 +68,9 @@ def handle_tick(tick: Tick):
                 f"tick.tick_index={tick.tick_index}, "
                 f"expected={engine.state.tick_index + 1}"
             )
-            return
 
-    time.sleep(5)   
-
-
-
+            raise Exception("Incorrect tick index.") #NACK
+    
     state, signal = engine.on_tick(tick)
 
     if signal:

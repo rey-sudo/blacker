@@ -12,11 +12,10 @@ class TradingEngine:
 
     def __init__(self, strategy, timeframes):
         self.status = 'init'
-
         self.boot_id = None
         self.state = None
-        self.listening = False
 
+        self.listening = False
         self.strategy = strategy
         self.timeframes = timeframes
 
