@@ -1,3 +1,4 @@
+use cursor_db::binary::BinaryFile;
 use master::master::state::AppState;
 use master::server::start_http_server;
 use master::snapshot::{ReplaySnapshot, load_snapshot};
@@ -6,7 +7,6 @@ use master::tasks::{
 };
 use pulsar::{Pulsar, TokioExecutor};
 use std::sync::Arc;
-use tickdb::binary::BinaryFile;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

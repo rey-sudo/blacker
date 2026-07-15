@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::sync::Arc;
-use tickdb::{binary::BinaryFile, trade::Trade};
+use cursor_db::{binary::BinaryFile, trade::Trade};
 use tokio::sync::{RwLockReadGuard, watch::Sender};
 use tokio::sync::{Notify, RwLock, watch};
 use tracing::info;
