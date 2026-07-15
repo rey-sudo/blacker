@@ -172,6 +172,8 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                 state.engine_ack_notify.notify_one();
                 state.execution_ack_notify.notify_one();
+
+                state.publish_master_state().await?;
             }
         }
     }

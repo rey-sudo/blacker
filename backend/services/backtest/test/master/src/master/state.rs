@@ -4,13 +4,20 @@ use crate::{
     snapshot::ReplaySnapshot,
     tasks::ReplayStep,
 };
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fmt;
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 use tickdb::{binary::BinaryFile, trade::Trade};
-use tokio::sync::{Notify, RwLock};
+use tokio::sync::{RwLockReadGuard, watch::Sender};
+use tokio::sync::{Notify, RwLock, watch};
 use tracing::info;
 use uuid::Uuid;
+
+//----------------------------------------------------------------------------------------------------------------------
+// IMPLEMENTATIONS
+//----------------------------------------------------------------------------------------------------------------------
 
 pub type Tick = Trade;
 
@@ -98,18 +105,21 @@ pub struct AppState {
 
     pub master: Arc<RwLock<MasterState>>,
 
-    // Despierta la ReplayTask cuando llega un EngineState o ExecutionState
     pub replay_notify: Arc<Notify>,
     pub engine_notify: Arc<Notify>,
     pub execution_notify: Arc<Notify>,
 
     pub engine_ack_notify: Arc<Notify>,
     pub execution_ack_notify: Arc<Notify>,
+
+    pub master_state_tx: Sender<Arc<String>>
 }
 
 impl AppState {
     pub fn new(tick_data: Arc<BinaryFile>, snapshot: Option<ReplaySnapshot>) -> Self {
-        info!("cargado snapshot, {:?}", snapshot);
+        info!("LOADING SNAPSHOT, {:?}", snapshot);
+
+        let boot_id: String = Uuid::now_v7().to_string();
 
         let (tick_index, replay_step, engine_state, execution_state) = match snapshot {
             Some(snapshot) => (
@@ -122,14 +132,18 @@ impl AppState {
             None => (0, ReplayStep::PublishTick, None, None),
         };
 
+        let slaves: HashMap<SlaveId, ConnectedSlaveState> = HashMap::new();
+
+        let (master_state_tx, _) = watch::channel(Arc::new(String::from("{}")));
+
         Self {
-            boot_id:  Uuid::now_v7().to_string(),
+            boot_id,
 
             master: Arc::new(RwLock::new(MasterState {
                 status: MasterStatus::Pending,
                 replay_status: ReplayStatus::Stopped,
                 replay_step,
-                slaves: HashMap::new(),
+                slaves,
                 tick_data,
                 tick_index,
                 engine_state,
@@ -142,6 +156,21 @@ impl AppState {
 
             engine_ack_notify: Arc::new(Notify::new()),
             execution_ack_notify: Arc::new(Notify::new()),
+
+            master_state_tx,
         }
+    }
+}
+
+impl AppState {
+    pub async fn publish_master_state(&self) -> Result<()> {
+        let json: String = {
+            let master: RwLockReadGuard<'_, MasterState> = self.master.read().await;
+            serde_json::to_string_pretty(&*master)?
+        };
+
+        let _ = self.master_state_tx.send(Arc::new(json));
+
+        Ok(())
     }
 }
