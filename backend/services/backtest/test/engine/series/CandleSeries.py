@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass
 
 @dataclass(frozen=True)
 class Candle:
+    time: int
     open: float
     high: float
     low: float
@@ -80,6 +81,7 @@ class CandleSeries(Series):
         # Update current candle.
         #
         self.live = Candle(
+            time=live.start_ts // 1000,
             open=live.open,
             high=max(live.high, tick.price),
             low=min(live.low, tick.price),
@@ -93,6 +95,7 @@ class CandleSeries(Series):
 
     def _new_candle(self, bucket: int, tick: Tick) -> Candle:
         return Candle(
+            time=tick.time // 1000,
             open=tick.price,
             high=tick.price,
             low=tick.price,

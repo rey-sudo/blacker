@@ -90,10 +90,13 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
                     Ok(()) => {
                         master.engine_state = Some(engine_state.into());
 
-                        info!(
-                            master_tick_index = master.tick_index,
-                            engine_tick_index, "EngineState received."
-                        );
+                        if engine_tick_index % 1000 == 0 {
+                            info!(
+                                master_tick_index = master.tick_index,
+                                engine_tick_index,
+                                "EngineState received."
+                            );
+                        }
                     }
                     Err(reason) => {
                         error!(reason, "Rejected EngineState ACKing...");
@@ -115,7 +118,7 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
 
             match consumer.ack(&message).await {
                 Ok(_) => {
-                    info!("EngineState ACK.");
+                   // info!("EngineState ACK.");
                 }
                 Err(error) => {
                     error!(?error, "Failed to ACK EngineState.");

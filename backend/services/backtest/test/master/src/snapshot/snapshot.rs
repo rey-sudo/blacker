@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 use tokio::fs;
 use tokio::io::AsyncWriteExt;
-use tracing::info;
+use tracing::debug;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReplaySnapshot {
@@ -79,7 +79,7 @@ pub async fn save_snapshot(master: &MasterState) -> Result<()> {
     // Reemplazo atómico del snapshot anterior.
     fs::rename(&tmp, SNAPSHOT_PATH).await?;
 
-    info!(
+    debug!(
         "Snapshot saved (tick={}, {} bytes)",
         snapshot.tick_index,
         bytes.len()
@@ -139,7 +139,7 @@ pub async fn load_snapshot() -> Result<Option<ReplaySnapshot>> {
     let snapshot: ReplaySnapshot = rmp_serde::from_slice(payload)
     .context("Unable to decode snapshot")?;
 
-    info!(
+    debug!(
         "Snapshot loaded (tick={}, {} bytes)",
         snapshot.tick_index,
         bytes.len()

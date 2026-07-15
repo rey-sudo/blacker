@@ -1,5 +1,4 @@
 import threading
-import time
 from core.heartbeat_task import HeartbeatTask
 from ingestion.tick import Tick
 from core.engine import TradingEngine
@@ -9,8 +8,8 @@ from publication.pulsar_publisher import PulsarPublisher
 engine_config = {
   "timeframes": [
     {
-      "name": "30m",
-      "timeframe_ms": 1800000,
+      "name": "1m",
+      "timeframe_ms": 60000,
       "series": [ 
         {
           "type": "CandleSeries",
@@ -43,7 +42,7 @@ engine = TradingEngine.from_config(engine_config)
 #----------------------------------------------------------------------------------------------------------------------- 
 
 def handle_tick(tick: Tick):
-    time.sleep(5) #DEBUG
+    #time.sleep(5) #DEBUG
 
     if engine.status != 'ready':
         raise Exception("Engine is not ready.")  #NACK
@@ -76,7 +75,8 @@ def handle_tick(tick: Tick):
     if signal:
         print("SIGNAL:", signal)
     
-    print(f"Processed: {tick.tick_index}")
+    if tick.tick_index % 1000 == 0:
+        print(f"Processed: {tick.tick_index}")
     
     publisher.publish(state)
 
