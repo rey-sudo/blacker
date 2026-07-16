@@ -1,3 +1,18 @@
+# BLACKER
+# Copyright (C) 2026 Juan José Caballero Rey
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 from series.series import Series
 from ingestion.tick import Tick
 from dataclasses import asdict, dataclass
@@ -24,7 +39,7 @@ class CandleBubble:
     show_bubble: bool
 
 
-_THRESHOLD = 0.07
+_THRESHOLD = 0.01
 _EMA_SPAN = 7
 _EMA_ALPHA = 2 / (_EMA_SPAN + 1)  # α for span=20
 
@@ -207,7 +222,7 @@ def _bubble_fields(signal: float) -> dict:
     else:
         color = "red"
 
-    size = (10.0 + 40.0 * abs(signal)) if show_bubble else 0.0
+    size = (15 + 80 * abs(signal)) if show_bubble else 0.0
 
     return {
         "signal": signal,
