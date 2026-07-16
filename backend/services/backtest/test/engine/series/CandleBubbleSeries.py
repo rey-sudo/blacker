@@ -24,8 +24,8 @@ class CandleBubble:
     show_bubble: bool
 
 
-_THRESHOLD = 0.15
-_EMA_SPAN = 20
+_THRESHOLD = 0.07
+_EMA_SPAN = 7
 _EMA_ALPHA = 2 / (_EMA_SPAN + 1)  # α for span=20
 
 
