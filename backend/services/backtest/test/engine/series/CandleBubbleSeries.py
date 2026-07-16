@@ -41,7 +41,7 @@ class CandleBubble:
 
 
 _THRESHOLD = 0.01
-_EMA_SPAN = 7
+_EMA_SPAN = 5
 _EMA_ALPHA = 2 / (_EMA_SPAN + 1)  # α for span=20
 
 
@@ -68,7 +68,7 @@ class CandleBubbleSeries(Series):
     def to_dict(self) -> dict:
         return {
             "name": self.name,
-            "live": asdict(self.live) if self.live is not None else None,
+            "live": asdict(self.live) if self.live is not None and len(self.history) > 0 else None,
             "history": [asdict(c) for c in self.history],
             "is_new": self.is_new,
             "_ema": self._ema,
@@ -162,15 +162,16 @@ class CandleBubbleSeries(Series):
         # _next_ema handles self._ema=None (returns delta_pct as seed).
         # self._ema is NOT mutated here — only on candle close.
         signal = self._next_ema(delta_pct)
+        start_ts = bucket * self.timeframe_ms
 
         return CandleBubble(
-            time=tick.time // 1000,
+            time=start_ts // 1000,
             open=tick.price,
             high=tick.price,
             low=tick.price,
             close=tick.price,
             volume=tick.qty,
-            start_ts=bucket * self.timeframe_ms,
+            start_ts=start_ts,
             end_ts=(bucket + 1) * self.timeframe_ms,
             buy_qty=buy_qty,
             sell_qty=sell_qty,
