@@ -1,5 +1,7 @@
+from series.CandleBubbleSeries import CandleBubbleSeries
 from series.CandleSeries import CandleSeries
 
 SERIES_REGISTRY = {
-    "CandleSeries": CandleSeries
+    "CandleSeries": CandleSeries,
+    "CandleBubbleSeries": CandleBubbleSeries
 }
