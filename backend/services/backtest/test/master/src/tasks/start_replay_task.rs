@@ -137,7 +137,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                 match send_future.await {
                     Ok(_receipt) => {
-                        if first_tick_index % 1000 == 0 {
+                        if first_tick_index % 10000 == 0 {
                             info!(
                                 tick_index = first_tick_index,
                                 batch_size = batch_size,
