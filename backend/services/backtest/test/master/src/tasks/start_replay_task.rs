@@ -1,4 +1,4 @@
-use crate::master::state::{AppState, MasterState, ReplayStatus, Tick, TickInfo};
+use crate::master::state::{AppState, MasterState, ReplayStatus, Tick};
 use crate::snapshot::save_snapshot;
 use producer::SendFuture;
 use pulsar::ProducerOptions;
@@ -26,8 +26,6 @@ pub enum ReplayStep {
 /// Serializable trade payload published to Pulsar during replay.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TickMessage {
-    pub boot_id: String,
-    pub tick_index: usize,
     pub id: u64,
     pub time: u64,
     pub price: u64,
@@ -35,12 +33,16 @@ pub struct TickMessage {
     pub is_buyer_maker: u8,
 }
 
-impl TickMessage {
-    /// Creates a replay message from a trade and its tick index.
-    pub fn new(boot_id: String, tick_index: usize, tick: Tick) -> Self {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TickBatchMessage {
+    pub boot_id: String,
+    pub first_tick_index: usize,
+    pub ticks: Vec<TickMessage>,
+}
+
+impl From<&Tick> for TickMessage {
+    fn from(tick: &Tick) -> Self {
         Self {
-            boot_id,
-            tick_index,
             id: tick.id,
             time: tick.time,
             price: tick.price,
@@ -50,7 +52,7 @@ impl TickMessage {
     }
 }
 
-impl SerializeMessage for TickMessage {
+impl SerializeMessage for TickBatchMessage {
     /// Serializes the tick message into a MessagePack payload for Pulsar.
     fn serialize_message(input: Self) -> Result<producer::Message, PulsarError> {
         let payload: Vec<u8> = rmp_serde::to_vec(&input)
@@ -91,17 +93,14 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
         match replay_step {
             ReplayStep::PublishTick => {
                 // 1. Fetch the current replay tick/trade.
-                let current_tick: Option<TickInfo> = {
+                let (first_tick_index, batch_size, message) = {
                     let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
-                    master.current_tick_info()
-                };
+                    let ticks: &[Tick] = master.tick_batch(state.replay_batch_size);
 
-                // 2. Stop the replay when there are no more ticks to publish.
-                let tick_info: TickInfo = match current_tick {
-                    Some(ti) => ti,
+                    if ticks.is_empty() {
+                        drop(master);
 
-                    None => {
                         let mut master: RwLockWriteGuard<'_, MasterState> =
                             state.master.write().await;
 
@@ -111,17 +110,24 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                         continue;
                     }
+
+                    let batch_size: usize = ticks.len();
+
+                    let message: TickBatchMessage = TickBatchMessage {
+                        boot_id: state.boot_id.clone(),
+                        first_tick_index: master.tick_index,
+                        ticks: ticks.iter().map(TickMessage::from).collect(),
+                    };
+
+                    (master.tick_index, batch_size, message)
                 };
 
-                // 3. Send the message via pulsar topic.
-                let message: TickMessage =
-                    TickMessage::new(state.boot_id.clone(), tick_info.tick_index, tick_info.tick);
-
+                // 2. Handler producer futures.
                 let send_future: SendFuture = match producer.send_non_blocking(message).await {
                     Ok(f) => f,
                     Err(e) => {
                         warn!(
-                            tick_index = tick_info.tick_index,
+                            tick_index = first_tick_index,
                             error = %e,
                             "Producer send failed (non-fatal), will retry."
                         );
@@ -131,17 +137,17 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                 match send_future.await {
                     Ok(_receipt) => {
-                       if tick_info.tick_index % 1000 == 0 {
-                             info!(
-                             tick_index = tick_info.tick_index,
-                             id = tick_info.tick.id,
-                            "Tick published."
+                        if first_tick_index % 1000 == 0 {
+                            info!(
+                                tick_index = first_tick_index,
+                                batch_size = batch_size,
+                                "Tick batch published."
                             );
                         }
                     }
                     Err(e) => {
                         warn!(
-                            tick_index = tick_info.tick_index,
+                            tick_index = first_tick_index,
                             error = %e,
                             "Producer receipt failed (non-fatal), will retry."
                         );
@@ -170,11 +176,15 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
             ReplayStep::Persist => {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
-                master.tick_index += 1;
-                master.replay_step = ReplayStep::PublishTick;
-              
 
-                if master.tick_index % 10000 == 0 {
+                let remaining: usize = master.tick_data.len() - master.tick_index;
+
+                let processed: usize = remaining.min(state.replay_batch_size);
+
+                master.tick_index += processed;
+                master.replay_step = ReplayStep::PublishTick;
+
+                if master.tick_index % 10_000 == 0 {
                     save_snapshot(&master).await?;
                 }
 

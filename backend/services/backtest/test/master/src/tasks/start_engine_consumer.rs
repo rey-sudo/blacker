@@ -1,5 +1,6 @@
 use crate::master::state::{AppState, MasterState};
 use crate::slaves::engine::{EngineState, EngineStateMessage};
+use anyhow::{Result, anyhow};
 use futures::TryStreamExt;
 use pulsar::consumer::Message;
 use pulsar::{Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor};
@@ -17,15 +18,24 @@ impl DeserializeMessage for EngineStateMessage {
 
 fn validate_engine_state(
     boot_id: &str,
+    replay_batch_size: usize,
     master: &MasterState,
     engine: &EngineStateMessage,
-) -> Result<(), &'static str> {
+) -> Result<()> {
     if engine.boot_id != boot_id {
-        return Err("Unexpected boot_id.");
+        return Err(anyhow!("Unexpected boot_id."));
     }
 
-    if engine.tick_index != master.tick_index {
-        return Err("Unexpected tick_index.");
+    let remaining: usize = master.tick_data.len() - master.tick_index;
+
+    let expected_last_tick: usize = master.tick_index + remaining.min(replay_batch_size) - 1;
+
+    if engine.tick_index != expected_last_tick {
+        return Err(anyhow!(
+            "Unexpected engine tick_index. Expected {}, got {}",
+            expected_last_tick,
+            engine.tick_index
+        ));
     }
 
     Ok(())
@@ -86,20 +96,24 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
             {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
-                match validate_engine_state(state.boot_id.as_str(), &master, &engine_state) {
+                match validate_engine_state(
+                    state.boot_id.as_str(),
+                    state.replay_batch_size,
+                    &master,
+                    &engine_state,
+                ) {
                     Ok(()) => {
                         master.engine_state = Some(engine_state.into());
 
-                        if engine_tick_index % 1000 == 0 {
+                        if engine_tick_index % 10000 == 0 {
                             info!(
                                 master_tick_index = master.tick_index,
-                                engine_tick_index,
-                                "EngineState received."
+                                engine_tick_index, "EngineState received."
                             );
                         }
                     }
                     Err(reason) => {
-                        error!(reason, "Rejected EngineState ACKing...");
+                        error!(?reason, "Rejected EngineState ACKing...");
 
                         drop(master);
 
@@ -118,7 +132,7 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
 
             match consumer.ack(&message).await {
                 Ok(_) => {
-                   // info!("EngineState ACK.");
+                    // info!("EngineState ACK.");
                 }
                 Err(error) => {
                     error!(?error, "Failed to ACK EngineState.");

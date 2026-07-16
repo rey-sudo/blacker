@@ -21,42 +21,50 @@ class PulsarConsumer:
             initial_position=InitialPosition.Latest
         )
 
-    def _decode_tick(self, msg):
-        (   
-            boot_id,
-            tick_index,
-            trade_id,
-            time,
-            price,
-            qty,
-            is_buyer_maker,
-        ) = msgpack.unpackb(msg.data(), raw=False)
-
-        return Tick(
-            boot_id=boot_id,
-            tick_index=tick_index,
-            trade_id=trade_id,
-            time=time,
-            price=float(price) / SCALE,
-            qty=float(qty) / SCALE,
-            is_buyer_maker=is_buyer_maker,
+    def _decode_batch(self, msg):
+        boot_id, first_tick_index, raw_ticks = msgpack.unpackb(
+            msg.data(),
+            raw=False,
         )
+
+        ticks = [
+            Tick(
+                boot_id=boot_id,
+                tick_index=first_tick_index + offset,
+                trade_id=trade_id,
+                time=time,
+                price=price / SCALE,
+                qty=qty / SCALE,
+                is_buyer_maker=is_buyer_maker,
+            )
+            for offset, (trade_id, time, price, qty, is_buyer_maker)
+            in enumerate(raw_ticks)
+        ]
+
+        return boot_id, first_tick_index, ticks
 
     def listen(self, callback):
         print("Consumer listening.")
+
         while True:
             msg = self.consumer.receive()
 
             try:
-                tick = self._decode_tick(msg)
-                callback(tick)
-                
+                boot_id, first_tick_index, ticks = self._decode_batch(msg)
+
+                last = len(ticks) - 1
+
+                for i, tick in enumerate(ticks):
+                    callback(
+                        tick,
+                        is_last=(i == last),
+    )
+
                 self.consumer.acknowledge(msg)
 
             except Exception as e:
                 self.consumer.negative_acknowledge(msg)
                 print(f"Error listening message: {e}")
-                continue
 
     def close(self):
         self.consumer.close()

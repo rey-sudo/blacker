@@ -5,13 +5,13 @@ use crate::{
     tasks::ReplayStep,
 };
 use anyhow::Result;
+use cursor_db::{binary::BinaryFile, trade::Trade};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
 use std::sync::Arc;
-use cursor_db::{binary::BinaryFile, trade::Trade};
-use tokio::sync::{RwLockReadGuard, watch::Sender};
 use tokio::sync::{Notify, RwLock, watch};
+use tokio::sync::{RwLockReadGuard, watch::Sender};
 use tracing::info;
 use uuid::Uuid;
 
@@ -78,6 +78,11 @@ impl MasterState {
     }
 
     #[inline]
+    pub fn tick_batch(&self, batch_size: usize) -> &[Tick] {
+        self.tick_data.range(self.tick_index, batch_size)
+    }
+
+    #[inline]
     pub fn current_tick(&self) -> Option<&Tick> {
         self.tick_data.trade(self.tick_index)
     }
@@ -105,6 +110,8 @@ pub struct AppState {
 
     pub master: Arc<RwLock<MasterState>>,
 
+    pub replay_batch_size: usize,
+
     pub replay_notify: Arc<Notify>,
     pub engine_notify: Arc<Notify>,
     pub execution_notify: Arc<Notify>,
@@ -112,7 +119,7 @@ pub struct AppState {
     pub engine_ack_notify: Arc<Notify>,
     pub execution_ack_notify: Arc<Notify>,
 
-    pub master_state_tx: Sender<Arc<String>>
+    pub master_state_tx: Sender<Arc<String>>,
 }
 
 impl AppState {
@@ -138,6 +145,8 @@ impl AppState {
 
         Self {
             boot_id,
+
+            replay_batch_size: 1000,
 
             master: Arc::new(RwLock::new(MasterState {
                 status: MasterStatus::Pending,

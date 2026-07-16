@@ -41,7 +41,7 @@ engine = TradingEngine.from_config(engine_config)
 # HANDLE TICKS
 #----------------------------------------------------------------------------------------------------------------------- 
 
-def handle_tick(tick: Tick):
+def handle_tick(tick: Tick, is_last: bool):
     #time.sleep(5) #DEBUG
 
     if engine.status != 'ready':
@@ -75,10 +75,11 @@ def handle_tick(tick: Tick):
     if signal:
         print("SIGNAL:", signal)
     
-    if tick.tick_index % 1000 == 0:
+    if tick.tick_index % 10000 == 0:
         print(f"Processed: {tick.tick_index}")
-    
-    publisher.publish(state)
+
+    if is_last:
+        publisher.publish(state)
 
 def listen():
     if engine.listening:
