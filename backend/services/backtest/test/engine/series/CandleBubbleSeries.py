@@ -37,6 +37,7 @@ class CandleBubble:
     bubble_color: Literal["green", "red", "gray"]
     bubble_size: float
     show_bubble: bool
+    tick_count: int
 
 
 _THRESHOLD = 0.01
@@ -142,6 +143,7 @@ class CandleBubbleSeries(Series):
             buy_qty=new_buy_qty,
             sell_qty=new_sell_qty,
             delta_pct=delta_pct,
+            tick_count=live.tick_count + 1,
             **_bubble_fields(preview_signal),
         )
 
@@ -173,6 +175,7 @@ class CandleBubbleSeries(Series):
             buy_qty=buy_qty,
             sell_qty=sell_qty,
             delta_pct=delta_pct,
+            tick_count=1,
             **_bubble_fields(signal),
         )
 
@@ -197,6 +200,7 @@ class CandleBubbleSeries(Series):
             buy_qty=candle.buy_qty,
             sell_qty=candle.sell_qty,
             delta_pct=candle.delta_pct,
+            tick_count=candle.tick_count,
             **_bubble_fields(signal),
         )
 
