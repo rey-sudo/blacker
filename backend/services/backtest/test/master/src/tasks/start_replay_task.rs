@@ -10,6 +10,10 @@ use std::time::Duration;
 use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
 use tracing::{error, info, warn};
 
+//----------------------------------------------------------------------------------------------------------------------
+// IMPLEMENTATION
+//----------------------------------------------------------------------------------------------------------------------
+
 /// Replay state machine.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ReplayStep {
