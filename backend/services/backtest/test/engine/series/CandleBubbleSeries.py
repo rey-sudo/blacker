@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import math
 from series.series import Series
 from ingestion.tick import Tick
 from dataclasses import asdict, dataclass
@@ -40,8 +41,8 @@ class CandleBubble:
     tick_count: int
 
 
-_THRESHOLD = 0.01
-_EMA_SPAN = 5
+_THRESHOLD = 0.05
+_EMA_SPAN = 10
 _EMA_ALPHA = 2 / (_EMA_SPAN + 1)  # α for span=20
 
 
@@ -227,7 +228,7 @@ def _bubble_fields(signal: float) -> dict:
     else:
         color = "red"
 
-    size = (15 + 80 * abs(signal)) if show_bubble else 0.0
+    size = (15 + 80 * math.sqrt(abs(signal))) if show_bubble else 0.0
 
     return {
         "signal": signal,
