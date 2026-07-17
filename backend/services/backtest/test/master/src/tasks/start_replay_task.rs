@@ -152,7 +152,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                 match send_future.await {
                     Ok(_receipt) => {
-                        if first_tick_index % 20000 == 0 {
+                        if first_tick_index % 100_000 == 0 {
                             info!(
                                 tick_index = first_tick_index,
                                 batch_size = batch_size,
@@ -199,7 +199,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 master.tick_index += processed;
                 master.replay_step = ReplayStep::PublishTick;
 
-                if master.tick_index % 10_000 == 0 {
+                if master.tick_index % 1_000_000 == 0 {
                     save_snapshot(&master).await?;
                 }
 

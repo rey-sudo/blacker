@@ -120,7 +120,7 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
                     Ok(()) => {
                         master.engine_state = Some(engine_state.into());
 
-                        if engine_tick_index % 10000 == 0 {
+                        if engine_tick_index % 10_000 == 0 {
                             info!(
                                 master_tick_index = master.tick_index,
                                 engine_tick_index, "EngineState received."
