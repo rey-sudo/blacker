@@ -34,7 +34,7 @@ class CandleBubble:
     buy_qty: float
     sell_qty: float
     delta_pct: float
-    delta_vol: float      # NUEVO: Desbalance absoluto en unidades operadas
+    delta_vol: float
     signal: float
     bubble_color: Literal["green", "red", "gray"]
     bubble_size: float
@@ -44,6 +44,11 @@ class CandleBubble:
 
 _THRESHOLD = 0.05
 MAX_HISTORY_LEN = 500
+
+# Percentil robusto: ignora el top-5% de spikes de volumen para que
+# un único evento anómalo no colapse la escala visual.
+_VOL_PERCENTILE = 0.95
+
 
 class CandleBubbleSeries(Series):
     """
@@ -59,15 +64,15 @@ class CandleBubbleSeries(Series):
         self.history: deque[CandleBubble] = deque(maxlen=MAX_HISTORY_LEN)
         self.is_new: bool = False
 
-        # Configuración encapsulada
         self._ema_span = ema_span
         self._ema_alpha = 2 / (ema_span + 1)
         self._vol_window = vol_window
-        
+
         # Estado interno
         self._ema: float | None = None
         self._recent_volumes: list[float] = []
-        self._max_vol: float = 1.0  # Evitar división por cero
+        # Referencia de volumen robusta: percentil en lugar de max puro
+        self._ref_vol: float = 1.0
 
     # ------------------------------------------------------------------
     # Serialization
@@ -81,7 +86,8 @@ class CandleBubbleSeries(Series):
             "is_new": self.is_new,
             "_ema": self._ema,
             "_recent_volumes": self._recent_volumes,
-            "_max_vol": self._max_vol,
+            # Backward-compat: guardamos como _max_vol para no romper estados serializados existentes
+            "_max_vol": self._ref_vol,
         }
 
     def set_state(self, state: dict) -> None:
@@ -101,7 +107,8 @@ class CandleBubbleSeries(Series):
         self.is_new = state["is_new"]
         self._ema = state["_ema"]
         self._recent_volumes = state.get("_recent_volumes", [])
-        self._max_vol = state.get("_max_vol", 1.0)
+        # Soporta estados serializados bajo el nombre antiguo _max_vol
+        self._ref_vol = state.get("_ref_vol", state.get("_max_vol", 1.0))
 
     # ------------------------------------------------------------------
     # Update
@@ -122,17 +129,19 @@ class CandleBubbleSeries(Series):
         # Cierre de vela
         #
         if bucket != current_bucket:
-            # 1. Actualizar EMA con el delta de la vela cerrada
-            self._ema = self._next_ema(live.delta_pct)
-            
-            # 2. Actualizar ventana de volúmenes para normalización visual
+            # 1. Actualizar ventana de volúmenes ANTES de la EMA para que
+            #    _ref_vol esté disponible al sellar la señal visual.
             self._recent_volumes.append(live.volume)
             if len(self._recent_volumes) > self._vol_window:
                 self._recent_volumes.pop(0)
-            self._max_vol = max(self._recent_volumes) if self._recent_volumes else 1.0
+            self._ref_vol = _percentile_vol(self._recent_volumes, _VOL_PERCENTILE)
 
-            # 3. Sellar vela anterior
-            closed = self._apply_signal(live, self._ema, self._max_vol)
+            # 2. Actualizar EMA con el delta_pct FINAL de la vela cerrada.
+            #    (Se hace después del vol para no contaminar señales previas.)
+            self._ema = self._next_ema(live.delta_pct)
+
+            # 3. Sellar vela con señal y escala visual actualizadas.
+            closed = self._apply_signal(live, self._ema, self._ref_vol)
             self.history.append(closed)
 
             # 4. Abrir nueva vela
@@ -143,15 +152,24 @@ class CandleBubbleSeries(Series):
         #
         # Actualización de vela viva (Live)
         #
-        new_buy_qty = live.buy_qty + (0.0 if tick.is_buyer_maker else tick.qty)
+        new_buy_qty  = live.buy_qty  + (0.0 if tick.is_buyer_maker else tick.qty)
         new_sell_qty = live.sell_qty + (tick.qty if tick.is_buyer_maker else 0.0)
 
         delta_pct = _delta_pct(new_buy_qty, new_sell_qty)
-        preview_signal = self._next_ema(delta_pct) if self._ema is not None else delta_pct
+
+        # Señal preview: incorpora el delta actual SIN modificar la EMA persistente.
+        # Esto da una lectura en tiempo real precisa en lugar de usar la EMA del cierre anterior.
+        preview_signal = self._next_ema(delta_pct)
+
         current_vol = live.volume + tick.qty
-        
-        # Para la vela viva, usamos el max_vol histórico, pero aseguramos no dividir por 0
-        preview_max_vol = max(self._max_vol, current_vol)
+
+        # Para la vista viva usamos _ref_vol histórico; si la vela actual ya supera
+        # ese umbral la normalizamos contra sí misma (vol_ratio → 1.0 máximo honesto).
+        preview_ref_vol = max(self._ref_vol, current_vol)
+
+        # Confianza mínima: burbujas durante los primeros ticks tienen alta varianza.
+        # Aplicamos un factor de madurez que sube de 0 → 1 en los primeros tick_count ticks.
+        maturity = _maturity_factor(live.tick_count + 1, self._ema_span)
 
         self.live = CandleBubble(
             time=live.start_ts // 1000,
@@ -167,7 +185,7 @@ class CandleBubbleSeries(Series):
             delta_pct=delta_pct,
             delta_vol=new_buy_qty - new_sell_qty,
             tick_count=live.tick_count + 1,
-            **_bubble_fields(preview_signal, current_vol, preview_max_vol),
+            **_bubble_fields(preview_signal, current_vol, preview_ref_vol, maturity),
         )
 
         self.is_new = False
@@ -177,14 +195,20 @@ class CandleBubbleSeries(Series):
     # ------------------------------------------------------------------
 
     def _new_candle(self, bucket: int, tick: Tick) -> CandleBubble:
-        buy_qty = 0.0 if tick.is_buyer_maker else tick.qty
+        buy_qty  = 0.0 if tick.is_buyer_maker else tick.qty
         sell_qty = tick.qty if tick.is_buyer_maker else 0.0
         delta_pct = _delta_pct(buy_qty, sell_qty)
 
+        # Primera señal de la vela: si hay EMA histórica la usamos directamente
+        # (sin actualizarla, eso ocurre solo al cerrar una vela).
         signal = self._next_ema(delta_pct)
+
         start_ts = bucket * self.timeframe_ms
         current_vol = tick.qty
-        preview_max_vol = max(self._max_vol, current_vol)
+        preview_ref_vol = max(self._ref_vol, current_vol)
+
+        # Primer tick: madurez mínima → burbuja muy atenuada.
+        maturity = _maturity_factor(1, self._ema_span)
 
         return CandleBubble(
             time=start_ts // 1000,
@@ -200,16 +224,22 @@ class CandleBubbleSeries(Series):
             delta_pct=delta_pct,
             delta_vol=buy_qty - sell_qty,
             tick_count=1,
-            **_bubble_fields(signal, current_vol, preview_max_vol),
+            **_bubble_fields(signal, current_vol, preview_ref_vol, maturity),
         )
 
     def _next_ema(self, value: float) -> float:
+        """Devuelve la EMA actualizada SIN mutar el estado interno."""
         if self._ema is None:
             return value
         return self._ema_alpha * value + (1 - self._ema_alpha) * self._ema
 
     @staticmethod
-    def _apply_signal(candle: CandleBubble, signal: float, max_vol: float) -> CandleBubble:
+    def _apply_signal(
+        candle: CandleBubble,
+        signal: float,
+        ref_vol: float,
+    ) -> CandleBubble:
+        # Al sellar una vela cerrada la madurez es completa (factor = 1.0)
         return CandleBubble(
             time=candle.time,
             open=candle.open,
@@ -224,7 +254,7 @@ class CandleBubbleSeries(Series):
             delta_pct=candle.delta_pct,
             delta_vol=candle.delta_vol,
             tick_count=candle.tick_count,
-            **_bubble_fields(signal, candle.volume, max_vol),
+            **_bubble_fields(signal, candle.volume, ref_vol, maturity=1.0),
         )
 
 
@@ -237,34 +267,59 @@ def _delta_pct(buy_qty: float, sell_qty: float) -> float:
     return (buy_qty - sell_qty) / total if total > 0.0 else 0.0
 
 
-def _bubble_fields(signal: float, volume: float, max_vol: float) -> dict:
+def _percentile_vol(volumes: list[float], p: float) -> float:
     """
-    Calcula las propiedades visuales de la burbuja ponderando 
-    la señal (imbalance) con la liquidez real (volumen).
+    Devuelve el percentil p (0–1) de la lista de volúmenes.
+    Más robusto que el máximo puro: ignora spikes extremos.
+    Si la lista está vacía, devuelve 1.0 para evitar división por cero.
     """
-    show_bubble = abs(signal) > _THRESHOLD
+    if not volumes:
+        return 1.0
+    sorted_vols = sorted(volumes)
+    idx = max(0, int(math.ceil(p * len(sorted_vols))) - 1)
+    return max(sorted_vols[idx], 1e-9)
 
-    if not show_bubble:
-        color: Literal["green", "red", "gray"] = "gray"
-    elif signal > 0:
+
+def _maturity_factor(tick_count: int, ema_span: int) -> float:
+    """
+    Factor 0→1 que sube suavemente durante los primeros `ema_span` ticks.
+    Atenúa burbujas ruidosas al inicio de una vela donde el sample size es bajo.
+    Usa una curva sigmoide suave: llega a ~0.88 en ema_span ticks.
+    """
+    if tick_count >= ema_span:
+        return 1.0
+    # raíz cuadrada: sube rápido al inicio y se aplana al acercarse a ema_span
+    return math.sqrt(tick_count / ema_span)
+
+
+def _bubble_fields(
+    signal: float,
+    volume: float,
+    ref_vol: float,
+    maturity: float = 1.0,
+) -> dict:
+    effective_signal = signal * maturity
+
+    is_significant = abs(effective_signal) > _THRESHOLD
+
+    if not is_significant:
+        color = "gray"
+        vol_ratio = math.tanh(volume / ref_vol) if ref_vol > 0 else 0.0
+        size = 6.0 + (30.0 * vol_ratio)  
+    elif effective_signal > 0:
         color = "green"
+        vol_ratio = math.tanh(volume / ref_vol) if ref_vol > 0 else 0.0
+        impact = math.sqrt(abs(effective_signal) * vol_ratio)
+        size = 15.0 + (80.0 * impact)
     else:
         color = "red"
-
-    if show_bubble and max_vol > 0:
-        # 1. Normalizar el volumen frente a la historia reciente (Topado a 1.5 por picos extremos)
-        vol_ratio = min(volume / max_vol, 1.5)
-        
-        # 2. El tamaño ahora depende de DOS factores: La fuerza de la señal y la validación del volumen.
-        # Usamos raíz cuadrada para suavizar el impacto visual (hace que el Área del círculo sea proporcional)
-        impact = math.sqrt(abs(signal)) * math.sqrt(vol_ratio)
-        size = 15 + (80 * impact)
-    else:
-        size = 0.0
+        vol_ratio = math.tanh(volume / ref_vol) if ref_vol > 0 else 0.0
+        impact = math.sqrt(abs(effective_signal) * vol_ratio)
+        size = 15.0 + (80.0 * impact)
 
     return {
         "signal": signal,
-        "show_bubble": show_bubble,
+        "show_bubble": True,   # siempre visible, el color distingue el estado
         "bubble_color": color,
         "bubble_size": round(size, 2),
     }
