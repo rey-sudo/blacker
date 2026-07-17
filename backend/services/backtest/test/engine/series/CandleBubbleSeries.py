@@ -18,7 +18,7 @@ from series.series import Series
 from ingestion.tick import Tick
 from dataclasses import asdict, dataclass
 from typing import Literal
-
+from collections import deque
 
 @dataclass(frozen=True)
 class CandleBubble:
@@ -43,7 +43,7 @@ class CandleBubble:
 
 
 _THRESHOLD = 0.05
-
+MAX_HISTORY_LEN = 500
 
 class CandleBubbleSeries(Series):
     """
@@ -56,7 +56,7 @@ class CandleBubbleSeries(Series):
         super().__init__("CandleBubbleSeries")
 
         self.live: CandleBubble | None = None
-        self.history: list[CandleBubble] = []
+        self.history: deque[CandleBubble] = deque(maxlen=MAX_HISTORY_LEN)
         self.is_new: bool = False
 
         # Configuración encapsulada
@@ -93,7 +93,11 @@ class CandleBubbleSeries(Series):
             else None
         )
 
-        self.history = [CandleBubble(**c) for c in state["history"]]
+        self.history = deque(
+            (CandleBubble(**c) for c in state["history"]),
+            maxlen=MAX_HISTORY_LEN,
+        )
+
         self.is_new = state["is_new"]
         self._ema = state["_ema"]
         self._recent_volumes = state.get("_recent_volumes", [])

@@ -91,7 +91,7 @@ def handle_tick(tick: Tick, is_last: bool):
     if signal:
         print("SIGNAL:", signal)
     
-    if tick.tick_index % 10000 == 0:
+    if tick.tick_index % 20000 == 0:
         print(f"Processed: {tick.tick_index}")
 
     if is_last:

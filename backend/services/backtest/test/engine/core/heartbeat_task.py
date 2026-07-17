@@ -31,7 +31,6 @@ class HeartbeatTask():
         
         while True:
             try:
-                print(self.engine.status)
                 time.sleep(1)
 
                 payload = {
