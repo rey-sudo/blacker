@@ -1,6 +1,6 @@
 use crate::{
     common::SlaveId,
-    master::state::{AppState, MasterState, MasterStatus},
+    master::state::{AppState, MasterState},
     slaves::{engine::EngineState, slave::ConnectedSlaveState},
 };
 use axum::{Json, extract::State, http::StatusCode};
