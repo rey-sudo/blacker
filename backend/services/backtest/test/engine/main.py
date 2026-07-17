@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import sys
 import threading
 from core.heartbeat_task import HeartbeatTask
 from ingestion.tick import Tick
@@ -119,7 +120,8 @@ def handle_state(data) -> bool:
     state = data['engine_state']
 
     #TODO: CHECK STRUCT
-
+    
+    # If the master sends and EngineState None
     if engine.status == 'init':
         if state == None:
             engine.boot_id = boot_id
@@ -135,18 +137,15 @@ def handle_state(data) -> bool:
         
     if engine.status == 'ready':
         if engine.boot_id != boot_id:
-            engine.status = 'init'
-            engine.boot_id = None
-            engine.state = None
-            print("engine boot_it is diferent, reseting engine state")
-            #sys.exit
-            return False
-    
+            print("Engine boot_it is diferent restarting engine")
+            sys.exit(1)
+            
     return True   
      
 heartbeat = HeartbeatTask(
     master_url="http://localhost:3000/master/report-state",
     apply_state=handle_state,
+    engine=engine
 )
 
 #-----------------------------------------------------------------------------------------------------------------------
