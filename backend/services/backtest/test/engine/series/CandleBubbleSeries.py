@@ -73,6 +73,7 @@ class CandleBubbleSeries(Series):
         self._recent_volumes: list[float] = []
         # Referencia de volumen robusta: percentil en lugar de max puro
         self._ref_vol: float = 1.0
+        self._delta_history: deque[float] = deque(maxlen=vol_window)  
 
     # ------------------------------------------------------------------
     # Serialization
@@ -88,6 +89,7 @@ class CandleBubbleSeries(Series):
             "_recent_volumes": self._recent_volumes,
             # Backward-compat: guardamos como _max_vol para no romper estados serializados existentes
             "_max_vol": self._ref_vol,
+            "_delta_history": list(self._delta_history),  
         }
 
     def set_state(self, state: dict) -> None:
@@ -109,6 +111,10 @@ class CandleBubbleSeries(Series):
         self._recent_volumes = state.get("_recent_volumes", [])
         # Soporta estados serializados bajo el nombre antiguo _max_vol
         self._ref_vol = state.get("_ref_vol", state.get("_max_vol", 1.0))
+        self._delta_history = deque(                          
+            state.get("_delta_history", []),
+            maxlen=self._vol_window,
+        )
 
     # ------------------------------------------------------------------
     # Update
@@ -135,13 +141,15 @@ class CandleBubbleSeries(Series):
             if len(self._recent_volumes) > self._vol_window:
                 self._recent_volumes.pop(0)
             self._ref_vol = _percentile_vol(self._recent_volumes, _VOL_PERCENTILE)
+            self._delta_history.append(live.delta_pct)       
 
             # 2. Actualizar EMA con el delta_pct FINAL de la vela cerrada.
             #    (Se hace después del vol para no contaminar señales previas.)
             self._ema = self._next_ema(live.delta_pct)
 
             # 3. Sellar vela con señal y escala visual actualizadas.
-            closed = self._apply_signal(live, self._ema, self._ref_vol)
+            closed = self._apply_signal(live, self._ema, self._ref_vol,
+                                        threshold=self._adaptive_threshold()) 
             self.history.append(closed)
 
             # 4. Abrir nueva vela
@@ -185,7 +193,8 @@ class CandleBubbleSeries(Series):
             delta_pct=delta_pct,
             delta_vol=new_buy_qty - new_sell_qty,
             tick_count=live.tick_count + 1,
-            **_bubble_fields(preview_signal, current_vol, preview_ref_vol, maturity),
+            **_bubble_fields(preview_signal, current_vol, preview_ref_vol, maturity,
+                             threshold=self._adaptive_threshold()),  
         )
 
         self.is_new = False
@@ -224,7 +233,8 @@ class CandleBubbleSeries(Series):
             delta_pct=delta_pct,
             delta_vol=buy_qty - sell_qty,
             tick_count=1,
-            **_bubble_fields(signal, current_vol, preview_ref_vol, maturity),
+            **_bubble_fields(signal, current_vol, preview_ref_vol, maturity,
+                             threshold=self._adaptive_threshold()), 
         )
 
     def _next_ema(self, value: float) -> float:
@@ -233,11 +243,25 @@ class CandleBubbleSeries(Series):
             return value
         return self._ema_alpha * value + (1 - self._ema_alpha) * self._ema
 
+    def _adaptive_threshold(self) -> float:                 
+        """
+        Threshold dinámico basado en la desviación estándar reciente de delta_pct.
+        En timeframes altos (4h, 1d) el imbalance converge a 0 por volumen,
+        así que el umbral se ajusta al rango real del mercado en ese timeframe.
+        """
+        if len(self._delta_history) < 5:
+            return _THRESHOLD  # fallback estático hasta tener muestra suficiente
+        mean = sum(self._delta_history) / len(self._delta_history)
+        variance = sum((x - mean) ** 2 for x in self._delta_history) / len(self._delta_history)
+        std = math.sqrt(variance)
+        return max(std * 0.5, 0.01)  # mínimo 1% para evitar over-señalización
+
     @staticmethod
     def _apply_signal(
         candle: CandleBubble,
         signal: float,
         ref_vol: float,
+        threshold: float = _THRESHOLD,             
     ) -> CandleBubble:
         # Al sellar una vela cerrada la madurez es completa (factor = 1.0)
         return CandleBubble(
@@ -254,7 +278,8 @@ class CandleBubbleSeries(Series):
             delta_pct=candle.delta_pct,
             delta_vol=candle.delta_vol,
             tick_count=candle.tick_count,
-            **_bubble_fields(signal, candle.volume, ref_vol, maturity=1.0),
+            **_bubble_fields(signal, candle.volume, ref_vol, maturity=1.0,
+                             threshold=threshold),   
         )
 
 
@@ -297,29 +322,37 @@ def _bubble_fields(
     volume: float,
     ref_vol: float,
     maturity: float = 1.0,
+    threshold: float = _THRESHOLD,                
 ) -> dict:
+    """
+    Calcula las propiedades visuales de la burbuja combinando:
+      - Fuerza de la señal (imbalance EMA)
+      - Validación por volumen relativo al percentil histórico
+      - Factor de madurez para evitar señales prematuras de baja muestra
+      - Threshold adaptativo al timeframe actual
+    """
     effective_signal = signal * maturity
-
-    is_significant = abs(effective_signal) > _THRESHOLD
+    is_significant = abs(effective_signal) > threshold 
 
     if not is_significant:
-        color = "gray"
-        vol_ratio = math.tanh(volume / ref_vol) if ref_vol > 0 else 0.0
-        size = 6.0 + (30.0 * vol_ratio)  
+        color: Literal["green", "red", "gray"] = "gray"
     elif effective_signal > 0:
         color = "green"
-        vol_ratio = math.tanh(volume / ref_vol) if ref_vol > 0 else 0.0
-        impact = math.sqrt(abs(effective_signal) * vol_ratio)
-        size = 15.0 + (80.0 * impact)
     else:
         color = "red"
-        vol_ratio = math.tanh(volume / ref_vol) if ref_vol > 0 else 0.0
+
+    vol_ratio = math.tanh(volume / ref_vol) if ref_vol > 0 else 0.0
+
+    if not is_significant:
+        # Gris: tamaño proporcional al volumen (absorción visible)
+        size = 6.0 + (30.0 * vol_ratio)
+    else:
         impact = math.sqrt(abs(effective_signal) * vol_ratio)
         size = 15.0 + (80.0 * impact)
 
     return {
-        "signal": signal,
-        "show_bubble": True,   # siempre visible, el color distingue el estado
+        "signal": signal,          # señal EMA cruda (sin madurez) para cálculos downstream
+        "show_bubble": True,       # siempre visible; color distingue el estado
         "bubble_color": color,
         "bubble_size": round(size, 2),
     }

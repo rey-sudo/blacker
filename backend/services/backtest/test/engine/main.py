@@ -25,7 +25,7 @@ engine_config = {
   "timeframes": [
     {
       "name": "1m",
-      "timeframe_ms": 900000,
+      "timeframe_ms": 14400000,
       "series": [ 
         {
           "type": "CandleBubbleSeries",
