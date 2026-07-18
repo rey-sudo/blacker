@@ -28,14 +28,12 @@ engine_config = {
       "timeframe_ms": 14400000,
       "series": [ 
         {
-          "type": "CandleBubbleSeries",
           "params": {
                "name": "CandleBubbleSeries",
                "id": "CandleBubbleSeries1",
           }
         },
         {
-          "type": "EmaSeries",
           "params": {
               "name": "EmaSeries",
               "id": "EmaSeries_55",

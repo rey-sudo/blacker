@@ -52,10 +52,12 @@ class TradingEngine:
             )
 
             for series_cfg in tf_cfg["series"]:
+                
+                params = series_cfg.get("params", {})
 
-                series_cls = SERIES_REGISTRY[series_cfg["type"]]
-
-                series = series_cls(**series_cfg["params"])
+                series_cls = SERIES_REGISTRY[params.get("name")]
+    
+                series = series_cls(**params)
 
                 timeframe.add_series(series)            
 
@@ -93,7 +95,7 @@ class TradingEngine:
                 
                 params = series_state.get("params", {})
 
-                series_cls = SERIES_REGISTRY[params.name]
+                series_cls = SERIES_REGISTRY[params.get("name")]
 
                 series = series_cls(**params)
 

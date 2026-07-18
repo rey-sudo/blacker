@@ -26,7 +26,6 @@ class EmaSeries(Series):
 
     def to_dict(self):
         return {
-            "source": self.source,
             "params": {
                 "name": self.name,
                 "id": self.id,
