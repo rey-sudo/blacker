@@ -30,6 +30,13 @@ engine_config = {
         {
           "type": "CandleBubbleSeries",
           "params": {}
+        },
+        {
+          "type": "EmaSeries",
+          "params": {
+              "source": "CandleBubbleSeries",
+              "period": 55
+          }
         }
       ]
     }

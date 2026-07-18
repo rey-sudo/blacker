@@ -17,7 +17,7 @@ class Timeframe:
 
         return self
 
-    def get_series(self, name: str):
+    def get_series(self, name: str) -> Series:
         return self.series[name]
         
     def update(self, tick: Tick) -> None:

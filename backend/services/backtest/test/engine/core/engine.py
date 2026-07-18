@@ -91,9 +91,11 @@ class TradingEngine:
 
             for series_type, series_state in tf_state["series"].items():
 
+                params = series_state.get("params", {})
+
                 series_cls = SERIES_REGISTRY[series_type]
 
-                series = series_cls()
+                series = series_cls(**params)
 
                 series.set_state(series_state)
 
