@@ -89,11 +89,11 @@ class TradingEngine:
                 timeframe_ms=tf_state["timeframe_ms"],
             )
 
-            for series_type, series_state in tf_state["series"].items():
-
+            for series_id, series_state in tf_state["series"].items():
+                
                 params = series_state.get("params", {})
 
-                series_cls = SERIES_REGISTRY[series_type]
+                series_cls = SERIES_REGISTRY[params.name]
 
                 series = series_cls(**params)
 

@@ -15,8 +15,8 @@ class EmaSeries(Series):
 
     self.source must point to a CandleSeries.
     """
-    def __init__(self, source: str, period: int):
-        super().__init__("EmaSeries")
+    def __init__(self, name: str, id: str, source: str, period: int):
+        super().__init__(name, id)
 
         self.source = source
         self.period = period
@@ -26,13 +26,13 @@ class EmaSeries(Series):
 
     def to_dict(self):
         return {
-            "name": self.name,
             "source": self.source,
             "params": {
+                "name": self.name,
+                "id": self.id,
                 "source" : self.source,
                 "period":  self.period
             },
-            "period": self.period,
             "live": asdict(self.live) if self.live is not None else None,
             "history": [
                 asdict(ema)
@@ -41,10 +41,6 @@ class EmaSeries(Series):
         }
 
     def set_state(self, state: dict) -> None:
-        self.name = state["name"]
-        self.source = state["source"]
-        self.period = state["period"]
-
         self.live = (
             Ema(**state["live"])
             if state["live"] is not None

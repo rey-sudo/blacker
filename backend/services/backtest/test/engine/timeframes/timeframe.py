@@ -13,12 +13,12 @@ class Timeframe:
 
         series.timeframe = self
 
-        self.series[series.name] = series
+        self.series[series.id] = series
 
         return self
 
-    def get_series(self, name: str) -> Series:
-        return self.series[name]
+    def get_series(self, id: str) -> Series:
+        return self.series[id]
         
     def update(self, tick: Tick) -> None:
         """
@@ -32,7 +32,7 @@ class Timeframe:
             "name": self.name,
             "timeframe_ms": self.timeframe_ms,
             "series": {
-                name: series.to_dict()
-                for name, series in self.series.items()
+                id: series.to_dict()
+                for id, series in self.series.items()
             },
         }

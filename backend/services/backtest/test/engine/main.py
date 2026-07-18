@@ -29,12 +29,17 @@ engine_config = {
       "series": [ 
         {
           "type": "CandleBubbleSeries",
-          "params": {}
+          "params": {
+               "name": "CandleBubbleSeries",
+               "id": "CandleBubbleSeries1",
+          }
         },
         {
           "type": "EmaSeries",
           "params": {
-              "source": "CandleBubbleSeries",
+              "name": "EmaSeries",
+              "id": "EmaSeries_55",
+              "source": "CandleBubbleSeries1",
               "period": 55
           }
         }
