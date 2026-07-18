@@ -24,7 +24,7 @@ from publication.pulsar_publisher import PulsarPublisher
 engine_config = {
   "timeframes": [
     {
-      "name": "1m",
+      "name": "4h",
       "timeframe_ms": 14400000,
       "series": [ 
         {
@@ -39,6 +39,42 @@ engine_config = {
               "id": "EmaSeries_55",
               "source": "CandleBubbleSeries1",
               "period": 55
+          }
+        },
+        {
+          "params": {
+              "name": "EmaSeries",
+              "id": "EmaSeries_25",
+              "source": "CandleBubbleSeries1",
+              "period": 25
+          }
+        }
+      ]
+    },
+    {
+      "name": "30m",
+      "timeframe_ms": 1800000,
+      "series": [ 
+        {
+          "params": {
+               "name": "CandleBubbleSeries",
+               "id": "CandleBubbleSeries2",
+          }
+        },
+        {
+          "params": {
+              "name": "EmaSeries",
+              "id": "EmaSeries_55",
+              "source": "CandleBubbleSeries2",
+              "period": 55
+          }
+        },
+        {
+          "params": {
+              "name": "EmaSeries",
+              "id": "EmaSeries_25",
+              "source": "CandleBubbleSeries2",
+              "period": 25
           }
         }
       ]
