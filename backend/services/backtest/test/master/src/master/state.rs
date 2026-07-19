@@ -161,7 +161,7 @@ impl AppState {
         Self {
             boot_id,
 
-            replay_batch_size: 20000,
+            replay_batch_size: 50000,
 
             master: Arc::new(RwLock::new(MasterState {
                 status: MasterStatus::Pending,
