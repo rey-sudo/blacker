@@ -1,6 +1,9 @@
+from collections import deque
 from dataclasses import asdict, dataclass
 from series.series import Series
 from ingestion.tick import Tick
+
+MAX_HISTORY_LEN = 500
 
 @dataclass(frozen=True)
 class Ema:
@@ -25,8 +28,9 @@ class EmaSeries(Series):
 
         self._internal: Ema | None = None  # estado real, nunca suprimido
         self.live: Ema | None = None       # estado visible (None durante warm-up)
-        self.history: list[Ema] = []
 
+        self.history: deque[Ema] = deque(maxlen=MAX_HISTORY_LEN)
+        
     def to_dict(self):
         return {
             "params": {
@@ -40,7 +44,10 @@ class EmaSeries(Series):
         }
 
     def set_state(self, state: dict) -> None:
-        self.history = [Ema(**ema) for ema in state["history"]]
+        self.history = deque(
+            (Ema(**ema) for ema in state["history"]),
+            maxlen=MAX_HISTORY_LEN,
+        )
 
         self.live = (
             Ema(**state["live"]) if state["live"] is not None else None
