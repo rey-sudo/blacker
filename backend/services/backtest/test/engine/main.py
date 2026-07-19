@@ -48,6 +48,16 @@ engine_config = {
               "source": "CandleBubbleSeries1",
               "period": 25
           }
+        },
+        {
+          "params": {
+              "name": "ADXSeries",
+              "id": "ADXSeries",
+              "source": "CandleBubbleSeries1",
+              "di_period": 14,
+              "adx_period": 14,
+              "key_level": 21
+          }
         }
       ]
     },
