@@ -78,37 +78,7 @@ engine_config = {
         }
       ]
     },
-    {
-      "name": "30m",
-      "timeframe_ms": 1800000,
-      "series": [ 
-        {
-          "params": {
-              "level": 0,
-               "name": "CandleBubbleSeries",
-               "id": "CandleBubbleSeries2",
-          }
-        },
-        {
-          "params": {
-              "level": 1,
-              "name": "EmaSeries",
-              "id": "EmaSeries_55",
-              "source": "CandleBubbleSeries2",
-              "period": 55
-          }
-        },
-        {
-          "params": {
-              "level": 1,
-              "name": "EmaSeries",
-              "id": "EmaSeries_25",
-              "source": "CandleBubbleSeries2",
-              "period": 25
-          }
-        }
-      ]
-    }
+
   ],
   "strategy": {
     "type": "MyStrategy",
@@ -232,3 +202,39 @@ def main():
     heartbeat.start()
 
 main()
+
+
+"""
+    {
+      "name": "30m",
+      "timeframe_ms": 1800000,
+      "series": [ 
+        {
+          "params": {
+              "level": 0,
+               "name": "CandleBubbleSeries",
+               "id": "CandleBubbleSeries2",
+          }
+        },
+        {
+          "params": {
+              "level": 1,
+              "name": "EmaSeries",
+              "id": "EmaSeries_55",
+              "source": "CandleBubbleSeries2",
+              "period": 55
+          }
+        },
+        {
+          "params": {
+              "level": 1,
+              "name": "EmaSeries",
+              "id": "EmaSeries_25",
+              "source": "CandleBubbleSeries2",
+              "period": 25
+          }
+        }
+      ]
+    }
+
+"""
