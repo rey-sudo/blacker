@@ -19,8 +19,8 @@ class Adx:
 
 class ADXSeries(Series):
 
-    def __init__(self, name: str, id: str, source: str, di_period: int, adx_period: int, key_level: float = 23.0):
-        super().__init__(name, id)
+    def __init__(self, level:int, name: str, id: str, source: str, di_period: int, adx_period: int, key_level: float = 23.0):
+        super().__init__(level, name, id)
 
         self.source = source
         self.di_period = di_period      # «dilen» 
@@ -66,6 +66,7 @@ class ADXSeries(Series):
     def to_dict(self) -> dict:
         return {
             "params": {
+                "level": self.level,
                 "name": self.name,
                 "id": self.id,
                 "source": self.source,

@@ -13,8 +13,8 @@ class Ema:
     end_ts: int
 
 class EmaSeries(Series):
-    def __init__(self, name: str, id: str, source: str, period: int):
-        super().__init__(name, id)
+    def __init__(self, level:int, name: str, id: str, source: str, period: int):
+        super().__init__(level, name, id)
 
         self.source = source
         self.period = period
@@ -27,6 +27,7 @@ class EmaSeries(Series):
     def to_dict(self):
         return {
             "params": {
+                "level": self.level,
                 "name": self.name,
                 "id": self.id,
                 "source": self.source,

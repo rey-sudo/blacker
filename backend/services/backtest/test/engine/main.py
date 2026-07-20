@@ -27,30 +27,34 @@ engine_config = {
       "name": "4h",
       "timeframe_ms": 14400000,
       "series": [ 
-        {
+        {  
             "params": {
+                "level": 0,
                 "name": "CandleBubbleSeries",
                 "id": "CandleBubbleSeries1",
             }
         },
-        {
+        {   
             "params": {
+                "level": 1,
                 "name": "EmaSeries",
                 "id": "EmaSeries_55",
                 "source": "CandleBubbleSeries1",
                 "period": 55
             }
         },
-        {
+        {  
             "params": {
+                "level": 1, 
                 "name": "EmaSeries",
                 "id": "EmaSeries_25",
                 "source": "CandleBubbleSeries1",
                 "period": 25
             }
-        },
-        {
+        }, 
+        {   
             "params": {
+                "level": 1,
                 "name": "ADXSeries",
                 "id": "ADXSeries",
                 "source": "CandleBubbleSeries1",
@@ -59,8 +63,9 @@ engine_config = {
                 "key_level": 21
             }
         },
-        {
+        {   
             "params": {
+                "level": 1,
                 "name": "SqueezeSeries",
                 "id": "SqueezeSeries",
                 "source": "CandleBubbleSeries1",
@@ -79,12 +84,14 @@ engine_config = {
       "series": [ 
         {
           "params": {
+              "level": 0,
                "name": "CandleBubbleSeries",
                "id": "CandleBubbleSeries2",
           }
         },
         {
           "params": {
+              "level": 1,
               "name": "EmaSeries",
               "id": "EmaSeries_55",
               "source": "CandleBubbleSeries2",
@@ -93,6 +100,7 @@ engine_config = {
         },
         {
           "params": {
+              "level": 1,
               "name": "EmaSeries",
               "id": "EmaSeries_25",
               "source": "CandleBubbleSeries2",

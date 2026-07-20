@@ -28,6 +28,7 @@ class Squeeze:
 class SqueezeSeries(Series):
     def __init__(
         self,
+        level:int,
         name: str,
         id: str,
         source: str,
@@ -37,7 +38,7 @@ class SqueezeSeries(Series):
         multKC: float = 1.5,
         useTrueRange: bool = True,
     ):
-        super().__init__(name, id)
+        super().__init__(level, name, id)
 
         self.source = source
         self.length = length
@@ -61,6 +62,7 @@ class SqueezeSeries(Series):
     def to_dict(self):
         return {
             "params": {
+                "level": self.level,
                 "name": self.name,
                 "id": self.id,
                 "source": self.source,

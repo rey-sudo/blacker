@@ -57,8 +57,8 @@ class CandleBubbleSeries(Series):
     and weighted by relative volume).
     """
 
-    def __init__(self, name:str, id:str,  ema_span: int = 10, vol_window: int = 50):
-        super().__init__(name, id)
+    def __init__(self, level:int, name:str, id:str,  ema_span: int = 10, vol_window: int = 50):
+        super().__init__(level, name, id)
 
         self.live: CandleBubble | None = None
         self.history: deque[CandleBubble] = deque(maxlen=MAX_HISTORY_LEN)
@@ -82,6 +82,7 @@ class CandleBubbleSeries(Series):
     def to_dict(self) -> dict:
         return {
             "params": {
+                "level": self.level,
                 "name": self.name,
                 "id": self.id
             },

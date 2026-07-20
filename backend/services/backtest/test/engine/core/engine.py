@@ -59,7 +59,9 @@ class TradingEngine:
     
                 series = series_cls(**params)
 
-                timeframe.add_series(series)            
+                timeframe.add_series(series)   
+                         
+            timeframe.build_levels()
 
             timeframes[timeframe.name] = timeframe
 
@@ -102,6 +104,8 @@ class TradingEngine:
                 series.set_state(series_state)
 
                 timeframe.add_series(series)
+            
+            timeframe.build_levels()
 
             timeframes[tf_name] = timeframe
 
