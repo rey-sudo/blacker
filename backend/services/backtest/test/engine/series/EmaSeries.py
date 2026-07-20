@@ -13,13 +13,6 @@ class Ema:
     end_ts: int
 
 class EmaSeries(Series):
-    """
-    EMA calculada desde las velas de otra Series.
-    Compatible con ta.ema de TradingView:
-    - No emite valor visible hasta tener (period - 1) velas confirmadas en history.
-    - El seed es el close de la primera vela.
-    - _internal siempre avanza para acumular history correctamente.
-    """
     def __init__(self, name: str, id: str, source: str, period: int):
         super().__init__(name, id)
 

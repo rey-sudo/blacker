@@ -18,32 +18,14 @@ class Adx:
 
 
 class ADXSeries(Series):
-    """
-    ADX (Average Directional Index) — replica fiel del Pine Script:
-
-        dirmov(high, low, length):
-            up        = change(high)
-            down      = -change(low)
-            truerange = rma(tr, length)
-            +DI       = 100 * rma(up > down and up > 0 ? up : 0, length) / truerange
-            -DI       = 100 * rma(down > up and down > 0 ? down : 0, length) / truerange
-
-        adx_func(high, low, dilen, adxlen):
-            [+DI, -DI] = dirmov(high, low, dilen)
-            sum_       = +DI + -DI
-            adx        = 100 * rma(abs(+DI - -DI) / (sum_ == 0 ? 1 : sum_), adxlen)
-
-    RMA de Wilder:  rma[i] = (rma[i-1] * (n-1) + src[i]) / n
-                    seed    = primera muestra (equivale a SMA de 1 elemento)
-    """
 
     def __init__(self, name: str, id: str, source: str, di_period: int, adx_period: int, key_level: float = 23.0):
         super().__init__(name, id)
 
         self.source = source
-        self.di_period = di_period      # «dilen» en Pine
-        self.adx_period = adx_period    # «adxlen» en Pine
-        self.key_level = key_level      # «keyLevel» en Pine (default 23)
+        self.di_period = di_period      # «dilen» 
+        self.adx_period = adx_period    # «adxlen»
+        self.key_level = key_level      # «keyLevel»  (default 23)
 
         # ── RMA accumulators para dilen ──────────────────────────────────────
         self._rma_tr:    float | None = None   # rma(tr,   dilen)
@@ -165,9 +147,8 @@ class ADXSeries(Series):
                      abs(low  - self._prev_close))
 
         # Directional Movement
-        # Pine: ta.change(high) devuelve `na` en la primera barra (bar_index=0),
+        # ta.change(high) devuelve `na` en la primera barra (bar_index=0),
         # por lo que ta.rma ignora ese valor y no avanza el seed.
-        # Python replica ese comportamiento: si no hay barra anterior,
         # no alimentamos rma_plus / rma_minus (quedan en None hasta barra 2).
         if self._prev_high is None:
             new_rma_tr    = self._rma_step(rma_tr, tr, n)
@@ -271,7 +252,6 @@ class ADXSeries(Series):
 
         adx_value = self._live_rma_dx
 
-        # ── Reversal: replica exacta del Pine Script ─────────────────────────
         # rule1 = sig  < sig[1]          → ADX actual  < ADX anterior (history[-1])
         # rule2 = sig[1] > sig[2]        → ADX anterior > ADX antepenúltimo (history[-2])
         # rule3 = sig[1] > keyLevel

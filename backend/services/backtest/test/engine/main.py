@@ -28,36 +28,48 @@ engine_config = {
       "timeframe_ms": 14400000,
       "series": [ 
         {
-          "params": {
-               "name": "CandleBubbleSeries",
-               "id": "CandleBubbleSeries1",
-          }
+            "params": {
+                "name": "CandleBubbleSeries",
+                "id": "CandleBubbleSeries1",
+            }
         },
         {
-          "params": {
-              "name": "EmaSeries",
-              "id": "EmaSeries_55",
-              "source": "CandleBubbleSeries1",
-              "period": 55
-          }
+            "params": {
+                "name": "EmaSeries",
+                "id": "EmaSeries_55",
+                "source": "CandleBubbleSeries1",
+                "period": 55
+            }
         },
         {
-          "params": {
-              "name": "EmaSeries",
-              "id": "EmaSeries_25",
-              "source": "CandleBubbleSeries1",
-              "period": 25
-          }
+            "params": {
+                "name": "EmaSeries",
+                "id": "EmaSeries_25",
+                "source": "CandleBubbleSeries1",
+                "period": 25
+            }
         },
         {
-          "params": {
-              "name": "ADXSeries",
-              "id": "ADXSeries",
-              "source": "CandleBubbleSeries1",
-              "di_period": 14,
-              "adx_period": 14,
-              "key_level": 21
-          }
+            "params": {
+                "name": "ADXSeries",
+                "id": "ADXSeries",
+                "source": "CandleBubbleSeries1",
+                "di_period": 14,
+                "adx_period": 14,
+                "key_level": 21
+            }
+        },
+        {
+            "params": {
+                "name": "SqueezeSeries",
+                "id": "SqueezeSeries",
+                "source": "CandleBubbleSeries1",
+                "length": 20,
+                "mult": 2.0,
+                "lengthKC": 20,
+                "multKC": 1.5,
+                "useTrueRange": True
+            }
         }
       ]
     },
