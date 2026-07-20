@@ -58,8 +58,8 @@ engine_config = {
                 "name": "ADXSeries",
                 "id": "ADXSeries",
                 "source": "CandleBubbleSeries1",
-                "di_period": 14,
-                "adx_period": 14,
+                "dilen": 14,
+                "adxlen": 14,
                 "key_level": 21
             }
         },

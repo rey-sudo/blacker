@@ -32,6 +32,8 @@ class ADXSeries(Series):
                  dilen: int = 14, adxlen: int = 14, key_level: float = 23):
         super().__init__(level, name, id)
 
+        self.realtime = False
+
         self.source = source
         self.dilen = dilen
         self.adxlen = adxlen
@@ -74,35 +76,43 @@ class ADXSeries(Series):
     def update(self, tick: Tick) -> None:
         source = self.timeframe.get_series(self.source)
 
+        # Wait until the source has produced its first candle.
         if source.live is None:
             return
 
         candle = source.live
 
-        # ── Referencia previa para continuar las RMA (TR, +DM, -DM) ──
+        # True when updating the current open candle.
+        is_same_candle = (
+            self._internal is not None
+            and self._internal.start_ts == candle.start_ts
+        )
 
+        # Skip intrabar recalculation unless realtime=True.
+        if not self.realtime and is_same_candle:
+            return
+        
+        # Select the previous state used to continue the RMA chain.
         if self._internal is None:
-            # Primera vela: no hay vela anterior con la que calcular diffs/true range
             prev_chain = None
 
-        elif self._internal.start_ts == candle.start_ts:
-            # Misma vela viva: recalcular desde la última confirmada
+        elif is_same_candle:
+            # Rebuild the live candle from the last confirmed state.
             prev_chain = self.history[-1] if self.history else self._internal
 
         else:
-            # Nueva vela: confirmar la anterior en history
+            # Confirm the previous candle before starting a new one.
             self.history.append(self._internal)
-            prev_chain = self._internal  # == self.history[-1] tras el append
+            prev_chain = self._internal
 
-        # Las dos últimas velas CONFIRMADAS: usadas para color y reglas de reversión,
-        # que en adx.py son sig.shift(1) / sig.shift(2)
+        # Last two confirmed values used for ADX color and reversal detection.
         prev1 = self.history[-1] if len(self.history) >= 1 else None
         prev2 = self.history[-2] if len(self.history) >= 2 else None
 
+        # Compute the current ADX state.
         self._internal = self._compute_step(candle, prev_chain, prev1, prev2)
-
-        # ── Warm-up: ADX necesita dilen + adxlen - 1 velas confirmadas ──
-        # (misma convención de lookback que usa TA-Lib para el ADX)
+        
+        # Expose values only after the required warm-up period.
         if len(self.history) >= self.dilen + self.adxlen - 1:
             self.live = self._internal
         else:
