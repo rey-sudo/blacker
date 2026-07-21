@@ -32,8 +32,6 @@ class ADXSeries(Series):
                  dilen: int = 14, adxlen: int = 14, key_level: float = 23):
         super().__init__(level, name, id)
 
-        self.realtime = False
-
         self.source = source
         self.dilen = dilen
         self.adxlen = adxlen
@@ -87,17 +85,13 @@ class ADXSeries(Series):
             self._internal is not None
             and self._internal.start_ts == candle.start_ts
         )
-
-        # Skip intrabar recalculation unless realtime=True.
-        if not self.realtime and is_same_candle:
-            return
         
         # Select the previous state used to continue the RMA chain.
         if self._internal is None:
             prev_chain = None
 
         elif is_same_candle:
-            # Rebuild the live candle from the last confirmed state.
+            # Continue from the last confirmed state (or the current state on the first candle).
             prev_chain = self.history[-1] if self.history else self._internal
 
         else:
