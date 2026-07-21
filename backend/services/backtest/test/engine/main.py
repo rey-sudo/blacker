@@ -60,7 +60,7 @@ engine_config = {
                 "source": "CandleBubbleSeries1",
                 "dilen": 14,
                 "adxlen": 14,
-                "key_level": 21
+                "key_level": 23
             }
         },
         {   
