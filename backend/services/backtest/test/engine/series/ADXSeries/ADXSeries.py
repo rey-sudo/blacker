@@ -120,12 +120,12 @@ class ADXSeries(Series):
 
     def _compute_step(self, candle, prev_chain: "Adx | None",
                        prev1: "Adx | None", prev2: "Adx | None") -> "Adx":
+        # RMA smoothing factors.
         di_alpha = 1 / self.dilen
         adx_alpha = 1 / self.adxlen
 
         if prev_chain is None:
-            # Sin vela anterior no hay close previo (true range direccional)
-            # ni high/low previos (movimiento direccional)
+            # Initialize the first state without a previous candle.
             tr = candle.high - candle.low
             plus_dm = 0.0
             minus_dm = 0.0
@@ -134,38 +134,44 @@ class ADXSeries(Series):
             plus_dm_rma = plus_dm
             minus_dm_rma = minus_dm
         else:
+            # Directional movement.
             up = candle.high - prev_chain.high
             down = prev_chain.low - candle.low
 
             plus_dm = up if (up > down and up > 0) else 0.0
             minus_dm = down if (down > up and down > 0) else 0.0
 
+            # True Range.
             tr = max(
                 candle.high - candle.low,
                 abs(candle.high - prev_chain.close),
                 abs(candle.low - prev_chain.close),
             )
 
+            # Continue the RMA chain.
             tr_rma = tr * di_alpha + prev_chain.tr_rma * (1 - di_alpha)
             plus_dm_rma = plus_dm * di_alpha + prev_chain.plus_dm_rma * (1 - di_alpha)
             minus_dm_rma = minus_dm * di_alpha + prev_chain.minus_dm_rma * (1 - di_alpha)
 
-        # +DI / -DI (con guarda ante división por cero: adx.py no la tiene porque
-        # pandas devuelve NaN/inf en vez de lanzar una excepción)
+       # Directional Indicators.
         plus_di = 100 * plus_dm_rma / tr_rma if tr_rma != 0 else 0.0
         minus_di = 100 * minus_dm_rma / tr_rma if tr_rma != 0 else 0.0
-
+        
+        # Directional Index (DX).
         summ = plus_di + minus_di
         divisor = summ if summ != 0 else 1.0
         dx = abs(plus_di - minus_di) / divisor
 
+        # Average Directional Index (ADX).
         if prev1 is None:
             adx_value = 100 * dx
         else:
             adx_value = (100 * dx) * adx_alpha + prev1.adx * (1 - adx_alpha)
 
+        # ADX trend color.
         adx_color = "lime" if (prev1 is not None and adx_value > prev1.adx) else "red"
 
+        # Trend reversal detection.
         if prev1 is not None and prev2 is not None:
             rule1 = adx_value < prev1.adx
             rule2 = prev1.adx > prev2.adx
@@ -173,7 +179,8 @@ class ADXSeries(Series):
             is_reversal = rule1 and rule2 and rule3
         else:
             is_reversal = False
-
+            
+        # Preserve the ADX peak that triggered the reversal.
         reversal_level = prev1.adx if (is_reversal and prev1 is not None) else None
 
         return Adx(
