@@ -18,7 +18,8 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
     info!("WebSocket client connected");
 
     let mut rx = state.master_state_tx.subscribe();
-
+    state.publish_master_state().await;
+    
     loop {
         let payload = rx.borrow().clone();
 
