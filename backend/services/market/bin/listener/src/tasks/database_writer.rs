@@ -16,15 +16,24 @@
 use crate::models::Tick;
 use anyhow::{Result, anyhow};
 use async_channel::Receiver;
+use clickhouse::{Client, insert::Insert};
 use tracing::{error, info};
 
-async fn write_batch(batch: Vec<Tick>) -> Result<()> {
+async fn write_batch(db: &Client, batch: Vec<Tick>) -> Result<()> {
     info!(?batch);
+
+    let mut insert: Insert<Tick> = db.insert::<Tick>("ticks").await?;
+
+    for tick in &batch {
+        insert.write(tick).await?;
+    }
+
+    insert.end().await?;
 
     Ok(())
 }
 
-pub async fn run(batch_rx: Receiver<Vec<Tick>>) -> Result<()> {
+pub async fn run(db: Client, batch_rx: Receiver<Vec<Tick>>) -> Result<()> {
     loop {
         let batch: Vec<Tick> = batch_rx
             .recv()
@@ -33,7 +42,7 @@ pub async fn run(batch_rx: Receiver<Vec<Tick>>) -> Result<()> {
 
         info!("Writing batch: {} ticks", batch.len());
 
-        if let Err(err) = write_batch(batch).await {
+        if let Err(err) = write_batch(&db, batch).await {
             error!("Failed to write batch: {err:?}");
         }
     }
