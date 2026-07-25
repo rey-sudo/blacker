@@ -38,7 +38,9 @@ async fn main() -> Result<()> {
 
     let source: &str = "dydx";
 
-    tasks.spawn(listen_source_ws::run(tick_tx.clone(), source.into()));
+    let symbols: &str = "BTC-USD,ETH-USD";
+
+    tasks.spawn(listen_source_ws::run(tick_tx.clone(), source.into(), symbols.into()));
 
     tasks.spawn(batch_dispatcher::run(tick_rx, batch_tx));
 

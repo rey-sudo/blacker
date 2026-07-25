@@ -130,6 +130,8 @@ pub fn parse_dydx_trade(text: &str) -> Result<Vec<Tick>> {
                 let tick: Tick = Tick {
                     source: "dydx".to_string(),
 
+                    symbol: message.id.clone(),
+
                     id: trade_id_to_u64(&trade.id)?,
 
                     time: trade.created_at.timestamp_millis() as u64,

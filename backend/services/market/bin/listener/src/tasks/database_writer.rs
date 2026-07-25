@@ -17,7 +17,10 @@ use crate::models::Tick;
 use anyhow::{Result, anyhow};
 use async_channel::Receiver;
 use tracing::{error, info};
+
 async fn write_batch(batch: Vec<Tick>) -> Result<()> {
+    info!(?batch);
+
     Ok(())
 }
 

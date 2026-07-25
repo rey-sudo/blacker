@@ -28,12 +28,9 @@ use tracing::{error, info};
 // LISTEN WS SOURCES LOGIC
 // ---------------------------------------------------------------------------------------------------------------------
 
-const MARKET: &str = "BTC-USD";
-
 /// Connects to the WebSocket source, streams trade ticks, and sends them
 /// through the provided channel until the connection ends.
-async fn run_connection(tx: Sender<Vec<Tick>>, source: &str) -> Result<()> {
-
+async fn run_connection(tx: Sender<Vec<Tick>>, source: &str, symbols: &str) -> Result<()> {
     let source_url: &str = get_source_endpoint(source);
 
     info!("Connecting to source {source}");
@@ -43,7 +40,7 @@ async fn run_connection(tx: Sender<Vec<Tick>>, source: &str) -> Result<()> {
 
     info!("Connected to source {source}");
 
-    prepare_source_endpoint(source, MARKET, &mut write).await?;
+    prepare_source_endpoint(source, symbols, &mut write).await?;
 
     while let Some(msg) = read.next().await {
         let msg: Message = msg?;
@@ -77,9 +74,9 @@ async fn run_connection(tx: Sender<Vec<Tick>>, source: &str) -> Result<()> {
 }
 
 /// Continuously maintains the WebSocket connection, reconnecting.
-pub async fn run(tx: Sender<Vec<Tick>>, source: String) -> Result<()> {
+pub async fn run(tx: Sender<Vec<Tick>>, source: String, symbols: String) -> Result<()> {
     loop {
-        match run_connection(tx.clone(), &source).await {
+        match run_connection(tx.clone(), &source, &symbols).await {
             Ok(_) => {
                 info!("WebSocket disconnected");
             }

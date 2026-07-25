@@ -41,24 +41,30 @@ pub fn get_source_endpoint(source: &str) -> &'static str {
 /// Kill the process if the source does not exist.
 pub async fn prepare_source_endpoint(
     source: &str,
-    symbol: &str,
+    symbols: &str,
     write: &mut SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>,
 ) -> Result<(), Error> {
     match source {
         "dydx" => {
-            let subscribe: serde_json::Value = serde_json::json!({
-                "type": "subscribe",
-                "channel": "v4_trades",
-                "id": symbol
-            });
+            for symbol in symbols
+                .split(',')
+                .map(str::trim)
+                .filter(|s: &&str| !s.is_empty())
+            {
+                let subscribe: serde_json::Value = serde_json::json!({
+                    "type": "subscribe",
+                    "channel": "v4_trades",
+                    "id": symbol
+                });
 
-            write
-                .send(Message::Text(subscribe.to_string().into()))
-                .await?;
+                write
+                    .send(Message::Text(subscribe.to_string().into()))
+                    .await?;
+            }
         }
 
         _ => {
-            error!("Unsupported source : {}", source);
+            error!("Unsupported source: {}", source);
             std::process::exit(1);
         }
     }
