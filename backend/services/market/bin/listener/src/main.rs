@@ -17,7 +17,7 @@ use anyhow::Result;
 use async_channel;
 use listener::{
     models::{Tick, TickBatch},
-    tasks::listen_source_ws,
+    tasks::{batch_dispatcher, listen_source_ws},
 };
 use rustls::crypto::ring;
 use tokio::task::JoinSet;
@@ -32,13 +32,15 @@ async fn main() -> Result<()> {
 
     let (tick_tx, tick_rx) = async_channel::bounded::<Vec<Tick>>(100_000);
 
-    let (batch_tx, batch_rx) = async_channel::bounded::<TickBatch>(200);
+    let (batch_tx, batch_rx) = async_channel::bounded::<Vec<Tick>>(200);
 
     let mut tasks: JoinSet<std::prelude::v1::Result<(), anyhow::Error>> = JoinSet::new();
 
-    let source: String = "dydx".to_string();
+    let source: &str = "dydx";
 
-    tasks.spawn(listen_source_ws::run(tick_tx.clone(), source));
+    tasks.spawn(listen_source_ws::run(tick_tx.clone(), source.into()));
+
+    tasks.spawn(batch_dispatcher::run(tick_rx, batch_tx));
 
     while let Some(result) = tasks.join_next().await {
         match result {
