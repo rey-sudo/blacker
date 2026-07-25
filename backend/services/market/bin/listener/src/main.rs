@@ -16,8 +16,7 @@
 use anyhow::Result;
 use async_channel;
 use listener::{
-    models::{Tick},
-    tasks::{batch_dispatcher, listen_source_ws},
+    models::Tick, tasks::{batch_dispatcher, database_writer, listen_source_ws},
 };
 use rustls::crypto::ring;
 use tokio::task::JoinSet;
@@ -42,6 +41,8 @@ async fn main() -> Result<()> {
     tasks.spawn(listen_source_ws::run(tick_tx.clone(), source.into()));
 
     tasks.spawn(batch_dispatcher::run(tick_rx, batch_tx));
+
+    tasks.spawn(database_writer::run(batch_rx));
 
     while let Some(result) = tasks.join_next().await {
         match result {
