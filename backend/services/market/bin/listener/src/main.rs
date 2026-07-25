@@ -17,7 +17,7 @@ use anyhow::Result;
 use async_channel;
 use listener::{
     models::{Tick, TickBatch},
-    tasks::listen_ws_trades,
+    tasks::listen_ws_source,
 };
 use tokio::task::JoinSet;
 use rustls::crypto::ring;
@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
 
     let mut tasks: JoinSet<Result<(), _>> = JoinSet::new();
 
-    tasks.spawn(listen_ws_trades::run(tick_tx));
+    tasks.spawn(listen_ws_source::run(tick_tx));
 
     while let Some(result) = tasks.join_next().await {
         match result {

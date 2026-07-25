@@ -23,6 +23,12 @@ use xxhash_rust::xxh3::xxh3_64;
 
 static FACTOR: Decimal = Decimal::from_parts(100_000_000, 0, 0, false, 0);
 
+#[derive(Debug, Deserialize)]
+struct MessageType {
+    #[serde(rename = "type")]
+    msg_type: String,
+}
+
 /**
 * {
        "id": "05e4dc7a0000000200000012",
@@ -45,45 +51,45 @@ static FACTOR: Decimal = Decimal::from_parts(100_000_000, 0, 0, false, 0);
 */
 #[derive(Debug, Deserialize)]
 struct DydxTrade {
-    pub id: String,
+    id: String,
 
-    pub side: String,
+    side: String,
 
-    pub size: String,
+    size: String,
 
-    pub price: String,
+    price: String,
 
     #[serde(rename = "type")]
-    pub order_type: String,
+    order_type: String,
 
     #[serde(rename = "createdAt")]
-    pub created_at: DateTime<Utc>,
+    created_at: DateTime<Utc>,
 
     #[serde(rename = "createdAtHeight")]
-    pub created_at_height: Option<String>,
+    created_at_height: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
 struct DydxContents {
-    pub trades: Vec<DydxTrade>,
+    trades: Vec<DydxTrade>,
 }
 
 #[derive(Debug, Deserialize)]
 struct DydxWsMessage {
     #[serde(rename = "type")]
-    pub msg_type: String,
+    msg_type: String,
 
-    pub connection_id: String,
+    connection_id: String,
 
-    pub message_id: u64,
+    message_id: u64,
 
-    pub channel: String,
+    channel: String,
 
-    pub id: String,
+    id: String,
 
-    pub version: Option<String>,
+    version: Option<String>,
 
-    pub contents: DydxContents,
+    contents: DydxContents,
 }
 
 fn decimal_to_u64(value: &str) -> anyhow::Result<u64> {
@@ -106,12 +112,26 @@ fn side_to_u8(side: &str) -> u8 {
     }
 }
 
-#[derive(Debug, Deserialize)]
-struct MessageType {
-    #[serde(rename = "type")]
-    msg_type: String,
-}
-
+/// Parses a dYdX WebSocket message into a collection of `Tick`s.
+///
+/// Only `channel_data` messages containing trades are converted into ticks.
+/// Connection, subscription, error, and unknown message types return an empty
+/// vector without failing.
+///
+/// # Arguments
+///
+/// * `text` - Raw JSON message received from the dYdX WebSocket.
+///
+/// # Returns
+///
+/// A `Vec<Tick>` containing one tick per trade, or an empty vector for
+/// non-trade messages.
+///
+/// # Errors
+///
+/// Returns an error if the JSON cannot be deserialized or if any trade field
+/// (such as the trade ID, price, or size) cannot be converted into the
+/// expected internal representation.
 pub fn parse_dydx_trade(text: &str) -> Result<Vec<Tick>> {
     let msg_type: MessageType = serde_json::from_str(text)?;
 
@@ -137,6 +157,8 @@ pub fn parse_dydx_trade(text: &str) -> Result<Vec<Tick>> {
 
                     is_buyer_maker: side_to_u8(&trade.side),
                 };
+
+                info!("{:?}", tick);
 
                 ticks.push(tick);
             }

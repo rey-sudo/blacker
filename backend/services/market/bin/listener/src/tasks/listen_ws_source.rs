@@ -22,7 +22,7 @@ use async_channel::Sender;
 use futures_util::{SinkExt, StreamExt};
 use tokio::time::{Duration, sleep};
 use tokio_tungstenite::{connect_async, tungstenite::Message};
-use tracing::info;
+use tracing::{error, info};
 
 // ---------------------------------------------------------------------------------------------------------------------
 // LISTEN WS SOURCES LOGIC
@@ -30,6 +30,8 @@ use tracing::info;
 
 const MARKET: &str = "BTC-USD";
 
+/// Connects to the WebSocket source, streams trade ticks, and sends them
+/// through the provided channel until the connection ends.
 async fn run_connection(tx: Sender<Vec<Tick>>) -> Result<()> {
     let source: &str = "dydx";
 
@@ -44,8 +46,6 @@ async fn run_connection(tx: Sender<Vec<Tick>>) -> Result<()> {
 
     prepare_source_endpoint(source, MARKET, &mut write).await?;
 
-    println!("Subscribed to {}", MARKET);
-
     while let Some(msg) = read.next().await {
         let msg: Message = msg?;
 
@@ -55,7 +55,6 @@ async fn run_connection(tx: Sender<Vec<Tick>>) -> Result<()> {
 
                 if !ticks.is_empty() {
                     tx.send(ticks).await?;
-                    info!("tick send");
                 }
             }
             Message::Ping(payload) => {
@@ -67,7 +66,7 @@ async fn run_connection(tx: Sender<Vec<Tick>>) -> Result<()> {
             Message::Binary(_) => {}
 
             Message::Close(frame) => {
-                println!("Closed: {:?}", frame);
+                info!("WebSocket closed: {:?}", frame);
                 break;
             }
 
@@ -78,6 +77,7 @@ async fn run_connection(tx: Sender<Vec<Tick>>) -> Result<()> {
     Ok(())
 }
 
+/// Continuously maintains the WebSocket connection, reconnecting.
 pub async fn run(tx: Sender<Vec<Tick>>) -> Result<()> {
     loop {
         match run_connection(tx.clone()).await {
@@ -85,7 +85,7 @@ pub async fn run(tx: Sender<Vec<Tick>>) -> Result<()> {
                 info!("WebSocket disconnected");
             }
             Err(err) => {
-                info!("WebSocket error: {err:?}");
+                error!("WebSocket error: {err:?}");
             }
         }
 
