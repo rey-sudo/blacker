@@ -2,20 +2,12 @@ use std::time::Instant;
 
 #[derive(Debug, Clone)]
 pub struct Tick {
-    /// Exchange de origen
     pub source: String,
-
-    /// Símbolo (BTCUSDT, ETHUSDT...)
-    pub symbol: String,
-
-    /// Precio
-    pub price: f64,
-
-    /// Cantidad
-    pub quantity: f64,
-
-    /// Timestamp del exchange (Unix ms)
-    pub event_time: i64,
+    pub id: u64,
+    pub time: u64,
+    pub price: u64,
+    pub qty: u64,
+    pub is_buyer_maker: u8,
 }
 
 #[derive(Debug)]
@@ -51,12 +43,4 @@ impl TickBatch {
         self.ticks.clear();
         self.created_at = Instant::now();
     }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum Exchange {
-    Binance,
-    Bybit,
-    Okx,
-    Kraken,
 }

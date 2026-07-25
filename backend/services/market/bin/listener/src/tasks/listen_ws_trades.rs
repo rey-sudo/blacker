@@ -1,85 +1,34 @@
-use crate::{models::Tick, sources::dydx::get_source_endpoint};
-use anyhow::{Result, bail};
+// BLACKER
+// Copyright (C) 2026 Juan José Caballero Rey
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation version 3 of the License.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use crate::{
+    models::Tick,
+    sources::endpoint::{get_source_endpoint, parse_source_trade, prepare_source_endpoint},
+};
+use anyhow::Result;
 use async_channel::Sender;
-use futures_util::{SinkExt, StreamExt, stream::SplitSink};
-use tokio::{
-    net::TcpStream,
-    time::{Duration, sleep},
-};
-use tokio_tungstenite::{
-    MaybeTlsStream, WebSocketStream, connect_async,
-    tungstenite::{self, Message},
-};
+use futures_util::{SinkExt, StreamExt};
+use tokio::time::{Duration, sleep};
+use tokio_tungstenite::{connect_async, tungstenite::Message};
 use tracing::info;
-use tungstenite::Error;
+
+// ---------------------------------------------------------------------------------------------------------------------
+// LISTEN WS SOURCES LOGIC
+// ---------------------------------------------------------------------------------------------------------------------
 
 const MARKET: &str = "BTC-USD";
-
-//----------------------------------------------------
-// LOGIC
-// ---------------------------------------------------
-
-pub fn parse_dydx_trade(text: &str) -> Result<Vec<Tick>> {
-    let message: WsMessage = serde_json::from_str(text)?;
-
-    if message.msg_type != "channel_data" {
-        return Ok(Vec::new());
-    }
-
-    let symbol = match message.id {
-        Some(s) => s,
-        None => return Ok(Vec::new()),
-    };
-
-    let trades = match message.contents.and_then(|c| c.trades) {
-        Some(t) => t,
-        None => return Ok(Vec::new()),
-    };
-
-    let mut ticks = Vec::with_capacity(trades.len());
-
-    for trade in trades {
-        ticks.push(Tick {
-            source: "dydx".to_string(),
-            symbol: symbol.clone(),
-            price: trade.price.parse()?,
-            quantity: trade.size.parse()?,
-            event_time: trade.created_at.timestamp_millis(),
-        });
-    }
-
-    Ok(ticks)
-}
-
-async fn send_initial_messages(
-    source: &str,
-    write: &mut SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>,
-) -> Result<(), Error> {
-    match source {
-        "dydx" => {
-            let subscribe: serde_json::Value = serde_json::json!({
-                "type": "subscribe",
-                "channel": "v4_trades",
-                "id": MARKET
-            });
-
-            write
-                .send(Message::Text(subscribe.to_string().into()))
-                .await?;
-        }
-
-        _ => panic!("Unsupported source : {}", source),
-    }
-
-    Ok(())
-}
-
-pub fn parse_trade(source: &str, text: &str) -> Result<Vec<Tick>> {
-    match source {
-        "dydx" => parse_dydx_trade(text),
-        _ => bail!("Unsupported source: {}", source),
-    }
-}
 
 async fn run_connection(tx: Sender<Vec<Tick>>) -> Result<()> {
     let source: &str = "dydx";
@@ -93,7 +42,7 @@ async fn run_connection(tx: Sender<Vec<Tick>>) -> Result<()> {
 
     info!("Connected to source {source}");
 
-    send_initial_messages(source, &mut write).await?;
+    prepare_source_endpoint(source, MARKET, &mut write).await?;
 
     println!("Subscribed to {}", MARKET);
 
@@ -102,10 +51,11 @@ async fn run_connection(tx: Sender<Vec<Tick>>) -> Result<()> {
 
         match msg {
             Message::Text(text) => {
-                let ticks: Vec<Tick> = parse_trade(source, &text)?;
+                let ticks: Vec<Tick> = parse_source_trade(source, &text)?;
 
                 if !ticks.is_empty() {
                     tx.send(ticks).await?;
+                    info!("tick send");
                 }
             }
             Message::Ping(payload) => {
