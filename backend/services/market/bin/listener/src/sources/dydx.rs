@@ -117,21 +117,6 @@ fn side_to_u8(side: &str) -> u8 {
 /// Only `channel_data` messages containing trades are converted into ticks.
 /// Connection, subscription, error, and unknown message types return an empty
 /// vector without failing.
-///
-/// # Arguments
-///
-/// * `text` - Raw JSON message received from the dYdX WebSocket.
-///
-/// # Returns
-///
-/// A `Vec<Tick>` containing one tick per trade, or an empty vector for
-/// non-trade messages.
-///
-/// # Errors
-///
-/// Returns an error if the JSON cannot be deserialized or if any trade field
-/// (such as the trade ID, price, or size) cannot be converted into the
-/// expected internal representation.
 pub fn parse_dydx_trade(text: &str) -> Result<Vec<Tick>> {
     let msg_type: MessageType = serde_json::from_str(text)?;
 
