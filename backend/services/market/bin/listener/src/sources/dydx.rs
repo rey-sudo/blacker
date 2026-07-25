@@ -137,8 +137,6 @@ pub fn parse_dydx_trade(text: &str) -> Result<Vec<Tick>> {
 
     match msg_type.msg_type.as_str() {
         "channel_data" => {
-            info!("tick  channel_data");
-
             let message: DydxWsMessage = serde_json::from_str(text)?;
 
             let mut ticks: Vec<Tick> = Vec::with_capacity(message.contents.trades.len());
@@ -157,8 +155,6 @@ pub fn parse_dydx_trade(text: &str) -> Result<Vec<Tick>> {
 
                     is_buyer_maker: side_to_u8(&trade.side),
                 };
-
-                info!("{:?}", tick);
 
                 ticks.push(tick);
             }

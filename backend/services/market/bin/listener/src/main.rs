@@ -16,11 +16,12 @@
 use anyhow::Result;
 use async_channel;
 use listener::{
-    models::{Tick, TickBatch},
+    models::{Tick},
     tasks::{batch_dispatcher, listen_source_ws},
 };
 use rustls::crypto::ring;
 use tokio::task::JoinSet;
+use tracing::error;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -44,14 +45,19 @@ async fn main() -> Result<()> {
 
     while let Some(result) = tasks.join_next().await {
         match result {
-            Ok(Ok(())) => {}
+            Ok(Ok(())) => {
+                error!("Critical task exited unexpectedly");
+                std::process::exit(1);
+            }
 
             Ok(Err(err)) => {
-                eprintln!("Task error: {err:?}");
+                error!("Critical task failed: {err:#}");
+                std::process::exit(1);
             }
 
             Err(err) => {
-                eprintln!("Join error: {err:?}");
+                error!("Task panicked: {err:#}");
+                std::process::exit(1);
             }
         }
     }
