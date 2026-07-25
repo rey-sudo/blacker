@@ -1,64 +1,113 @@
-use anyhow::{Context, Result};
+use crate::{models::Tick, sources::dydx::get_source_endpoint};
+use anyhow::{Result, bail};
 use async_channel::Sender;
-use futures_util::{SinkExt, StreamExt};
-use tokio::time::{sleep, Duration};
-use tokio_tungstenite::{connect_async, tungstenite::Message};
-use crate::models::Tick;
+use futures_util::{SinkExt, StreamExt, stream::SplitSink};
+use tokio::{
+    net::TcpStream,
+    time::{Duration, sleep},
+};
+use tokio_tungstenite::{
+    MaybeTlsStream, WebSocketStream, connect_async,
+    tungstenite::{self, Message},
+};
+use tracing::info;
+use tungstenite::Error;
 
-const WS_URL: &str = "wss://indexer.dydx.trade/v4/ws";
-const MARKET: &str = "ETH-USD";
+const MARKET: &str = "BTC-USD";
 
-pub async fn run(tx: Sender<Tick>) -> Result<()> {
-    loop {
-        match run_connection(tx.clone()).await {
-            Ok(_) => {
-                println!("WebSocket disconnected");
-            }
-            Err(err) => {
-                eprintln!("WebSocket error: {err:?}");
-            }
+//----------------------------------------------------
+// LOGIC
+// ---------------------------------------------------
+
+pub fn parse_dydx_trade(text: &str) -> Result<Vec<Tick>> {
+    let message: WsMessage = serde_json::from_str(text)?;
+
+    if message.msg_type != "channel_data" {
+        return Ok(Vec::new());
+    }
+
+    let symbol = match message.id {
+        Some(s) => s,
+        None => return Ok(Vec::new()),
+    };
+
+    let trades = match message.contents.and_then(|c| c.trades) {
+        Some(t) => t,
+        None => return Ok(Vec::new()),
+    };
+
+    let mut ticks = Vec::with_capacity(trades.len());
+
+    for trade in trades {
+        ticks.push(Tick {
+            source: "dydx".to_string(),
+            symbol: symbol.clone(),
+            price: trade.price.parse()?,
+            quantity: trade.size.parse()?,
+            event_time: trade.created_at.timestamp_millis(),
+        });
+    }
+
+    Ok(ticks)
+}
+
+async fn send_initial_messages(
+    source: &str,
+    write: &mut SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>,
+) -> Result<(), Error> {
+    match source {
+        "dydx" => {
+            let subscribe: serde_json::Value = serde_json::json!({
+                "type": "subscribe",
+                "channel": "v4_trades",
+                "id": MARKET
+            });
+
+            write
+                .send(Message::Text(subscribe.to_string().into()))
+                .await?;
         }
 
-        println!("Reconnecting in 1 second...");
-        sleep(Duration::from_secs(1)).await;
+        _ => panic!("Unsupported source : {}", source),
+    }
+
+    Ok(())
+}
+
+pub fn parse_trade(source: &str, text: &str) -> Result<Vec<Tick>> {
+    match source {
+        "dydx" => parse_dydx_trade(text),
+        _ => bail!("Unsupported source: {}", source),
     }
 }
 
-async fn run_connection(tx: Sender<Tick>) -> Result<()> {
-    println!("Connecting to {WS_URL}");
+async fn run_connection(tx: Sender<Vec<Tick>>) -> Result<()> {
+    let source: &str = "dydx";
 
-    let (ws_stream, _) = connect_async(WS_URL).await?;
+    let source_url: &str = get_source_endpoint(source);
 
-    println!("Connected");
+    info!("Connecting to source {source}");
 
+    let (ws_stream, _) = connect_async(source_url).await?;
     let (mut write, mut read) = ws_stream.split();
 
-    let subscribe = serde_json::json!({
-        "type": "subscribe",
-        "channel": "v4_trades",
-        "id": MARKET
-    });
+    info!("Connected to source {source}");
 
-    write
-        .send(Message::Text(subscribe.to_string().into()))
-        .await?;
+    send_initial_messages(source, &mut write).await?;
 
     println!("Subscribed to {}", MARKET);
 
     while let Some(msg) = read.next().await {
-        let msg = msg?;
+        let msg: Message = msg?;
 
         match msg {
             Message::Text(text) => {
-                println!("{text}");
+                let ticks: Vec<Tick> = parse_trade(source, &text)?;
 
-                // Aquí luego llamaremos al parser:
-                //
-                // if let Some(tick) = parse_trade(&text)? {
-                //     tx.send(tick).await?;
-                // }
+                if !ticks.is_empty() {
+                    tx.send(ticks).await?;
+                }
             }
-
             Message::Ping(payload) => {
                 write.send(Message::Pong(payload)).await?;
             }
@@ -77,4 +126,20 @@ async fn run_connection(tx: Sender<Tick>) -> Result<()> {
     }
 
     Ok(())
+}
+
+pub async fn run(tx: Sender<Vec<Tick>>) -> Result<()> {
+    loop {
+        match run_connection(tx.clone()).await {
+            Ok(_) => {
+                info!("WebSocket disconnected");
+            }
+            Err(err) => {
+                info!("WebSocket error: {err:?}");
+            }
+        }
+
+        info!("Reconnecting in 1 second...");
+        sleep(Duration::from_secs(1)).await;
+    }
 }

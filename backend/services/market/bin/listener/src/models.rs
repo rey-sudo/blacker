@@ -3,7 +3,7 @@ use std::time::Instant;
 #[derive(Debug, Clone)]
 pub struct Tick {
     /// Exchange de origen
-    pub exchange: String,
+    pub source: String,
 
     /// Símbolo (BTCUSDT, ETHUSDT...)
     pub symbol: String,

@@ -10,12 +10,14 @@ use rustls::crypto::ring;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    tracing_subscriber::fmt::init();
+    
     ring::default_provider()
         .install_default()
         .expect("Failed to install rustls crypto provider");
 
 
-    let (tick_tx, tick_rx) = async_channel::bounded::<Tick>(100_000);
+    let (tick_tx, tick_rx) = async_channel::bounded::<Vec<Tick>>(100_000);
 
     let (batch_tx, batch_rx) = async_channel::bounded::<TickBatch>(200);
 
