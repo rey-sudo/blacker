@@ -32,8 +32,7 @@ const MARKET: &str = "BTC-USD";
 
 /// Connects to the WebSocket source, streams trade ticks, and sends them
 /// through the provided channel until the connection ends.
-async fn run_connection(tx: Sender<Vec<Tick>>) -> Result<()> {
-    let source: &str = "dydx";
+async fn run_connection(tx: Sender<Vec<Tick>>, source: &str) -> Result<()> {
 
     let source_url: &str = get_source_endpoint(source);
 
@@ -78,9 +77,9 @@ async fn run_connection(tx: Sender<Vec<Tick>>) -> Result<()> {
 }
 
 /// Continuously maintains the WebSocket connection, reconnecting.
-pub async fn run(tx: Sender<Vec<Tick>>) -> Result<()> {
+pub async fn run(tx: Sender<Vec<Tick>>, source: String) -> Result<()> {
     loop {
-        match run_connection(tx.clone()).await {
+        match run_connection(tx.clone(), &source).await {
             Ok(_) => {
                 info!("WebSocket disconnected");
             }

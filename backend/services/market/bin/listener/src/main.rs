@@ -17,28 +17,28 @@ use anyhow::Result;
 use async_channel;
 use listener::{
     models::{Tick, TickBatch},
-    tasks::listen_ws_source,
+    tasks::listen_source_ws,
 };
-use tokio::task::JoinSet;
 use rustls::crypto::ring;
-
+use tokio::task::JoinSet;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
-    
+
     ring::default_provider()
         .install_default()
         .expect("Failed to install rustls crypto provider");
-
 
     let (tick_tx, tick_rx) = async_channel::bounded::<Vec<Tick>>(100_000);
 
     let (batch_tx, batch_rx) = async_channel::bounded::<TickBatch>(200);
 
-    let mut tasks: JoinSet<Result<(), _>> = JoinSet::new();
+    let mut tasks: JoinSet<std::prelude::v1::Result<(), anyhow::Error>> = JoinSet::new();
 
-    tasks.spawn(listen_ws_source::run(tick_tx));
+    let source: String = "dydx".to_string();
+
+    tasks.spawn(listen_source_ws::run(tick_tx.clone(), source));
 
     while let Some(result) = tasks.join_next().await {
         match result {
