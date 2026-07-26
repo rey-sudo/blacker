@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::config::Config;
 use crate::models::Symbol;
 use crate::{cursor::PublisherCursor, models::Tick};
 use anyhow::Result;
@@ -22,10 +23,9 @@ use std::collections::HashMap;
 
 pub async fn read_batch(
     db: &Client,
-    source: &str,
-    symbols: &[&str],
+    config: &Config,
+    symbols: &Vec<&str>,
     cursors: &HashMap<Symbol, PublisherCursor>,
-    batch_size: usize,
 ) -> Result<HashMap<Symbol, Vec<Tick>>> {
     let mut batches: HashMap<Symbol, Vec<Tick>> = HashMap::new();
 
@@ -54,12 +54,12 @@ pub async fn read_batch(
             LIMIT ?
             ",
             )
-            .bind(source)
+            .bind(&config.source)
             .bind(symbol)
             .bind(cursor.last_time)
             .bind(cursor.last_time)
             .bind(cursor.last_id)
-            .bind(batch_size as u64)
+            .bind(config.batch_size as u64)
             .fetch::<Tick>()?;
 
         let mut symbol_batch: Vec<Tick> = Vec::new();

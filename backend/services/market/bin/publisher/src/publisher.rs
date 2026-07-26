@@ -107,7 +107,7 @@ pub async fn run(
 
     loop {
         let batches: HashMap<Symbol, Vec<Tick>> =
-            read_batch(&db, &config.source, &symbols, &cursors, config.batch_size).await?;
+            read_batch(&db, &config, &symbols, &cursors).await?;
 
         publish_batch(&mut producers, &batches).await?;
 

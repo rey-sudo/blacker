@@ -39,7 +39,7 @@ async fn main() -> Result<()> {
         .await
         .expect("Invalid Pulsar URL");
 
-    let mut producers: HashMap<Symbol, Producer<TokioExecutor>>=
+    let producers: HashMap<Symbol, Producer<TokioExecutor>>=
         create_producers(&pulsar, &config.source, &config.symbols).await?;
 
     publisher::run(db, producers, config).await?;
