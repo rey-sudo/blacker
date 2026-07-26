@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: publisher-dydx-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: publisher-dydx-1
+  template:
+    metadata:
+      labels:
+        app: publisher-dydx-1
+    spec:
+      containers:
+      - name: publisher
+        image: registry/publisher:latest
+        env:
+        - name: PUBLISHER_ID
+          value: "publisher-dydx-1"
+        - name: SOURCE
+          value: "dydx"
+        - name: SYMBOLS
+          value: "BTC-USD,ETH-USD"

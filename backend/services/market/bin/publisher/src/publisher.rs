@@ -1,53 +1,87 @@
-use crate::{cursor::{Cursor, load_cursor}, models::Tick};
+// BLACKER
+// Copyright (C) 2026 Juan José Caballero Rey
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation version 3 of the License.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use crate::{
+    batch::read_batch,
+    config::Config,
+    cursor::{PublisherCursor, load_cursors},
+    models::Tick,
+};
 use anyhow::Result;
 use clickhouse::Client;
-use std::{collections::HashSet, time::Duration};
+use pulsar::{Error as PulsarError, Producer, SerializeMessage, TokioExecutor, producer};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-const BATCH_SIZE: usize = 10_000;
+//----------------------------------------------------------------------------------------------------------------------
+// PUBLISHER LOGIC
+//----------------------------------------------------------------------------------------------------------------------
 
-
-async fn publish_to_pulsar(tick: &Tick) -> Result<()> {
-    todo!()
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TickBatchMessage {
+    pub ticks: Vec<Tick>,
 }
 
-pub async fn publisher_loop(db: &Client) -> Result<()> {
-    let source: &str = "dydx";
-    let symbol: &str = "BTC-USD";
+impl SerializeMessage for TickBatchMessage {
+    fn serialize_message(input: Self) -> Result<producer::Message, PulsarError> {
+        let payload: Vec<u8> =
+            rmp_serde::to_vec(&input).map_err(|e| PulsarError::Custom(e.to_string()))?;
+
+        Ok(producer::Message {
+            payload,
+            ..Default::default()
+        })
+    }
+}
+
+pub async fn publish_batch(
+    producers: &mut HashMap<String, Producer<TokioExecutor>>,
+    batches: &HashMap<String, Vec<Tick>>,
+) -> Result<()> {
+    for (symbol, ticks) in batches {
+        let producer = producers.get_mut(&symbol.as_ref()).expect("producer not found");
+
+        producer.send(TickBatchMessage { ticks }).await?;
+    }
+
+    Ok(())
+}
+
+pub async fn run(
+    db: Client,
+    mut producers: HashMap<String, Producer<TokioExecutor>>,
+    config: Config,
+) -> Result<()> {
+    let symbols: Vec<&str> = config
+        .symbols
+        .split(',')
+        .map(str::trim)
+        .filter(|s: &&str| !s.is_empty())
+        .collect();
+
+    let mut cursors: HashMap<String, PublisherCursor> =
+        load_cursors(&db, &config, &symbols).await?;
+
     loop {
-        let cursor: Cursor = load_cursor(db, source, symbol).await?;
+        let batches: HashMap<String, Vec<Tick>> =
+            read_batch(&db, &config.source, &symbols, &cursors, config.batch_size).await?;
 
-        let ticks: Vec<Tick> = load_ticks(&cursor, BATCH_SIZE).await?;
+        publish_batch(&mut producers, &batches).await?;
 
-        if ticks.is_empty() {
-            tokio::time::sleep(Duration::from_millis(100)).await;
-            continue;
-        }
+        //advance_cursors(&mut cursors, &batch);
 
-        // Elimina duplicados del mismo lote
-        let mut seen = HashSet::with_capacity(ticks.len());
-
-        // Último tick publicado correctamente
-        let mut last_cursor: Option<Cursor> = None;
-
-        for tick in ticks {
-            // Duplicado dentro del lote
-            if !seen.insert((tick.time, tick.id)) {
-                continue;
-            }
-
-            // Publicar a Pulsar
-            publish_to_pulsar(&tick).await?;
-
-            // Avanzar cursor solamente después de publicar
-            last_cursor = Some(Cursor {
-                time: tick.time,
-                id: tick.id,
-            });
-        }
-
-        // Persistir cursor
-        if let Some(cursor) = last_cursor {
-            save_cursor(&cursor).await?;
-        }
+        //save_cursors(&clickhouse, &cursors).await?;
     }
 }

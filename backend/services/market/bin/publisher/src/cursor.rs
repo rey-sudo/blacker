@@ -1,50 +1,100 @@
+use crate::config::Config;
 use anyhow::Result;
-use clickhouse::{Client, Row};
-use serde::Deserialize;
+use chrono::{DateTime, Utc};
+use clickhouse::Client;
+use clickhouse::Row;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
-pub struct Cursor {
-    pub time: u64,
-    pub id: u64,
-}
-
-#[derive(Row, Deserialize)]
-pub struct CursorRow {
+#[derive(Debug, Clone, Row, Serialize, Deserialize)]
+pub struct PublisherCursor {
+    pub publisher: String,
+    pub source: String,
+    pub symbol: String,
     pub last_time: u64,
     pub last_id: u64,
+    pub updated_at: DateTime<Utc>,
 }
 
-pub async fn load_cursor(db: &Client, source: &str) -> Result<Cursor> {
-    let row = db
-        .query(
-            r#"
-            SELECT
-                last_time,
-                last_id
-            FROM publisher_cursor FINAL
-            WHERE source = ?
-              AND symbol = ?
-            LIMIT 1
-            "#,
-        )
-        .bind(source)
-        .bind(symbol)
-        .fetch_optional::<CursorRow>()
-        .await?;
+pub async fn load_cursors(
+    db: &Client,
+    config: &Config,
+    symbols: &[&str],
+) -> Result<HashMap<String, PublisherCursor>> {
+    let mut cursors: HashMap<String, PublisherCursor> = HashMap::new();
 
-    Ok(match row {
-        Some(r) => Cursor {
-            time: r.last_time,
-            id: r.last_id,
-        },
-        None => Cursor { time: 0, id: 0 },
-    })
+    for symbol in symbols {
+        let cursor: Option<PublisherCursor> = db
+            .query(
+                "
+                SELECT
+                    publisher,
+                    source,
+                    symbol,
+                    last_time,
+                    last_id,
+                    updated_at
+                FROM publisher_cursor
+                WHERE publisher = ?
+                  AND source = ?
+                  AND symbol = ?
+                LIMIT 1
+                ",
+            )
+            .bind(&config.publisher_id)
+            .bind(&config.source)
+            .bind(symbol)
+            .fetch_optional::<PublisherCursor>()
+            .await?;
+
+        match cursor {
+            Some(cursor) => {
+                cursors.insert(symbol.to_string(), cursor);
+            }
+
+            None => {
+                cursors.insert(
+                    symbol.to_string(),
+                    PublisherCursor {
+                        publisher: config.publisher_id.clone(),
+                        source: config.source.clone(),
+                        symbol: symbol.to_string(),
+                        last_time: 0,
+                        last_id: 0,
+                        updated_at: Utc::now()
+                    },
+                );
+            }
+        }
+    }
+
+    Ok(cursors)
 }
 
-pub async fn save_cursor(cursor: &Cursor) -> Result<()> {
-    todo!()
-}
 
-pub async fn load_ticks(cursor: &Cursor, limit: usize) -> Result<Vec<Tick>> {
-    todo!()
+
+pub async fn save_cursors(
+    db: &Client,
+    cursors: &mut HashMap<String, PublisherCursor>,
+    batches: &HashMap<String, Vec<Tick>>,
+) -> Result<()> {
+    let mut insert = db.insert::<PublisherCursor>("publisher_cursor").await?;
+
+    for (symbol, ticks) in batches {
+        if let Some(last) = ticks.last() {
+            let cursor = cursors
+                .get_mut(symbol)
+                .expect("cursor not found");
+
+            cursor.last_time = last.time;
+            cursor.last_id = last.id;
+            cursor.updated_at = chrono::Utc::now();
+
+            insert.write(cursor).await?;
+        }
+    }
+
+    insert.end().await?;
+
+    Ok(())
 }

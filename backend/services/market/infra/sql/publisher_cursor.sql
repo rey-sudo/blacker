@@ -1,11 +1,16 @@
 CREATE TABLE publisher_cursor
 (
+    publisher String,
+
     source LowCardinality(String),
 
+    symbol LowCardinality(String),
+
     last_time UInt64,
+
     last_id UInt64,
 
-    updated_at DateTime64(3) DEFAULT now64(3)
+    updated_at DateTime DEFAULT now()
 )
 ENGINE = ReplacingMergeTree(updated_at)
-ORDER BY source;
+ORDER BY (publisher, source, symbol);
