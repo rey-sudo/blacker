@@ -14,10 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    batch::read_batch,
-    config::Config,
-    cursor::{PublisherCursor, load_cursors, save_cursors},
-    models::Tick,
+    batch::read_batch, config::Config, cursor::{PublisherCursor, load_cursors, save_cursors}, models::{Symbol, Tick},
 };
 use anyhow::Result;
 use clickhouse::Client;
@@ -51,8 +48,8 @@ impl SerializeMessage for TickBatchMessage {
 }
 
 pub async fn publish_batch(
-    producers: &mut HashMap<String, Producer<TokioExecutor>>,
-    batches: &HashMap<String, Vec<Tick>>,
+    producers: &mut HashMap<Symbol, Producer<TokioExecutor>>,
+    batches: &HashMap<Symbol, Vec<Tick>>,
 ) -> Result<()> {
     for (symbol, ticks) in batches {
         let producer: &mut Producer<TokioExecutor> = producers
@@ -95,7 +92,7 @@ pub async fn publish_batch(
 
 pub async fn run(
     db: Client,
-    mut producers: HashMap<String, Producer<TokioExecutor>>,
+    mut producers: HashMap<Symbol, Producer<TokioExecutor>>,
     config: Config,
 ) -> Result<()> {
     let symbols: Vec<&str> = config
@@ -105,11 +102,11 @@ pub async fn run(
         .filter(|s: &&str| !s.is_empty())
         .collect();
 
-    let mut cursors: HashMap<String, PublisherCursor> =
+    let mut cursors: HashMap<Symbol, PublisherCursor> =
         load_cursors(&db, &config, &symbols).await?;
 
     loop {
-        let batches: HashMap<String, Vec<Tick>> =
+        let batches: HashMap<Symbol, Vec<Tick>> =
             read_batch(&db, &config.source, &symbols, &cursors, config.batch_size).await?;
 
         publish_batch(&mut producers, &batches).await?;

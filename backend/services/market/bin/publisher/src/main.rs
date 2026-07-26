@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ::publisher::{config::Config, producers::create_producers};
+use ::publisher::{config::Config, models::Symbol, producers::create_producers};
 use anyhow::Result;
 use clickhouse::Client;
 use publisher::publisher;
@@ -39,7 +39,7 @@ async fn main() -> Result<()> {
         .await
         .expect("Invalid Pulsar URL");
 
-    let mut producers: HashMap<String, Producer<TokioExecutor>> =
+    let mut producers: HashMap<Symbol, Producer<TokioExecutor>>=
         create_producers(&pulsar, &config.source, &config.symbols).await?;
 
     publisher::run(db, producers, config).await?;

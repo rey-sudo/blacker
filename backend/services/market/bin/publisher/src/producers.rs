@@ -16,13 +16,14 @@
 use anyhow::Result;
 use pulsar::{Producer, Pulsar, TokioExecutor};
 use std::collections::HashMap;
+use crate::models::Symbol;
 
 pub async fn create_producers(
     pulsar: &Pulsar<TokioExecutor>,
     source: &str,
     symbols: &str,
-) -> Result<HashMap<String, Producer<TokioExecutor>>> {
-    let mut producers: HashMap<String, Producer<TokioExecutor>> = HashMap::new();
+) -> Result<HashMap<Symbol, Producer<TokioExecutor>>> {
+    let mut producers: HashMap<Symbol, Producer<TokioExecutor>> = HashMap::new();
 
     for symbol in symbols.split(',').map(str::trim) {
         let topic: String = format!("persistent://public/default/ticks/{}/{}", source, symbol);

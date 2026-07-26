@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::models::Symbol;
 use crate::models::Tick;
 use anyhow::Result;
 use chrono::{DateTime, Utc};
@@ -21,11 +22,11 @@ pub struct PublisherCursor {
 pub async fn load_cursors(
     db: &Client,
     config: &Config,
-    symbols: &[&str],
-) -> Result<HashMap<String, PublisherCursor>> {
-    let mut cursors: HashMap<String, PublisherCursor> = HashMap::new();
+    symbols: &Vec<&str>,
+) -> Result<HashMap<Symbol, PublisherCursor>> {
+    let mut cursors: HashMap<Symbol, PublisherCursor> = HashMap::new();
 
-    for symbol in symbols {
+    for &symbol in symbols {
         let cursor: Option<PublisherCursor> = db
             .query(
                 "
@@ -75,8 +76,8 @@ pub async fn load_cursors(
 
 pub async fn save_cursors(
     db: &Client,
-    cursors: &mut HashMap<String, PublisherCursor>,
-    batches: &HashMap<String, Vec<Tick>>,
+    cursors: &mut HashMap<Symbol, PublisherCursor>,
+    batches: &HashMap<Symbol, Vec<Tick>>,
 ) -> Result<()> {
     let mut insert: Insert<PublisherCursor> =
         db.insert::<PublisherCursor>("publisher_cursor").await?;

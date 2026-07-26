@@ -26,3 +26,5 @@ pub struct Tick {
     pub qty: u64,
     pub is_buyer_maker: u8,
 }
+
+pub type Symbol = String;

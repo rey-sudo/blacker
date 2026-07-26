@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::models::Symbol;
 use crate::{cursor::PublisherCursor, models::Tick};
 use anyhow::Result;
 use clickhouse::Client;
@@ -23,10 +24,10 @@ pub async fn read_batch(
     db: &Client,
     source: &str,
     symbols: &[&str],
-    cursors: &HashMap<String, PublisherCursor>,
+    cursors: &HashMap<Symbol, PublisherCursor>,
     batch_size: usize,
-) -> Result<HashMap<String, Vec<Tick>>> {
-    let mut batches: HashMap<String, Vec<Tick>> = HashMap::new();
+) -> Result<HashMap<Symbol, Vec<Tick>>> {
+    let mut batches: HashMap<Symbol, Vec<Tick>> = HashMap::new();
 
     for &symbol in symbols {
         let cursor: &PublisherCursor = cursors.get(symbol).expect("cursor not found");
