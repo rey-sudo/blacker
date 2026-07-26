@@ -16,7 +16,7 @@
 use crate::{
     batch::read_batch, config::Config, cursor::{PublisherCursor, load_cursors, save_cursors}, models::{Symbol, Tick},
 };
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clickhouse::Client;
 use pulsar::{
     Error as PulsarError, Producer, SerializeMessage, TokioExecutor,
@@ -54,37 +54,18 @@ pub async fn publish_batch(
     for (symbol, ticks) in batches {
         let producer: &mut Producer<TokioExecutor> = producers
             .get_mut(symbol.as_str())
-            .expect("producer not found");
+            .context(format!("Producer not found for symbol {symbol}"))?;
 
-        let send_future: SendFuture = match producer
+        let send_future = producer
             .send_non_blocking(TickBatchMessage {
-                ticks: ticks.to_vec(),
+                ticks: ticks.clone(),
             })
             .await
-        {
-            Ok(f) => f,
-            Err(e) => {
-                warn!(
-                    error = %e,
-                    "Producer send failed (non-fatal), will retry."
-                );
-                continue;
-            }
-        };
+            .context(format!("Failed to send batch for {symbol}"))?;
 
-        match send_future.await {
-            Ok(_receipt) => {
-                info!("Tick batch published.");
-            }
-            Err(e) => {
-                warn!(
-
-                    error = %e,
-                    "Producer receipt failed (non-fatal), will retry."
-                );
-                continue;
-            }
-        }
+        send_future
+            .await
+            .context(format!("Failed to receive ack for {symbol}"))?;
     }
 
     Ok(())
