@@ -14,7 +14,7 @@ CREATE TABLE ticks
 
     is_buyer_maker UInt8
 )
-ENGINE = MergeTree
+ENGINE = ReplacingMergeTree
 PARTITION BY toYYYYMM(toDateTime(time / 1000))
-ORDER BY (source, symbol, time)
+ORDER BY (source, symbol, time, id)
 SETTINGS index_granularity = 8192;
