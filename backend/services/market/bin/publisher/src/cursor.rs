@@ -1,8 +1,10 @@
 use crate::config::Config;
+use crate::models::Tick;
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use clickhouse::Client;
 use clickhouse::Row;
+use clickhouse::insert::Insert;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -61,7 +63,7 @@ pub async fn load_cursors(
                         symbol: symbol.to_string(),
                         last_time: 0,
                         last_id: 0,
-                        updated_at: Utc::now()
+                        updated_at: Utc::now(),
                     },
                 );
             }
@@ -71,20 +73,17 @@ pub async fn load_cursors(
     Ok(cursors)
 }
 
-
-
 pub async fn save_cursors(
     db: &Client,
     cursors: &mut HashMap<String, PublisherCursor>,
     batches: &HashMap<String, Vec<Tick>>,
 ) -> Result<()> {
-    let mut insert = db.insert::<PublisherCursor>("publisher_cursor").await?;
+    let mut insert: Insert<PublisherCursor> =
+        db.insert::<PublisherCursor>("publisher_cursor").await?;
 
     for (symbol, ticks) in batches {
         if let Some(last) = ticks.last() {
-            let cursor = cursors
-                .get_mut(symbol)
-                .expect("cursor not found");
+            let cursor: &mut PublisherCursor = cursors.get_mut(symbol).expect("cursor not found");
 
             cursor.last_time = last.time;
             cursor.last_id = last.id;

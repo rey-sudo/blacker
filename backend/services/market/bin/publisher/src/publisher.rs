@@ -16,14 +16,18 @@
 use crate::{
     batch::read_batch,
     config::Config,
-    cursor::{PublisherCursor, load_cursors},
+    cursor::{PublisherCursor, load_cursors, save_cursors},
     models::Tick,
 };
 use anyhow::Result;
 use clickhouse::Client;
-use pulsar::{Error as PulsarError, Producer, SerializeMessage, TokioExecutor, producer};
+use pulsar::{
+    Error as PulsarError, Producer, SerializeMessage, TokioExecutor,
+    producer::{self, SendFuture},
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use tracing::{info, warn};
 
 //----------------------------------------------------------------------------------------------------------------------
 // PUBLISHER LOGIC
@@ -51,9 +55,39 @@ pub async fn publish_batch(
     batches: &HashMap<String, Vec<Tick>>,
 ) -> Result<()> {
     for (symbol, ticks) in batches {
-        let producer = producers.get_mut(&symbol.as_ref()).expect("producer not found");
+        let producer: &mut Producer<TokioExecutor> = producers
+            .get_mut(symbol.as_str())
+            .expect("producer not found");
 
-        producer.send(TickBatchMessage { ticks }).await?;
+        let send_future: SendFuture = match producer
+            .send_non_blocking(TickBatchMessage {
+                ticks: ticks.to_vec(),
+            })
+            .await
+        {
+            Ok(f) => f,
+            Err(e) => {
+                warn!(
+                    error = %e,
+                    "Producer send failed (non-fatal), will retry."
+                );
+                continue;
+            }
+        };
+
+        match send_future.await {
+            Ok(_receipt) => {
+                info!("Tick batch published.");
+            }
+            Err(e) => {
+                warn!(
+
+                    error = %e,
+                    "Producer receipt failed (non-fatal), will retry."
+                );
+                continue;
+            }
+        }
     }
 
     Ok(())
@@ -80,8 +114,6 @@ pub async fn run(
 
         publish_batch(&mut producers, &batches).await?;
 
-        //advance_cursors(&mut cursors, &batch);
-
-        //save_cursors(&clickhouse, &cursors).await?;
+        save_cursors(&db, &mut cursors, &batches).await?;
     }
 }
