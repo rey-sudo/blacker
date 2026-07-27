@@ -26,7 +26,8 @@ use pulsar::{
     producer::{self},
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use tokio::time::{sleep, Duration};
+use std::{collections::HashMap};
 use tracing::info;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -74,6 +75,18 @@ pub async fn publish_batch(
     Ok(())
 }
 
+/// Runs the main publishing loop.
+///
+/// Continuously reads new ticks from the database, publishes them to Pulsar,
+/// and updates the persisted cursors to track processing progress.
+///
+/// # Arguments
+/// * `db` - Database client used to read ticks and store cursors.
+/// * `producers` - Map of Pulsar producers keyed by symbol.
+/// * `config` - Application configuration.
+///
+/// # Returns
+/// `Ok(())` if the loop exits successfully, or an error if any operation fails.
 pub async fn run(
     db: Client,
     mut producers: HashMap<Symbol, Producer<TokioExecutor>>,
@@ -94,6 +107,11 @@ pub async fn run(
     loop {
         let batches: HashMap<Symbol, Vec<Tick>> =
             read_batch(&db, &config, &symbols, &cursors).await?;
+
+        if batches.is_empty() {
+            sleep(Duration::from_millis(config.poll_interval_ms)).await;
+            continue;
+        }
 
         publish_batch(&mut producers, &batches).await?;
 

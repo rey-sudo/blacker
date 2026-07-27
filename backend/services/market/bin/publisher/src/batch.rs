@@ -21,6 +21,19 @@ use clickhouse::Client;
 use clickhouse::query::RowCursor;
 use std::collections::HashMap;
 
+/// Reads the next batch of ticks for each symbol.
+///
+/// Only ticks newer than the current cursor position are retrieved. Duplicate
+/// ticks within each batch are removed before returning the results.
+///
+/// # Arguments
+/// * `db` - Database client used to read tick data.
+/// * `config` - Application configuration.
+/// * `symbols` - List of symbols to read.
+/// * `cursors` - Current publishing cursor for each symbol.
+///
+/// # Returns
+/// A map containing the next batch of ticks for each symbol with available data.
 pub async fn read_batch(
     db: &Client,
     config: &Config,

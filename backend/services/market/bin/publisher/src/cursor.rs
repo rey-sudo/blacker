@@ -33,6 +33,18 @@ pub struct PublisherCursor {
     pub updated_at: u64,
 }
 
+/// Loads the persisted publishing cursor for each symbol.
+///
+/// If a cursor does not exist, a new one is initialized with default values,
+/// allowing publishing to start from the beginning.
+///
+/// # Arguments
+/// * `db` - Database client used to retrieve cursor state.
+/// * `config` - Application configuration.
+/// * `symbols` - List of symbols to load cursors for.
+///
+/// # Returns
+/// A map of symbols to their corresponding publishing cursors.
 pub async fn load_cursors(
     db: &Client,
     config: &Config,

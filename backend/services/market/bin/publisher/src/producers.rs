@@ -13,11 +13,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::models::Symbol;
 use anyhow::Result;
 use pulsar::{Producer, Pulsar, TokioExecutor};
 use std::collections::HashMap;
-use crate::models::Symbol;
 
+/// Creates and returns a Pulsar producer for each symbol.
+///
+/// Each symbol is mapped to a producer targeting the corresponding
+/// `ticks-{source}-{symbol}` topic.
+///
+/// # Arguments
+/// * `pulsar` - Shared Pulsar client instance.
+/// * `source` - Market data source identifier used to build the topic name.
+/// * `symbols` - Comma-separated list of symbols.
+///
+/// # Returns
+/// A map where each symbol is associated with its configured producer.
 pub async fn create_producers(
     pulsar: &Pulsar<TokioExecutor>,
     source: &str,
