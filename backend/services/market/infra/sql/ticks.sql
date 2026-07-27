@@ -4,7 +4,7 @@ CREATE TABLE ticks
 
     symbol LowCardinality(String),
 
-    id UInt64,
+    id String,
 
     time UInt64,
 

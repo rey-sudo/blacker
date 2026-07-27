@@ -8,7 +8,7 @@ CREATE TABLE publisher_cursor
 
     last_time UInt64,
 
-    last_id UInt64,
+    last_id String,
 
     updated_at UInt64 DEFAULT toUnixTimestamp64Milli(now64(3))
 )

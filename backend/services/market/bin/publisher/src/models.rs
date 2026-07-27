@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 pub struct Tick {
     pub source: String,
     pub symbol: String,
-    pub id: u64,
+    pub id: String,
     pub time: u64,
     pub price: u64,
     pub qty: u64,

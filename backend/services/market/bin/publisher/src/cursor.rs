@@ -29,7 +29,7 @@ pub struct PublisherCursor {
     pub source: String,
     pub symbol: String,
     pub last_time: u64,
-    pub last_id: u64,
+    pub last_id: String,
     pub updated_at: u64,
 }
 
@@ -77,7 +77,7 @@ pub async fn load_cursors(
                         source: config.source.clone(),
                         symbol: symbol.to_string(),
                         last_time: 0,
-                        last_id: 0,
+                        last_id: "".to_string(),
                         updated_at: chrono::Utc::now().timestamp_millis() as u64,
                     },
                 );
@@ -103,7 +103,7 @@ pub async fn save_cursors(
         let cursor: &mut PublisherCursor = cursors.get_mut(symbol).expect("cursor not found");
 
         cursor.last_time = last.time;
-        cursor.last_id = last.id;
+        cursor.last_id = last.id.clone();
         cursor.updated_at = now;
 
         insert.write(cursor).await?;

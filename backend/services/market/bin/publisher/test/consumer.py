@@ -22,7 +22,7 @@ print(f"Escuchando {TOPIC}...")
 class Tick:
     source: str
     symbol: str
-    id: int
+    id: str
     time: int
     price: int
     qty: int

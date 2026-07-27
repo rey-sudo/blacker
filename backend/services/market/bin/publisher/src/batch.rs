@@ -58,7 +58,7 @@ pub async fn read_batch(
             .bind(symbol)
             .bind(cursor.last_time)
             .bind(cursor.last_time)
-            .bind(cursor.last_id)
+            .bind(&cursor.last_id)
             .bind(config.batch_size as u64)
             .fetch::<Tick>()?;
 

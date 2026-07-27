@@ -18,8 +18,6 @@ use anyhow::Result;
 use chrono::{DateTime, Utc};
 use rust_decimal::Decimal;
 use serde::Deserialize;
-use tracing::info;
-use xxhash_rust::xxh3::xxh3_64;
 
 static FACTOR: Decimal = Decimal::from_parts(100_000_000, 0, 0, false, 0);
 
@@ -99,11 +97,6 @@ fn decimal_to_u64(value: &str) -> anyhow::Result<u64> {
 }
 
 #[inline]
-fn trade_id_to_u64(id: &str) -> anyhow::Result<u64> {
-    Ok(xxh3_64(id.as_bytes()))
-}
-
-#[inline]
 fn side_to_u8(side: &str) -> u8 {
     match side {
         "BUY" => 0,
@@ -132,7 +125,7 @@ pub fn parse_dydx_trade(text: &str) -> Result<Vec<Tick>> {
 
                     symbol: message.id.clone(),
 
-                    id: trade_id_to_u64(&trade.id)?,
+                    id: trade.id,
 
                     time: trade.created_at.timestamp_millis() as u64,
 
