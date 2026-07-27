@@ -1,0 +1,6 @@
+pulsar-client==3.13.0
+msgpack
+requests
+pandas
+numpy
+
