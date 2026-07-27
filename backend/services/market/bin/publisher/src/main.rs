@@ -22,6 +22,8 @@ use std::collections::HashMap;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    dotenvy::dotenv().ok();
+    
     tracing_subscriber::fmt::init();
 
     let config: Config = Config::from_env()?;
@@ -39,7 +41,7 @@ async fn main() -> Result<()> {
         .await
         .expect("Invalid Pulsar URL");
 
-    let producers: HashMap<Symbol, Producer<TokioExecutor>>=
+    let producers: HashMap<Symbol, Producer<TokioExecutor>> =
         create_producers(&pulsar, &config.source, &config.symbols).await?;
 
     publisher::run(db, producers, config).await?;

@@ -16,6 +16,7 @@
 use crate::config::Config;
 use crate::models::Symbol;
 use crate::models::Tick;
+use anyhow::Context;
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use clickhouse::Client;
@@ -94,19 +95,20 @@ pub async fn save_cursors(
     cursors: &mut HashMap<Symbol, PublisherCursor>,
     batches: &HashMap<Symbol, Vec<Tick>>,
 ) -> Result<()> {
-    let mut insert: Insert<PublisherCursor> =
-        db.insert::<PublisherCursor>("publisher_cursor").await?;
+    let mut insert: Insert<PublisherCursor> = db.insert("publisher_cursor").await?;
+
+    let now: DateTime<Utc> = chrono::Utc::now();
 
     for (symbol, ticks) in batches {
-        if let Some(last) = ticks.last() {
-            let cursor: &mut PublisherCursor = cursors.get_mut(symbol).expect("cursor not found");
+        let last: &Tick = ticks.last().expect("empty batch");
 
-            cursor.last_time = last.time;
-            cursor.last_id = last.id;
-            cursor.updated_at = chrono::Utc::now();
+        let cursor: &mut PublisherCursor = cursors.get_mut(symbol).expect("cursor not found");
 
-            insert.write(cursor).await?;
-        }
+        cursor.last_time = last.time;
+        cursor.last_id = last.id;
+        cursor.updated_at = now;
+
+        insert.write(cursor).await?;
     }
 
     insert.end().await?;
