@@ -26,7 +26,7 @@ pub async fn create_producers(
     let mut producers: HashMap<Symbol, Producer<TokioExecutor>> = HashMap::new();
 
     for symbol in symbols.split(',').map(str::trim) {
-        let topic: String = format!("persistent://public/default/ticks/{}/{}", source, symbol);
+        let topic: String = format!("persistent://public/default/ticks-{}-{}", source, symbol);
 
         let producer: Producer<TokioExecutor> = pulsar.producer().with_topic(topic).build().await?;
 

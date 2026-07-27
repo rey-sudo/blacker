@@ -14,17 +14,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    batch::read_batch, config::Config, cursor::{PublisherCursor, load_cursors, save_cursors}, models::{Symbol, Tick},
+    batch::read_batch,
+    config::Config,
+    cursor::{PublisherCursor, load_cursors, save_cursors},
+    models::{Symbol, Tick},
 };
 use anyhow::{Context, Result};
 use clickhouse::Client;
 use pulsar::{
     Error as PulsarError, Producer, SerializeMessage, TokioExecutor,
-    producer::{self, SendFuture},
+    producer::{self},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tracing::{info, warn};
+use tracing::info;
 
 //----------------------------------------------------------------------------------------------------------------------
 // PUBLISHER LOGIC
@@ -85,6 +88,8 @@ pub async fn run(
 
     let mut cursors: HashMap<Symbol, PublisherCursor> =
         load_cursors(&db, &config, &symbols).await?;
+
+    info!("Running main loop.");
 
     loop {
         let batches: HashMap<Symbol, Vec<Tick>> =

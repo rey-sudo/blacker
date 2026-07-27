@@ -10,7 +10,7 @@ CREATE TABLE publisher_cursor
 
     last_id UInt64,
 
-    updated_at DateTime DEFAULT now()
+    updated_at UInt64 DEFAULT toUnixTimestamp64Milli(now64(3))
 )
 ENGINE = ReplacingMergeTree(updated_at)
 ORDER BY (publisher, source, symbol);

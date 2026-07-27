@@ -16,9 +16,7 @@
 use crate::config::Config;
 use crate::models::Symbol;
 use crate::models::Tick;
-use anyhow::Context;
 use anyhow::Result;
-use chrono::{DateTime, Utc};
 use clickhouse::Client;
 use clickhouse::Row;
 use clickhouse::insert::Insert;
@@ -32,7 +30,7 @@ pub struct PublisherCursor {
     pub symbol: String,
     pub last_time: u64,
     pub last_id: u64,
-    pub updated_at: DateTime<Utc>,
+    pub updated_at: u64,
 }
 
 pub async fn load_cursors(
@@ -80,7 +78,7 @@ pub async fn load_cursors(
                         symbol: symbol.to_string(),
                         last_time: 0,
                         last_id: 0,
-                        updated_at: Utc::now(),
+                        updated_at: chrono::Utc::now().timestamp_millis() as u64,
                     },
                 );
             }
@@ -97,7 +95,7 @@ pub async fn save_cursors(
 ) -> Result<()> {
     let mut insert: Insert<PublisherCursor> = db.insert("publisher_cursor").await?;
 
-    let now: DateTime<Utc> = chrono::Utc::now();
+    let now: u64 = chrono::Utc::now().timestamp_millis() as u64;
 
     for (symbol, ticks) in batches {
         let last: &Tick = ticks.last().expect("empty batch");
