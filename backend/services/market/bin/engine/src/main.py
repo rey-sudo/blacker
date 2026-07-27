@@ -18,23 +18,26 @@ from core.engine import TradingEngine
 from ingestion.pulsar_consumer import PulsarConsumer
 from publication.pulsar_publisher import PulsarPublisher
 
-engine_config = {
-  "timeframes": [
-    {
+snapshot = {
+  "source": "dydx",
+  "symbol": "BTC-USD",
+  "status": "init",
+  "state": None,
+  "timeframes": {
+    "1m": {
       "name": "1m",
       "timeframe_ms": 60000,
-      "series": [ 
-        {  
-            "params": {
-                "level": 0,
-                "name": "CandleBubbleSeries",
-                "id": "CandleBubbleSeries1",
-            }
-        }
-      ]
-    },
-
-  ]
+      "series": {
+        "CandleBubbleSeries1": {  
+          "params": {
+            "level": 0,
+            "name": "CandleBubbleSeries",
+            "id": "CandleBubbleSeries1",
+          }
+        } 
+      }   
+    }
+  }
 }
 
 consumer = PulsarConsumer(
@@ -48,7 +51,7 @@ publisher = PulsarPublisher(
     topic="persistent://public/default/live-dydx-BTC-USD",
 )
 
-engine = TradingEngine.from_config(engine_config)
+engine = TradingEngine.from_snapshot(snapshot)
 
 #-----------------------------------------------------------------------------------------------------------------------
 # HANDLE TICKS
