@@ -2,10 +2,10 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Tick:
-    boot_id: str
-    tick_index: int
-    trade_id: int
+    source: str
+    symbol: str
+    trade_id: str
     time: int
-    price: float
-    qty: float
-    is_buyer_maker: int
+    price: int
+    qty: int
+    is_buyer_maker: int    

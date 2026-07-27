@@ -25,13 +25,11 @@ class TradingEngine:
     boot_id: str | None
     listening: bool
 
-    def __init__(self, strategy, timeframes):
+    def __init__(self, timeframes):
         self.status = 'init'
-        self.boot_id = None
         self.state = None
 
         self.listening = False
-        self.strategy = strategy
         self.timeframes = timeframes
 
     @classmethod
@@ -65,17 +63,8 @@ class TradingEngine:
 
             timeframes[timeframe.name] = timeframe
 
-        #
-        # Build strategy.
-        #
-        strategy_cfg = config["strategy"]
-
-        strategy_cls = STRATEGY_REGISTRY[strategy_cfg["type"]]
-
-        strategy = strategy_cls(**strategy_cfg["params"])
 
         return cls(
-            strategy=strategy,
             timeframes=timeframes,
         )
 
@@ -112,7 +101,6 @@ class TradingEngine:
         self.timeframes = timeframes
 
         self.state = EngineState(
-            boot_id=self.boot_id,
             tick_index=engine_state["tick_index"],
             time=engine_state["time"],
             timeframes=self.timeframes,
@@ -123,12 +111,9 @@ class TradingEngine:
             timeframe.update(tick)
 
         self.state = EngineState(
-            boot_id=self.boot_id,
             tick_index=tick.tick_index,
             time=tick.time,
             timeframes=self.timeframes,
         )
 
-        signal = self.strategy.evaluate(self.state)
-
-        return self.state, signal
+        return self.state

@@ -9,8 +9,8 @@ class PulsarConsumer:
     def __init__(
         self,
         service_url="pulsar://localhost:6650",
-        topic="persistent://public/default/master.tick",
-        subscription="engine-sub",
+        topic="persistent://public/default/ticks-dydx-BTC-USD",
+        subscription="market-engine-1",
     ):
         self.client = Client(service_url)
 
@@ -21,27 +21,24 @@ class PulsarConsumer:
             initial_position=InitialPosition.Latest
         )
 
-    def _decode_batch(self, msg):
-        boot_id, first_tick_index, raw_ticks = msgpack.unpackb(
-            msg.data(),
-            raw=False,
-        )
+    def _decode_batch(self, msg)-> list[Tick]:
+        decoded = msgpack.unpackb(msg.data(), raw=False)
 
         ticks = [
             Tick(
-                boot_id=boot_id,
-                tick_index=first_tick_index + offset,
-                trade_id=trade_id,
-                time=time,
-                price=price / SCALE,
-                qty=qty / SCALE,
-                is_buyer_maker=is_buyer_maker,
+                tick[0],          # source
+                tick[1],          # symbol
+                tick[2],          # id
+                tick[3],          # time
+                tick[4] / SCALE,  # price
+                tick[5] / SCALE,  # qty
+                tick[6],          # is_buyer_maker
             )
-            for offset, (trade_id, time, price, qty, is_buyer_maker)
-            in enumerate(raw_ticks)
+            for tick in decoded[0]
         ]
 
-        return boot_id, first_tick_index, ticks
+        return ticks
+
 
     def listen(self, callback):
         print("Consumer listening.")
@@ -50,7 +47,7 @@ class PulsarConsumer:
             msg = self.consumer.receive()
 
             try:
-                boot_id, first_tick_index, ticks = self._decode_batch(msg)
+                ticks = self._decode_batch(msg)
 
                 last = len(ticks) - 1
 
@@ -58,7 +55,7 @@ class PulsarConsumer:
                     callback(
                         tick,
                         is_last=(i == last),
-    )
+                    )
 
                 self.consumer.acknowledge(msg)
 
