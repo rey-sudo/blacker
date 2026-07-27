@@ -100,6 +100,9 @@ pub async fn load_cursors(
     Ok(cursors)
 }
 
+/// Updates the publishing cursor for each batch using the last tick 
+/// and stores the new cursor state in the database.
+/// Returns an error if persistence fails.
 pub async fn save_cursors(
     db: &Client,
     cursors: &mut HashMap<Symbol, PublisherCursor>,

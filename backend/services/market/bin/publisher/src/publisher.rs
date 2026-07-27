@@ -51,6 +51,8 @@ impl SerializeMessage for TickBatchMessage {
     }
 }
 
+/// Publishes each tick batch to its corresponding symbol producer and waits for delivery acknowledgment.
+/// Returns an error if a producer is missing or if publishing or acknowledgment fails.
 pub async fn publish_batch(
     producers: &mut HashMap<Symbol, Producer<TokioExecutor>>,
     batches: &HashMap<Symbol, Vec<Tick>>,
