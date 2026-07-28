@@ -62,6 +62,12 @@ def handle_tick(tick: Tick, is_last: bool):
     state = engine.on_tick(tick)
 
     print(state.to_json())
+
+    for live in state.live():
+      print(live)
+
+    #PERSIST SNAPSHOT
+    #PUBLISH LIVE
    
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN

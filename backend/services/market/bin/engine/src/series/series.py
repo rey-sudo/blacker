@@ -19,6 +19,22 @@ class Series(ABC):
     def timeframe_ms(self) -> int:
         return self.timeframe.timeframe_ms
 
+    @property
+    @abstractmethod
+    def live(self):
+        """
+        Returns the current live state of the series.
+        """
+        raise NotImplementedError
+
+    @live.setter
+    @abstractmethod
+    def live(self, value):
+        """
+        Sets the current live state of the series.
+        """
+        raise NotImplementedError
+        
     @abstractmethod
     def update(self, tick: Tick) -> None:
         """

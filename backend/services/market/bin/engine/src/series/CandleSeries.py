@@ -32,12 +32,20 @@ class CandleSeries(Series):
     def __init__(self, level: int, name: str, id: str):
         super().__init__(level, name, id)
 
-        self.live: Candle | None = None
+        self._live: Candle | None = None
         self.history: deque[Candle] = deque(maxlen=MAX_HISTORY)
         self.is_new: bool = False
 
         self.last_tick_time: int | None = None
 
+    @property
+    def live(self) -> Candle | None:
+        return self._live
+
+    @live.setter
+    def live(self, value: Candle | None) -> None:
+        self._live = value
+            
     def to_dict(self):
         return {
             "params": {

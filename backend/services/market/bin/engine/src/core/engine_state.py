@@ -11,7 +11,18 @@ class EngineState:
     cursor_time: int
     cursor_id: str
     timeframes: dict[str, Timeframe]
+    
+    def live(self) -> list:
+        """
+        Returns the live state of every series across all timeframes.
+        """
+        live = []
 
+        for timeframe in self.timeframes.values():
+            live.extend(timeframe.live())
+
+        return live
+    
     def to_dict(self):
         return {
             "source": self.source,

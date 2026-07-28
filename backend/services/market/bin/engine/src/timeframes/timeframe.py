@@ -15,7 +15,13 @@ class Timeframe:
 
     def get_series(self, id: str) -> Series:
         return self.series[id]
-        
+    
+    def live(self) -> list:
+        """
+        Returns the live state of every series in this timeframe.
+        """
+        return [series.live for series in self.series.values()]
+            
     def build_levels(self):
         groups = defaultdict(list)
 
