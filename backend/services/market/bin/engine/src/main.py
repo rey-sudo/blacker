@@ -14,6 +14,7 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import json
+from time import sleep
 import clickhouse_connect
 from core.engine_state import EngineState
 from ingestion.tick import Tick
@@ -21,11 +22,11 @@ from core.engine import TradingEngine
 from ingestion.pulsar_consumer import PulsarConsumer
 from publication.pulsar_publisher import PulsarPublisher
 
-ENGINE_ID = "dydx-BTC-USD"
+ENGINE_ID = "binance-BTCUSDT"
 
 default_snapshot = {
-  "source": "dydx",
-  "symbol": "BTC-USD",
+  "source": "binance",
+  "symbol": "BTCUSDT",
   "status": "init",
   "cursor_time": 0,
   "cursor_id": "",
