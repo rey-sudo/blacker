@@ -3,4 +3,4 @@ msgpack
 requests
 pandas
 numpy
-
+clickhouse

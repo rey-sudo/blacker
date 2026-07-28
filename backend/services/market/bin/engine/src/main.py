@@ -29,7 +29,7 @@ snapshot = {
       "name": "1m",
       "timeframe_ms": 60000,
       "series": {
-        "CandleBubbleSeries1": {  
+        "CandleSeries1": {  
           "params": {
             "level": 0,
             "name": "CandleSeries",
