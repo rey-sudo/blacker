@@ -13,17 +13,34 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use anyhow::Result;
-use server::{server::start_http_server, state::AppState};
 use std::sync::Arc;
-use tokio::sync::RwLock;
+
+use anyhow::Result;
+use clickhouse::Client;
+use pulsar::{Pulsar, TokioExecutor};
+use server::{server::start_http_server, state::AppState};
 use tracing_subscriber;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
 
-    let state: AppState = AppState::new("hola".to_string());
+    let db: Client = Client::default()
+        .with_url("http://localhost:8123")
+        .with_database("app")
+        .with_user("app")
+        .with_password("app123");
+
+    db.query("SELECT 1").execute().await?;
+
+    let pulsar: Arc<Pulsar<TokioExecutor>> = Arc::new(
+        Pulsar::builder("pulsar://localhost:6650", TokioExecutor)
+            .build()
+            .await
+            .expect("Invalid Pulsar URL"),
+    );
+
+    let state: AppState = AppState::new(db, pulsar);
 
     start_http_server(state).await;
 

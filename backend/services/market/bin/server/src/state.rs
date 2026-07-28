@@ -1,16 +1,15 @@
 use std::sync::Arc;
-use tokio::sync::RwLock;
-use crate::models::User;
+use clickhouse::Client;
+use pulsar::{Pulsar, TokioExecutor};
 
 #[derive(Clone)]
 pub struct AppState {
-    pub users: Arc<RwLock<Vec<User>>>,
+    pub db: Client,
+    pub pulsar: Arc<Pulsar<TokioExecutor>>,
 }
 
 impl AppState {
-    pub fn new(db: String) -> Self {
-        Self {
-            users: Arc::new(RwLock::new(Vec::new())),
-        }
+    pub fn new(db: Client, pulsar: Arc<Pulsar<TokioExecutor>>) -> Self {
+        Self { db, pulsar }
     }
 }
