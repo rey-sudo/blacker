@@ -8,7 +8,7 @@ from dataclasses import dataclass
 class LiveBatch:
     source: str
     symbol: str
-    series: list
+    series: dict
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -35,10 +35,10 @@ class EngineState:
     timeframes: dict[str, Timeframe]
     
     def live(self) -> LiveBatch:
-        series = []
+        series = {}
 
         for timeframe in self.timeframes.values():
-            series.extend(timeframe.live())
+            series.update(timeframe.live())
 
         return LiveBatch(
             source=self.source,

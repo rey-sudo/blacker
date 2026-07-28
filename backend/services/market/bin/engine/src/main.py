@@ -33,11 +33,11 @@ default_snapshot = {
       "name": "1m",
       "timeframe_ms": 60000,
       "series": {
-        "CandleSeries1": {  
+        "CandleSeries-1": {  
           "params": {
             "level": 0,
             "name": "CandleSeries",
-            "id": "CandleSeries1",
+            "id": "CandleSeries-1",
           }
         } 
       }   
