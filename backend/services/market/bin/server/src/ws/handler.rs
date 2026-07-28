@@ -45,128 +45,132 @@ pub async fn ws_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> 
 //----------------------------------------------------------------------------------------------------------------------
 
 async fn handle_socket(mut socket: WebSocket, state: AppState) {
-    info!("WS conectado");
+    info!("WS connected");
 
     let mut consumer: Option<Consumer<Vec<u8>, TokioExecutor>> = None;
 
+    let mut current_engine: Option<String> = None;
+
     loop {
         tokio::select! {
-                // Wait for the next message received from the WebSocket client.
-                ws_msg = socket.recv() => {
+                        // Wait for the next message received from the WebSocket client.
+                        ws_msg = socket.recv() => {
 
-                    // Continue only if the message is a valid text frame.
-                    // Exit the loop if the connection is closed or another frame type is received.
-                    let Some(Ok(Message::Text(text))) = ws_msg else {
-                        break;
-                    };
+                            // Continue only if the message is a valid text frame.
+                            // Exit the loop if the connection is closed or another frame type is received.
+                            let Some(Ok(Message::Text(text))) = ws_msg else {
+                                break;
+                            };
 
-                    // Attempt to deserialize the incoming JSON payload into a WebSocket command.
-                    // Ignore malformed or unsupported messages.
-                    let Ok(cmd) = serde_json::from_str::<WsCommand>(&text) else {
-                        continue;
-                    };
+                            // Attempt to deserialize the incoming JSON payload into a WebSocket command.
+                            // Ignore malformed or unsupported messages.
+                            let Ok(cmd) = serde_json::from_str::<WsCommand>(&text) else {
+                                continue;
+                            };
 
-                    // Handle a subscription request from the client.
-                    if cmd.action == "subscribe" {
+                            // Handle a subscription request from the client.
+                            if cmd.action == "subscribe" {
+                                if current_engine.as_deref() == Some(&cmd.engine_id) {
+                                    info!("YA");
+                                    continue;
+                                }
+                                // Create a new Pulsar consumer subscribed to the latest events.
+                                match state
+                                    .pulsar
+                                    .consumer()
+                                    .with_topic(
+                                        format!("persistent://public/default/live-{}", cmd.engine_id)
+                                    )
+                                    .with_subscription_type(SubType::Exclusive)
+                                    .with_subscription(
+                                        format!("ui-{}", uuid::Uuid::now_v7())
+                                    )
+                                    .with_options(ConsumerOptions {
+                                        initial_position: InitialPosition::Latest,
+                                        ..Default::default()
+                                    })
+                                    .build()
+                                    .await
+                                {
+                                    Ok(c) => {
+                                        consumer = Some(c);
+                                        current_engine = Some(cmd.engine_id.clone());
+                                        info!("Subscribed {}", cmd.engine_id);
+                                    }
 
-                        // Create a new Pulsar consumer subscribed to the latest events.
-                        match state
-                            .pulsar
-                            .consumer()
-                            .with_topic(
-                                format!("persistent://public/default/live-{}", cmd.engine_id)
-                            )
-                            .with_subscription_type(SubType::Exclusive)
-                            .with_subscription(
-                                format!("ui-{}", uuid::Uuid::now_v7())
-                            )
-                            .with_options(ConsumerOptions {
-                                initial_position: InitialPosition::Latest,
-                                ..Default::default()
-                            })
-                            .build()
-                            .await
-                        {
-                            Ok(c) => {
-                                consumer = Some(c);
-                                info!("Subscribed {}", cmd.engine_id);
+                                    Err(e) => {
+                                        error!("Error creating the consumer: {:?}", e);
+
+                                        let _ = socket
+                                            .send(Message::Text(
+                                                serde_json::json!({
+                                                    "type": "error",
+                                                    "message": "The subscription could not be created."
+                                                })
+                                                .to_string()
+                                                .into(),
+                                            ))
+                                            .await;
+
+                                        consumer = None;
+                                    }
+                                }
                             }
 
-                            Err(e) => {
-                                error!("Error creating the consumer: {:?}", e);
-
-                                let _ = socket
-                                    .send(Message::Text(
-                                        serde_json::json!({
-                                            "type": "error",
-                                            "message": "The subscription could not be created."
-                                        })
-                                        .to_string()
-                                        .into(),
-                                    ))
-                                    .await;
-
+                            // Handle cancel subscription request from the client.
+                            if cmd.action == "unsubscribe" {
                                 consumer = None;
                             }
-                        }
-
-                            info!("Subscribed {}", cmd.engine_id);
-                    }
-
-                    // Handle cancel subscription request from the client.
-                    if cmd.action == "unsubscribe" {
-                        consumer = None;
-                    }
-                 }
+                         }
 
 
-                // Wait for the next message from the active Pulsar consumer.
-                // If no consumer is active, wait indefinitely until one is created.
-                pulsar_msg = async {
-                    match consumer.as_mut() {
-                        // Read the next available message from Pulsar.
-                        Some(c) => c.next().await,
+                        // Wait for the next message from the active Pulsar consumer.
+                        // If no consumer is active, wait indefinitely until one is created.
+                        pulsar_msg = async {
+                            match consumer.as_mut() {
+                                // Read the next available message from Pulsar.
+                                Some(c) => c.next().await,
 
-                        // Suspend this branch while there is no active consumer.
-                        None => futures::future::pending().await,
-                    }
-                } =>  match pulsar_msg {
+                                // Suspend this branch while there is no active consumer.
+                                None => futures::future::pending().await,
+                            }
+                        } =>  match pulsar_msg {
 
-                    Some(Ok(mut msg)) => {
-                        // Take ownership of the message payload without cloning it.
-                        let data = std::mem::take(
-                            &mut msg.payload.data
-                        );
+                            Some(Ok(mut msg)) => {
+                                // Take ownership of the message payload without cloning it.
+                                let data = std::mem::take(
+                                    &mut msg.payload.data
+                                );
 
-                        // Forward the payload to the WebSocket client as a binary frame.
-                        // Close the loop if the client connection is no longer available.
-                        if socket
-                            .send(Message::Binary(data.into()))
-                            .await
-                            .is_err()
-                        {
-                            break;
-                        }
+                                // Forward the payload to the WebSocket client as a binary frame.
+                                // Close the loop if the client connection is no longer available.
+                                if socket
+                                    .send(Message::Binary(data.into()))
+                                    .await
+                                    .is_err()
+                                {
+                                    break;
+                                }
 
-                        // Acknowledge successful message processing to Pulsar.
-                        if let Some(c) = consumer.as_mut() {
-                            c.ack(&msg).await.ok();
-                        }
-                    }
-
-
-                    Some(Err(e)) => {
-                         info!("Pulsar error: {:?}", e);
-                         consumer = None;
-                    }
+                                // Acknowledge successful message processing to Pulsar.
+                                if let Some(c) = consumer.as_mut() {
+                                    c.ack(&msg).await.ok();
+                                }
+                            }
 
 
-                    None => {
-                         consumer = None;
-                    }
-                 }
+                            Some(Err(e)) => {
+                                 info!("Pulsar error: {:?}", e);
+                                 consumer = None;
+                            }
 
-        }
+
+                            None => {
+                                 consumer = None;
+                            }
+                         }
+
+                }
     }
 
     info!("WS closed");
