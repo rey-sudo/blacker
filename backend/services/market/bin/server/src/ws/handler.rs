@@ -22,7 +22,7 @@ use axum::{
     response::Response,
 };
 use futures::StreamExt;
-use pulsar::{Consumer, SubType, TokioExecutor};
+use pulsar::{Consumer, ConsumerOptions, SubType, TokioExecutor, consumer::InitialPosition};
 use serde::Deserialize;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -78,8 +78,12 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
                                  .with_topic(topic)
                                  .with_subscription_type(SubType::Exclusive)
                                  .with_subscription(
-                                     format!("ui-{}", cmd.engine_id)
+                                     format!("ui-{}", uuid::Uuid::now_v7())
                                  )
+                                 .with_options(ConsumerOptions {
+                                    initial_position: InitialPosition::Latest,
+                                    ..Default::default()
+                                 })
                                  .build()
                                  .await
                                  .unwrap()
