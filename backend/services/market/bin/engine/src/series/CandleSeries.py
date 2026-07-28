@@ -98,7 +98,7 @@ class CandleSeries(Series):
             return
 
         live = self.live
-        
+
         #
         # New candle.
         #
@@ -139,6 +139,8 @@ class CandleSeries(Series):
             self.live = None
 
         self.is_new = False
+        self.last_tick_time = None
+        
 
     def _new_candle(self, bucket: int, tick: Tick) -> Candle:
         start_ts = bucket * self.timeframe_ms
