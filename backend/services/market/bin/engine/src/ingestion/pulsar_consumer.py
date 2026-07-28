@@ -62,7 +62,8 @@ class PulsarConsumer:
             except Exception as e:
                 self.consumer.negative_acknowledge(msg)
                 print(f"Error listening message: {e}")
-
+                raise
+            
     def close(self):
         self.consumer.close()
         self.client.close()

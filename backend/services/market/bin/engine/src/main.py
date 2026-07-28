@@ -98,6 +98,7 @@ def save_snapshot(state: EngineState):
         column_names=["key", "value"]
       )       
 
+live_events: list[bytes] = []
 
 def handle_tick(tick: Tick, is_last: bool):
     current_time = engine.state.cursor_time;
@@ -107,12 +108,17 @@ def handle_tick(tick: Tick, is_last: bool):
         return 
     
     state = engine.on_tick(tick)
+
+    live_events.append(state.live().to_msgpack())
       
     if is_last:
       save_snapshot(state)
 
-    publisher.publish(state.live().to_msgpack())
-   
+      for payload in live_events:
+          publisher.publish(payload)
+
+      live_events.clear()    
+
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN
 #----------------------------------------------------------------------------------------------------------------------- 
