@@ -13,7 +13,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-from typing import Any
 from core.engine_state import EngineState
 from ingestion.tick import Tick
 from timeframes.timeframe import Timeframe
@@ -21,29 +20,16 @@ from series.registry import SERIES_REGISTRY
 
 
 class TradingEngine:
-    source: str
-    symbol: str
-    status: str
     state: EngineState | None
-    timeframes: dict[str, Timeframe]
 
-    listening: bool
-
-    def __init__(self, source: str, symbol: str, status: str, state: EngineState | None, timeframes: dict[str, Timeframe]):
-        self.source = source
-        self.symbol = symbol        
-        self.status = status
+    def __init__(self, state: EngineState | None):
         self.state = state
-        self.timeframes = timeframes
-        
-        self.listening = False
 
     @classmethod
     def from_snapshot(cls, snapshot: dict) -> "TradingEngine":
         """
         Builds a TradingEngine from a configuration dictionary.
         """
-        
         timeframes = {}
 
         for tf_name, tf_cfg in snapshot["timeframes"].items():
@@ -54,36 +40,38 @@ class TradingEngine:
             )
 
             for series_id, series_cfg in tf_cfg["series"].items():
-                
                 params = series_cfg.get("params", {})
-
                 series_cls = SERIES_REGISTRY[params.get("name")]
-    
                 series = series_cls(**params)
-
                 timeframe.add_series(series)   
                          
             timeframe.build_levels()
-
             timeframes[tf_name] = timeframe
-        
 
-        return cls(
+        state = EngineState(
             source=snapshot["source"],
             symbol= snapshot["symbol"],
             status= snapshot["status"],
-            state=snapshot["state"],
+            cursor_time=snapshot["cursor_time"],
+            cursor_id=snapshot["cursor_id"],
             timeframes=timeframes,
         )
 
+        return cls(
+            state=state,
+        )
+
     def on_tick(self, tick: Tick):
-        for timeframe in self.timeframes.values():
+        for timeframe in self.state.timeframes.values():
             timeframe.update(tick)
 
         self.state = EngineState(
-            tick_index=tick.tick_index,
-            time=tick.time,
-            timeframes=self.timeframes,
+            source=self.state.source,
+            symbol=self.state.symbol,
+            status=self.state.status,            
+            cursor_time=tick.time,
+            cursor_id=tick.trade_id,
+            timeframes=self.state.timeframes,
         )
 
         return self.state

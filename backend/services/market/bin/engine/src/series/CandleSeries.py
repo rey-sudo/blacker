@@ -18,28 +18,30 @@ class CandleSeries(Series):
     Aggregates market ticks into OHLCV candles.
     """
 
-    def __init__(self):
-        super().__init__("CandleSeries")
-
+    def __init__(self, level: int, name: str, id: str):
+        super().__init__(level, name, id)
+        
         self.live: Candle | None = None
         self.history: list[Candle] = []
         self.is_new: bool = False
         
     def to_dict(self):
         return {
-            "name": self.name,
+            "params": {
+                "level": self.level,
+                "name": self.name,
+                "id": self.id
+            },              
             "live": asdict(self.live) if self.live is not None else None,
             "history": [asdict(candle) for candle in self.history],
             "is_new": self.is_new,
+          
         }
     
     def set_state(self, state: dict) -> None:
         """
         Restores the series from a serialized state.
         """
-
-        self.name = state["name"]
-
         self.live = (
             Candle(**state["live"])
             if state["live"] is not None

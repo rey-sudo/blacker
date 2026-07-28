@@ -22,7 +22,8 @@ snapshot = {
   "source": "dydx",
   "symbol": "BTC-USD",
   "status": "init",
-  "state": None,
+  "cursor_time": 0,
+  "cursor_id": "",
   "timeframes": {
     "1m": {
       "name": "1m",
@@ -31,8 +32,8 @@ snapshot = {
         "CandleBubbleSeries1": {  
           "params": {
             "level": 0,
-            "name": "CandleBubbleSeries",
-            "id": "CandleBubbleSeries1",
+            "name": "CandleSeries",
+            "id": "CandleSeries1",
           }
         } 
       }   
@@ -58,7 +59,9 @@ engine = TradingEngine.from_snapshot(snapshot)
 #----------------------------------------------------------------------------------------------------------------------- 
 
 def handle_tick(tick: Tick, is_last: bool):
-    print(tick)
+    state = engine.on_tick(tick)
+
+    print(state.to_json())
    
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN
