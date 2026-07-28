@@ -39,7 +39,6 @@ class EngineState:
     def to_json(self) -> str:
         return json.dumps(
             self.to_dict(),
-            indent=2,
             ensure_ascii=False,
         )
 

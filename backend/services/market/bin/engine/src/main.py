@@ -13,12 +13,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import json
+import clickhouse_connect
 from ingestion.tick import Tick
 from core.engine import TradingEngine
 from ingestion.pulsar_consumer import PulsarConsumer
 from publication.pulsar_publisher import PulsarPublisher
 
-snapshot = {
+ENGINE_ID = "dydx-BTC-USD"
+
+default_snapshot = {
   "source": "dydx",
   "symbol": "BTC-USD",
   "status": "init",
@@ -41,15 +45,39 @@ snapshot = {
   }
 }
 
+db = clickhouse_connect.get_client(
+    host="localhost",
+    port=8123,
+    database="app",
+    username="app",
+    password="app123"
+)
+
+result = db.query(
+    """
+    SELECT value
+    FROM kv_store
+    FINAL
+    WHERE key = %(key)s
+    """,
+    parameters={"key": ENGINE_ID },
+)
+
+if result.result_rows:
+    snapshot = json.loads(result.first_row[0])
+    print(snapshot)
+else:
+    snapshot = default_snapshot
+
 consumer = PulsarConsumer(
         service_url="pulsar://localhost:6650",
-        topic="persistent://public/default/ticks-dydx-BTC-USD",
-        subscription="testa1",
+        topic=f"persistent://public/default/ticks-{ENGINE_ID}",
+        subscription=f"{ENGINE_ID}-sub",
 )
 
 publisher = PulsarPublisher(
     service_url="pulsar://localhost:6650",
-    topic="persistent://public/default/live-dydx-BTC-USD",
+    topic=f"persistent://public/default/live-{ENGINE_ID}",
 )
 
 engine = TradingEngine.from_snapshot(snapshot)
@@ -61,13 +89,23 @@ engine = TradingEngine.from_snapshot(snapshot)
 def handle_tick(tick: Tick, is_last: bool):
     state = engine.on_tick(tick)
 
-    print(state.to_json())
-
     for live in state.live():
       print(live)
 
     #PERSIST SNAPSHOT
     #PUBLISH LIVE
+
+    if is_last:
+      db.insert(
+          "kv_store",
+          [
+              [
+                  ENGINE_ID,
+                  state.to_json()
+              ]
+          ],
+          column_names=["key", "value"]
+      )      
    
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN
