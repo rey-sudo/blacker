@@ -1,7 +1,29 @@
 import json
 import msgpack
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from timeframes.timeframe import Timeframe
+from dataclasses import dataclass
+
+@dataclass(slots=True)
+class LiveBatch:
+    source: str
+    symbol: str
+    series: list
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+    
+    def msgpack(self) -> bytes:
+        return msgpack.packb(
+            self.to_dict(),
+            use_bin_type=True,
+        )
+
+    def to_json(self) -> str:
+        return json.dumps(
+            self.to_dict(),
+            ensure_ascii=False,
+        )
 
 @dataclass
 class EngineState:
@@ -12,16 +34,17 @@ class EngineState:
     cursor_id: str
     timeframes: dict[str, Timeframe]
     
-    def live(self) -> list:
-        """
-        Returns the live state of every series across all timeframes.
-        """
-        live = []
+    def live(self) -> LiveBatch:
+        series = []
 
         for timeframe in self.timeframes.values():
-            live.extend(timeframe.live())
+            series.extend(timeframe.live())
 
-        return live
+        return LiveBatch(
+            source=self.source,
+            symbol=self.symbol,
+            series=series,
+        )
     
     def to_dict(self):
         return {
@@ -36,15 +59,14 @@ class EngineState:
             },
         }
 
-    def to_json(self) -> str:
-        return json.dumps(
-            self.to_dict(),
-            ensure_ascii=False,
-        )
-
     def to_msgpack(self) -> bytes:
         return msgpack.packb(
             self.to_dict(),
             use_bin_type=True,
         )
-    
+
+    def to_json(self) -> str:
+        return json.dumps(
+            self.to_dict(),
+            ensure_ascii=False,
+        )

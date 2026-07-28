@@ -65,7 +65,6 @@ result = db.query(
 
 if result.result_rows:
     snapshot = json.loads(result.first_row[0])
-    print(snapshot)
 else:
     snapshot = default_snapshot
 
@@ -89,12 +88,10 @@ engine = TradingEngine.from_snapshot(snapshot)
 def handle_tick(tick: Tick, is_last: bool):
     state = engine.on_tick(tick)
 
-    for live in state.live():
-      print(live)
+    live_batch = state.live()
 
-    #PERSIST SNAPSHOT
-    #PUBLISH LIVE
-
+    print(live_batch.to_json())
+      
     if is_last:
       db.insert(
           "kv_store",
