@@ -15,6 +15,7 @@
 
 import json
 import clickhouse_connect
+from core.engine_state import EngineState
 from ingestion.tick import Tick
 from core.engine import TradingEngine
 from ingestion.pulsar_consumer import PulsarConsumer
@@ -85,24 +86,32 @@ engine = TradingEngine.from_snapshot(snapshot)
 # HANDLE TICKS
 #----------------------------------------------------------------------------------------------------------------------- 
 
+def save_snapshot(state: EngineState):
+      db.insert(
+        "kv_store",
+        [
+          [
+            ENGINE_ID,
+            state.to_json()
+          ]
+        ],
+        column_names=["key", "value"]
+      )       
+
+
 def handle_tick(tick: Tick, is_last: bool):
+    current_time = engine.state.cursor_time;
+
+    if current_time != 0 and tick.time < engine.state.cursor_time:
+        print("Tick order error (ACK).")
+        return 
+    
     state = engine.on_tick(tick)
-
-    live_batch = state.live()
-
-    print(live_batch.to_json())
       
     if is_last:
-      db.insert(
-          "kv_store",
-          [
-              [
-                  ENGINE_ID,
-                  state.to_json()
-              ]
-          ],
-          column_names=["key", "value"]
-      )      
+      save_snapshot(state)
+
+    publisher.publish(state.live().to_msgpack())
    
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN

@@ -83,15 +83,6 @@ class CandleSeries(Series):
         """
         Process a single market tick.
         """
-        if (
-            self.last_tick_time is not None
-            and tick.time < self.last_tick_time
-        ):
-            raise ValueError(
-                f"Out-of-order tick detected: "
-                f"{tick.time} < {self.last_tick_time}"
-            )
-
         bucket = tick.time // self.timeframe_ms
         start_ts = bucket * self.timeframe_ms
 

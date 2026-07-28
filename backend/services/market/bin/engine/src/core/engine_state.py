@@ -13,7 +13,7 @@ class LiveBatch:
     def to_dict(self) -> dict:
         return asdict(self)
     
-    def msgpack(self) -> bytes:
+    def to_msgpack(self) -> bytes:
         return msgpack.packb(
             self.to_dict(),
             use_bin_type=True,

@@ -90,7 +90,7 @@ pub async fn load_cursors(
                         symbol: symbol.to_string(),
                         last_time: 0,
                         last_id: "".to_string(),
-                        updated_at: chrono::Utc::now().timestamp_millis() as u64,
+                        updated_at: chrono::Utc::now().timestamp_nanos_opt().unwrap() as u64,
                     },
                 );
             }
@@ -100,7 +100,7 @@ pub async fn load_cursors(
     Ok(cursors)
 }
 
-/// Updates the publishing cursor for each batch using the last tick 
+/// Updates the publishing cursor for each batch using the last tick
 /// and stores the new cursor state in the database.
 /// Returns an error if persistence fails.
 pub async fn save_cursors(
@@ -110,7 +110,7 @@ pub async fn save_cursors(
 ) -> Result<()> {
     let mut insert: Insert<PublisherCursor> = db.insert("publisher_cursor").await?;
 
-    let now: u64 = chrono::Utc::now().timestamp_millis() as u64;
+    let now: u64 = chrono::Utc::now().timestamp_nanos_opt().unwrap() as u64;
 
     for (symbol, ticks) in batches {
         let last: &Tick = ticks.last().expect("empty batch");
