@@ -20,8 +20,6 @@ use clickhouse::{Client, insert::Insert};
 use tracing::{error, info};
 
 async fn write_batch(db: &Client, batch: Vec<Tick>) -> Result<()> {
-    info!(?batch);
-
     let mut insert: Insert<Tick> = db.insert::<Tick>("ticks").await?;
 
     for tick in &batch {

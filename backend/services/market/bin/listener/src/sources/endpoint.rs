@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{models::Tick, sources::dydx::parse_dydx_trade};
+use crate::{models::Tick, sources::{binance::parse_binance_trade, dydx::parse_dydx_trade}};
 use anyhow::Result;
 use futures_util::{SinkExt, stream::SplitSink};
 use tokio::net::TcpStream;
@@ -29,6 +29,7 @@ use tungstenite::Error;
 pub fn get_source_endpoint(source: &str) -> &'static str {
     match source {
         "dydx" => "wss://indexer.dydx.trade/v4/ws",
+        "binance" => "wss://fstream.binance.com/ws",
         _ => {
             error!("Source not found: {}", source);
             std::process::exit(1);
@@ -63,6 +64,27 @@ pub async fn prepare_source_endpoint(
             }
         }
 
+        "binance" => {
+            for (id, symbol) in symbols
+                .split(',')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .enumerate()
+            {
+                let subscribe: serde_json::Value = serde_json::json!({
+                    "method": "SUBSCRIBE",
+                    "params": [
+                        format!("{}@trade", symbol.to_lowercase())
+                    ],
+                    "id": id
+                });
+
+                write
+                    .send(Message::Text(subscribe.to_string().into()))
+                    .await?;
+            }
+        }
+
         _ => {
             error!("Unsupported source: {}", source);
             std::process::exit(1);
@@ -77,6 +99,7 @@ pub async fn prepare_source_endpoint(
 pub fn parse_source_trade(source: &str, text: &str) -> Result<Vec<Tick>> {
     match source {
         "dydx" => parse_dydx_trade(text),
+        "binance" => parse_binance_trade(text),
         _ => {
             error!("Unsupported source: {}", source);
             std::process::exit(1);

@@ -46,9 +46,9 @@ async fn main() -> Result<()> {
 
     let mut tasks: JoinSet<std::prelude::v1::Result<(), anyhow::Error>> = JoinSet::new();
 
-    let source: &str = "dydx";
+    let source: &str = "binance";
 
-    let symbols: &str = "BTC-USD,ETH-USD";
+    let symbols: &str = "BTCUSDT";
 
     tasks.spawn(listen_source_ws::run(
         tick_tx.clone(),
