@@ -35,6 +35,7 @@ export interface BacktestingTab extends TabBase {
 export interface TradingTab extends TabBase {
   kind: TabKind.Trading;
   symbol: string;
+  source: string;
   timeframe: string;
 }
 

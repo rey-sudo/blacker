@@ -16,7 +16,7 @@
 
 import { TabKind, type TradingTab } from "~/stores/tabManager.store";
 
-const tabsStore = useTabManager();
+const tabManager = useTabManager();
 
 const onSelect = (e: any) => {
   console.log(e);
@@ -28,11 +28,12 @@ const onSelect = (e: any) => {
     description: "tab description",
     color: "primary",
     symbol: "BTCUSDT",
-    timeframe: "H1",
+    source: "binance",
+    timeframe: "1m",
   };
 
-  tabsStore.addTab(newTab);
-  tabsStore.symbolSearchModal = false;
+  tabManager.addTab(newTab);
+  tabManager.symbolSearchModal = false;
 };
 </script>
 
@@ -43,12 +44,12 @@ const onSelect = (e: any) => {
       icon="i-lucide-plus"
       size="sm"
       color="neutral"
-      @click="tabsStore.symbolSearchModal = true"
+      @click="tabManager.symbolSearchModal = true"
       variant="ghost"
     />
 
     <UModal
-      v-model:open="tabsStore.symbolSearchModal"
+      v-model:open="tabManager.symbolSearchModal"
       title="Symbol Search"
       :ui="{
         content: 'w-fit max-w-none rounded-lg shadow-lg ring ring-default',
@@ -56,7 +57,7 @@ const onSelect = (e: any) => {
     >
       <template #body>
         <SymbolSearch
-          :data="tabsStore.getInstrumentList()"
+          :data="tabManager.getInstrumentList()"
           @select="onSelect"
         />
       </template>

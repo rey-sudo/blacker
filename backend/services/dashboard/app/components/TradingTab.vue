@@ -21,10 +21,10 @@ const props = defineProps({
   },
 });
 
-const tabsStore = useTabManager();
+const tabManager = useTabManager();
 
 const tab: ComputedRef<Tab | undefined> = computed(() =>
-  tabsStore.getTabById(props.tabId),
+  tabManager.getTabById(props.tabId),
 );
 </script>
 
