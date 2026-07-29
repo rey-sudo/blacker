@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { useTradingTabStore } from "~/stores/tabs/trading-tab.store";
-import CandleSeries from "~/components/series/CandleSeries.vue";
+import Chart from "~/components/Chart.vue";
 
 const props = defineProps({
   tabId: {
@@ -137,7 +137,7 @@ const history = [
   },
 ];
 
-const chart = ref<InstanceType<typeof CandleSeries>>();
+const chart = ref<InstanceType<typeof Chart>>();
 let timer: ReturnType<typeof setInterval>;
 
 function testLive() {
@@ -167,7 +167,7 @@ onUnmounted(() => {
 
 <template>
   <div class="trading-tab">
-    <CandleSeries ref="chart" />
+    <Chart ref="chart" />
   </div>
 </template>
 
