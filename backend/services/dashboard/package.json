@@ -10,7 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@nuxt/ui": "^4.4.0",
+    "@nuxt/ui": "^4.10.0",
     "@pinia/nuxt": "^0.11.3",
     "colorjs.io": "^0.6.1",
     "date-fns": "^4.1.0",

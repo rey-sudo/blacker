@@ -22,9 +22,9 @@ pub async fn start_http_server(state: AppState) {
     .nest("/api/market", routes::router()).with_state(state);
 
     let listener: tokio::net::TcpListener =
-        tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+        tokio::net::TcpListener::bind("0.0.0.0:3001").await.unwrap();
 
-    info!("Master listening in :3000");
+    info!("Master listening in :3001");
 
     axum::serve(listener, app).await.unwrap();
 }

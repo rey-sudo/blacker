@@ -1,6 +1,5 @@
 import { button } from "./button";
 import { contextMenu } from "./context-menu";
-import { modal } from "./modal";
 
 export const themeUI = {
   colors: {
@@ -11,7 +10,6 @@ export const themeUI = {
     error: "red",
     neutral: "neutral",
   },
-  modal,
   contextMenu,
 
   //--------------------------------------------------------------------------------------------------
