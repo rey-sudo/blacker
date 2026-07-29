@@ -1,3 +1,10 @@
+export interface MarketPayload {
+  source: string;
+  symbol: string;
+
+  series: Record<string, any>;
+}
+
 export const useTradingTabStore = (tab: TradingTab) =>
   defineStore(`tab/${tab.id}`, () => {
     const id: string = tab.id;
@@ -8,6 +15,10 @@ export const useTradingTabStore = (tab: TradingTab) =>
     const symbol = ref("BTCUSDT");
     const interval = ref("1m");
     const isPaused = ref(false);
+
+    function updateSession(payload: MarketPayload) {
+      console.log(payload);
+    }
 
     const start = () => {
       console.log("tabStore: Starting.");
@@ -32,6 +43,7 @@ export const useTradingTabStore = (tab: TradingTab) =>
     };
 
     return {
+      updateSession,
       tabTitle,
       tabColor,
       symbol,

@@ -14,6 +14,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 export default defineNuxtConfig({
+  vite: {
+    optimizeDeps: {
+      include: [
+        "@internationalized/date",
+        "@msgpack/msgpack",
+        "@vue/devtools-core",
+        "@vue/devtools-kit",
+        "sortablejs",
+      ],
+    },
+  },
   nitro: {
     preset: "node",
     experimental: {
@@ -35,5 +46,5 @@ export default defineNuxtConfig({
     ["@pinia/nuxt", { autoImports: ["defineStore"] }],
     "pinia-plugin-persistedstate/nuxt",
     "@nuxt/ui",
-  ]
+  ],
 });
