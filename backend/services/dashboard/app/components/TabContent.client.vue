@@ -20,7 +20,7 @@ import { useTabContentStore } from "~/stores/tabs";
 
 const props = defineProps<{ tabId: string }>();
 
-const tabsStore = useTabsStore();
+const tabsStore = useTabManager();
 
 // tab can be undefined if the id does not exist
 const tab: ComputedRef<Tab | undefined> = computed(() =>

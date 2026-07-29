@@ -56,7 +56,7 @@ export interface AlgoTab extends TabBase {
  */
 export type Tab = BacktestingTab | TradingTab | AlgoTab;
 
-export const useTabsStore = defineStore(
+export const useTabManager = defineStore(
   "tabs",
   () => {
     /** Primary storage — enables O(1) lookup by tab id */

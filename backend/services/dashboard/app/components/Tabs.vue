@@ -19,7 +19,7 @@
 import Sortable from "sortablejs";
 import { ref, onMounted, nextTick } from "vue";
 
-const tabsStore = useTabsStore();
+const tabsStore = useTabManager();
 const tabsContainer = ref(null);
 
 onMounted(async () => {

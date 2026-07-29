@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import { TabKind, type TradingTab } from "~/stores/tabs.store";
+import { TabKind, type TradingTab } from "~/stores/tabManager.store";
 
-const tabsStore = useTabsStore();
+const tabsStore = useTabManager();
 
 const onSelect = (e: any) => {
   console.log(e);

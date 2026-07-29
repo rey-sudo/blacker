@@ -17,7 +17,7 @@
 import TabContent from "~/components/TabContent.client.vue";
 
 // Initialize the global state store for tabs management.
-const tabsStore = useTabsStore();
+const tabsStore = useTabManager();
 
 // Reactive computed property that retrieves the current active tab object.
 // It searches through all available tabs to find the one matching the active ID.

@@ -25,7 +25,7 @@ const props = defineProps({
 });
 
 // Initialize the main store containing tab definitions
-const tabsStore = useTabsStore();
+const tabsStore = useTabManager();
 
 // Retrieve the specific tab configuration based on the provided tabId
 const tab: ComputedRef<Tab | undefined> = computed(() =>

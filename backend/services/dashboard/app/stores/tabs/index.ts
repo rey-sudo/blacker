@@ -1,4 +1,4 @@
-import { TabKind, type Tab } from "../tabs.store";
+import { TabKind, type Tab } from "../tabManager.store";
 import { useBacktestingTabStore } from "./backtesting-tab.store";
 import { useTradingTabStore } from "./trading-tab.store";
 
