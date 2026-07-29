@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // BLACKER
-// Copyright (C) 2026 Juan José Caballero Rey - https://github.com/rey-sudo
+// Copyright (C) 2026 Juan José Caballero Rey
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@ const tab: ComputedRef<Tab | undefined> = computed(() =>
 
 <template>
   <div class="trading-tab">
-    <ChartToolbar :tabId="tabId" />
     <ChartCandlestick :tabId="tabId" :timeframe="{ interval: '1h '}"/>
   </div>
 </template>
