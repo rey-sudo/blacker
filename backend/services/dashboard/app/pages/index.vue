@@ -17,16 +17,16 @@
 import TabContent from "~/components/TabContent.client.vue";
 
 // Initialize the global state store for tabs management.
-const tabsStore = useTabManager();
+const tabManager = useTabManager();
 
 // Reactive computed property that retrieves the current active tab object.
 // It searches through all available tabs to find the one matching the active ID.
 const activeTab = computed(() =>
-  tabsStore.allTabs.find((t: Tab) => t.id === tabsStore.activeTabId),
+  tabManager.allTabs.find((t: Tab) => t.id === tabManager.activeTabId),
 );
 
 const selectSymbol = () => {
-  tabsStore.symbolSearchModal = true;
+  tabManager.symbolSearchModal = true;
 };
 </script>
 <template>
