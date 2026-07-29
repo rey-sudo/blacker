@@ -17,7 +17,7 @@
 import { h, resolveComponent } from "vue";
 import type { TableColumn, TableRow } from "@nuxt/ui";
 
-type Instrument = {
+export type Instrument = {
   id: string;
   source: string;
   symbol: string;

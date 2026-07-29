@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // BLACKER
-// Copyright (C) 2026 Juan José Caballero Rey - https://github.com/rey-sudo
+// Copyright (C) 2026 Juan José Caballero Rey
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -24,6 +24,10 @@ const tabsStore = useTabsStore();
 const activeTab = computed(() =>
   tabsStore.allTabs.find((t: Tab) => t.id === tabsStore.activeTabId),
 );
+
+const selectSymbol = () => {
+  tabsStore.symbolSearchModal = true;
+};
 </script>
 <template>
   <!-- 
@@ -31,4 +35,21 @@ const activeTab = computed(() =>
     The ':key' attribute forces a clean re-render whenever the active tab changes.
   -->
   <TabContent v-if="activeTab" :key="activeTab.id" :tabId="activeTab.id" />
+  <UEmpty
+    v-else
+    icon="i-lucide-chart-no-axes-column"
+    title="No trading symbol selected"
+    description="Select a trading symbol to view its data and begin your analysis."
+    :actions="[
+      {
+        icon: 'i-lucide-search',
+        label: 'Select symbol',
+        color: 'neutral',
+        onClick: selectSymbol,
+      },
+    ]"
+    :ui="{
+      root: 'rounded-xs m-1',
+    }"
+  />
 </template>

@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import type { Instrument } from "~/components/SymbolSearch.vue";
 
 /**
  * Available tab types in the application.
@@ -76,6 +77,8 @@ export const useTabsStore = defineStore(
         .map((id) => tabsById.value.get(id))
         .filter((tab): tab is Tab => Boolean(tab)),
     );
+
+    const symbolSearchModal = ref(false);
 
     /**
      * Adds a new tab and immediately activates it.
@@ -196,7 +199,48 @@ export const useTabsStore = defineStore(
       return clone;
     }
 
+    function getInstrumentList() {
+      const symbolData: Instrument[] = [
+        {
+          id: "0",
+          source: "binance",
+          symbol: "BTCUSDT",
+          status: "sync",
+          legend: "Bitcoin / Dolar Futures USDM",
+          market: "crypto",
+        },
+        {
+          id: "1",
+          source: "dydx",
+          symbol: "BTCUSDT",
+          status: "sync",
+          legend: "Bitcoin / Dolar Futures",
+          market: "crypto",
+        },
+        {
+          id: "2",
+          source: "hyperliquid",
+          symbol: "BTCUSDT",
+          status: "unsync",
+          legend: "Bitcoin / Dolar Futures",
+          market: "crypto",
+        },
+        {
+          id: "3",
+          source: "polymarket",
+          symbol: "BTCUSDT",
+          status: "sync",
+          legend: "Bitcoin / Dolar Futures",
+          market: "crypto",
+        },
+      ];
+
+      return symbolData;
+    }
+
     return {
+      symbolSearchModal,
+      getInstrumentList,
       tabsById,
       tabOrder,
       activeTabId,

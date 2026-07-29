@@ -18,35 +18,6 @@ import { TabKind, type TradingTab } from "~/stores/tabs.store";
 
 const tabsStore = useTabsStore();
 
-const visible = ref(false);
-
-const symbolData = [
-  {
-    id: "0",
-    source: "binance",
-    symbol: "BTCUSDT",
-    status: "sync",
-    legend: "Bitcoin / Dolar Futures USDM",
-    market: "crypto",
-  },
-  {
-    id: "1",
-    source: "dydx",
-    symbol: "BTCUSDT",
-    status: "sync",
-    legend: "Bitcoin / Dolar Futures",
-    market: "crypto",
-  },
-  {
-    id: "2",
-    source: "hyperliquid",
-    symbol: "BTCUSDT",
-    status: "unsync",
-    legend: "Bitcoin / Dolar Futures",
-    market: "crypto",
-  },
-];
-
 const onSelect = (e: any) => {
   console.log(e);
   const newTab: TradingTab = {
@@ -61,34 +32,34 @@ const onSelect = (e: any) => {
   };
 
   tabsStore.addTab(newTab);
-  visible.value = false;
+  tabsStore.symbolSearchModal = false;
 };
 </script>
 
 <template>
   <div class="tab-add flex items-center h-[inherit]">
     <UButton
-      class="mt-1"
+      class="mt-0"
       icon="i-lucide-plus"
       size="sm"
       color="neutral"
-      @click="visible = true"
+      @click="tabsStore.symbolSearchModal = true"
       variant="ghost"
     />
 
     <UModal
-      v-model:open="visible"
+      v-model:open="tabsStore.symbolSearchModal"
       title="Symbol Search"
       :ui="{
         content: 'w-fit max-w-none rounded-lg shadow-lg ring ring-default',
       }"
     >
       <template #body>
-        <SymbolSearch :data="symbolData" @select="onSelect" />
+        <SymbolSearch
+          :data="tabsStore.getInstrumentList()"
+          @select="onSelect"
+        />
       </template>
     </UModal>
   </div>
 </template>
-
-<style lang="css" scoped></style>
-

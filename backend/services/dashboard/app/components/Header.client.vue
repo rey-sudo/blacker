@@ -2,13 +2,12 @@
   <div class="header">
     <div class="header__left gap-2 flex items-center h-[inherit]">
       <Tabs />
-      <TabAddButton />
+      <AddTabButton />
     </div>
 
     <div class="header__right gap-4 flex items-center h-[inherit]">
       <HeaderThemeButton />
       <HeaderSettingsButton />
-      <HeaderAvatar />
     </div>
   </div>
 </template>
