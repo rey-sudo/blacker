@@ -118,7 +118,8 @@ def handle_tick(tick: Tick, is_last: bool):
       for payload in live_events:
           publisher.publish(payload)
 
-      live_events.clear()    
+      live_events.clear() 
+      sleep(1)   
 
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN

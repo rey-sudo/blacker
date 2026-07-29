@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { useTradingTabStore } from "~/stores/tabs/trading-tab.store";
-import ChartCandlestick from "~/components/ChartCandlestick.vue";
-
 // BLACKER
 // Copyright (C) 2026 Juan José Caballero Rey
 //
@@ -16,6 +13,9 @@ import ChartCandlestick from "~/components/ChartCandlestick.vue";
 //
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+import { useTradingTabStore } from "~/stores/tabs/trading-tab.store";
+import CandleSeries from "~/components/series/CandleSeries.vue";
 
 const props = defineProps({
   tabId: {
@@ -137,11 +137,11 @@ const history = [
   },
 ];
 
-const chart = ref<InstanceType<typeof ChartCandlestick>>();
+const chart = ref<InstanceType<typeof CandleSeries>>();
 let timer: ReturnType<typeof setInterval>;
 
 function testLive() {
-  chart.value?.updateLive({
+  chart.value?.update({
     time: Math.floor(Date.now() / 1000),
     open: 63584.1,
     high: 63589.8,
@@ -154,6 +154,9 @@ function testLive() {
 }
 
 onMounted(() => {
+  chart.value?.applyOptions({ legend: "Bitcoin/Tether USD · 4h" });
+  chart.value?.setData(history);
+
   timer = setInterval(testLive, 1000);
 });
 
@@ -164,7 +167,7 @@ onUnmounted(() => {
 
 <template>
   <div class="trading-tab">
-    <ChartCandlestick ref="chart" :history="history" />
+    <CandleSeries ref="chart" />
   </div>
 </template>
 
