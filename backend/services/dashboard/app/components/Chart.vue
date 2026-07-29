@@ -17,13 +17,70 @@
 import { createChart } from "@/packages/src/index";
 import { CandleBubbleSeries } from "@/packages/playground/indicators/CandleBubbleSeries/CandleBubbleSeries";
 import type { AnyChartSeries, ChartEngine } from "~/packages/src/core/types";
+import { EMASeries } from "~/packages/playground/indicators/EMASeries/EMASeries";
+
+const seriesRegistry: any = {
+  CandleBubbleSeries,
+  EMASeries,
+} as const;
+
+const layout = {
+  series: [
+    {
+      id: "CandleSeries",
+      kind: "CandleBubbleSeries",
+      options: {
+        id: "candlestick",
+        label: "Candlesticks",
+        layer: "background",
+        color: "red",
+        priceTagColor: "#F23645",
+        params: {
+          bullColor: "#089981",
+          bearColor: "#F23645",
+        },
+      },
+      primary: true,
+    },
+    {
+      id: "ema20",
+      kind: "EMASeries",
+      options: {
+        id: "ema55",
+        label: "EMA 55",
+        color: "#ffb830",
+        layer: "foreground",
+        priceTagColor: "#ffb830",
+        params: { lineWidth: 2 },
+      },
+    },
+  ],
+};
 
 let chart: ChartEngine | null = null;
 let candleSeries: AnyChartSeries | null = null;
 
 onMounted(() => {
   chart = createChart(document.getElementById("chart-area")!);
-  candleSeries = chart.api.addSeries(CandleBubbleSeries);
+
+  for (const config of layout.series) {
+    const factory = seriesRegistry[config.kind];
+
+    if (!factory) {
+      throw new Error(`Unknown series: ${config.kind}`);
+    }
+
+    const series = chart.api.addSeries(
+      factory({
+        id: config.id,
+        ...config.options,
+      }),
+    );
+
+    if (config.primary) {
+      candleSeries = series;
+    }
+  }
 });
 
 function applyOptions(config: any) {
