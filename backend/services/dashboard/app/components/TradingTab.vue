@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { useTradingTabStore } from "~/stores/tabs/trading-tab.store";
-import Chart from "~/components/Chart.vue";
+import Chart, { type ChartLayout } from "~/components/Chart.vue";
 
 const props = defineProps({
   tabId: {
@@ -153,7 +153,57 @@ function testLive() {
   });
 }
 
+const layout: ChartLayout = {
+  series: [
+    {
+      id: "candle-bubble-series",
+      kind: "CandleBubbleSeries",
+      options: {
+        id: "candle-bubble-series",
+        label: "Candlesticks",
+        layer: "background",
+        color: "red",
+        priceTagColor: "#F23645",
+        params: {
+          bullColor: "#089981",
+          bearColor: "#F23645",
+        },
+      },
+    },
+    {
+      id: "ema-55-series",
+      kind: "EMASeries",
+      parent: "candle-bubble-series",
+      options: {
+        id: "ema-55-series",
+        label: "EMA 55",
+        color: "#ffb830",
+        layer: "foreground",
+        priceTagColor: "#ffb830",
+        params: {
+          lineWidth: 2,
+        },
+      },
+    },
+  ],
+};
+
+function watchLayout () {
+  watch(
+  () => layout.series,
+  () => {
+    chart?.value?.applyLayout(layout);
+  },
+  {
+    deep: true,
+    immediate: true,
+  },
+);
+}
+
 onMounted(() => {
+  watchLayout()
+
   chart.value?.applyOptions("candle-bubble-series", {
     legend: "Bitcoin/Tether USD · 4h",
   });

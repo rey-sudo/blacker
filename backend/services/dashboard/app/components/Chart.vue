@@ -34,54 +34,22 @@ type LayoutSeries<K extends SeriesKind = SeriesKind> = {
   parent?: SeriesId;
   options: any;
 };
-
-interface Layout {
+export interface ChartLayout {
   series: LayoutSeries[];
 }
-
-const layout: Layout = {
-  series: [
-    {
-      id: "candle-bubble-series",
-      kind: "CandleBubbleSeries",
-      options: {
-        id: "candle-bubble-series",
-        label: "Candlesticks",
-        layer: "background",
-        color: "red",
-        priceTagColor: "#F23645",
-        params: {
-          bullColor: "#089981",
-          bearColor: "#F23645",
-        },
-      },
-    },
-    {
-      id: "ema-55-series",
-      kind: "EMASeries",
-      parent: "candle-bubble-series",
-      options: {
-        id: "ema-55-series",
-        label: "EMA 55",
-        color: "#ffb830",
-        layer: "foreground",
-        priceTagColor: "#ffb830",
-        params: {
-          lineWidth: 2,
-        },
-      },
-    },
-  ],
-};
 
 interface RuntimeSeries {
   chart: ChartEngine;
   serie: AnyChartSeries;
 }
 
-const allSeries: Record<SeriesId, RuntimeSeries> = {};
+const allSeries = new Map<SeriesId, RuntimeSeries>();
 
-onMounted(() => {
+onMounted(() => {});
+
+function applyLayout(layout: ChartLayout) {
+  allSeries.clear(); //TODO. allSeries.forEach(runtime => runtime.destroy()); unmount
+
   for (const item of layout.series) {
     const seriesFactory = seriesRegistry[item.kind];
     const build = seriesFactory(item.options);
@@ -90,38 +58,32 @@ onMounted(() => {
       const chart = createChart(_addChildToContainer(item.id));
       const serie = chart.api.addSeries(build);
 
-      allSeries[item.id] = {
-        chart,
-        serie,
-      };
+      allSeries.set(item.id, { chart, serie });
 
       continue;
     }
 
-    const parent = allSeries[item.parent];
+    const parent = allSeries.get(item.parent);
     if (!parent) {
       throw new Error(`Parent series "${item.parent}" has not been created.`);
     }
 
     const serie = parent.chart.api.addSeries(build);
 
-    allSeries[item.id] = {
-      chart: parent.chart,
-      serie,
-    };
+    allSeries.set(item.id, { chart: parent.chart, serie });
   }
-});
+}
 
 function applyOptions(serieId: SeriesId, config: any) {
-  allSeries[serieId]?.chart.api.applyOptions(config);
+  allSeries.get(serieId)?.chart.api.applyOptions(config);
 }
 
 function setData(serieId: SeriesId, data: any) {
-  allSeries[serieId]?.serie.setData(data);
+  allSeries.get(serieId)?.serie.setData(data);
 }
 
 function update(serieId: SeriesId, candle: any) {
-  allSeries[serieId]?.serie.update(candle);
+  allSeries.get(serieId)?.serie.update(candle);
 }
 
 function _addChildToContainer(id: SeriesId): HTMLDivElement {
@@ -143,6 +105,7 @@ function _addChildToContainer(id: SeriesId): HTMLDivElement {
 }
 
 defineExpose({
+  applyLayout,
   applyOptions,
   setData,
   update,
