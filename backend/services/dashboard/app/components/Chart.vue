@@ -16,21 +16,36 @@
 
 import { createChart } from "@/packages/src/index";
 import { CandleBubbleSeries } from "@/packages/playground/indicators/CandleBubbleSeries/CandleBubbleSeries";
-import type { AnyChartSeries, ChartEngine } from "~/packages/src/core/types";
 import { EMASeries } from "~/packages/playground/indicators/EMASeries/EMASeries";
+import type { AnyChartSeries, ChartEngine } from "~/packages/src/core/types";
 
-const seriesRegistry: any = {
+const seriesRegistry = {
   CandleBubbleSeries,
   EMASeries,
 } as const;
 
-const layout = {
+type Registry = typeof seriesRegistry;
+type SeriesKind = keyof Registry;
+type SeriesId = string;
+
+type LayoutSeries<K extends SeriesKind = SeriesKind> = {
+  id: SeriesId;
+  kind: K;
+  parent?: SeriesId;
+  options: any;
+};
+
+interface Layout {
+  series: LayoutSeries[];
+}
+
+const layout: Layout = {
   series: [
     {
-      id: "CandleSeries",
+      id: "candle-bubble-series",
       kind: "CandleBubbleSeries",
       options: {
-        id: "candlestick",
+        id: "candle-bubble-series",
         label: "Candlesticks",
         layer: "background",
         color: "red",
@@ -40,59 +55,91 @@ const layout = {
           bearColor: "#F23645",
         },
       },
-      primary: true,
     },
     {
-      id: "ema20",
+      id: "ema-55-series",
       kind: "EMASeries",
+      parent: "candle-bubble-series",
       options: {
-        id: "ema55",
+        id: "ema-55-series",
         label: "EMA 55",
         color: "#ffb830",
         layer: "foreground",
         priceTagColor: "#ffb830",
-        params: { lineWidth: 2 },
+        params: {
+          lineWidth: 2,
+        },
       },
     },
   ],
 };
 
-let chart: ChartEngine | null = null;
-let candleSeries: AnyChartSeries | null = null;
+interface RuntimeSeries {
+  chart: ChartEngine;
+  serie: AnyChartSeries;
+}
+
+const allSeries: Record<SeriesId, RuntimeSeries> = {};
 
 onMounted(() => {
-  chart = createChart(document.getElementById("chart-area")!);
+  for (const item of layout.series) {
+    const seriesFactory = seriesRegistry[item.kind];
+    const build = seriesFactory(item.options);
 
-  for (const config of layout.series) {
-    const factory = seriesRegistry[config.kind];
+    if (!item.parent) {
+      const chart = createChart(_addChildToContainer(item.id));
+      const serie = chart.api.addSeries(build);
 
-    if (!factory) {
-      throw new Error(`Unknown series: ${config.kind}`);
+      allSeries[item.id] = {
+        chart,
+        serie,
+      };
+
+      continue;
     }
 
-    const series = chart.api.addSeries(
-      factory({
-        id: config.id,
-        ...config.options,
-      }),
-    );
-
-    if (config.primary) {
-      candleSeries = series;
+    const parent = allSeries[item.parent];
+    if (!parent) {
+      throw new Error(`Parent series "${item.parent}" has not been created.`);
     }
+
+    const serie = parent.chart.api.addSeries(build);
+
+    allSeries[item.id] = {
+      chart: parent.chart,
+      serie,
+    };
   }
 });
 
-function applyOptions(config: any) {
-  chart?.api.applyOptions(config);
+function applyOptions(serieId: SeriesId, config: any) {
+  allSeries[serieId]?.chart.api.applyOptions(config);
 }
 
-function setData(data: any) {
-  candleSeries?.setData(data);
+function setData(serieId: SeriesId, data: any) {
+  allSeries[serieId]?.serie.setData(data);
 }
 
-function update(candle: any) {
-  candleSeries?.update(candle);
+function update(serieId: SeriesId, candle: any) {
+  allSeries[serieId]?.serie.update(candle);
+}
+
+function _addChildToContainer(id: SeriesId): HTMLDivElement {
+  const container = document.getElementById("chart-container");
+
+  if (!container) {
+    console.error("Element #chart-container not found");
+    throw new Error("No Chart container");
+  }
+
+  const newDiv = document.createElement("div");
+
+  if (id) newDiv.id = id;
+  newDiv.className = "chart-area";
+
+  container.appendChild(newDiv);
+
+  return newDiv;
 }
 
 defineExpose({
@@ -103,9 +150,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="chart-container">
-    <div id="chart-area" class="chart-area"></div>
-  </div>
+  <div class="chart-container" id="chart-container"></div>
 </template>
 
 <style lang="css" scoped>

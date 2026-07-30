@@ -141,7 +141,7 @@ const chart = ref<InstanceType<typeof Chart>>();
 let timer: ReturnType<typeof setInterval>;
 
 function testLive() {
-  chart.value?.update({
+  chart.value?.update("candle-bubble-series", {
     time: Math.floor(Date.now() / 1000),
     open: 63584.1,
     high: 63589.8,
@@ -154,8 +154,10 @@ function testLive() {
 }
 
 onMounted(() => {
-  chart.value?.applyOptions({ legend: "Bitcoin/Tether USD · 4h" });
-  chart.value?.setData(history);
+  chart.value?.applyOptions("candle-bubble-series", {
+    legend: "Bitcoin/Tether USD · 4h",
+  });
+  chart.value?.setData("candle-bubble-series", history);
 
   timer = setInterval(testLive, 1000);
 });
