@@ -45,10 +45,13 @@ interface RuntimeSeries {
 
 const allSeries = new Map<SeriesId, RuntimeSeries>();
 
-onMounted(() => {});
-
 function applyLayout(layout: ChartLayout) {
-  allSeries.clear(); //TODO. allSeries.forEach(runtime => runtime.destroy()); unmount
+  allSeries.forEach((runtime) => {
+    runtime.chart.api.destroy();
+    runtime.serie.destroy();
+  });
+
+  allSeries.clear();
 
   for (const item of layout.series) {
     const seriesFactory = seriesRegistry[item.kind];
@@ -103,6 +106,17 @@ function _addChildToContainer(id: SeriesId): HTMLDivElement {
 
   return newDiv;
 }
+
+onBeforeUnmount(() => {
+  allSeries.forEach((runtime) => {
+    runtime.chart.api.destroy();
+    runtime.serie.destroy();
+  });
+
+  allSeries.clear();
+
+  document.getElementById("chart-container")?.replaceChildren();
+});
 
 defineExpose({
   applyLayout,
