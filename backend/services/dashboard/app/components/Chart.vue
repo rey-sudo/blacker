@@ -15,28 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { createChart } from "@/packages/src/index";
-import { CandleBubbleSeries } from "@/packages/playground/indicators/CandleBubbleSeries/CandleBubbleSeries";
-import { EMASeries } from "~/packages/playground/indicators/EMASeries/EMASeries";
 import type { AnyChartSeries, ChartEngine } from "~/packages/src/core/types";
-
-const seriesRegistry = {
-  CandleBubbleSeries,
-  EMASeries,
-} as const;
-
-type Registry = typeof seriesRegistry;
-type SeriesKind = keyof Registry;
-type SeriesId = string;
-type LayoutSeries<K extends SeriesKind = SeriesKind> = {
-  id: SeriesId;
-  kind: K;
-  parent?: SeriesId;
-  options: any;
-};
-
-export interface ChartLayout {
-  series: LayoutSeries[];
-}
+import { seriesRegistry, type ChartLayout, type SeriesId } from "~/stores/tabs/trading-tab.store";
 
 interface RuntimeSeries {
   chart: ChartEngine;
@@ -64,17 +44,17 @@ function _cleanAllSeries() {
 function applyLayout(layout: ChartLayout) {
   _cleanAllSeries();
 
-  for (const item of layout.series) {
+  for (const [seriesId, item] of layout.series) {
     // Create the series builder from its registered type and configuration.
     const seriesFactory = seriesRegistry[item.kind];
     const build = seriesFactory(item.options);
 
     // Root series create a new chart instance.
     if (!item.parent) {
-      const chart = createChart(_addChildToContainer(item.id));
+      const chart = createChart(_addChildToContainer(seriesId));
       const serie = chart.api.addSeries(build);
 
-      allSeries.set(item.id, { chart, serie });
+      allSeries.set(seriesId, { chart, serie });
 
       continue;
     }
@@ -87,7 +67,7 @@ function applyLayout(layout: ChartLayout) {
      
     const serie = parent.chart.api.addSeries(build);
 
-    allSeries.set(item.id, { chart: parent.chart, serie });
+    allSeries.set(seriesId, { chart: parent.chart, serie });
   }
 }
 

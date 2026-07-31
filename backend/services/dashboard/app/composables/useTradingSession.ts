@@ -19,6 +19,7 @@ export function useTradingSession(
   tabId: string,
   source: string,
   symbol: string,
+  timeframe: string,
 ) {
   const { $marketWs } = useNuxtApp();
   

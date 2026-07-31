@@ -14,25 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import { useTradingTabStore } from "~/stores/tabs/trading-tab.store";
-import Chart, { type ChartLayout } from "~/components/Chart.vue";
-
-const props = defineProps({
-  tabId: {
-    type: String,
-    required: true,
-  },
-});
-
-const tabManager = useTabManager();
-
-const tab = computed(() => tabManager.getTabById(props.tabId));
-
-const tabStore = computed(() =>
-  tab.value ? useTradingTabStore(tab.value as TradingTab) : undefined,
-);
-
-const { session, send } = useTradingSession(props.tabId, "binance", "BTCUSDT");
+import {
+  useTradingTabStore,
+  type LayoutSeries,
+} from "~/stores/tabs/trading-tab.store";
+import Chart from "~/components/Chart.vue";
 
 const history = [
   {
@@ -55,87 +41,54 @@ const history = [
     start_ts: 1785280740000,
     end_ts: 1785280800000,
   },
-  {
-    time: 1785280800,
-    open: 63600.1,
-    high: 63630.9,
-    low: 63596.8,
-    close: 63607.5,
-    volume: 140.6930000000017,
-    start_ts: 1785280800000,
-    end_ts: 1785280860000,
-  },
-  {
-    time: 1785280860,
-    open: 63607.6,
-    high: 63607.6,
-    low: 63607.5,
-    close: 63607.5,
-    volume: 40.31200000000004,
-    start_ts: 1785280860000,
-    end_ts: 1785280920000,
-  },
-  {
-    time: 1785280920,
-    open: 63607.6,
-    high: 63607.6,
-    low: 63607.5,
-    close: 63607.6,
-    volume: 23.334000000000042,
-    start_ts: 1785280920000,
-    end_ts: 1785280980000,
-  },
-  {
-    time: 1785280980,
-    open: 63607.6,
-    high: 63607.6,
-    low: 63541.9,
-    close: 63553.0,
-    volume: 232.91100000000233,
-    start_ts: 1785280980000,
-    end_ts: 1785281040000,
-  },
-  {
-    time: 1785281040,
-    open: 63552.9,
-    high: 63565.2,
-    low: 63552.9,
-    close: 63565.2,
-    volume: 61.61499999999988,
-    start_ts: 1785281040000,
-    end_ts: 1785281100000,
-  },
-  {
-    time: 1785281100,
-    open: 63565.1,
-    high: 63565.2,
-    low: 63526.0,
-    close: 63540.5,
-    volume: 140.71000000000112,
-    start_ts: 1785281100000,
-    end_ts: 1785281160000,
-  },
-  {
-    time: 1785281160,
-    open: 63540.5,
-    high: 63584.1,
-    low: 63540.5,
-    close: 63584.1,
-    volume: 39.72700000000031,
-    start_ts: 1785281160000,
-    end_ts: 1785281220000,
-  },
-  {
-    time: 1785281220,
-    open: 63584.1,
-    high: 63589.8,
-    low: 63569.6,
-    close: 63569.7,
-    volume: 45.848999999999755,
-    start_ts: 1785281220000,
-    end_ts: 1785281280000,
-  },
 ];
+
+const defaultSeries: LayoutSeries = {
+  id: "candle-bubble-series",
+  kind: "CandleBubbleSeries",
+  options: {
+    id: "candle-bubble-series",
+    label: "Candlesticks",
+    layer: "background",
+    color: "red",
+    priceTagColor: "#F23645",
+    params: {
+      bullColor: "#089981",
+      bearColor: "#F23645",
+    },
+  },
+};
+
+const props = defineProps({
+  tabId: {
+    type: String,
+    required: true,
+  },
+});
+
+const tabManager = useTabManager();
+
+const tab = tabManager.getTabById(props.tabId)!;
+const tabStore = useTradingTabStore(tab as TradingTab);
+
+const unsubscribe = tabStore.subscribe((event) => {
+  switch (event.type) {
+    case "series-added":
+    case "series-removed":
+    case "layout-replaced":
+      break;
+  }
+});
+
+// Connect to market websocket tabId, source, symbol, timeframe
+const { session, send } = useTradingSession(
+  props.tabId,
+  "binance",
+  "BTCUSDT",
+  "1m",
+);
+
+tabStore.addSeriesToLayout(defaultSeries);
 
 const chart = ref<InstanceType<typeof Chart>>();
 let timer: ReturnType<typeof setInterval>;
@@ -153,56 +106,10 @@ function testLive() {
   });
 }
 
-const layout: ChartLayout = {
-  series: [
-    {
-      id: "candle-bubble-series",
-      kind: "CandleBubbleSeries",
-      options: {
-        id: "candle-bubble-series",
-        label: "Candlesticks",
-        layer: "background",
-        color: "red",
-        priceTagColor: "#F23645",
-        params: {
-          bullColor: "#089981",
-          bearColor: "#F23645",
-        },
-      },
-    },
-    {
-      id: "ema-55-series",
-      kind: "EMASeries",
-      parent: "candle-bubble-series",
-      options: {
-        id: "ema-55-series",
-        label: "EMA 55",
-        color: "#ffb830",
-        layer: "foreground",
-        priceTagColor: "#ffb830",
-        params: {
-          lineWidth: 2,
-        },
-      },
-    },
-  ],
-};
-
-function watchLayout () {
-  watch(
-  () => layout.series,
-  () => {
-    chart?.value?.applyLayout(layout);
-  },
-  {
-    deep: true,
-    immediate: true,
-  },
-);
-}
+onBeforeUnmount(unsubscribe);
 
 onMounted(() => {
-  watchLayout()
+  chart?.value?.applyLayout(tabStore.layout);
 
   chart.value?.applyOptions("candle-bubble-series", {
     legend: "Bitcoin/Tether USD · 4h",
@@ -214,6 +121,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   clearInterval(timer);
+  unsubscribe();
 });
 </script>
 
