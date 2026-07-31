@@ -22,17 +22,14 @@ export function useTradingSession(
   timeframe: string,
 ) {
   const { $marketWs } = useNuxtApp();
-  
+
   const tabManager = useTabManager();
 
-  const tab = computed(() => tabManager.getTabById(tabId));
-
-  const tabStore = computed(() =>
-    tab.value ? useTradingTabStore(tab.value as TradingTab) : undefined,
-  );
+  const tab = tabManager.getTabById(tabId)!;
+  const tabStore = useTradingTabStore(tab as TradingTab);
 
   const onMessage = (payload: any) => {
-    tabStore.value?.updateSession(payload);
+    tabStore.updateSession(payload);
   };
 
   onMounted(() => {

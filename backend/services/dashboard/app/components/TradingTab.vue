@@ -43,7 +43,7 @@ const history = [
   },
 ];
 
-const defaultSeries: LayoutSeries = {
+const DEFAULT_SERIES: LayoutSeries = {
   id: "candle-bubble-series",
   kind: "CandleBubbleSeries",
   options: {
@@ -83,12 +83,12 @@ const unsubscribe = tabStore.subscribe((event) => {
 // Connect to market websocket tabId, source, symbol, timeframe
 const { session, send } = useTradingSession(
   props.tabId,
-  "binance",
-  "BTCUSDT",
-  "1m",
+  tabStore.source,
+  tabStore.symbol,
+  tabStore.timeframe,
 );
 
-tabStore.addSeriesToLayout(defaultSeries);
+tabStore.addSeriesToLayout(DEFAULT_SERIES);
 
 const chart = ref<InstanceType<typeof Chart>>();
 let timer: ReturnType<typeof setInterval>;

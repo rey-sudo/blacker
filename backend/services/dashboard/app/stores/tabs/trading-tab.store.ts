@@ -1,3 +1,18 @@
+// BLACKER
+// Copyright (C) 2026 Juan José Caballero Rey
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation version 3 of the License.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 import { CandleBubbleSeries } from "~/packages/playground/indicators/CandleBubbleSeries/CandleBubbleSeries";
 import { EMASeries } from "~/packages/playground/indicators/EMASeries/EMASeries";
 
@@ -9,7 +24,6 @@ export const seriesRegistry = {
 export interface MarketPayload {
   source: string;
   symbol: string;
-
   series: Record<string, any>;
 }
 
@@ -28,16 +42,19 @@ export interface ChartLayout {
   series: Map<SeriesId, LayoutSeries>;
 }
 
-type LayoutEvent =
+type StoreEvent =
   | { type: "series-added"; series: LayoutSeries }
   | { type: "series-removed"; id: SeriesId }
   | { type: "layout-replaced" }
   | { type: "live-update"; data: any };
 
-type Listener = (event: LayoutEvent) => void;
+type Listener = (event: StoreEvent) => void;
 
 export const useTradingTabStore = (tab: TradingTab) =>
   defineStore(`tab/${tab.id}`, () => {
+    //---------------------------------------------------------------------
+    // STORE SUBS
+    //---------------------------------------------------------------------
     const listeners = new Set<Listener>();
 
     function subscribe(listener: Listener) {
@@ -46,20 +63,21 @@ export const useTradingTabStore = (tab: TradingTab) =>
       return () => listeners.delete(listener);
     }
 
-    function notify(event: LayoutEvent) {
+    function notify(event: StoreEvent) {
       listeners.forEach((listener) => listener(event));
     }
 
-    //------------------------------------
-
+    //---------------------------------------------------------------------
+    // TRADING TAB STORE
+    //---------------------------------------------------------------------
     const id: string = tab.id;
-
-    const tabTitle = computed(() => `${symbol.value} - ${interval.value}`);
     const tabColor = "primary";
-
+    const source = ref("binance");
     const symbol = ref("BTCUSDT");
-    const interval = ref("1m");
+    const timeframe = ref("1m");
     const isPaused = ref(false);
+
+    const tabTitle = computed(() => `${symbol.value} - ${timeframe.value}`);
 
     const layout = ref<ChartLayout>({
       series: new Map<SeriesId, LayoutSeries>(),
@@ -115,6 +133,7 @@ export const useTradingTabStore = (tab: TradingTab) =>
     };
 
     return {
+      source,
       subscribe,
       addSeriesToLayout,
       deleteLayoutSeries,
@@ -123,7 +142,7 @@ export const useTradingTabStore = (tab: TradingTab) =>
       tabTitle,
       tabColor,
       symbol,
-      interval,
+      timeframe,
       stop,
       id,
       pause,
