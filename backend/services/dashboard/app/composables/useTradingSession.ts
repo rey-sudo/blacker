@@ -21,6 +21,7 @@ export function useTradingSession(
   symbol: string,
 ) {
   const { $marketWs } = useNuxtApp();
+  
   const tabManager = useTabManager();
 
   const tab = computed(() => tabManager.getTabById(tabId));
