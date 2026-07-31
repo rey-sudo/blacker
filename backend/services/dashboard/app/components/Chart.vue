@@ -27,13 +27,13 @@ const seriesRegistry = {
 type Registry = typeof seriesRegistry;
 type SeriesKind = keyof Registry;
 type SeriesId = string;
-
 type LayoutSeries<K extends SeriesKind = SeriesKind> = {
   id: SeriesId;
   kind: K;
   parent?: SeriesId;
   options: any;
 };
+
 export interface ChartLayout {
   series: LayoutSeries[];
 }
@@ -45,18 +45,31 @@ interface RuntimeSeries {
 
 const allSeries = new Map<SeriesId, RuntimeSeries>();
 
-function applyLayout(layout: ChartLayout) {
+function _cleanAllSeries() {
   allSeries.forEach((runtime) => {
     runtime.chart.api.destroy();
     runtime.serie.destroy();
   });
 
   allSeries.clear();
+}
+
+/**
+ * Applies the provided chart layout by recreating all series in the
+ * order they are defined. Root series create new charts, while child
+ * series are attached to the chart of their parent.
+ *
+ * @throws {Error} If a series references a parent that has not been created.
+ */
+function applyLayout(layout: ChartLayout) {
+  _cleanAllSeries();
 
   for (const item of layout.series) {
+    // Create the series builder from its registered type and configuration.
     const seriesFactory = seriesRegistry[item.kind];
     const build = seriesFactory(item.options);
 
+    // Root series create a new chart instance.
     if (!item.parent) {
       const chart = createChart(_addChildToContainer(item.id));
       const serie = chart.api.addSeries(build);
@@ -66,11 +79,12 @@ function applyLayout(layout: ChartLayout) {
       continue;
     }
 
+    // Child series reuse the chart created by their parent.
     const parent = allSeries.get(item.parent);
     if (!parent) {
       throw new Error(`Parent series "${item.parent}" has not been created.`);
     }
-
+     
     const serie = parent.chart.api.addSeries(build);
 
     allSeries.set(item.id, { chart: parent.chart, serie });
@@ -85,8 +99,12 @@ function setData(serieId: SeriesId, data: any) {
   allSeries.get(serieId)?.serie.setData(data);
 }
 
-function update(serieId: SeriesId, candle: any) {
+function updateLive(serieId: SeriesId, candle: any) {
   allSeries.get(serieId)?.serie.update(candle);
+}
+
+function getSeriesById(serieId: SeriesId) {
+  return allSeries.get(serieId);
 }
 
 function _addChildToContainer(id: SeriesId): HTMLDivElement {
@@ -108,21 +126,17 @@ function _addChildToContainer(id: SeriesId): HTMLDivElement {
 }
 
 onBeforeUnmount(() => {
-  allSeries.forEach((runtime) => {
-    runtime.chart.api.destroy();
-    runtime.serie.destroy();
-  });
-
-  allSeries.clear();
+  _cleanAllSeries();
 
   document.getElementById("chart-container")?.replaceChildren();
 });
 
 defineExpose({
+  getSeriesById,
   applyLayout,
   applyOptions,
   setData,
-  update,
+  updateLive,
 });
 </script>
 

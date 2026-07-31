@@ -141,7 +141,7 @@ const chart = ref<InstanceType<typeof Chart>>();
 let timer: ReturnType<typeof setInterval>;
 
 function testLive() {
-  chart.value?.update("candle-bubble-series", {
+  chart.value?.updateLive("candle-bubble-series", {
     time: Math.floor(Date.now() / 1000),
     open: 63584.1,
     high: 63589.8,
