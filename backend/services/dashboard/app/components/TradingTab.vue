@@ -82,14 +82,22 @@ const unsubscribe = tabStore.subscribe((event) => {
 
 tabStore.addSeriesToLayout(DEFAULT_SERIES);
 
-// Connect to market websocket tabId, source, symbol, timeframe
-const { send } = useTradingSession(
+const getSessionParams = (): [
+  string,
+  string,
+  string,
+  string,
+  string[]
+] => [
   props.tabId,
   tabStore.source,
   tabStore.symbol,
   tabStore.timeframe,
   [...tabStore.layout.series.keys()],
-);
+];
+
+// Connect to market websocket tabId, source, symbol, timeframe
+const session = useTradingSession(...getSessionParams());
 
 const chart = ref<InstanceType<typeof Chart>>();
 let timer: ReturnType<typeof setInterval>;

@@ -57,15 +57,21 @@ export function useTradingSession(
     );
   };
 
+  const update = () => {
+    unsub();
+    sub();
+  };
+
   onMounted(() => {
     sub();
   });
 
   onUnmounted(() => {
-    unsub()
+    unsub();
   });
 
   return {
+    update,
     sub,
     unsub,
     send(command: unknown) {
