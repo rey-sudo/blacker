@@ -18,6 +18,8 @@ import { decode } from "@msgpack/msgpack";
 export interface MarketSubscription {
   source: string;
   symbol: string;
+  timeframe: string;
+  series: string[];
 }
 
 export type MarketMessageHandler = (payload: any) => void;
@@ -96,9 +98,9 @@ export class MarketWsService {
       handlers = new Set();
       this.listeners.set(key, handlers);
     }
-    
+
     //Add to Set reference.
-    handlers.add(newHandler); 
+    handlers.add(newHandler);
 
     if (firstSubscriber && this.isConnected()) {
       this.send({

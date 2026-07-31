@@ -20,6 +20,7 @@ export function useTradingSession(
   source: string,
   symbol: string,
   timeframe: string,
+  series: string[],
 ) {
   const { $marketWs } = useNuxtApp();
 
@@ -32,29 +33,41 @@ export function useTradingSession(
     tabStore.updateSession(payload);
   };
 
-  onMounted(() => {
+  const sub = () => {
     $marketWs.subscribe(
       {
         source,
         symbol,
+        timeframe,
+        series,
       },
       onMessage,
     );
-  });
+  };
 
-  onUnmounted(() => {
+  const unsub = () => {
     $marketWs.unsubscribe(
       {
         source,
         symbol,
+        timeframe,
+        series,
       },
       onMessage,
     );
+  };
+
+  onMounted(() => {
+    sub();
+  });
+
+  onUnmounted(() => {
+    unsub()
   });
 
   return {
-    session: true, //computed(() => tab.value?.sessions[symbol]),
-
+    sub,
+    unsub,
     send(command: unknown) {
       $marketWs.send(command);
     },
