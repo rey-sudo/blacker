@@ -19,8 +19,7 @@ export function useTradingSession(
   tabId: string,
   source: string,
   symbol: string,
-  timeframe: string,
-  series: string[],
+  timeframe: string
 ) {
   const { $marketWs } = useNuxtApp();
 
@@ -38,8 +37,7 @@ export function useTradingSession(
       {
         source,
         symbol,
-        timeframe,
-        series,
+        timeframe
       },
       onMessage,
     );
@@ -50,8 +48,7 @@ export function useTradingSession(
       {
         source,
         symbol,
-        timeframe,
-        series,
+        timeframe
       },
       onMessage,
     );

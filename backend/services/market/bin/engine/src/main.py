@@ -16,6 +16,7 @@
 import json
 from time import sleep
 import clickhouse_connect
+import msgpack
 from core.engine_state import EngineState
 from ingestion.tick import Tick
 from core.engine import TradingEngine
@@ -35,11 +36,33 @@ default_snapshot = {
       "name": "1m",
       "timeframe_ms": 60000,
       "series": {
-        "CandleSeries-1": {  
+        "candle-series": {  
           "params": {
             "level": 0,
-            "name": "CandleSeries",
-            "id": "CandleSeries-1",
+            "name": "CandleSeries", #kind
+            "id": "candle-series",
+          }
+        },
+
+        "candle-series-1": {  
+          "params": {
+            "level": 0,
+            "name": "CandleSeries", #kind
+            "id": "candle-series-1",
+          }
+        } 
+      }   
+    },
+
+    "5m": {
+      "name": "5m",
+      "timeframe_ms": 300000,
+      "series": {
+        "candle-series": {  
+          "params": {
+            "level": 0,
+            "name": "CandleSeries", #kind
+            "id": "candle-series",
           }
         } 
       }   
@@ -78,7 +101,7 @@ consumer = PulsarConsumer(
 
 publisher = PulsarPublisher(
     service_url="pulsar://localhost:6650",
-    topic=f"persistent://public/default/live-{ENGINE_ID}",
+    topic_prefix=f"persistent://public/default/live-{ENGINE_ID}",
 )
 
 engine = TradingEngine.from_snapshot(snapshot)
@@ -99,27 +122,31 @@ def save_snapshot(state: EngineState):
         column_names=["key", "value"]
       )       
 
-live_events: list[bytes] = []
+live_events: list[dict[str, dict]] = []
 
 def handle_tick(tick: Tick, is_last: bool):
-    current_time = engine.state.cursor_time;
+    current_time = engine.state.cursor_time
 
-    if current_time != 0 and tick.time < engine.state.cursor_time:
+    if current_time != 0 and tick.time < current_time:
         print("Tick order error (ACK).")
-        return 
-    
+        return
+
     state = engine.on_tick(tick)
-
-    live_events.append(state.live().to_msgpack())
-      
+    
+    live_events.append(state.live())
+  
     if is_last:
-      save_snapshot(state)
+        save_snapshot(state)
 
-      for payload in live_events:
-          publisher.publish(payload)
+        for event in live_events:
+            for timeframe, tf_payload in event.items():
+                publisher.publish(
+                    timeframe,
+                    msgpack.packb(tf_payload, use_bin_type=True) 
+                )
 
-      live_events.clear() 
-      sleep(1)   
+        live_events.clear()
+        sleep(60)  
 
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN

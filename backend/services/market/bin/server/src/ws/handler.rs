@@ -35,6 +35,7 @@ struct WsCommand {
     action: String,
     source: String,
     symbol: String,
+    timeframe: String,
 }
 
 pub async fn ws_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> Response {
@@ -69,7 +70,7 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
                         continue;
                     };
 
-                    let engine_id = format!("{}-{}",cmd.source,cmd.symbol);
+                    let engine_id = format!("{}-{}-{}",cmd.source, cmd.symbol, cmd.timeframe);
 
                     // Handle a subscription request from the client.
                     if cmd.action == "subscribe" {

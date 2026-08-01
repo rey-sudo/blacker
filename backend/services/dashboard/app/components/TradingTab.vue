@@ -86,14 +86,12 @@ const getSessionParams = (): [
   string,
   string,
   string,
-  string,
-  string[]
+  string
 ] => [
   props.tabId,
   tabStore.source,
   tabStore.symbol,
-  tabStore.timeframe,
-  [...tabStore.layout.series.keys()],
+  tabStore.timeframe
 ];
 
 // Connect to market websocket tabId, source, symbol, timeframe

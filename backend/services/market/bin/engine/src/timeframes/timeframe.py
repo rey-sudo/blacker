@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dataclasses import asdict
 from series.series import Series
 
 class Timeframe:
@@ -21,7 +22,7 @@ class Timeframe:
         Returns the live state of every series in this timeframe.
         """
         return {
-            key: series.live
+            key: asdict(series.live) if series.live is not None else None
             for key, series in self.series.items()
         }
     

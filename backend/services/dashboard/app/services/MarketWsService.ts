@@ -19,7 +19,6 @@ export interface MarketSubscription {
   source: string;
   symbol: string;
   timeframe: string;
-  series: string[];
 }
 
 export type MarketMessageHandler = (payload: any) => void;

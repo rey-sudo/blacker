@@ -4,17 +4,26 @@ class PulsarPublisher:
     def __init__(
         self,
         service_url="pulsar://localhost:6650",
-        topic="persistent://public/default/engine.state",
+        topic_prefix="persistent://public/default/live-engine-id",
     ):
         self.client = Client(service_url)
+        self.topic_prefix = topic_prefix
+        self.producers: dict[str, Producer] = {}
 
-        self.producer: Producer = self.client.create_producer(topic)
+    def _get_producer(self, timeframe: str) -> Producer:
+        if timeframe not in self.producers:
+            topic = f"{self.topic_prefix}-{timeframe}"
+            self.producers[timeframe] = self.client.create_producer(topic)
 
+        return self.producers[timeframe]
 
-    def publish(self, payload):
-        self.producer.send(payload)
+    def publish(self, timeframe: str, payload: bytes):
+        producer = self._get_producer(timeframe)
+        producer.send(payload)
 
     def close(self):
-        self.producer.flush()
-        self.producer.close()
+        for producer in self.producers.values():
+            producer.flush()
+            producer.close()
+
         self.client.close()
