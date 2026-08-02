@@ -44,10 +44,10 @@ const history = [
 ];
 
 const DEFAULT_SERIES: LayoutSeries = {
-  id: "candle-bubble-series",
+  id: "candle-series",
   kind: "CandleBubbleSeries",
   options: {
-    id: "candle-bubble-series",
+    id: "candle-series",
     label: "Candlesticks",
     layer: "background",
     color: "red",
@@ -71,10 +71,15 @@ const tabManager = useTabManager();
 const tab = tabManager.getTabById(props.tabId)!;
 const tabStore = useTradingTabStore(tab as TradingTab);
 
-const unsubscribe = tabStore.subscribe((event) => {
+const unsubscribe = tabStore.subscribe((event: any) => {
   switch (event.type) {
     case "series-added":
-    case "series-removed":
+      break;
+    case "live-update":
+      for (const [seriesId, liveData] of Object.entries(event.data.series)) {
+        chart.value?.updateLive(seriesId, liveData);
+      }
+      break;
     case "layout-replaced":
       break;
   }
@@ -82,36 +87,17 @@ const unsubscribe = tabStore.subscribe((event) => {
 
 tabStore.addSeriesToLayout(DEFAULT_SERIES);
 
-const getSessionParams = (): [
-  string,
-  string,
-  string,
-  string
-] => [
+const getSessionParams = (): [string, string, string, string] => [
   props.tabId,
   tabStore.source,
   tabStore.symbol,
-  tabStore.timeframe
+  tabStore.timeframe,
 ];
 
 // Connect to market websocket tabId, source, symbol, timeframe
 const session = useTradingSession(...getSessionParams());
 
 const chart = ref<InstanceType<typeof Chart>>();
-let timer: ReturnType<typeof setInterval>;
-
-function testLive() {
-  chart.value?.updateLive("candle-bubble-series", {
-    time: Math.floor(Date.now() / 1000),
-    open: 63584.1,
-    high: 63589.8,
-    low: 63569.6,
-    close: 63569.7 + Math.random() * 100,
-    volume: 45.848999999999755,
-    start_ts: 1785281220000,
-    end_ts: 1785281280000,
-  });
-}
 
 onBeforeUnmount(unsubscribe);
 
@@ -122,12 +108,9 @@ onMounted(() => {
     legend: "Bitcoin/Tether USD · 4h",
   });
   chart.value?.setData("candle-bubble-series", history);
-
-  timer = setInterval(testLive, 1000);
 });
 
 onUnmounted(() => {
-  clearInterval(timer);
   unsubscribe();
 });
 </script>

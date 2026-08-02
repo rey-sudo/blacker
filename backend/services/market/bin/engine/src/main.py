@@ -126,7 +126,7 @@ live_events: list[dict[str, dict]] = []
 
 def handle_tick(tick: Tick, is_last: bool):
     if engine.state.cursor_time % 100 == 0:
-        sleep(0.5) #DEBUG      
+        sleep(0.05) #DEBUG      
 
     current_time = engine.state.cursor_time
     if current_time != 0 and tick.time < current_time:
@@ -142,8 +142,6 @@ def handle_tick(tick: Tick, is_last: bool):
 
         for event in live_events:
             for timeframe, payload in event.items():
-                print(payload) #DEBUG  
-                sleep(30)   
                 publisher.publish(
                     timeframe,
                     msgpack.packb(payload, use_bin_type=True) 

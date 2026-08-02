@@ -24,7 +24,8 @@ export const seriesRegistry = {
 export interface MarketPayload {
   source: string;
   symbol: string;
-  series: Record<string, any>;
+  timeframe: string;
+  series: Record<string, unknown>;
 }
 
 export type SeriesRegistry = typeof seriesRegistry;
@@ -55,6 +56,7 @@ export const useTradingTabStore = (tab: TradingTab) =>
     //---------------------------------------------------------------------
     // STORE SUBS
     //---------------------------------------------------------------------
+
     const listeners = new Set<Listener>();
 
     function subscribe(listener: Listener) {
@@ -70,6 +72,7 @@ export const useTradingTabStore = (tab: TradingTab) =>
     //---------------------------------------------------------------------
     // TRADING TAB STORE
     //---------------------------------------------------------------------
+
     const id: string = tab.id;
     const tabColor = "primary";
     const source = ref("binance");
@@ -102,11 +105,9 @@ export const useTradingTabStore = (tab: TradingTab) =>
     };
 
     function updateSession(payload: MarketPayload) {
-      console.log(payload);
-
       notify({
         type: "live-update",
-        data: {},
+        data: payload,
       });
     }
 
