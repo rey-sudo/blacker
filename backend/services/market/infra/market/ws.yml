@@ -4,13 +4,15 @@ info:
   seq: 1
 
 websocket:
-  url: ws://localhost:3000/api/market/ws
+  url: ws://localhost:3001/api/market/ws
   message:
     type: json
     data: |-
       {
         "action": "subscribe",
-        "engine_id": "dydx-BTC-USD"
+        "source": "binance",
+        "symbol": "BTCUSDT",
+        "timeframe": "1m"
       }
   auth: inherit
 

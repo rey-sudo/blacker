@@ -106,10 +106,6 @@ publisher = PulsarPublisher(
 
 engine = TradingEngine.from_snapshot(snapshot)
 
-#-----------------------------------------------------------------------------------------------------------------------
-# HANDLE TICKS
-#----------------------------------------------------------------------------------------------------------------------- 
-
 def save_snapshot(state: EngineState):
       db.insert(
         "kv_store",
@@ -120,15 +116,21 @@ def save_snapshot(state: EngineState):
           ]
         ],
         column_names=["key", "value"]
-      )       
+      )    
+
+#-----------------------------------------------------------------------------------------------------------------------
+# HANDLE TICKS
+#----------------------------------------------------------------------------------------------------------------------- 
 
 live_events: list[dict[str, dict]] = []
 
 def handle_tick(tick: Tick, is_last: bool):
-    current_time = engine.state.cursor_time
+    if engine.state.cursor_time % 100 == 0:
+        sleep(0.5) #DEBUG      
 
+    current_time = engine.state.cursor_time
     if current_time != 0 and tick.time < current_time:
-        print("Tick order error (ACK).")
+        print("Tick order error (ACKING).")
         return
 
     state = engine.on_tick(tick)
@@ -139,14 +141,16 @@ def handle_tick(tick: Tick, is_last: bool):
         save_snapshot(state)
 
         for event in live_events:
-            for timeframe, tf_payload in event.items():
+            for timeframe, payload in event.items():
+                print(payload) #DEBUG  
+                sleep(30)   
                 publisher.publish(
                     timeframe,
-                    msgpack.packb(tf_payload, use_bin_type=True) 
+                    msgpack.packb(payload, use_bin_type=True) 
                 )
 
         live_events.clear()
-        sleep(60)  
+          
 
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN

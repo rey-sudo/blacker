@@ -42,12 +42,13 @@ export class MarketWsService {
 
       // Reenviar todas las suscripciones al reconectar
       for (const key of this.listeners.keys()) {
-        const [source, symbol] = key.split(":");
+        const [source, symbol, timeframe] = key.split(":");
 
         this.send({
           action: "subscribe",
           source,
           symbol,
+          timeframe,
         });
       }
     };
@@ -57,7 +58,11 @@ export class MarketWsService {
         const bytes = new Uint8Array(event.data);
         const payload: any = decode(bytes);
 
-        const key = this.getKey(payload.source, payload.symbol);
+        const key = this.getKey(
+          payload.source,
+          payload.symbol,
+          payload.timeframe,
+        );
         const handlers = this.listeners.get(key);
         if (!handlers) return;
 
@@ -88,7 +93,11 @@ export class MarketWsService {
   ) {
     this.connect();
 
-    const key = this.getKey(subscription.source, subscription.symbol);
+    const key = this.getKey(
+      subscription.source,
+      subscription.symbol,
+      subscription.timeframe,
+    );
 
     let handlers = this.listeners.get(key);
     const firstSubscriber = !handlers;
@@ -106,12 +115,17 @@ export class MarketWsService {
         action: "subscribe",
         source: subscription.source,
         symbol: subscription.symbol,
+        timeframe: subscription.timeframe,
       });
     }
   }
 
   unsubscribe(subscription: MarketSubscription, handler: MarketMessageHandler) {
-    const key = this.getKey(subscription.source, subscription.symbol);
+    const key = this.getKey(
+      subscription.source,
+      subscription.symbol,
+      subscription.timeframe,
+    );
 
     const handlers = this.listeners.get(key);
     if (!handlers) return;
@@ -127,6 +141,7 @@ export class MarketWsService {
         action: "unsubscribe",
         source: subscription.source,
         symbol: subscription.symbol,
+        timeframe: subscription.timeframe,
       });
     }
   }
@@ -141,7 +156,7 @@ export class MarketWsService {
     return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
   }
 
-  private getKey(source: string, symbol: string) {
-    return `${source}:${symbol}`;
+  private getKey(source: string, symbol: string, timeframe: string) {
+    return `${source}:${symbol}:${timeframe}`;
   }
 }

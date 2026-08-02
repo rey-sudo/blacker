@@ -14,11 +14,19 @@ class EngineState:
     timeframes: dict[str, Timeframe]
     
     def live(self):
+        """
+        Returns the live state of every timeframe.
+        """
         return {
-            name: timeframe.live()
+            name: {
+                "source": self.source,
+                "symbol": self.symbol,
+                "timeframe": name,
+                "series": timeframe.live(),
+            }
             for name, timeframe in self.timeframes.items()
         }
-    
+
     def to_dict(self):
         return {
             "source": self.source,
