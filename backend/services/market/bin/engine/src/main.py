@@ -153,7 +153,7 @@ def handle_tick(tick: Tick, is_last: bool):
     live_events.append(state.live())
 
     if is_last:
-        sleep(60)
+        sleep(60) # DEBUG
         save_snapshot(state)
 
         for event in live_events:
