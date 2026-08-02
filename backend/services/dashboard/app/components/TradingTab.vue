@@ -62,6 +62,7 @@ watch(
   { immediate: true }
 )
 
+//Subscription to tabStore must be before the websocket connection.
 const unsubscribe = tabStore.subscribe((event: any) => {
   switch (event.type) {
     case "series-added":
