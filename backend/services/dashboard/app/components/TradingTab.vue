@@ -20,29 +20,6 @@ import {
 } from "~/stores/tabs/trading-tab.store";
 import Chart from "~/components/Chart.vue";
 
-const history = [
-  {
-    time: 1785280680,
-    open: 63604.0,
-    high: 63611.9,
-    low: 63604.0,
-    close: 63611.9,
-    volume: 13.385999999999965,
-    start_ts: 1785280680000,
-    end_ts: 1785280740000,
-  },
-  {
-    time: 1785280740,
-    open: 63611.9,
-    high: 63612.0,
-    low: 63600.0,
-    close: 63600.1,
-    volume: 74.86900000000011,
-    start_ts: 1785280740000,
-    end_ts: 1785280800000,
-  },
-];
-
 const DEFAULT_SERIES: LayoutSeries = {
   id: "candle-series",
   kind: "CandleBubbleSeries",
@@ -67,9 +44,23 @@ const props = defineProps({
 });
 
 const tabManager = useTabManager();
-
 const tab = tabManager.getTabById(props.tabId)!;
 const tabStore = useTradingTabStore(tab as TradingTab);
+
+tabStore.fetchHistory();
+tabStore.addSeriesToLayout(DEFAULT_SERIES);
+
+const chart = ref<InstanceType<typeof Chart>>();
+  
+watch(
+  () => tabStore.history,
+  (history) => {
+    if (history.length) {
+      chart.value?.setData("candle-series", history)
+    }
+  },
+  { immediate: true }
+)
 
 const unsubscribe = tabStore.subscribe((event: any) => {
   switch (event.type) {
@@ -85,29 +76,20 @@ const unsubscribe = tabStore.subscribe((event: any) => {
   }
 });
 
-tabStore.addSeriesToLayout(DEFAULT_SERIES);
-
-const getSessionParams = (): [string, string, string, string] => [
+// Connect to market websocket tabId, source, symbol, timeframe
+const session = useTradingSession(
   props.tabId,
   tabStore.source,
   tabStore.symbol,
   tabStore.timeframe,
-];
-
-// Connect to market websocket tabId, source, symbol, timeframe
-const session = useTradingSession(...getSessionParams());
-
-const chart = ref<InstanceType<typeof Chart>>();
-
-onBeforeUnmount(unsubscribe);
+);
 
 onMounted(() => {
   chart?.value?.applyLayout(tabStore.layout);
 
-  chart.value?.applyOptions("candle-bubble-series", {
-    legend: "Bitcoin/Tether USD · 4h",
+  chart.value?.applyOptions("candle-series", {
+    legend: "Bitcoin/Tether USD · 1m",
   });
-  chart.value?.setData("candle-bubble-series", history);
 });
 
 onUnmounted(() => {
