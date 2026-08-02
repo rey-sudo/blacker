@@ -2,6 +2,7 @@ services:
   pulsar-local:
     image: apachepulsar/pulsar:4.2.2
     container_name: pulsar
+    stop_grace_period: 60s
     restart: unless-stopped
     command: bin/pulsar standalone
     ports:
@@ -15,6 +16,7 @@ services:
   redis-local:
     image: redis:7
     container_name: redis_local
+    stop_grace_period: 60s
     restart: unless-stopped
     ports:
       - "6379:6379"

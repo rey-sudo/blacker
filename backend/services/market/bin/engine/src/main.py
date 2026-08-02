@@ -43,14 +43,6 @@ default_snapshot = {
             "id": "candle-series",
           }
         },
-
-        "candle-series-1": {  
-          "params": {
-            "level": 0,
-            "name": "CandleSeries", #kind
-            "id": "candle-series-1",
-          }
-        } 
       }   
     },
 
@@ -122,12 +114,35 @@ def save_snapshot(state: EngineState):
 # HANDLE TICKS
 #----------------------------------------------------------------------------------------------------------------------- 
 
+"""
+This is state.live() content
+
+{
+  "1m": {
+    "source": "binance",
+    "symbol": "BTCUSDT",
+    "timeframe": "1m",
+    "series": {
+      "candle-series": {
+        "time": 1785281520,
+        "open": 63705.6,
+        "high": 63705.6,
+        "low": 63705.6,
+        "close": 63705.6,
+        "volume": 0.001,
+        "start_ts": 1785281520000,
+        "end_ts": 1785281580000
+      },
+      "other-series": ...
+    }
+  },
+
+  "5m": ...
+}
+"""
 live_events: list[dict[str, dict]] = []
 
 def handle_tick(tick: Tick, is_last: bool):
-    if engine.state.cursor_time % 100 == 0:
-        sleep(0.05) #DEBUG      
-
     current_time = engine.state.cursor_time
     if current_time != 0 and tick.time < current_time:
         print("Tick order error (ACKING).")
@@ -136,8 +151,9 @@ def handle_tick(tick: Tick, is_last: bool):
     state = engine.on_tick(tick)
     
     live_events.append(state.live())
-  
+
     if is_last:
+        sleep(60)
         save_snapshot(state)
 
         for event in live_events:
@@ -149,7 +165,6 @@ def handle_tick(tick: Tick, is_last: bool):
 
         live_events.clear()
           
-
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN
 #----------------------------------------------------------------------------------------------------------------------- 
