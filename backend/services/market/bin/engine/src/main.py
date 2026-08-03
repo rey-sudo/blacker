@@ -143,6 +143,8 @@ This is state.live() content
 live_events: list[dict[str, dict]] = []
 
 def handle_tick(tick: Tick, is_last: bool):
+    sleep(0.001) # DEBUG
+
     current_time = engine.state.cursor_time
     if current_time != 0 and tick.time < current_time:
         print("Tick order error (ACKING).")
@@ -153,9 +155,7 @@ def handle_tick(tick: Tick, is_last: bool):
     live_events.append(state.live())
 
     if is_last:
-        sleep(60) # DEBUG
         save_snapshot(state)
-
         for event in live_events:
             for timeframe, payload in event.items():
                 publisher.publish(

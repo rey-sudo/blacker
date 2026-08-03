@@ -148,12 +148,13 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
 
                         // Forward the payload to the WebSocket client as a binary frame.
                         // Close the loop if the client connection is no longer available.
-                        if socket
-                            .send(Message::Binary(data.into()))
-                            .await
-                            .is_err()
-                        {
-                            break;
+                        match socket.send(Message::Binary(data.into())).await {
+                            Ok(_) => {}
+
+                            Err(err) => {
+                                info!("WebSocket send failed: {:?}", err);
+                                break;
+                            }
                         }
 
                         // Acknowledge successful message processing to Pulsar.
