@@ -1,9 +1,10 @@
-use axum::{Json};
+use axum::Json;
 use serde_json::json;
 
-pub async fn test_handler() -> Json<serde_json::Value> {
+pub async fn handler() -> Json<serde_json::Value> {
     Json(json!({
-        "status": "ok",
-        "message": "TEST OK"
+        "success": true,
+        "message": "TEST OK",
+        "data": {}
     }))
 }

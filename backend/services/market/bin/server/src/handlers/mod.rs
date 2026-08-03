@@ -1,3 +1,3 @@
-mod test;
+pub mod test;
+pub mod get_history;
 
-pub use test::test_handler;

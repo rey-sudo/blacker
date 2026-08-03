@@ -13,11 +13,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{handlers::test_handler, state::AppState, ws::handler::ws_handler};
-use axum::{Router, routing::get};
+use crate::{
+    handlers::{get_history, test},
+    state::AppState,
+    ws::handler::ws_handler,
+};
+use axum::{Router, routing::{get, post}};
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/test", get(test_handler))
+        .route("/get-history", post(get_history::handler))
+        .route("/test", get(test::handler))
         .route("/ws", get(ws_handler))
 }
