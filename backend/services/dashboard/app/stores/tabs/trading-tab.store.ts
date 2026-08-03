@@ -138,39 +138,25 @@ export const useTradingTabStore = (tab: TradingTab) =>
 
     const fetchHistory = async () => {
       try {
-        const data = [
-          {
-            time: 1785280680,
-            open: 63604.0,
-            high: 63611.9,
-            low: 63604.0,
-            close: 63611.9,
-            volume: 13.385999999999965,
-            start_ts: 1785280680000,
-            end_ts: 1785280740000,
+        const response = await $fetch("/api/market/get-history", {
+          method: "POST",
+          body: {
+            source: source.value,
+            symbol: symbol.value,
+            timeframe: timeframe.value,
+            limit: 1000,
           },
-          {
-            time: 1785280740,
-            open: 63611.9,
-            high: 63612.0,
-            low: 63600.0,
-            close: 63600.1,
-            volume: 74.86900000000011,
-            start_ts: 1785280740000,
-            end_ts: 1785280800000,
-          },
-        ];
-        setTimeout(() => {
-          history.value = [...data];
-        }, 1_000);
+        });
 
-        return data;
+        history.value = [...response.data];
 
-        //users.value = await $fetch("/api/users");
+        console.log(history.value);
+
+        return response.data;
       } catch (err: any) {
-        //error.value = err.message ?? "Ocurrió un error";
+      
       } finally {
-        //loading.value = false;
+     
       }
     };
 

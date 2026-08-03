@@ -56,7 +56,7 @@ watch(
   () => tabStore.history,
   (history) => {
     if (history.length) {
-      chart.value?.setData("candle-series", history)
+      chart.value?.setData(DEFAULT_SERIES.id, history)
     }
   },
   { immediate: true }
