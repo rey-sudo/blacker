@@ -148,15 +148,14 @@ export const useTradingTabStore = (tab: TradingTab) =>
           },
         });
 
-        history.value = [...response.data];
+        history.value = response.data.history;
 
-        console.log(history.value);
-
-        return response.data;
+        return response;
       } catch (err: any) {
-      
+        console.error("[TradingTabStore] Failed to fetch history:", err);
+        throw err;
       } finally {
-     
+        
       }
     };
 
