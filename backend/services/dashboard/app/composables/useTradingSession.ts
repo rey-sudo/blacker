@@ -54,11 +54,6 @@ export function useTradingSession(
     );
   };
 
-  const update = () => {
-    unsub();
-    sub();
-  };
-
   onMounted(() => {
     sub();
   });
@@ -68,7 +63,6 @@ export function useTradingSession(
   });
 
   return {
-    update,
     sub,
     unsub,
     send(command: unknown) {

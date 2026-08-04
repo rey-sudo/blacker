@@ -58,7 +58,7 @@ export class MarketWsService {
         const bytes = new Uint8Array(event.data);
         const payload: any = decode(bytes);
 
-        const key = this.getKey(
+        const key = this._getKey(
           payload.source,
           payload.symbol,
           payload.timeframe,
@@ -93,7 +93,7 @@ export class MarketWsService {
   ) {
     this.connect();
 
-    const key = this.getKey(
+    const key = this._getKey(
       subscription.source,
       subscription.symbol,
       subscription.timeframe,
@@ -121,7 +121,7 @@ export class MarketWsService {
   }
 
   unsubscribe(subscription: MarketSubscription, handler: MarketMessageHandler) {
-    const key = this.getKey(
+    const key = this._getKey(
       subscription.source,
       subscription.symbol,
       subscription.timeframe,
@@ -156,7 +156,7 @@ export class MarketWsService {
     return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
   }
 
-  private getKey(source: string, symbol: string, timeframe: string) {
+  private _getKey(source: string, symbol: string, timeframe: string) {
     return `${source}:${symbol}:${timeframe}`;
   }
 }
