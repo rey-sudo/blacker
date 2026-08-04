@@ -51,16 +51,16 @@ tabStore.fetchHistory();
 tabStore.addSeriesToLayout(DEFAULT_SERIES);
 
 const chart = ref<InstanceType<typeof Chart>>();
-  
+
 watch(
   () => tabStore.history,
   (history) => {
     if (history.length) {
-      chart.value?.setData(DEFAULT_SERIES.id, history)
+      chart.value?.setData(DEFAULT_SERIES.id, history);
     }
   },
-  { immediate: true }
-)
+  { immediate: true },
+);
 
 //Subscription to tabStore must be before the websocket connection.
 const unsubscribe = tabStore.subscribe((event: any) => {

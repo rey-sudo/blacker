@@ -39,7 +39,7 @@ default_snapshot = {
         "candle-series": {  
           "params": {
             "level": 0,
-            "name": "CandleSeries", #kind
+            "name": "CandleBubbleSeries", #kind
             "id": "candle-series",
           }
         },
@@ -53,7 +53,7 @@ default_snapshot = {
         "candle-series": {  
           "params": {
             "level": 0,
-            "name": "CandleSeries", #kind
+            "name": "CandleBubbleSeries", #kind
             "id": "candle-series",
           }
         } 
@@ -143,8 +143,6 @@ This is state.live() content
 live_events: list[dict[str, dict]] = []
 
 def handle_tick(tick: Tick, is_last: bool):
-    sleep(0.0001) # DEBUG
-
     current_time = engine.state.cursor_time
     if current_time != 0 and tick.time < current_time:
         print("Tick order error (ACKING).")

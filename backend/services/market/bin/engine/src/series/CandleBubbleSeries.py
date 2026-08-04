@@ -78,6 +78,14 @@ class CandleBubbleSeries(Series):
         # Caché de cálculo intensivo (O(N)) para uso en tiempo real (O(1))
         self._cached_threshold: float = _THRESHOLD
 
+    @property
+    def live(self) -> CandleBubble | None:
+        return self._live
+
+    @live.setter
+    def live(self, value: CandleBubble | None) -> None:
+        self._live = value
+
     # ------------------------------------------------------------------
     # Serialization
     # ------------------------------------------------------------------
