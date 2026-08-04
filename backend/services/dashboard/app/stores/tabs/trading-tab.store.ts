@@ -77,7 +77,7 @@ export const useTradingTabStore = (tab: TradingTab) =>
     const tabColor = "primary";
     const source = ref("binance");
     const symbol = ref("BTCUSDT");
-    const timeframe = ref("1m");
+    const timeframe = ref("5m");
     const isPaused = ref(false);
     const history = ref<any>([]);
     const tabTitle = computed(() => `${symbol.value} - ${timeframe.value}`);

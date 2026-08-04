@@ -68,9 +68,7 @@ const unsubscribe = tabStore.subscribe((event: any) => {
     case "series-added":
       break;
     case "live-update":
-      for (const [seriesId, liveData] of Object.entries(event.data.series)) {
-        chart.value?.updateLive(seriesId, liveData);
-      }
+      chart.value?.updateLive(DEFAULT_SERIES.id, event.data.series["candle-series"]);
       break;
     case "layout-replaced":
       break;
@@ -89,7 +87,7 @@ onMounted(() => {
   chart?.value?.applyLayout(tabStore.layout);
 
   chart.value?.applyOptions("candle-series", {
-    legend: "Bitcoin/Tether USD · 1m",
+    legend: "Bitcoin/Tether USD ·" + tabStore.timeframe,
   });
 });
 
