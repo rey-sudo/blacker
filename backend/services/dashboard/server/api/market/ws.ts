@@ -1,32 +1,18 @@
 export default defineWebSocketHandler({
-  async open(client) {
-    const target = new WebSocket("ws://localhost:3001/api/market/ws");
-
-    target.onopen = () => {
-      console.log("[target connected]");
-    };
-
-    target.onmessage = (event) => {
-      client.send(event.data);
-    };
-
-    target.onclose = () => {
-      client.close();
-    };
-
-    client.context.target = target;
+  open(peer) {
+    console.log("Client connected");
   },
 
-  message(client, message) {
-    const target = client.context.target as WebSocket;
-
-    if (target?.readyState === WebSocket.OPEN) {
-      target.send(message.text());
-    }
+  async message(peer, message) {
+    console.log(message.text());
+    peer.send(message.text());
   },
 
-  close(client) {
-    const target = client.context.target as WebSocket;
-    target?.close();
+  close(peer) {
+    console.log("Client disconnected");
+  },
+
+  error(peer, error) {
+    console.error(error);
   },
 });
