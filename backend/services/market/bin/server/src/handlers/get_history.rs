@@ -34,7 +34,7 @@ pub async fn handler(
     let value: Value = serde_json::from_str(&row.value)
         .map_err(|e: serde_json::Error| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    let history: Value = value["timeframes"]["5m"]["series"]["candle-series"]["history"].clone();
+    let history: Value = value["timeframes"]["1m"]["series"]["candle-series"]["history"].clone();
 
     Ok(Json(json!({
         "success": true,
