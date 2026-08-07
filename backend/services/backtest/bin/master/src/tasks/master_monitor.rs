@@ -32,6 +32,8 @@ pub fn run(state: AppState) {
         loop {
             interval.tick().await;
 
+            let mut changed: bool = false;
+
             let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
             let execution: Option<&ConnectedSlaveState> = master.slaves.get(&SlaveId::Execution);
@@ -48,19 +50,23 @@ pub fn run(state: AppState) {
             if !all_connected {
                 if !matches!(master.status, MasterStatus::Pending) {
                     master.status = MasterStatus::Pending;
+                    changed = true;
                     info!(
                         execution_connected = execution_connected,
                         engine_connected = engine_connected,
                         "Master -> Pending"
                     );
                 }
-
-                continue;
+            } else if !matches!(master.status, MasterStatus::Ready) {
+                master.status = MasterStatus::Ready;
+                changed = true;
+                info!("Master -> Ready");
             }
 
-            if !matches!(master.status, MasterStatus::Ready) {
-                master.status = MasterStatus::Ready;
-                info!("Master -> Ready");
+            drop(master);
+
+            if changed {
+                let _ = state.publish_master_state().await;
             }
         }
     });

@@ -12,12 +12,8 @@ export type BacktesterState =
  * Backend backtester GlobalState interface
  */
 export interface GlobalState {
-  state: BacktesterState;
-  initialized: boolean;
-  symbol: null | string;
-  timeframes: Timeframe[];
-  tick_state: boolean;
-  engine_state: boolean;
+  status: string;
+  engineConnected: boolean;
 }
 
 /**
@@ -112,19 +108,13 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const tabColor = "warning";
       // Backend read only state
       const globalState = ref<GlobalState>({
-        state: "pending",
-        initialized: false,
-        symbol: null,
-        timeframes: [],
-        tick_state: false,
-        engine_state: false,
+        status: "init",
+        engineConnected: false,
       });
       const timeframes = ref<Timeframe[]>([]);
-      const isRunning = computed(() => globalState.value.state === "running");
-      const isStopped = computed(() => globalState.value.state === "stopped");
+      const isReady = computed(() => globalState.value.status === "Ready");
+      const isStopped = computed(() => globalState.value.status === "Stopped");
       const isPlayable = computed(() => timeframes.value.length > 0);
-
-      const lastCandle = ref(null);
 
       //---------------------------------------------------------------------
       // MAIN LOGIC
@@ -143,10 +133,15 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       }
 
       function updateSession(data: BacktestWsMessage) {
+        globalState.value.status = data.status;
+
+        globalState.value.engineConnected =
+          data.slaves["Engine"]?.connected || false;
+
         notify({
-          type: 'live-update',
-          data
-        })
+          type: "live-update",
+          data,
+        });
       }
 
       //---------------------------------------------------------------------
@@ -179,7 +174,6 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         subscribe,
         addTimeframe,
         updateSession,
-        lastCandle,
         timeframes,
         tabTitle,
         tabColor,
@@ -188,7 +182,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         getTab,
         isPlayable,
         globalState,
-        isRunning,
+        isReady,
         isStopped,
         onMount,
         onUnmount,

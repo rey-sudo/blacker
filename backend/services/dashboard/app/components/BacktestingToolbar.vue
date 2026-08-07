@@ -1,7 +1,6 @@
 <script setup lang="ts">
 // BLACKER
-// Copyright (C) 2026 Juan José Caballero Rey - https://github.com/rey-sudo
-//
+// Copyright (C) 2026 Juan José Caballero Rey
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation version 3 of the License.
@@ -30,12 +29,8 @@ const props = defineProps({
 });
 
 const tabsStore = useTabManager();
-const tab: ComputedRef<Tab | undefined> = computed(() =>
-  tabsStore.getTabById(props.tabId),
-);
-const tabStore = computed(() =>
-  tab.value ? useBacktestingTabStore(tab.value as BacktestingTab) : undefined,
-);
+const tab = tabsStore.getTabById(props.tabId);
+const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 
 //----------------------------------------------------------------------------------------------------------------------
 // STATES
@@ -49,19 +44,19 @@ interface BacktestStateItem {
 
 const backtestState = computed<BacktestStateItem[]>(() => [
   {
-    key: "api",
-    label: "API",
-    color: tabStore.value?.isResponsive ? "success" : "error",
-  },
-  {
-    key: "tick",
-    label: "TICK",
-    color: tabStore.value?.globalState.tick_state ? "success" : "error",
+    key: "master",
+    label: "Master",
+    color: tabStore.globalState.status === "Ready" ? "success" : "error",
   },
   {
     key: "engine",
-    label: "ENGINE",
-    color: tabStore.value?.globalState.engine_state ? "success" : "error",
+    label: "Engine",
+    color: tabStore.globalState.engineConnected ? "success" : "error",
+  },
+  {
+    key: "execution",
+    label: "Execution",
+    color: false ? "success" : "error",
   },
 ]);
 
@@ -102,7 +97,7 @@ const onTimeframeAdded = () => {
     interval: timeframeSelected.value,
   };
 
-  tabStore.value?.addTimeframe(timeframe);
+  tabStore?.addTimeframe(timeframe);
   timeframeModalOpen.value = false;
 };
 
@@ -111,11 +106,11 @@ const onTimeframeAdded = () => {
 //----------------------------------------------------------------------------------------------------------------------
 
 const onPlay = () => {
-  tabStore.value?.playBacktest();
+  //tabStore?.playBacktest();
 };
 
 const onStop = () => {
-  tabStore.value?.stopBacktest();
+  //tabStore.value?.stopBacktest();
 };
 </script>
 
@@ -213,18 +208,18 @@ const onStop = () => {
         icon="material-symbols:play-arrow"
         @click="onPlay"
         label="Play"
-        :variant="tabStore?.isRunning ? 'solid' : 'outline'"
-        :loading="tabStore?.isRunning"
+        :variant="tabStore?.isReady ? 'solid' : 'outline'"
+        :loading="tabStore?.isReady"
       />
 
       <UButton
-        :disabled="!tabStore?.isRunning"
+        :disabled="!tabStore?.isReady"
         title="Stop"
         color="neutral"
         icon="material-symbols:stop"
         @click="onStop"
         label="Stop"
-        :variant="tabStore?.isRunning ? 'outline' : 'solid'"
+        :variant="tabStore?.isReady ? 'outline' : 'solid'"
       />
     </div>
   </div>
