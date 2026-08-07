@@ -29,6 +29,8 @@ interface TabBase {
 export interface BacktestingTab extends TabBase {
   kind: TabKind.Backtesting;
   symbol: string;
+  source: string;
+  timeframe: string;
 }
 
 /** Tab used for live or paper trading on a specific symbol and timeframe */

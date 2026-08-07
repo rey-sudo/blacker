@@ -85,7 +85,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const id = tab.id;
       const symbol = ref(tab.symbol);
       const tabTitle = computed(() => `${symbol.value} - BT`);
-      const tabColor = tab.color;
+      const tabColor = "warning";
 
       // Backend read only state
       const globalState = ref<GlobalState>({

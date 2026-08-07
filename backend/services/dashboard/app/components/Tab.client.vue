@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // BLACKER
-// Copyright (C) 2026 Juan José Caballero Rey 
+// Copyright (C) 2026 Juan José Caballero Rey
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -29,12 +29,10 @@ const props = defineProps({
   },
 });
 
-const tabsStore = useTabManager();
+const tabManager = useTabManager();
 
-const tab: ComputedRef<Tab | undefined> = computed(() =>
-  tabsStore.getTabById(props.tabId),
-);
-const tabStore = computed(() => useTabContentStore(tab.value!));
+const tab = tabManager.getTabById(props.tabId)!;
+const tabStore = useTabContentStore(tab);
 
 const menuOpen = ref(false);
 const menuItems: ContextMenuItem[] = [
@@ -43,7 +41,27 @@ const menuItems: ContextMenuItem[] = [
       label: "Clone",
       icon: "i-lucide-copy-plus",
       onSelect() {
-        tabsStore.cloneTab(props.tabId);
+        tabManager.cloneTab(props.tabId);
+      },
+    },
+
+    {
+      label: "Backtest",
+      icon: "i-lucide-step-forward",
+      onSelect() {
+        const newTab: BacktestingTab = {
+          id: crypto.randomUUID(),
+          kind: TabKind.Backtesting,
+          title: "tab test",
+          subtitle: "tab sub",
+          description: "tab description",
+          color: "primary",
+          symbol: "BTCUSDT",
+          source: "binance",
+          timeframe: "1m",
+        };
+
+        tabManager.addTab(newTab);
       },
     },
     {
@@ -51,7 +69,7 @@ const menuItems: ContextMenuItem[] = [
       color: "error" as const,
       icon: "i-lucide-x",
       onSelect() {
-        tabsStore.closeTab(props.tabId);
+        tabManager.closeTab(props.tabId);
       },
     },
   ],
@@ -61,16 +79,16 @@ const menuItems: ContextMenuItem[] = [
       color: "error" as const,
       icon: "i-lucide-x",
       onSelect() {
-        tabsStore.closeAllTabs();
+        tabManager.closeAllTabs();
       },
     },
   ],
 ];
 
-const tabColor: any = computed(() => tabStore.value?.tabColor ?? "primary");
+const tabColor: any = computed(() => tabStore?.tabColor ?? "primary");
 
-onMounted(() => tabStore.value?.onMount());
-onUnmounted(() => tabStore.value?.onUnmount());
+onMounted(() => tabStore?.onMount());
+onUnmounted(() => tabStore?.onUnmount());
 </script>
 
 <template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // BLACKER
-// Copyright (C) 2026 Juan José Caballero Rey - https://github.com/rey-sudo
+// Copyright (C) 2026 Juan José Caballero Rey
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,28 +25,12 @@ const props = defineProps({
 });
 
 // Initialize the main store containing tab definitions
-const tabsStore = useTabManager();
+const tabManager = useTabManager();
+const tab = tabManager.getTabById(props.tabId)!;
+const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 
-// Retrieve the specific tab configuration based on the provided tabId
-const tab: ComputedRef<Tab | undefined> = computed(() =>
-  tabsStore.getTabById(props.tabId),
-);
 
-// Create a reactive instance of the backtesting store tied to the current tab
-const tabStore = computed(() =>
-  tab.value ? useBacktestingTabStore(tab.value) : undefined,
-);
 
-// Watch for changes in the store instance and trigger the start method automatically
-watch(
-  () => tabStore.value,
-  (newStore) => {
-    if (newStore) {
-      newStore.startStore();
-    }
-  },
-  { immediate: true },
-);
 </script>
 
 <template>
