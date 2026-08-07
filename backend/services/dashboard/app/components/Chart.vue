@@ -16,7 +16,7 @@
 
 import { createChart } from "@/packages/src/index";
 import type { AnyChartSeries, ChartEngine } from "~/packages/src/core/types";
-import { seriesRegistry, type ChartLayout, type SeriesId } from "~/stores/tabs/trading-tab.store";
+import { seriesRegistry, type ChartLayout, type SeriesId } from "~/stores/tabs";
 
 interface RuntimeSeries {
   chart: ChartEngine;
@@ -79,6 +79,10 @@ function setData(serieId: SeriesId, data: any) {
   allSeries.get(serieId)?.serie.setData(data);
 }
 
+function patchData(serieId: SeriesId, data: any) {
+  allSeries.get(serieId)?.serie.patchData(data);
+}
+
 function updateLive(serieId: SeriesId, candle: any) {
   allSeries.get(serieId)?.serie.update(candle);
 }
@@ -112,6 +116,7 @@ onBeforeUnmount(() => {
 });
 
 defineExpose({
+  patchData,
   getSeriesById,
   applyLayout,
   applyOptions,

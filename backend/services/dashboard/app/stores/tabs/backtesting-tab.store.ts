@@ -1,12 +1,4 @@
-/**
- * Backend backtester BacktesterState interface
- */
-export type BacktesterState =
-  | "pending"
-  | "init"
-  | "running"
-  | "stopped"
-  | "closed";
+import type { ChartLayout, LayoutSeries, SeriesId } from ".";
 
 /**
  * Backend backtester GlobalState interface
@@ -36,42 +28,9 @@ export interface Timeframe {
   interval: TimeframeInterval;
 }
 
-/**
- * Backend available websocket commands sent to the backtesting backend.
- */
-export const CommandType = {
-  PING: "PING",
-  INIT: "INIT",
-  CONFIGURE: "CONFIGURE",
-  SUBSCRIBE_STATS: "SUBSCRIBE_STATS",
-  UNSUBSCRIBE_STATS: "UNSUBSCRIBE_STATS",
-  START_BACKTEST: "START_BACKTEST",
-  STOP_BACKTEST: "STOP_BACKTEST",
-} as const;
-
-/**
- * Backend union type of all supported command values.
- */
-export type CommandType = (typeof CommandType)[keyof typeof CommandType];
-
-/**
- * Backend incoming websocket message sent from the client to the backend.
- */
-export interface InMessage {
-  command: CommandType;
-  payload?: Record<string, unknown>;
-}
-
-/**
- * Backend outgoing websocket message received from the backend.
- */
-export interface OutMessage {
-  event: string;
-  data?: unknown;
-  timestamp: string;
-}
-
-type StoreEvent = { type: "live-update"; data: any };
+type StoreEvent =
+  | { type: "series-added"; series: LayoutSeries }
+  | { type: "live-update"; data: any };
 
 type Listener = (event: StoreEvent) => void;
 
@@ -106,6 +65,9 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const symbol = ref(tab.symbol);
       const tabTitle = computed(() => `${symbol.value} - BT`);
       const tabColor = "warning";
+      const layout = ref<ChartLayout>({
+        series: new Map<SeriesId, LayoutSeries>(),
+      });
       // Backend read only state
       const globalState = ref<GlobalState>({
         status: "init",
@@ -119,6 +81,15 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       //---------------------------------------------------------------------
       // MAIN LOGIC
       //---------------------------------------------------------------------
+
+      const addSeriesToLayout = (series: LayoutSeries) => {
+        layout.value.series.set(series.id, series);
+
+        notify({
+          type: "series-added",
+          series,
+        });
+      };
 
       /**
        * Adds a timeframe if it is not already registered.
@@ -171,6 +142,8 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const onUnmount = () => {};
 
       return {
+        layout,
+        addSeriesToLayout,
         subscribe,
         addTimeframe,
         updateSession,

@@ -24,58 +24,16 @@ from publication.pulsar_publisher import PulsarPublisher
 engine_config = {
   "timeframes": [
     {
-      "name": "4h",
-      "timeframe_ms": 14400000,
+      "name": "1m",
+      "timeframe_ms": 60000,
       "series": [ 
         {  
             "params": {
                 "level": 0,
                 "name": "CandleBubbleSeries",
-                "id": "CandleBubbleSeries1",
+                "id": "candle-series",
             }
         },
-        {   
-            "params": {
-                "level": 1,
-                "name": "EmaSeries",
-                "id": "EmaSeries_55",
-                "source": "CandleBubbleSeries1",
-                "period": 55
-            }
-        },
-        {  
-            "params": {
-                "level": 1, 
-                "name": "EmaSeries",
-                "id": "EmaSeries_25",
-                "source": "CandleBubbleSeries1",
-                "period": 25
-            }
-        }, 
-        {   
-            "params": {
-                "level": 1,
-                "name": "ADXSeries",
-                "id": "ADXSeries",
-                "source": "CandleBubbleSeries1",
-                "dilen": 14,
-                "adxlen": 14,
-                "key_level": 23
-            }
-        },
-        {   
-            "params": {
-                "level": 1,
-                "name": "SqueezeSeries",
-                "id": "SqueezeSeries",
-                "source": "CandleBubbleSeries1",
-                "length": 20,
-                "mult": 2.0,
-                "lengthKC": 20,
-                "multKC": 1.5,
-                "useTrueRange": True
-            }
-        }
       ]
     },
 
@@ -205,6 +163,50 @@ main()
 
 
 """
+
+        {   
+            "params": {
+                "level": 1,
+                "name": "EmaSeries",
+                "id": "EmaSeries_55",
+                "source": "CandleBubbleSeries1",
+                "period": 55
+            }
+        },
+        {  
+            "params": {
+                "level": 1, 
+                "name": "EmaSeries",
+                "id": "EmaSeries_25",
+                "source": "CandleBubbleSeries1",
+                "period": 25
+            }
+        }, 
+        {   
+            "params": {
+                "level": 1,
+                "name": "ADXSeries",
+                "id": "ADXSeries",
+                "source": "CandleBubbleSeries1",
+                "dilen": 14,
+                "adxlen": 14,
+                "key_level": 23
+            }
+        },
+        {   
+            "params": {
+                "level": 1,
+                "name": "SqueezeSeries",
+                "id": "SqueezeSeries",
+                "source": "CandleBubbleSeries1",
+                "length": 20,
+                "mult": 2.0,
+                "lengthKC": 20,
+                "multKC": 1.5,
+                "useTrueRange": True
+            }
+        }
+
     {
       "name": "30m",
       "timeframe_ms": 1800000,

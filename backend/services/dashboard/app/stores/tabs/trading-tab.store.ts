@@ -13,13 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import { CandleBubbleSeries } from "~/packages/playground/indicators/CandleBubbleSeries/CandleBubbleSeries";
-import { EMASeries } from "~/packages/playground/indicators/EMASeries/EMASeries";
-
-export const seriesRegistry = {
-  CandleBubbleSeries,
-  EMASeries,
-} as const;
+import type { SeriesId, SeriesKind } from ".";
 
 export interface MarketPayload {
   source: string;
@@ -27,10 +21,6 @@ export interface MarketPayload {
   timeframe: string;
   series: Record<string, unknown>;
 }
-
-export type SeriesRegistry = typeof seriesRegistry;
-export type SeriesKind = keyof SeriesRegistry;
-export type SeriesId = string;
 
 export type LayoutSeries<K extends SeriesKind = SeriesKind> = {
   id: SeriesId;
@@ -185,25 +175,3 @@ export const useTradingTabStore = (tab: TradingTab) =>
       },
     };
   })();
-
-/**
- * 
- 
-          {
-          id: "ema-55-series",
-          kind: "EMASeries",
-          parent: "candle-bubble-series",
-          options: {
-            id: "ema-55-series",
-            label: "EMA 55",
-            color: "#ffb830",
-            layer: "foreground",
-            priceTagColor: "#ffb830",
-            params: {
-              lineWidth: 2,
-            },
-          },
-        },
-        
- * 
- */
