@@ -29,12 +29,17 @@ const tabManager = useTabManager();
 const tab = tabManager.getTabById(props.tabId)!;
 const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 
-// Connect to backtest websocket 
-const session = useBacktestingSession(
-  props.tabId,
-  tabStore.symbol,
-);
+//Subscription to tabStore must be before the websocket connection.
+const unsubscribe = tabStore.subscribe((event: any) => {
+  switch (event.type) {
+    case "live-update":
+      console.log(event);
+      break;
+  }
+});
 
+// Connect to backtest websocket
+const session = useBacktestingSession(props.tabId, tabStore.symbol);
 </script>
 
 <template>

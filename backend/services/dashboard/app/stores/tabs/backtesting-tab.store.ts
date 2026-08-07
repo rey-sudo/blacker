@@ -75,6 +75,10 @@ export interface OutMessage {
   timestamp: string;
 }
 
+type StoreEvent = { type: "live-update"; data: any };
+
+type Listener = (event: StoreEvent) => void;
+
 //----------------------------------------------------------------------------------------------------------------
 // BACKTESTING STORE
 //----------------------------------------------------------------------------------------------------------------
@@ -82,6 +86,26 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
   defineStore(
     `tab/${tab.id}`,
     () => {
+      //---------------------------------------------------------------------
+      // STORE SUBSCRIPTION
+      //---------------------------------------------------------------------
+
+      const listeners = new Set<Listener>();
+
+      function subscribe(listener: Listener) {
+        listeners.add(listener);
+
+        return () => listeners.delete(listener);
+      }
+
+      function notify(event: StoreEvent) {
+        listeners.forEach((listener) => listener(event));
+      }
+
+      //---------------------------------------------------------------------
+      // SUBS
+      //---------------------------------------------------------------------
+
       const id = tab.id;
       const symbol = ref(tab.symbol);
       const tabTitle = computed(() => `${symbol.value} - BT`);
@@ -99,37 +123,35 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const isRunning = computed(() => globalState.value.state === "running");
       const isStopped = computed(() => globalState.value.state === "stopped");
       const isPlayable = computed(() => timeframes.value.length > 0);
-      const listeners = new Set();
+
       const lastCandle = ref(null);
 
-      function subscriber(fn: any) {
-        listeners.add(fn);
-
-        return () => {
-          listeners.delete(fn);
-        };
-      }
-
-      function _pushLiveCandle(candle: any) {
-        lastCandle.value = candle;
-        listeners.forEach((fn: any) => fn(candle));
-      }
-
-      function clear() {
-        listeners.clear();
-      }
-
-      //----------------------------------------------------------------------------------------------------------------
+      //---------------------------------------------------------------------
       // MAIN LOGIC
-      //----------------------------------------------------------------------------------------------------------------
+      //---------------------------------------------------------------------
+
+      /**
+       * Adds a timeframe if it is not already registered.
+       */
+      function addTimeframe(timeframe: Timeframe) {
+        const exists = timeframes.value.some(
+          (t) => t.interval === timeframe.interval,
+        );
+        if (exists) return;
+
+        timeframes.value.push(timeframe);
+      }
 
       function updateSession(data: BacktestWsMessage) {
-        console.log(data.engine_state);
+        notify({
+          type: 'live-update',
+          data
+        })
       }
 
-      //----------------------------------------------------------------------------------------------------------------
+      //---------------------------------------------------------------------
       // UTILS
-      //----------------------------------------------------------------------------------------------------------------
+      //---------------------------------------------------------------------
 
       /**
        * Returns the associated tab instance.
@@ -138,9 +160,9 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         return tab;
       };
 
-      //----------------------------------------------------------------------------------------------------------------
+      //---------------------------------------------------------------------
       // COMPONENT LIFECYCLE
-      //----------------------------------------------------------------------------------------------------------------
+      //---------------------------------------------------------------------
 
       /**
        * Lifecycle hook executed when the tab is mounted.
@@ -154,10 +176,10 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const onUnmount = () => {};
 
       return {
+        subscribe,
+        addTimeframe,
         updateSession,
         lastCandle,
-        subscriber,
-        clear,
         timeframes,
         tabTitle,
         tabColor,
