@@ -1,14 +1,33 @@
 use crate::common::SlaveId;
-use crate::slaves::slave::ConnectedSlaveState;
 use crate::master::state::{AppState, MasterState, MasterStatus};
+use crate::slaves::slave::ConnectedSlaveState;
 use std::time::Duration;
 use tokio::sync::RwLockWriteGuard;
 use tokio::time;
 use tracing::info;
 
-pub fn start_master_monitor(state: AppState) {
+/// Starts a background task that continuously monitors the connection state of
+/// the required slaves and updates the master's status accordingly.
+///
+/// The monitor runs once per second and evaluates whether the required slaves
+/// are currently connected.
+///
+/// - If any required slave is disconnected, the master transitions to
+///   [`MasterStatus::Pending`] (if it is not already in that state).
+/// - If all required slaves are connected, the master transitions to
+///   [`MasterStatus::Ready`] (if it is not already in that state).
+///
+/// Status transitions are logged to avoid unnecessary repeated log entries.
+///
+/// # Note
+///
+/// At the moment, readiness is determined only by the Engine slave.
+/// Support for the Execution slave is planned (see the `TODO` in the code).
+pub fn run(state: AppState) {
     tokio::spawn(async move {
         let mut interval: time::Interval = time::interval(Duration::from_secs(1));
+
+        info!("Starting master monitor...");
 
         loop {
             interval.tick().await;
@@ -18,11 +37,13 @@ pub fn start_master_monitor(state: AppState) {
             let execution: Option<&ConnectedSlaveState> = master.slaves.get(&SlaveId::Execution);
             let engine: Option<&ConnectedSlaveState> = master.slaves.get(&SlaveId::Engine);
 
+            // Determines whether the slaves are connected.
+            let engine_connected: bool = engine.is_some_and(|s: &ConnectedSlaveState| s.connected);
             let execution_connected: bool =
                 execution.is_some_and(|s: &ConnectedSlaveState| s.connected);
-            let engine_connected: bool = engine.is_some_and(|s: &ConnectedSlaveState| s.connected);
 
-            let all_connected: bool = execution_connected && engine_connected;
+            // Evaluates whether all required slaves are connected.
+            let all_connected: bool = engine_connected; //TODO: add execution
 
             if !all_connected {
                 if !matches!(master.status, MasterStatus::Pending) {
