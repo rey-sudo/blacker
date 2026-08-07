@@ -217,7 +217,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 }
 
 /// Starts the asynchronous replay worker.
-pub fn start_replay_task(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
+pub fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
     tokio::spawn(async move {
         // 1. Pulsar Producer: Create the pulsar producer.
         let mut producer: Producer<TokioExecutor> = match pulsar
@@ -238,6 +238,8 @@ pub fn start_replay_task(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
                 std::process::exit(1);
             }
         };
+
+        info!("Running replay task...");
 
         // 2. Main loop: Start the main loop.
         match run_replay(state.clone(), &mut producer).await {

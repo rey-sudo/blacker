@@ -56,7 +56,7 @@ fn validate_engine_state(
     Ok(())
 }
 
-pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
+pub fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
     tokio::spawn(async move {
         // 1. Create Consumer: create pulsar consumer.
         let mut consumer: Consumer<EngineStateMessage, TokioExecutor> = match pulsar
@@ -74,7 +74,7 @@ pub fn start_engine_consumer(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>
             }
         };
 
-        info!("Engine consumer started.");
+        info!("Starting engine consumer...");
 
         // 1. Start Loop: start the main loop.
         loop {
