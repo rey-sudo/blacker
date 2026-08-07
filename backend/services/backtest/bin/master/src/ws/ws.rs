@@ -6,6 +6,8 @@ use axum::{
     },
     response::Response,
 };
+use std::sync::Arc;
+use tokio::sync::watch::Receiver;
 use tracing::{debug, info, warn};
 
 pub async fn websocket_handler(ws: WebSocketUpgrade, State(state): State<AppState>) -> Response {
@@ -17,11 +19,11 @@ pub async fn websocket_handler(ws: WebSocketUpgrade, State(state): State<AppStat
 async fn handle_socket(mut socket: WebSocket, state: AppState) {
     info!("WebSocket client connected");
 
-    let mut rx = state.master_state_tx.subscribe();
+    let mut rx: Receiver<Arc<String>> = state.master_state_tx.subscribe();
     state.publish_master_state().await;
-    
+
     loop {
-        let payload = rx.borrow().clone();
+        let payload: Arc<String> = rx.borrow().clone();
 
         if let Err(err) = socket.send(Message::Text(payload.to_string().into())).await {
             debug!("WebSocket disconnected: {}", err);

@@ -87,7 +87,7 @@ impl SerializeMessage for TickBatchMessage {
 /// Executes the replay state machine until the replay finishes or is stopped.
 async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> anyhow::Result<()> {
     loop {
-        //tokio::time::sleep(Duration::from_millis(5_000)).await; //DEBUG
+        tokio::time::sleep(Duration::from_millis(60_000)).await; //DEBUG
 
         {
             // Verify if the master is Ready and the replay is Running.

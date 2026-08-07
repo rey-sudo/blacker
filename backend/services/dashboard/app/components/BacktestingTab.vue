@@ -29,7 +29,11 @@ const tabManager = useTabManager();
 const tab = tabManager.getTabById(props.tabId)!;
 const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 
-
+// Connect to backtest websocket 
+const session = useBacktestingSession(
+  props.tabId,
+  tabStore.symbol,
+);
 
 </script>
 

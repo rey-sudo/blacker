@@ -19,7 +19,6 @@ import { TabKind, type TradingTab } from "~/stores/tabManager.store";
 const tabManager = useTabManager();
 
 const onSelect = (e: any) => {
-  console.log(e);
   const newTab: TradingTab = {
     id: crypto.randomUUID(),
     kind: TabKind.Trading,

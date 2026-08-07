@@ -86,7 +86,6 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const symbol = ref(tab.symbol);
       const tabTitle = computed(() => `${symbol.value} - BT`);
       const tabColor = "warning";
-
       // Backend read only state
       const globalState = ref<GlobalState>({
         state: "pending",
@@ -96,13 +95,10 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         tick_state: false,
         engine_state: false,
       });
-
       const timeframes = ref<Timeframe[]>([]);
-
       const isRunning = computed(() => globalState.value.state === "running");
       const isStopped = computed(() => globalState.value.state === "stopped");
       const isPlayable = computed(() => timeframes.value.length > 0);
-
       const listeners = new Set();
       const lastCandle = ref(null);
 
@@ -124,242 +120,12 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       }
 
       //----------------------------------------------------------------------------------------------------------------
-      // WEBSOCKET
-      //----------------------------------------------------------------------------------------------------------------
-
-      const PING_INTERVAL = 5_000;
-      const WATCHDOG_TIMEOUT = 12_000;
-
-      let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
-      const lastPongTimestamp = ref(Date.now());
-      const isResponsive = ref(false);
-
-      const socket = shallowRef<WebSocket | null>(null);
-      const isConnected = ref(false);
-      const messages = ref<any[]>([]);
-
-      /**
-       * Add heartbeatInterval timer
-       */
-      const _addHeartbeatInterval = (ws: WebSocket) => {
-        heartbeatInterval = setInterval(() => {
-          const now = Date.now();
-
-          if (now - lastPongTimestamp.value > WATCHDOG_TIMEOUT) {
-            console.error("Backtest WS is not responding, closing...");
-            ws.close();
-            return;
-          }
-
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ command: CommandType.PING }));
-          }
-        }, PING_INTERVAL);
-      };
-
-      /**
-       * Stops the heartbeat timer and marks the backend as unresponsive.
-       */
-      const _clearHeartbeat = () => {
-        if (heartbeatInterval) {
-          clearInterval(heartbeatInterval);
-          heartbeatInterval = null;
-          isResponsive.value = false;
-        }
-      };
-
-      /**
-       *  Handles PONG message event
-       */
-      const _onPongEvent = () => {
-        lastPongTimestamp.value = Date.now();
-        isResponsive.value = true;
-      };
-
-      /**
-       *  Handles STATE message event
-       */
-      const _onStateEvent = (event: OutMessage) => {
-        globalState.value = event.data as GlobalState;
-      };
-
-      /**
-       *  Handles ENGINE message event
-       */
-      const _onEngineEvent = (events: OutMessage) => {
-        for (const e of events.data as any) {
-          const eventData = e.data as any;
-         
-          _pushLiveCandle(
-            eventData?.engineState?.timeframes?.["30m"]?.live_candle,
-          );
-        }
-      };
-
-      /**
-       *  start to listen STATE event
-       */
-      const _listenState = () => {
-        const message: InMessage = {
-          command: CommandType.INIT,
-          payload: {
-            symbol: symbol.value,
-          },
-        };
-
-        sendMessage(message);
-      };
-
-      /**
-       *  Backend WS events handler
-       */
-      const _handleEvents = (event: MessageEvent<string>) => {
-        try {
-          const data: OutMessage = JSON.parse(event.data);
-
-          if (data.event === "PONG") {
-            return _onPongEvent();
-          }
-
-          if (data.event === "STATE") {
-            return _onStateEvent(data);
-          }
-
-          if (data.event === "ENGINE") {
-            return _onEngineEvent(data);
-          }
-
-          messages.value.push(data);
-        } catch {
-          console.log("Backtest WS message error", event.data);
-        }
-      };
-
-      /**
-       * Establishes the websocket connection and starts heartbeat monitoring.
-       */
-      const _connectToWs = () => {
-        if (socket.value) return;
-
-        const ws = new WebSocket("ws://localhost:3000/api/backtest/ws");
-
-        ws.onopen = () => {
-          isConnected.value = true;
-
-          _addHeartbeatInterval(ws);
-
-          _listenState();
-
-          console.log("Backtest WS connected to store");
-        };
-
-        ws.onmessage = (event: MessageEvent<string>) => {
-          _handleEvents(event);
-        };
-
-        ws.onerror = (error) => {
-          console.error("Backtest WS error", error);
-        };
-
-        ws.onclose = () => {
-          isConnected.value = false;
-          socket.value = null;
-
-          _clearHeartbeat();
-
-          console.log("Backtest WS disconnected");
-        };
-
-        socket.value = ws;
-      };
-
-      /**
-       * Closes the websocket connection and cleans up resources.
-       */
-      const _disconnectToWs = () => {
-        _clearHeartbeat();
-
-        socket.value?.close();
-        socket.value = null;
-      };
-
-      /**
-       * Sends a command message to the backend if the connection is open.
-       */
-      const sendMessage = (payload: InMessage) => {
-        if (!socket.value) return;
-        if (socket.value.readyState !== WebSocket.OPEN) return;
-
-        console.log(JSON.stringify(payload));
-
-        socket.value.send(JSON.stringify(payload));
-      };
-
-      //----------------------------------------------------------------------------------------------------------------
       // MAIN LOGIC
       //----------------------------------------------------------------------------------------------------------------
 
-      /**
-       * Adds a timeframe if it is not already registered.
-       */
-      const addTimeframe = (timeframe: Timeframe) => {
-        const exists = timeframes.value.some(
-          (t) => t.interval === timeframe.interval,
-        );
-        if (exists) return;
-
-        timeframes.value.push(timeframe);
-      };
-
-      /**
-       * Run backend Backtester flow
-       */
-      const playBacktest = () => {
-        if (!isPlayable.value) return;
-
-        const message: InMessage = {
-          command: CommandType.START_BACKTEST,
-          payload: {
-            timeframes: timeframes.value,
-          },
-        };
-
-        sendMessage(message);
-      };
-
-      /**
-       * Stop backend Backtester flow
-       */
-      const stopBacktest = () => {
-        if (!isRunning.value) return;
-
-        const message: InMessage = {
-          command: CommandType.STOP_BACKTEST,
-          payload: {},
-        };
-
-        sendMessage(message);
-      };
-
-      //----------------------------------------------------------------------------------------------------------------
-      // MAIN CONTROLS
-      //----------------------------------------------------------------------------------------------------------------
-
-      /**
-       * Starts the backtesting store service.
-       */
-      const startStore = () => {
-        console.log(`backtestingStore: ${id} starting...`);
-        _connectToWs();
-      };
-
-      /**
-       * Stops the backtesting session and disconnects from the backend.
-       */
-      const stopStore = () => {
-        console.log(`backtestingStore: ${id} stopping...`);
-        _disconnectToWs();
-      };
+      function updateSession(data: any) {
+        console.log(data);
+      }
 
       //----------------------------------------------------------------------------------------------------------------
       // UTILS
@@ -385,28 +151,20 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
        * Lifecycle hook executed when the tab is unmounted.
        * Ensures the session is paused and disconnected.
        */
-      const onUnmount = () => {
-        _disconnectToWs();
-      };
+      const onUnmount = () => {};
 
       return {
+        updateSession,
         lastCandle,
         subscriber,
         clear,
-        isResponsive,
-        addTimeframe,
         timeframes,
         tabTitle,
         tabColor,
         symbol,
-        stopStore,
         id,
-        startStore,
         getTab,
         isPlayable,
-        sendMessage,
-        playBacktest,
-        stopBacktest,
         globalState,
         isRunning,
         isStopped,
