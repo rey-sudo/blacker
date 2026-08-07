@@ -123,8 +123,8 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       // MAIN LOGIC
       //----------------------------------------------------------------------------------------------------------------
 
-      function updateSession(data: any) {
-        console.log(data);
+      function updateSession(data: BacktestWsMessage) {
+        console.log(data.engine_state);
       }
 
       //----------------------------------------------------------------------------------------------------------------

@@ -15,24 +15,48 @@
 
 import { useBacktestingTabStore } from "~/stores/tabs";
 
-export function useBacktestingSession(
-  tabId: string,
-  symbol: string
-) {
+export interface BacktestWsMessage {
+  status: string;
+  replay_status: string;
+  replay_step: string;
+  slaves: Record<string, ConnectedSlave>;
+  tick_index: number;
+  engine_state: EngineState;
+}
+
+export interface ConnectedSlave {
+  id: string;
+  connected: boolean;
+  status: string;
+}
+
+export interface EngineState {
+  tick_index: number;
+  time: number;
+  timeframes: Record<string, Timeframe>;
+}
+
+export interface Timeframe {
+  name: string;
+  series: Record<string, unknown>;
+  timeframe_ms: number
+}
+
+export function useBacktestingSession(tabId: string, symbol: string) {
   const { $backtestWs } = useNuxtApp();
 
   const tabManager = useTabManager();
   const tab = tabManager.getTabById(tabId)!;
   const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 
-  const onMessage = (payload: any) => {
+  const onMessage = (payload: BacktestWsMessage) => {
     tabStore.updateSession(payload);
   };
 
   const sub = () => {
     $backtestWs.subscribe(
       {
-        symbol
+        symbol,
       },
       onMessage,
     );
