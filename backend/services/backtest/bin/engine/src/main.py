@@ -30,7 +30,7 @@ engine_config = {
         {  
             "params": {
                 "level": 0,
-                "name": "CandleBubbleSeries",
+                "name": "CandleSeries",
                 "id": "candle-series",
             }
         },
