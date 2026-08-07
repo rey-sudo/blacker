@@ -4,7 +4,7 @@ info:
   seq: 4
 
 websocket:
-  url: http://localhost:3000/master/ws
+  url: http://localhost:3002/api/backtest/master/ws
   message:
     type: json
     data: "{}"

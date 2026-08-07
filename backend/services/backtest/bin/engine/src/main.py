@@ -189,7 +189,7 @@ def handle_state(data) -> bool:
     return True   
      
 heartbeat = HeartbeatTask(
-    master_url="http://localhost:3000/master/report-state",
+    master_url="http://localhost:3002/api/backtest/master/report-state",
     apply_state=handle_state,
     engine=engine
 )
