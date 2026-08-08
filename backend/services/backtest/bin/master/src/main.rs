@@ -33,7 +33,7 @@ async fn main() -> anyhow::Result<()> {
             .expect("Invalid Pulsar URL"),
     );
 
-    let tick_data: Arc<BinaryFile> = Arc::new(BinaryFile::open("./input/ticks.bin")?);
+    let tick_data: Arc<BinaryFile> = Arc::new(BinaryFile::open("./input/binance_ticks.bin")?);
 
     let snapshot: Option<ReplaySnapshot> = load_snapshot().await?;
 
