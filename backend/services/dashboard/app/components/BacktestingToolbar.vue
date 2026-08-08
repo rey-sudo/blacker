@@ -100,18 +100,6 @@ const onTimeframeAdded = () => {
   tabStore?.addTimeframe(timeframe);
   timeframeModalOpen.value = false;
 };
-
-//----------------------------------------------------------------------------------------------------------------------
-// CONTROLS
-//----------------------------------------------------------------------------------------------------------------------
-
-const onPlay = () => {
-  //tabStore?.playBacktest();
-};
-
-const onStop = () => {
-  //tabStore.value?.stopBacktest();
-};
 </script>
 
 <template>
@@ -202,24 +190,24 @@ const onStop = () => {
 ----------------------------------------------------------------------------------------------------------------------->
     <div class="backtesting-toolbar-controls">
       <UButton
-        :disabled="!tabStore?.isPlayable"
+        :disabled="tabStore.isRunning"
         title="Play"
         color="neutral"
         icon="material-symbols:play-arrow"
-        @click="onPlay"
+        @click="tabStore.startBacktest()"
         label="Play"
-        :variant="tabStore?.isReady ? 'solid' : 'outline'"
-        :loading="tabStore?.isReady"
+        :variant="tabStore.isRunning ? 'solid' : 'outline'"
+        :loading="tabStore.isRunning"
       />
 
       <UButton
-        :disabled="!tabStore?.isReady"
+        :disabled="!tabStore.isRunning"
         title="Stop"
         color="neutral"
         icon="material-symbols:stop"
-        @click="onStop"
+        @click="tabStore.stopBacktest()"
         label="Stop"
-        :variant="tabStore?.isReady ? 'outline' : 'solid'"
+        :variant="tabStore.isRunning ? 'outline' : 'solid'"
       />
     </div>
   </div>

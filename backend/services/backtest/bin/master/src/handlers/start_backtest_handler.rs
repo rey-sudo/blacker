@@ -1,6 +1,7 @@
 use crate::master::state::{AppState, MasterState, MasterStatus, ReplayStatus};
 use axum::{extract::State, http::StatusCode};
 use tokio::sync::RwLockWriteGuard;
+use tracing::info;
 
 pub async fn start_backtest_handler(
     State(state): State<AppState>,
@@ -18,6 +19,10 @@ pub async fn start_backtest_handler(
     master.replay_status = ReplayStatus::Running;
 
     drop(master);
+
+    let _ = state.publish_master_state().await;
+
+    info!("Backtest running.");
 
     Ok(StatusCode::OK)
 }

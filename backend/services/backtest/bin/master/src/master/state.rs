@@ -45,8 +45,7 @@ pub struct TickInfo {
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub enum ReplayStatus {
     Stopped,
-    Running,
-    Stopping,
+    Running
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

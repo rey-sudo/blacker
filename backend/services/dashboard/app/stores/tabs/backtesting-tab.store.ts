@@ -5,6 +5,7 @@ import type { ChartLayout, LayoutSeries, SeriesId } from ".";
  */
 export interface GlobalState {
   status: string;
+  replayStatus: string;
   engineConnected: boolean;
 }
 
@@ -68,14 +69,16 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const layout = ref<ChartLayout>({
         series: new Map<SeriesId, LayoutSeries>(),
       });
-      // Backend read only state
       const globalState = ref<GlobalState>({
         status: "init",
+        replayStatus: 'Stopped',
         engineConnected: false,
       });
       const timeframes = ref<Timeframe[]>([]);
       const isReady = computed(() => globalState.value.status === "Ready");
-      const isStopped = computed(() => globalState.value.status === "Stopped");
+      const isPending = computed(() => globalState.value.status === "Pending");
+      const isRunning = computed(() => globalState.value.replayStatus === "Running");
+      const isStopped = computed(() => globalState.value.replayStatus === "Stopped");
       const isPlayable = computed(() => timeframes.value.length > 0);
 
       //---------------------------------------------------------------------
@@ -105,6 +108,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
 
       function updateSession(data: BacktestWsMessage) {
         globalState.value.status = data.status;
+        globalState.value.replayStatus = data.replay_status;
 
         globalState.value.engineConnected =
           data.slaves["Engine"]?.connected || false;
@@ -115,6 +119,33 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         });
       }
 
+      async function startBacktest() {
+        try {
+          const response = await $fetch("/api/backtest/master/start-backtest", {
+            method: "POST",
+            body: {},
+          });
+
+          return response;
+        } catch (err: any) {
+          console.error("[BacktestingTabStore] Failed to start backtest:", err);
+          throw err;
+        }
+      }
+
+      async function stopBacktest() {
+        try {
+          const response = await $fetch("/api/backtest/master/stop-backtest", {
+            method: "POST",
+            body: {},
+          });
+
+          return response;
+        } catch (err: any) {
+          console.error("[BacktestingTabStore] Failed to stop backtest:", err);
+          throw err;
+        }
+      }
       //---------------------------------------------------------------------
       // UTILS
       //---------------------------------------------------------------------
@@ -142,6 +173,9 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const onUnmount = () => {};
 
       return {
+        stopBacktest,
+        isRunning,
+        startBacktest,
         layout,
         addSeriesToLayout,
         subscribe,

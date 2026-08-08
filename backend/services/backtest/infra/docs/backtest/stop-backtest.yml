@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:3000/master/stop-backtest
+  url: http://localhost:3002/api/backtest/master/stop-backtest
   body:
     type: json
     data: "{}"
