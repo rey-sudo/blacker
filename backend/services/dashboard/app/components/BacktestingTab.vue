@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { DEFAULT_SERIES, useBacktestingTabStore } from "~/stores/tabs";
-import Chart from "~/components/Chart.vue";
+import Chart, {
+  type ChartSerie,
+  type ChartTimeframe,
+} from "~/components/Chart.vue";
 
 // Define props to receive the unique identifier for the current tab
 const props = defineProps({
@@ -30,35 +33,44 @@ const tabManager = useTabManager();
 const tab = tabManager.getTabById(props.tabId)!;
 const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 
-tabStore.addSeriesToLayout(DEFAULT_SERIES);
+// Connect to backtest websocket
+const _session = useBacktestingSession(props.tabId, tabStore.symbol);
 
-const chart = ref<InstanceType<typeof Chart>>();
+// Charts.
+const charts = ref<InstanceType<typeof Chart>[]>([]);
 
-//Subscription to tabStore must be before the websocket connection.
+// Subscription to tabStore must be before the websocket connection.
 const unsubscribe = tabStore.subscribe((event: any) => {
   switch (event.type) {
     case "live-update":
-      const data =
-        event.data.engine_state.timeframes["1m"].series["candle-series"]
-          .history;
+      const timeframeEntries = Object.entries(
+        tabStore.globalState.timeframes,
+      ).entries();
 
-      console.log(data);
+      for (const [i, [key, timeframe]] of timeframeEntries) {
+        const chart = charts.value[i];
 
-      chart.value?.patchData(DEFAULT_SERIES.id, data);
+        chart?.applyLayout(timeframe as ChartTimeframe);
+
+        const seriesEntries = Object.entries(timeframe.series).entries();
+
+        for (const [ii, [key, serie]] of seriesEntries) {
+          const serie_ = serie as ChartSerie;
+          const history = serie_?.history;
+
+          chart?.patchData(key, history);
+
+          chart?.applyOptions(key, {
+            legend: "Bitcoin/Tether USD",
+          });
+        }
+      }
+
       break;
   }
 });
 
-// Connect to backtest websocket
-const session = useBacktestingSession(props.tabId, tabStore.symbol);
-
-onMounted(() => {
-  chart?.value?.applyLayout(tabStore.layout);
-
-  chart.value?.applyOptions("candle-series", {
-    legend: "Bitcoin/Tether USD",
-  });
-});
+const activeTimeframe = ref("1m");
 
 onUnmounted(() => {
   unsubscribe();
@@ -67,8 +79,20 @@ onUnmounted(() => {
 
 <template>
   <div class="backtesting-tab">
-    <BacktestingToolbar :tabId="tabId" />
-    <Chart ref="chart" />
+    <BacktestingToolbar
+      :tab-id="tabId"
+      :timeframes="Object.keys(tabStore.globalState.timeframes)"
+      :active-timeframe="activeTimeframe"
+      @update:timeframe="activeTimeframe = $event"
+    />
+
+    <Chart
+      v-for="(timeframe, key) in tabStore.globalState.timeframes"
+      :key="key"
+      ref="charts"
+      v-show="key === activeTimeframe"
+      :timeframe="timeframe"
+    />
   </div>
 </template>
 

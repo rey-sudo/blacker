@@ -25,9 +25,6 @@ export type SeriesRegistry = typeof seriesRegistry;
 export type SeriesKind = keyof SeriesRegistry;
 export type SeriesId = string;
 
-export interface ChartLayout {
-  series: Map<SeriesId, LayoutSeries>;
-}
 
 export type LayoutSeries<K extends SeriesKind = SeriesKind> = {
   id: SeriesId;

@@ -16,22 +16,30 @@
 
 import { createChart } from "@/packages/src/index";
 import type { AnyChartSeries, ChartEngine } from "~/packages/src/core/types";
-import { seriesRegistry, type ChartLayout, type SeriesId } from "~/stores/tabs";
+import { seriesRegistry, type SeriesId } from "~/stores/tabs";
+
+export type ChartSerie = Record<string, unknown>;
+
+export interface ChartTimeframe {
+  name: string;
+  series: Record<string, ChartSerie>;
+  timeframe_ms: number;
+}
 
 interface RuntimeSeries {
   chart: ChartEngine;
   serie: AnyChartSeries;
 }
 
-const allSeries = new Map<SeriesId, RuntimeSeries>();
+const _allSeries = new Map<SeriesId, RuntimeSeries>();
 
 function _cleanAllSeries() {
-  allSeries.forEach((runtime) => {
+  _allSeries.forEach((runtime) => {
     runtime.chart.api.destroy();
     runtime.serie.destroy();
   });
 
-  allSeries.clear();
+  _allSeries.clear();
 }
 
 /**
@@ -41,54 +49,68 @@ function _cleanAllSeries() {
  *
  * @throws {Error} If a series references a parent that has not been created.
  */
-function applyLayout(layout: ChartLayout) {
+function applyLayout(cl: ChartTimeframe) {
   _cleanAllSeries();
 
-  for (const [seriesId, item] of layout.series) {
+  const timeframeEntries = Object.entries(cl.series).entries();
+
+  for (const [index, [serieId, serieValue]] of timeframeEntries) {
     // Create the series builder from its registered type and configuration.
-    const seriesFactory = seriesRegistry[item.kind];
-    const build = seriesFactory(item.options);
+    const seriesFactory = seriesRegistry["CandleBubbleSeries"];
+    const build = seriesFactory({
+      id: "candle-series",
+      label: "Candlesticks",
+      layer: "background",
+      color: "red",
+      priceTagColor: "#F23645",
+      params: {
+        bullColor: "#089981",
+        bearColor: "#F23645",
+      },
+    });
 
     // Root series create a new chart instance.
-    if (!item.parent) {
-      const chart = createChart(_addChildToContainer(seriesId));
+    if (!serieValue?.parent) {
+      const chart = createChart(_addChildToContainer(serieId));
       const serie = chart.api.addSeries(build);
 
-      allSeries.set(seriesId, { chart, serie });
+      _allSeries.set(serieId, { chart, serie });
 
       continue;
     }
 
     // Child series reuse the chart created by their parent.
-    const parent = allSeries.get(item.parent);
+    const parent = _allSeries.get("parent");
     if (!parent) {
-      throw new Error(`Parent series "${item.parent}" has not been created.`);
+      throw new Error(
+        `Parent series "${serieValue.parent}" has not been created.`,
+      );
     }
-     
+
     const serie = parent.chart.api.addSeries(build);
 
-    allSeries.set(seriesId, { chart: parent.chart, serie });
+    _allSeries.set(serieId, { chart: parent.chart, serie });
   }
 }
 
 function applyOptions(serieId: SeriesId, config: any) {
-  allSeries.get(serieId)?.chart.api.applyOptions(config);
+  _allSeries.get(serieId)?.chart.api.applyOptions(config);
 }
 
 function setData(serieId: SeriesId, data: any) {
-  allSeries.get(serieId)?.serie.setData(data);
+  _allSeries.get(serieId)?.serie.setData(data);
 }
 
 function patchData(serieId: SeriesId, data: any) {
-  allSeries.get(serieId)?.serie.patchData(data);
+  _allSeries.get(serieId)?.serie.patchData(data);
 }
 
 function updateLive(serieId: SeriesId, candle: any) {
-  allSeries.get(serieId)?.serie.update(candle);
+  _allSeries.get(serieId)?.serie.update(candle);
 }
 
 function getSeriesById(serieId: SeriesId) {
-  return allSeries.get(serieId);
+  return _allSeries.get(serieId);
 }
 
 function _addChildToContainer(id: SeriesId): HTMLDivElement {

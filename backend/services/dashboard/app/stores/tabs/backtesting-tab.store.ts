@@ -1,4 +1,4 @@
-import type { ChartLayout, LayoutSeries, SeriesId } from ".";
+import type { LayoutSeries } from ".";
 
 /**
  * ConnectedSlave def.
@@ -15,16 +15,7 @@ export interface ConnectedSlave {
 export interface EngineState {
   tick_index: number;
   time: number;
-  timeframes: Record<string, BacktestTimeframe>;
-}
-
-/**
- * Backtest timeframe.
- */
-export interface BacktestTimeframe {
-  name: string;
-  series: Record<string, unknown>;
-  timeframe_ms: number;
+  timeframes: Record<string, ChartTimeframe>;
 }
 
 /**
@@ -40,6 +31,15 @@ export interface BacktestSessionMessage {
 }
 
 /**
+ * Backtest timeframe.
+ */
+export interface ChartTimeframe {
+  name: string;
+  series: Record<string, unknown>;
+  timeframe_ms: number;
+}
+
+/**
  * Backend backtester GlobalState interface.
  */
 export interface BacktestingTabGlobalState {
@@ -47,7 +47,7 @@ export interface BacktestingTabGlobalState {
   replayStatus: string;
   engineConnected: boolean;
   executionConnected: boolean;
-  timeframes: Record<string, BacktestTimeframe>;
+  timeframes: Record<string, ChartTimeframe>;
 }
 
 /**
@@ -86,10 +86,6 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const tabTitle = computed(() => `${symbol.value} - BT`);
       const tabColor = "warning";
 
-      const layout = ref<ChartLayout>({
-        series: new Map<SeriesId, LayoutSeries>(),
-      });
-
       const status = computed(() => globalState.value.status);
       const replayStatus = computed(() => globalState.value.replayStatus);
 
@@ -122,18 +118,6 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       //---------------------------------------------------------------------
       // METHODS
       //---------------------------------------------------------------------
-
-      /**
-       * Adds series layout.
-       */
-      function addSeriesToLayout(series: LayoutSeries) {
-        layout.value.series.set(series.id, series);
-
-        notify({
-          type: "series-added",
-          series,
-        });
-      }
 
       /**
        * Adds a timeframe if it is not already registered.
@@ -219,8 +203,6 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         stopBacktest,
         isRunning,
         startBacktest,
-        layout,
-        addSeriesToLayout,
         subscribe,
         addTimeframe,
         updateSession,
