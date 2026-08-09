@@ -1,6 +1,45 @@
 import type { ChartLayout, LayoutSeries, SeriesId } from ".";
 
 /**
+ * ConnectedSlave def.
+ */
+export interface ConnectedSlave {
+  id: string;
+  connected: boolean;
+  status: string;
+}
+
+/**
+ * EngineState def.
+ */
+export interface EngineState {
+  tick_index: number;
+  time: number;
+  timeframes: Record<string, BacktestTimeframe>;
+}
+
+/**
+ * Backtest timeframe.
+ */
+export interface BacktestTimeframe {
+  name: string;
+  series: Record<string, unknown>;
+  timeframe_ms: number;
+}
+
+/**
+ * BacktestSessionMessage.
+ */
+export interface BacktestSessionMessage {
+  status: string;
+  replay_status: string;
+  replay_step: string;
+  slaves: Record<string, ConnectedSlave>;
+  tick_index: number;
+  engine_state: EngineState;
+}
+
+/**
  * Backend backtester GlobalState interface.
  */
 export interface BacktestingTabGlobalState {
@@ -23,26 +62,13 @@ type BacktestingTabStoreEvent =
  */
 type Listener = (event: BacktestingTabStoreEvent) => void;
 
+/**
+ * Store definition.
+ */
 export const useBacktestingTabStore = (tab: BacktestingTab) =>
   defineStore(
     `tab/${tab.id}`,
     () => {
-      //---------------------------------------------------------------------
-      // STORE SUBSCRIPTION
-      //---------------------------------------------------------------------
-
-      const listeners = new Set<Listener>();
-
-      function subscribe(listener: Listener) {
-        listeners.add(listener);
-
-        return () => listeners.delete(listener);
-      }
-
-      function notify(event: BacktestingTabStoreEvent) {
-        listeners.forEach((listener) => listener(event));
-      }
-
       //---------------------------------------------------------------------
       // STORE
       //---------------------------------------------------------------------
@@ -59,7 +85,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const symbol = ref(tab.symbol);
       const tabTitle = computed(() => `${symbol.value} - BT`);
       const tabColor = "warning";
-      
+
       const layout = ref<ChartLayout>({
         series: new Map<SeriesId, LayoutSeries>(),
       });
@@ -76,6 +102,22 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const isPlayable = computed(
         () => Object.keys(globalState.value.timeframes).length > 0,
       );
+
+      //---------------------------------------------------------------------
+      // SUBSCRIPTIONS
+      //---------------------------------------------------------------------
+
+      const listeners = new Set<Listener>();
+
+      function subscribe(listener: Listener) {
+        listeners.add(listener);
+
+        return () => listeners.delete(listener);
+      }
+
+      function notify(event: BacktestingTabStoreEvent) {
+        listeners.forEach((listener) => listener(event));
+      }
 
       //---------------------------------------------------------------------
       // METHODS
@@ -103,7 +145,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       /**
        * Update session ws data.
        */
-      function updateSession(data: BacktestWsMessage) {
+      function updateSession(data: BacktestSessionMessage) {
         globalState.value.status = data.status;
         globalState.value.replayStatus = data.replay_status;
         globalState.value.timeframes = data.engine_state.timeframes;

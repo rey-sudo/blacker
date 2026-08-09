@@ -68,7 +68,6 @@ onUnmounted(() => {
 <template>
   <div class="backtesting-tab">
     <BacktestingToolbar :tabId="tabId" />
-    <BacktestingRows :tabId="tabId" />
     <Chart ref="chart" />
   </div>
 </template>

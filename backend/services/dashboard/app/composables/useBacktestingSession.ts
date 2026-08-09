@@ -14,33 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { useBacktestingTabStore } from "~/stores/tabs";
-
-export interface ConnectedSlave {
-  id: string;
-  connected: boolean;
-  status: string;
-}
-
-export interface BacktestWsMessage {
-  status: string;
-  replay_status: string;
-  replay_step: string;
-  slaves: Record<string, ConnectedSlave>;
-  tick_index: number;
-  engine_state: EngineState;
-}
-
-export interface BacktestTimeframe {
-  name: string;
-  series: Record<string, unknown>;
-  timeframe_ms: number;
-}
-
-export interface EngineState {
-  tick_index: number;
-  time: number;
-  timeframes: Record<string, BacktestTimeframe>;
-}
+import type { BacktestSessionMessage } from "~/stores/tabs/backtesting-tab.store";
 
 export function useBacktestingSession(tabId: string, symbol: string) {
   const { $backtestWs } = useNuxtApp();
@@ -49,7 +23,7 @@ export function useBacktestingSession(tabId: string, symbol: string) {
   const tab = tabManager.getTabById(tabId)!;
   const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 
-  const onMessage = (payload: BacktestWsMessage) => {
+  const onMessage = (payload: BacktestSessionMessage) => {
     tabStore.updateSession(payload);
   };
 
