@@ -14,7 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { useBacktestingTabStore } from "~/stores/tabs";
-import type { BacktestSessionMessage } from "~/stores/tabs/backtesting-tab.store";
+import type { MasterState } from "~/stores/tabs/backtesting-tab.store";
 
 export function useBacktestingSession(tabId: string, symbol: string) {
   const { $backtestWs } = useNuxtApp();
@@ -23,7 +23,7 @@ export function useBacktestingSession(tabId: string, symbol: string) {
   const tab = tabManager.getTabById(tabId)!;
   const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 
-  const onMessage = (payload: BacktestSessionMessage) => {
+  const onMessage = (payload: MasterState) => {
     tabStore.updateSession(payload);
   };
 

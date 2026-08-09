@@ -10,6 +10,15 @@ export interface ConnectedSlave {
 }
 
 /**
+ * Backtest timeframe.
+ */
+export interface ChartTimeframe {
+  name: string;
+  series: Record<string, unknown>;
+  timeframe_ms: number;
+}
+
+/**
  * EngineState def.
  */
 export interface EngineState {
@@ -21,33 +30,13 @@ export interface EngineState {
 /**
  * BacktestSessionMessage.
  */
-export interface BacktestSessionMessage {
+export interface MasterState {
   status: string;
   replay_status: string;
   replay_step: string;
-  slaves: Record<string, ConnectedSlave>;
+  connected_slaves: Record<string, ConnectedSlave>;
   tick_index: number;
   engine_state: EngineState;
-}
-
-/**
- * Backtest timeframe.
- */
-export interface ChartTimeframe {
-  name: string;
-  series: Record<string, unknown>;
-  timeframe_ms: number;
-}
-
-/**
- * Backend backtester GlobalState interface.
- */
-export interface BacktestingTabGlobalState {
-  status: string;
-  replayStatus: string;
-  engineConnected: boolean;
-  executionConnected: boolean;
-  timeframes: Record<string, ChartTimeframe>;
 }
 
 /**
@@ -73,12 +62,17 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       // STORE
       //---------------------------------------------------------------------
 
-      const globalState = ref<BacktestingTabGlobalState>({
-        status: "init",
-        replayStatus: "Stopped",
-        engineConnected: false,
-        executionConnected: false,
-        timeframes: {},
+      const globalState = ref<MasterState>({
+        status: "",
+        replay_status: "",
+        replay_step: "",
+        connected_slaves: {},
+        tick_index: 0,
+        engine_state: {
+          tick_index: 0,
+          time: 0,
+          timeframes: {},
+        },
       });
 
       const id = tab.id;
@@ -87,7 +81,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const tabColor = "warning";
 
       const status = computed(() => globalState.value.status);
-      const replayStatus = computed(() => globalState.value.replayStatus);
+      const replayStatus = computed(() => globalState.value.replay_status);
 
       const isReady = computed(() => status.value === "Ready");
       const isPending = computed(() => status.value === "Pending");
@@ -96,7 +90,16 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const isStopped = computed(() => replayStatus.value === "Stopped");
 
       const isPlayable = computed(
-        () => Object.keys(globalState.value.timeframes).length > 0,
+        () => Object.keys(globalState.value.engine_state.timeframes).length > 0,
+      );
+
+      const isEngineConnected = computed(
+        () => globalState.value.connected_slaves["Engine"]?.connected ?? false,
+      );
+
+      const isExecutionConnected = computed(
+        () =>
+          globalState.value.connected_slaves["Execution"]?.connected ?? false,
       );
 
       //---------------------------------------------------------------------
@@ -129,16 +132,10 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       /**
        * Update session ws data.
        */
-      function updateSession(data: BacktestSessionMessage) {
-        globalState.value.status = data.status;
-        globalState.value.replayStatus = data.replay_status;
-        globalState.value.timeframes = data.engine_state.timeframes;
+      function updateSession(data: MasterState) {
+        globalState.value = data;
 
-        globalState.value.engineConnected =
-          data.slaves["Engine"]?.connected || false;
-
-        globalState.value.executionConnected =
-          data.slaves["Execution"]?.connected || false;
+        console.log(globalState.value);
 
         notify({
           type: "live-update",
@@ -199,6 +196,8 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       function onUnmount() {}
 
       return {
+        isExecutionConnected,
+        isEngineConnected,
         isPending,
         stopBacktest,
         isRunning,

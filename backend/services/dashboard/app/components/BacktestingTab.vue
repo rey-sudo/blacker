@@ -44,7 +44,7 @@ const unsubscribe = tabStore.subscribe((event: any) => {
   switch (event.type) {
     case "live-update":
       const timeframeEntries = Object.entries(
-        tabStore.globalState.timeframes,
+        tabStore.globalState.engine_state.timeframes,
       ).entries();
 
       for (const [i, [key, timeframe]] of timeframeEntries) {
@@ -81,13 +81,13 @@ onUnmounted(() => {
   <div class="backtesting-tab">
     <BacktestingToolbar
       :tab-id="tabId"
-      :timeframes="Object.keys(tabStore.globalState.timeframes)"
+      :timeframes="Object.keys(tabStore.globalState.engine_state.timeframes)"
       :active-timeframe="activeTimeframe"
       @update:timeframe="activeTimeframe = $event"
     />
 
     <Chart
-      v-for="(timeframe, key) in tabStore.globalState.timeframes"
+      v-for="(timeframe, key) in tabStore.globalState.engine_state.timeframes"
       :key="key"
       ref="charts"
       v-show="key === activeTimeframe"

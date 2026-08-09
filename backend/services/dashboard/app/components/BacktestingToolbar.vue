@@ -47,7 +47,7 @@ const backtestState = computed<BacktestSlaveStatus[]>(() => [
   {
     key: "engine",
     label: "Engine",
-    color: tabStore.globalState.engineConnected ? "success" : "error",
+    color: tabStore.isEngineConnected ? "success" : "error",
   },
   {
     key: "execution",
@@ -179,7 +179,7 @@ const onTimeframeAdded = () => {
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
 
     <UButton color="neutral" variant="outline" size="sm">{{
-      Object.keys(tabStore.globalState.timeframes)
+      Object.keys(tabStore.globalState.engine_state.timeframes)
     }}</UButton>
 
     <!----------------------------------------------------------------------------------------------------------------------
