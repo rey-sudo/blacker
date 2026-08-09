@@ -16,7 +16,6 @@ type BacktestingTabStoreEvent =
 
 type Listener = (event: BacktestingTabStoreEvent) => void;
 
-
 export const useBacktestingTabStore = (tab: BacktestingTab) =>
   defineStore(
     `tab/${tab.id}`,
@@ -54,17 +53,19 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         engineConnected: false,
         timeframes: {},
       });
-      const isReady = computed(() => globalState.value.status === "Ready");
-      const isPending = computed(() => globalState.value.status === "Pending");
-      const isRunning = computed(
-        () => globalState.value.replayStatus === "Running",
+
+      const status = computed(() => globalState.value.status);
+      const replayStatus = computed(() => globalState.value.replayStatus);
+
+      const isReady = computed(() => status.value === "Ready");
+      const isPending = computed(() => status.value === "Pending");
+
+      const isRunning = computed(() => replayStatus.value === "Running");
+      const isStopped = computed(() => replayStatus.value === "Stopped");
+
+      const isPlayable = computed(
+        () => Object.keys(globalState.value.timeframes).length > 0,
       );
-      const isStopped = computed(
-        () => globalState.value.replayStatus === "Stopped",
-      );
-      const isPlayable = computed(() => {
-        Object.keys(globalState.value.timeframes).length;
-      });
 
       //---------------------------------------------------------------------
       // MAIN LOGIC
@@ -83,14 +84,13 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
        * Adds a timeframe if it is not already registered.
        */
       function addTimeframe(tf: string) {
-
         //TODO: POST QUERY
-
       }
 
       function updateSession(data: BacktestWsMessage) {
         globalState.value.status = data.status;
         globalState.value.replayStatus = data.replay_status;
+        globalState.value.timeframes = data.engine_state.timeframes;
 
         globalState.value.engineConnected =
           data.slaves["Engine"]?.connected || false;
@@ -155,6 +155,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const onUnmount = () => {};
 
       return {
+        isPending,
         stopBacktest,
         isRunning,
         startBacktest,
