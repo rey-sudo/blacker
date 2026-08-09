@@ -29,8 +29,9 @@ class CandleSeries(Series):
     - Empty candles are NOT generated.
     """
 
-    def __init__(self, level: int, kind: str, id: str):
-        super().__init__(level, kind, id)
+    def __init__(self, level: int, kind: str, id: str, params: dict, **kwargs):
+        super().__init__(level, kind, id, params)
+        self.extra = kwargs
 
         self._live: Candle | None = None
         self.history: deque[Candle] = deque(maxlen=MAX_HISTORY)
