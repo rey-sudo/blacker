@@ -7,6 +7,7 @@ export interface BacktestingTabGlobalState {
   status: string;
   replayStatus: string;
   engineConnected: boolean;
+  executionConnected: boolean;
   timeframes: Record<string, BacktestTimeframe>;
 }
 
@@ -37,8 +38,16 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       }
 
       //---------------------------------------------------------------------
-      // SUBS
+      // STORE
       //---------------------------------------------------------------------
+
+      const globalState = ref<BacktestingTabGlobalState>({
+        status: "init",
+        replayStatus: "Stopped",
+        engineConnected: false,
+        executionConnected: false,
+        timeframes: {},
+      });
 
       const id = tab.id;
       const symbol = ref(tab.symbol);
@@ -46,12 +55,6 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const tabColor = "warning";
       const layout = ref<ChartLayout>({
         series: new Map<SeriesId, LayoutSeries>(),
-      });
-      const globalState = ref<BacktestingTabGlobalState>({
-        status: "init",
-        replayStatus: "Stopped",
-        engineConnected: false,
-        timeframes: {},
       });
 
       const status = computed(() => globalState.value.status);
@@ -68,17 +71,20 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       );
 
       //---------------------------------------------------------------------
-      // MAIN LOGIC
+      // METHODS
       //---------------------------------------------------------------------
 
-      const addSeriesToLayout = (series: LayoutSeries) => {
+      /**
+       * Adds series layout.
+       */
+      function addSeriesToLayout(series: LayoutSeries) {
         layout.value.series.set(series.id, series);
 
         notify({
           type: "series-added",
           series,
         });
-      };
+      }
 
       /**
        * Adds a timeframe if it is not already registered.
@@ -87,6 +93,9 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         //TODO: POST QUERY
       }
 
+      /**
+       * Update session ws data.
+       */
       function updateSession(data: BacktestWsMessage) {
         globalState.value.status = data.status;
         globalState.value.replayStatus = data.replay_status;
@@ -95,12 +104,18 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         globalState.value.engineConnected =
           data.slaves["Engine"]?.connected || false;
 
+        globalState.value.executionConnected =
+          data.slaves["Execution"]?.connected || false;
+
         notify({
           type: "live-update",
           data,
         });
       }
 
+      /**
+       * Start backtest.
+       */
       async function startBacktest() {
         try {
           const response = await $fetch("/api/backtest/master/start-backtest", {
@@ -115,6 +130,9 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         }
       }
 
+      /**
+       * Stop backtest.
+       */
       async function stopBacktest() {
         try {
           const response = await $fetch("/api/backtest/master/stop-backtest", {
@@ -128,31 +146,24 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
           throw err;
         }
       }
-      //---------------------------------------------------------------------
-      // UTILS
-      //---------------------------------------------------------------------
 
       /**
        * Returns the associated tab instance.
        */
-      const getTab = () => {
+      function getTab() {
         return tab;
-      };
-
-      //---------------------------------------------------------------------
-      // COMPONENT LIFECYCLE
-      //---------------------------------------------------------------------
+      }
 
       /**
        * Lifecycle hook executed when the tab is mounted.
        */
-      const onMount = () => {};
+      function onMount() {}
 
       /**
        * Lifecycle hook executed when the tab is unmounted.
        * Ensures the session is paused and disconnected.
        */
-      const onUnmount = () => {};
+      function onUnmount() {}
 
       return {
         isPending,
