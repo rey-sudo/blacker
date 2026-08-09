@@ -21,28 +21,6 @@ from core.engine import TradingEngine
 from ingestion.pulsar_consumer import PulsarConsumer
 from publication.pulsar_publisher import PulsarPublisher
 
-engine_config = {
-    "timeframes": {
-        "1m": {
-            "id": "1m",
-            "timeframe_ms": 60000,
-            "parent": None,
-            "series": {
-                "candle-series": {
-                    "level": 0,
-                    "kind": "CandleSeries",
-                    "id": "candle-series",
-                    "params": {}                    
-                }
-            }
-        },
-    },
-  "strategy": {
-    "kind": "MyStrategy",
-    "params": {}
-  }
-}
-
 consumer = PulsarConsumer(
         service_url="pulsar://localhost:6650",
         topic="persistent://public/default/master.tick",
@@ -54,7 +32,9 @@ publisher = PulsarPublisher(
     topic="persistent://public/default/engine.state",
 )
 
-engine = TradingEngine.from_config(engine_config)
+engine = TradingEngine()
+
+print(engine)
 
 #-----------------------------------------------------------------------------------------------------------------------
 # HANDLE TICKS
@@ -118,7 +98,7 @@ def listen():
 # HANDLE STATE
 #----------------------------------------------------------------------------------------------------------------------- 
 
-def handle_state(data) -> bool:
+def update_state(data) -> bool:
     boot_id = data['boot_id']
     state = data['engine_state']
 
@@ -147,7 +127,7 @@ def handle_state(data) -> bool:
      
 heartbeat = HeartbeatTask(
     master_url="http://localhost:3002/api/backtest/master/report-state",
-    apply_state=handle_state,
+    apply_state=update_state,
     engine=engine
 )
 
@@ -161,7 +141,41 @@ def main():
 main()
 
 
+
+
+
+
+
+
+
+
+
+
+
 """
+engine_config = {
+    "timeframes": {
+        "1m": {
+            "id": "1m",
+            "timeframe_ms": 60000,
+            "series": {
+                "candle-series": {
+                    "level": 0,
+                    "kind": "CandleSeries",
+                    "id": "candle-series",
+                    "params": {}                    
+                }
+            }
+        },
+    },
+  "strategy": {
+    "kind": "MyStrategy",
+    "params": {}
+  }
+}
+
+
+
 
         {   
             "params": {

@@ -21,13 +21,13 @@ from series.registry import SERIES_REGISTRY
 
 
 class TradingEngine:
-    def __init__(self, strategy, timeframes):
+    def __init__(self, strategy=None, timeframes=None):
         self.status = 'init'
         self.boot_id = None
         self.state = None
         self.listening = False
         self.strategy = strategy
-        self.timeframes: dict[str, Timeframe] = timeframes
+        self.timeframes: dict[str, Timeframe] = timeframes or {}
 
         for timeframe in timeframes.values():
             timeframe.engine = self
