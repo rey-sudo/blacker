@@ -15,6 +15,12 @@
 
 import { useBacktestingTabStore } from "~/stores/tabs";
 
+export interface ConnectedSlave {
+  id: string;
+  connected: boolean;
+  status: string;
+}
+
 export interface BacktestWsMessage {
   status: string;
   replay_status: string;
@@ -24,22 +30,16 @@ export interface BacktestWsMessage {
   engine_state: EngineState;
 }
 
-export interface ConnectedSlave {
-  id: string;
-  connected: boolean;
-  status: string;
+export interface BacktestTimeframe {
+  name: string;
+  series: Record<string, unknown>;
+  timeframe_ms: number;
 }
 
 export interface EngineState {
   tick_index: number;
   time: number;
-  timeframes: Record<string, Timeframe>;
-}
-
-export interface Timeframe {
-  name: string;
-  series: Record<string, unknown>;
-  timeframe_ms: number
+  timeframes: Record<string, BacktestTimeframe>;
 }
 
 export function useBacktestingSession(tabId: string, symbol: string) {

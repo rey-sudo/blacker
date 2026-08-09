@@ -36,7 +36,19 @@ engine_config = {
         },
       ]
     },
-
+    {
+      "name": "5m",
+      "timeframe_ms": 300000,
+      "series": [ 
+        {  
+            "params": {
+                "level": 0,
+                "name": "CandleSeries",
+                "id": "candle-series",
+            }
+        },
+      ]
+    }
   ],
   "strategy": {
     "type": "MyStrategy",

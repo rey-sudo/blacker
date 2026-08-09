@@ -15,11 +15,7 @@
 
 import { ref, computed } from "vue";
 import type { SelectItem } from "@nuxt/ui";
-import {
-  useBacktestingTabStore,
-  type Timeframe,
-  type TimeframeInterval,
-} from "~/stores/tabs/backtesting-tab.store";
+import { useBacktestingTabStore } from "~/stores/tabs/backtesting-tab.store";
 
 const props = defineProps({
   tabId: {
@@ -36,13 +32,13 @@ const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 // STATES
 //----------------------------------------------------------------------------------------------------------------------
 
-interface BacktestStateItem {
+interface BacktestSlaveStatus {
   key: string;
   label: string;
   color: any;
 }
 
-const backtestState = computed<BacktestStateItem[]>(() => [
+const backtestState = computed<BacktestSlaveStatus[]>(() => [
   {
     key: "master",
     label: "Master",
@@ -90,14 +86,10 @@ const timeframeItems = ref<SelectItem[]>([
   "6h",
 ]);
 
-const timeframeSelected = ref<TimeframeInterval>("1m");
+const timeframeSelected = ref("1m");
 
 const onTimeframeAdded = () => {
-  const timeframe: Timeframe = {
-    interval: timeframeSelected.value,
-  };
-
-  tabStore?.addTimeframe(timeframe);
+  tabStore.addTimeframe(timeframeSelected.value);
   timeframeModalOpen.value = false;
 };
 </script>
@@ -185,6 +177,11 @@ const onTimeframeAdded = () => {
     </div>
 
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
+
+    <UButton color="neutral" variant="outline" size="sm">{{
+      Object.keys(tabStore.globalState.timeframes)
+    }}</UButton>
+
     <!----------------------------------------------------------------------------------------------------------------------
   BACKTEST CONTROLS
 ----------------------------------------------------------------------------------------------------------------------->

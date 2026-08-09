@@ -3,41 +3,20 @@ import type { ChartLayout, LayoutSeries, SeriesId } from ".";
 /**
  * Backend backtester GlobalState interface
  */
-export interface GlobalState {
+export interface BacktestingTabGlobalState {
   status: string;
   replayStatus: string;
   engineConnected: boolean;
+  timeframes: Record<string, BacktestTimeframe>;
 }
 
-/**
- * Backend supported candle intervals for backtesting and market data subscriptions.
- */
-export type TimeframeInterval =
-  | "1m"
-  | "5m"
-  | "15m"
-  | "30m"
-  | "1h"
-  | "4h"
-  | "1d"
-  | "1w";
-
-/**
- * Backend represents a timeframe configuration.
- */
-export interface Timeframe {
-  interval: TimeframeInterval;
-}
-
-type StoreEvent =
+type BacktestingTabStoreEvent =
   | { type: "series-added"; series: LayoutSeries }
   | { type: "live-update"; data: any };
 
-type Listener = (event: StoreEvent) => void;
+type Listener = (event: BacktestingTabStoreEvent) => void;
 
-//----------------------------------------------------------------------------------------------------------------
-// BACKTESTING STORE
-//----------------------------------------------------------------------------------------------------------------
+
 export const useBacktestingTabStore = (tab: BacktestingTab) =>
   defineStore(
     `tab/${tab.id}`,
@@ -54,7 +33,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         return () => listeners.delete(listener);
       }
 
-      function notify(event: StoreEvent) {
+      function notify(event: BacktestingTabStoreEvent) {
         listeners.forEach((listener) => listener(event));
       }
 
@@ -69,17 +48,23 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const layout = ref<ChartLayout>({
         series: new Map<SeriesId, LayoutSeries>(),
       });
-      const globalState = ref<GlobalState>({
+      const globalState = ref<BacktestingTabGlobalState>({
         status: "init",
-        replayStatus: 'Stopped',
+        replayStatus: "Stopped",
         engineConnected: false,
+        timeframes: {},
       });
-      const timeframes = ref<Timeframe[]>([]);
       const isReady = computed(() => globalState.value.status === "Ready");
       const isPending = computed(() => globalState.value.status === "Pending");
-      const isRunning = computed(() => globalState.value.replayStatus === "Running");
-      const isStopped = computed(() => globalState.value.replayStatus === "Stopped");
-      const isPlayable = computed(() => timeframes.value.length > 0);
+      const isRunning = computed(
+        () => globalState.value.replayStatus === "Running",
+      );
+      const isStopped = computed(
+        () => globalState.value.replayStatus === "Stopped",
+      );
+      const isPlayable = computed(() => {
+        Object.keys(globalState.value.timeframes).length;
+      });
 
       //---------------------------------------------------------------------
       // MAIN LOGIC
@@ -97,13 +82,10 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       /**
        * Adds a timeframe if it is not already registered.
        */
-      function addTimeframe(timeframe: Timeframe) {
-        const exists = timeframes.value.some(
-          (t) => t.interval === timeframe.interval,
-        );
-        if (exists) return;
+      function addTimeframe(tf: string) {
 
-        timeframes.value.push(timeframe);
+        //TODO: POST QUERY
+
       }
 
       function updateSession(data: BacktestWsMessage) {
@@ -181,7 +163,6 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         subscribe,
         addTimeframe,
         updateSession,
-        timeframes,
         tabTitle,
         tabColor,
         symbol,
