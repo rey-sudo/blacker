@@ -1,5 +1,4 @@
 from collections import defaultdict
-from core.engine import TradingEngine
 from series.series import Series
 
 class Timeframe:
@@ -8,7 +7,7 @@ class Timeframe:
         self.timeframe_ms: int = timeframe_ms
         self.series: dict[str, Series] = {}
         self.levels: list[list[Series]] = []
-        self.engine: TradingEngine | None = None
+        self.engine = None
 
     def add_series(self, series: Series):
         series.timeframe = self

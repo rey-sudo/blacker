@@ -32,9 +32,7 @@ engine_config = {
                     "level": 0,
                     "kind": "CandleSeries",
                     "id": "candle-series",
-                    "params": {
-                       
-                    }                    
+                    "params": {}                    
                 }
             }
         },

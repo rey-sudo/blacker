@@ -14,7 +14,6 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from abc import ABC, abstractmethod
-from timeframes.timeframe import Timeframe
 from ingestion.tick import Tick
 
 
@@ -29,7 +28,7 @@ class Series(ABC):
         self.level = level
         self.kind = kind
         self.id = id
-        self.timeframe: Timeframe | None = None
+        self.timeframe = None
 
     @property
     def timeframe_ms(self) -> int:

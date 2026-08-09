@@ -30,13 +30,11 @@ class CandleSeries(Series):
     """
 
     def __init__(self, level: int, kind: str, id: str):
-        
         super().__init__(level, kind, id)
 
         self._live: Candle | None = None
         self.history: deque[Candle] = deque(maxlen=MAX_HISTORY)
         self.is_new: bool = False
-
         self.last_tick_time: int | None = None
 
     @property
