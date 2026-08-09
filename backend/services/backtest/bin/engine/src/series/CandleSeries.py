@@ -29,8 +29,9 @@ class CandleSeries(Series):
     - Empty candles are NOT generated.
     """
 
-    def __init__(self, level: int, name: str, id: str):
-        super().__init__(level, name, id)
+    def __init__(self, level: int, kind: str, id: str):
+        
+        super().__init__(level, kind, id)
 
         self._live: Candle | None = None
         self.history: deque[Candle] = deque(maxlen=MAX_HISTORY)
@@ -48,15 +49,13 @@ class CandleSeries(Series):
             
     def to_dict(self):
         return {
-            "params": {
-                "level": self.level,
-                "name": self.name,
-                "id": self.id,
-            },
+            "level": self.level,
+            "kind": self.kind,
+            "id": self.id,            
+            "params": {},
             "live": asdict(self.live) if self.live else None,
             "history": [asdict(c) for c in self.history],
             "is_new": self.is_new,
-
             "last_tick_time": self.last_tick_time,
         }
 

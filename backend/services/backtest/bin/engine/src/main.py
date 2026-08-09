@@ -22,36 +22,25 @@ from ingestion.pulsar_consumer import PulsarConsumer
 from publication.pulsar_publisher import PulsarPublisher
 
 engine_config = {
-  "timeframes": [
-    {
-      "name": "1m",
-      "timeframe_ms": 60000,
-      "series": [ 
-        {  
-            "params": {
-                "level": 0,
-                "name": "CandleSeries",
-                "id": "candle-series",
+    "timeframes": {
+        "1m": {
+            "id": "1m",
+            "timeframe_ms": 60000,
+            "parent": None,
+            "series": {
+                "candle-series": {
+                    "level": 0,
+                    "kind": "CandleSeries",
+                    "id": "candle-series",
+                    "params": {
+                       
+                    }                    
+                }
             }
         },
-      ]
     },
-    {
-      "name": "5m",
-      "timeframe_ms": 300000,
-      "series": [ 
-        {  
-            "params": {
-                "level": 0,
-                "name": "CandleSeries",
-                "id": "candle-series",
-            }
-        },
-      ]
-    }
-  ],
   "strategy": {
-    "type": "MyStrategy",
+    "kind": "MyStrategy",
     "params": {}
   }
 }

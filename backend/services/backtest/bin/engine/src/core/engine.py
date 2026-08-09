@@ -21,58 +21,41 @@ from series.registry import SERIES_REGISTRY
 
 
 class TradingEngine:
-    status: str
-    boot_id: str | None
-    listening: bool
-
     def __init__(self, strategy, timeframes):
         self.status = 'init'
         self.boot_id = None
         self.state = None
-
         self.listening = False
         self.strategy = strategy
-        self.timeframes = timeframes
+        self.timeframes: dict[str, Timeframe] = timeframes
+
+        for timeframe in timeframes.values():
+            timeframe.engine = self
 
     @classmethod
     def from_config(cls, config: dict) -> "TradingEngine":
         """
         Builds a TradingEngine from a configuration dictionary.
         """
-
-        #
-        # Build timeframes.
-        #
         timeframes = {}
 
-        for tf_cfg in config["timeframes"]:
+        for tf_id, tf_value in config["timeframes"].items():
             timeframe = Timeframe(
-                name=tf_cfg["name"],
-                timeframe_ms=tf_cfg["timeframe_ms"],
+                id=tf_id,
+                timeframe_ms=tf_value["timeframe_ms"],
             )
 
-            for series_cfg in tf_cfg["series"]:
-                
-                params = series_cfg.get("params", {})
-
-                series_cls = SERIES_REGISTRY[params.get("name")]
-    
-                series = series_cls(**params)
-
-                timeframe.add_series(series)   
+            for series_id, series_value in tf_value["series"].items():
+                series_cls = SERIES_REGISTRY[series_value.get("kind")]
+                timeframe.add_series(series_cls(**series_value))   
                          
             timeframe.build_levels()
+            timeframes[timeframe.id] = timeframe
 
-            timeframes[timeframe.name] = timeframe
 
-        #
-        # Build strategy.
-        #
-        strategy_cfg = config["strategy"]
-
-        strategy_cls = STRATEGY_REGISTRY[strategy_cfg["type"]]
-
-        strategy = strategy_cls(**strategy_cfg["params"])
+        strategy_value = config["strategy"]
+        strategy_cls = STRATEGY_REGISTRY[strategy_value["kind"]]
+        strategy = strategy_cls(**strategy_value["params"])
 
         return cls(
             strategy=strategy,

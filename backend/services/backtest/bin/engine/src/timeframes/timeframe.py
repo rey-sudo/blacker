@@ -1,20 +1,21 @@
 from collections import defaultdict
+from core.engine import TradingEngine
 from series.series import Series
 
 class Timeframe:
-    def __init__(self, name: str, timeframe_ms: int):
-        self.levels: list[list[Series]] = []
-
-        self.name = name
-        self.timeframe_ms = timeframe_ms
+    def __init__(self, id: str, timeframe_ms: int):
+        self.id: str = id
+        self.timeframe_ms: int = timeframe_ms
         self.series: dict[str, Series] = {}
+        self.levels: list[list[Series]] = []
+        self.engine: TradingEngine | None = None
 
     def add_series(self, series: Series):
         series.timeframe = self
         self.series[series.id] = series
 
-    def get_series(self, id: str) -> Series:
-        return self.series[id]
+    def get_series(self, series_id: str) -> Series:
+        return self.series[series_id]
         
     def build_levels(self):
         groups = defaultdict(list)
@@ -34,7 +35,7 @@ class Timeframe:
 
     def to_dict(self):
         return {
-            "name": self.name,
+            "id": self.id,
             "timeframe_ms": self.timeframe_ms,
             "series": {
                 id: series.to_dict()
