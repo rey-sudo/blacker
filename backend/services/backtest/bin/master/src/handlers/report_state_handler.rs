@@ -29,7 +29,7 @@ pub async fn report_state_handler(
     let response: ReportResponse = {
         let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
-        master.slaves.insert(
+        master.connected_slaves.insert(
             req.id.clone(),
             ConnectedSlaveState {
                 id: req.id,

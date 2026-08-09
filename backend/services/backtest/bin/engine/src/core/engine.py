@@ -29,7 +29,7 @@ class TradingEngine:
         self.strategy = strategy
         self.timeframes: dict[str, Timeframe] = timeframes or {}
 
-        for timeframe in timeframes.values():
+        for timeframe in self.timeframes.values():
             timeframe.engine = self
 
     @classmethod

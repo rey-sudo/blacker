@@ -36,8 +36,8 @@ pub fn run(state: AppState) {
 
             let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
-            let execution: Option<&ConnectedSlaveState> = master.slaves.get(&SlaveId::Execution);
-            let engine: Option<&ConnectedSlaveState> = master.slaves.get(&SlaveId::Engine);
+            let execution: Option<&ConnectedSlaveState> = master.connected_slaves.get(&SlaveId::Execution);
+            let engine: Option<&ConnectedSlaveState> = master.connected_slaves.get(&SlaveId::Engine);
 
             // Determines whether the slaves are connected.
             let engine_connected: bool = engine.is_some_and(|s: &ConnectedSlaveState| s.connected);

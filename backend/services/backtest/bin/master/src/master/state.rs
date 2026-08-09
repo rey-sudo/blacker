@@ -31,7 +31,7 @@ use tracing::info;
 use uuid::Uuid;
 
 //----------------------------------------------------------------------------------------------------------------------
-// IMPLEMENTATIONS
+//  MASTER STATE
 //----------------------------------------------------------------------------------------------------------------------
 
 pub type Tick = Trade;
@@ -45,7 +45,7 @@ pub struct TickInfo {
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub enum ReplayStatus {
     Stopped,
-    Running
+    Running,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -60,14 +60,11 @@ pub struct MasterState {
     pub status: MasterStatus,
     pub replay_status: ReplayStatus,
     pub replay_step: ReplayStep,
-
-    pub slaves: HashMap<SlaveId, ConnectedSlaveState>,
+    pub connected_slaves: HashMap<SlaveId, ConnectedSlaveState>,
     #[serde(skip)]
     pub tick_data: Arc<BinaryFile>,
     pub tick_index: usize,
-
     pub engine_state: Option<EngineState>,
-
     #[serde(skip)]
     pub execution_state: Option<ExecutionState>,
 }
@@ -77,7 +74,7 @@ impl fmt::Debug for MasterState {
         f.debug_struct("MasterState")
             .field("status", &self.status)
             .field("replay_status", &self.replay_status)
-            .field("slaves", &self.slaves)
+            .field("connected_slaves", &self.connected_slaves)
             .field("tick_index", &self.tick_index)
             .field("engine_state", &self.engine_state)
             .field("execution_state", &self.execution_state)
@@ -118,29 +115,30 @@ impl MasterState {
     }
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+// APP STATE
+//----------------------------------------------------------------------------------------------------------------------
+
 #[derive(Clone)]
 pub struct AppState {
     pub boot_id: String,
-
-    pub master: Arc<RwLock<MasterState>>,
-
     pub replay_batch_size: usize,
-
+    pub master: Arc<RwLock<MasterState>>,
     pub replay_notify: Arc<Notify>,
     pub engine_notify: Arc<Notify>,
     pub execution_notify: Arc<Notify>,
-
     pub engine_ack_notify: Arc<Notify>,
     pub execution_ack_notify: Arc<Notify>,
-
     pub master_state_tx: Sender<Arc<String>>,
 }
 
 impl AppState {
     pub fn new(tick_data: Arc<BinaryFile>, snapshot: Option<ReplaySnapshot>) -> Self {
-        info!("LOADING SNAPSHOT, {:?}", snapshot);
+        info!("Loading Snapshot...");
 
         let boot_id: String = Uuid::now_v7().to_string();
+
+        let replay_batch_size: usize = 150000;
 
         let (tick_index, replay_step, engine_state, execution_state) = match snapshot {
             Some(snapshot) => (
@@ -150,42 +148,39 @@ impl AppState {
                 snapshot.execution_state,
             ),
 
-            None => (0, ReplayStep::PublishTick, None, None),
+            None => (0, ReplayStep::PublishTick, Some(EngineState::default()), None),
         };
 
-        let slaves: HashMap<SlaveId, ConnectedSlaveState> = HashMap::new();
+        let connected_slaves: HashMap<SlaveId, ConnectedSlaveState> = HashMap::new();
+
+        let master_state: MasterState = MasterState {
+            status: MasterStatus::Pending,
+            replay_status: ReplayStatus::Stopped,
+            replay_step,
+            connected_slaves,
+            tick_data,
+            tick_index,
+            engine_state,
+            execution_state,
+        };
 
         let (master_state_tx, _) = watch::channel(Arc::new(String::from("{}")));
 
         Self {
             boot_id,
-
-            replay_batch_size: 150000,
-
-            master: Arc::new(RwLock::new(MasterState {
-                status: MasterStatus::Pending,
-                replay_status: ReplayStatus::Stopped,
-                replay_step,
-                slaves,
-                tick_data,
-                tick_index,
-                engine_state,
-                execution_state,
-            })),
+            replay_batch_size,
+            master: Arc::new(RwLock::new(master_state)),
 
             replay_notify: Arc::new(Notify::new()),
             engine_notify: Arc::new(Notify::new()),
             execution_notify: Arc::new(Notify::new()),
-
             engine_ack_notify: Arc::new(Notify::new()),
             execution_ack_notify: Arc::new(Notify::new()),
 
             master_state_tx,
         }
     }
-}
 
-impl AppState {
     pub async fn publish_master_state(&self) -> Result<()> {
         let json: String = {
             let master: RwLockReadGuard<'_, MasterState> = self.master.read().await;
