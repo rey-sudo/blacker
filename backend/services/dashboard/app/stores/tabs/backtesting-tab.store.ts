@@ -1,7 +1,7 @@
 import type { ChartLayout, LayoutSeries, SeriesId } from ".";
 
 /**
- * Backend backtester GlobalState interface
+ * Backend backtester GlobalState interface.
  */
 export interface BacktestingTabGlobalState {
   status: string;
@@ -11,10 +11,16 @@ export interface BacktestingTabGlobalState {
   timeframes: Record<string, BacktestTimeframe>;
 }
 
+/**
+ * Store event
+ */
 type BacktestingTabStoreEvent =
   | { type: "series-added"; series: LayoutSeries }
   | { type: "live-update"; data: any };
 
+/**
+ * Store event handler.
+ */
 type Listener = (event: BacktestingTabStoreEvent) => void;
 
 export const useBacktestingTabStore = (tab: BacktestingTab) =>
@@ -53,6 +59,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       const symbol = ref(tab.symbol);
       const tabTitle = computed(() => `${symbol.value} - BT`);
       const tabColor = "warning";
+      
       const layout = ref<ChartLayout>({
         series: new Map<SeriesId, LayoutSeries>(),
       });
@@ -196,7 +203,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
           serialize: (state) => {
             return JSON.stringify({
               symbol: state.symbol,
-              timeframes: state.timeframes,
+              globalState: state.globalState,
             });
           },
 
@@ -204,16 +211,9 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
             try {
               const parsed = JSON.parse(raw);
 
-              if (
-                typeof parsed.symbol !== "string" ||
-                !Array.isArray(parsed.timeframes)
-              ) {
-                throw new Error("Estructura inválida");
-              }
-
               return {
                 symbol: parsed.symbol,
-                timeframes: parsed.timeframes,
+                globalState: parsed.globalState,
               };
             } catch (err) {
               console.warn(
@@ -223,7 +223,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
 
               return {
                 symbol: "BTCUSDT",
-                timeframes: [],
+                globalState: {},
               };
             }
           },
