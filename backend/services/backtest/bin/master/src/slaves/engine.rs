@@ -7,7 +7,6 @@ pub struct Series {
     pub id: String,
     pub kind: String,
     pub level: u32,
-    pub live: Value,
     pub params: HashMap<String, Value>,
 }
 

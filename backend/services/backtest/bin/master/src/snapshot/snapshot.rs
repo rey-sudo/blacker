@@ -15,9 +15,8 @@ use tracing::debug;
 pub struct ReplaySnapshot {
     pub tick_index: usize,
     pub replay_step: ReplayStep,
-
-    pub engine_state: Option<EngineState>,
-    pub execution_state: Option<ExecutionState>,
+    pub engine_state: EngineState,
+    pub execution_state: ExecutionState,
 }
 
 const SNAPSHOT_PATH: &str = "./data/replay.bin";

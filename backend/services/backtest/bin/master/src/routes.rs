@@ -1,5 +1,8 @@
 use crate::{
-    handlers::{get_state_handler, report_state_handler, start_backtest_handler, stop_backtest_handler},
+    handlers::{
+        add_timeframe_handler, get_state_handler, report_state_handler, start_backtest_handler,
+        stop_backtest_handler,
+    },
     master::state::AppState,
     ws::websocket_handler,
 };
@@ -10,6 +13,10 @@ use axum::{
 
 pub fn router() -> Router<AppState> {
     Router::new()
+        .route(
+            "/master/add-timeframe",
+            post(add_timeframe_handler),
+        )
         .route("/master/report-state", post(report_state_handler))
         .route("/master/get-state", get(get_state_handler))
         .route("/master/start-backtest", post(start_backtest_handler))

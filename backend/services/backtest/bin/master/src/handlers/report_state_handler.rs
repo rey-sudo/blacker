@@ -19,7 +19,7 @@ pub struct ReportRequest {
 pub struct ReportResponse {
     pub ok: bool,
     pub boot_id: String,
-    pub engine_state: Option<EngineState>,
+    pub engine_state: EngineState,
 }
 
 pub async fn report_state_handler(
@@ -39,16 +39,10 @@ pub async fn report_state_handler(
             },
         );
 
-        let engine_state: Option<EngineState> = if !req.initialized {
-            master.engine_state.clone()
-        } else {
-            None
-        };
-
         ReportResponse {
             ok: true,
             boot_id: state.boot_id.clone(),
-            engine_state
+            engine_state: master.engine_state.clone()
         }
     };
 

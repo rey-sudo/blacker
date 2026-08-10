@@ -118,7 +118,7 @@ pub fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
                     &engine_state,
                 ) {
                     Ok(()) => {
-                        master.engine_state = Some(engine_state.into());
+                        master.engine_state = engine_state.into();
 
                         if engine_tick_index % 10_000 == 0 {
                             info!(

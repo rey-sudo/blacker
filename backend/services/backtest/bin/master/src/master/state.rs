@@ -64,9 +64,9 @@ pub struct MasterState {
     #[serde(skip)]
     pub tick_data: Arc<BinaryFile>,
     pub tick_index: usize,
-    pub engine_state: Option<EngineState>,
+    pub engine_state: EngineState,
     #[serde(skip)]
-    pub execution_state: Option<ExecutionState>,
+    pub execution_state: ExecutionState,
 }
 
 impl fmt::Debug for MasterState {
@@ -148,7 +148,7 @@ impl AppState {
                 snapshot.execution_state,
             ),
 
-            None => (0, ReplayStep::PublishTick, Some(EngineState::default()), None),
+            None => (0, ReplayStep::PublishTick, EngineState::default(), ExecutionState::default()),
         };
 
         let connected_slaves: HashMap<SlaveId, ConnectedSlaveState> = HashMap::new();
