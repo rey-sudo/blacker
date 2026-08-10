@@ -14,15 +14,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    common::SlaveId,
-    slaves::{engine::EngineState, execution::ExecutionState, slave::ConnectedSlaveState},
+    slaves::{engine::EngineState, execution::ExecutionState},
     snapshot::ReplaySnapshot,
     tasks::ReplayStep,
 };
 use anyhow::Result;
 use cursor_db::{binary::BinaryFile, trade::Trade};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fmt;
 use std::sync::Arc;
 use tokio::sync::{Notify, RwLock, watch};
@@ -57,11 +55,9 @@ pub enum MasterStatus {
 
 #[derive(Clone, Serialize)]
 pub struct MasterState {
-    pub version: usize,
     pub status: MasterStatus,
     pub replay_status: ReplayStatus,
     pub replay_step: ReplayStep,
-    pub connected_slaves: HashMap<SlaveId, ConnectedSlaveState>,
     #[serde(skip)]
     pub tick_data: Arc<BinaryFile>,
     pub tick_index: usize,
@@ -75,7 +71,6 @@ impl fmt::Debug for MasterState {
         f.debug_struct("MasterState")
             .field("status", &self.status)
             .field("replay_status", &self.replay_status)
-            .field("connected_slaves", &self.connected_slaves)
             .field("tick_index", &self.tick_index)
             .field("engine_state", &self.engine_state)
             .field("execution_state", &self.execution_state)
@@ -152,14 +147,10 @@ impl AppState {
             None => (0, ReplayStep::PublishTick, EngineState::default(), ExecutionState::default()),
         };
 
-        let connected_slaves: HashMap<SlaveId, ConnectedSlaveState> = HashMap::new();
-
         let master_state: MasterState = MasterState {
-            version: 0,
-            status: MasterStatus::Pending,
+            status: MasterStatus::Ready,
             replay_status: ReplayStatus::Stopped,
             replay_step,
-            connected_slaves,
             tick_data,
             tick_index,
             engine_state,

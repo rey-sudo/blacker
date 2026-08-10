@@ -17,7 +17,7 @@ use cursor_db::binary::BinaryFile;
 use master::master::state::AppState;
 use master::server::server::start_http_server;
 use master::snapshot::{ReplaySnapshot, load_snapshot};
-use master::tasks::{master_monitor, replay_task, slave_monitor, engine_consumer};
+use master::tasks::{replay_task, engine_consumer};
 use pulsar::{Pulsar, TokioExecutor};
 use std::sync::Arc;
 
@@ -39,15 +39,9 @@ async fn main() -> anyhow::Result<()> {
 
     let state: AppState = AppState::new(tick_data, snapshot);
 
-    master_monitor::run(state.clone());
-
-    slave_monitor::run(state.clone());
-
     replay_task::run(state.clone(), pulsar.clone());
 
     engine_consumer::run(state.clone(), pulsar.clone());
-
-    // start_execution_state_consumer();
 
     start_http_server(state).await;
 

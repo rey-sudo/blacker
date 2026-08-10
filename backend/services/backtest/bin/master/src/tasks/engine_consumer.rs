@@ -106,6 +106,7 @@ pub fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
                 }
             };
 
+            // Validate message.
             {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
@@ -116,10 +117,11 @@ pub fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
                     &engine_state_message,
                 ) {
                     Ok(()) => {
-                        master.engine_state = EngineState::from_message(
-                            engine_state_message,
-                            master.engine_state.strategy.clone(),
-                        );
+                        master.engine_state = EngineState {
+                            tick_index: engine_state_message.tick_index,
+                            time: engine_state_message.time,
+                            timeframes: engine_state_message.timeframes,
+                        };
                     }
                     Err(reason) => {
                         error!(?reason, "Rejected EngineState ACKing...");

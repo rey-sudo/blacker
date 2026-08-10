@@ -28,7 +28,6 @@ pub struct EngineState {
     pub tick_index: usize,
     pub time: u64,
     pub timeframes: HashMap<String, Timeframe>,
-    pub strategy: Strategy,
 }
 
 impl Default for EngineState {
@@ -36,22 +35,7 @@ impl Default for EngineState {
         Self {
             tick_index: 0,
             time: 0,
-            timeframes: HashMap::new(),
-            strategy: Strategy {
-                kind: "Strategy1".to_string(),
-                params: HashMap::new(),
-            },
-        }
-    }
-}
-
-impl EngineState {
-    pub fn from_message(message: EngineStateMessage, strategy: Strategy) -> Self {
-        Self {
-            tick_index: message.tick_index,
-            time: message.time,
-            timeframes: message.timeframes,
-            strategy,
+            timeframes: HashMap::new()
         }
     }
 }
@@ -63,3 +47,4 @@ pub struct EngineStateMessage {
     pub time: u64,
     pub timeframes: HashMap<String, Timeframe>,
 }
+
