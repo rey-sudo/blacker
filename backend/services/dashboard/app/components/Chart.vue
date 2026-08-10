@@ -21,7 +21,7 @@ import { seriesRegistry, type SeriesId } from "~/stores/tabs";
 export type ChartSerie = Record<string, unknown>;
 
 export interface ChartTimeframe {
-  name: string;
+  id: string;
   series: Record<string, ChartSerie>;
   timeframe_ms: number;
 }

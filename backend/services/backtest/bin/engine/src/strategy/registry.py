@@ -1,5 +1,5 @@
-from strategy.my_strategy import MyStrategy
+from strategy.my_strategy import Strategy1
 
 STRATEGY_REGISTRY = {
-    "MyStrategy": MyStrategy,
+    "Strategy1": Strategy1,
 }

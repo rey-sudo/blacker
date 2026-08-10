@@ -22,6 +22,7 @@ from series.registry import SERIES_REGISTRY
 
 class TradingEngine:
     def __init__(self, strategy=None, timeframes=None):
+        self.version = 0,
         self.status = 'init'
         self.boot_id = None
         self.state = None
@@ -32,14 +33,14 @@ class TradingEngine:
         for timeframe in self.timeframes.values():
             timeframe.engine = self
 
-    @classmethod
-    def from_config(cls, config: dict) -> "TradingEngine":
+    def set_state(self, engine_state: dict) -> None:
         """
-        Builds a TradingEngine from a configuration dictionary.
+        Restores the engine state from a serialized dictionary.
         """
+
         timeframes = {}
 
-        for tf_id, tf_value in config["timeframes"].items():
+        for tf_id, tf_value in engine_state["timeframes"].items():
             timeframe = Timeframe(
                 id=tf_id,
                 timeframe_ms=tf_value["timeframe_ms"],
@@ -52,47 +53,12 @@ class TradingEngine:
             timeframe.build_levels()
             timeframes[timeframe.id] = timeframe
 
-
-        strategy_value = config["strategy"]
+        strategy_value = engine_state["strategy"]
         strategy_cls = STRATEGY_REGISTRY[strategy_value["kind"]]
         strategy = strategy_cls(**strategy_value["params"])
 
-        return cls(
-            strategy=strategy,
-            timeframes=timeframes,
-        )
-
-    def set_state(self, engine_state: dict) -> None:
-        """
-        Restores the engine state from a serialized dictionary.
-        """
-
-        timeframes = {}
-
-        for tf_name, tf_state in engine_state["timeframes"].items():
-
-            timeframe = Timeframe(
-                name=tf_state["name"],
-                timeframe_ms=tf_state["timeframe_ms"],
-            )
-
-            for series_id, series_state in tf_state["series"].items():
-                
-                params = series_state.get("params", {})
-
-                series_cls = SERIES_REGISTRY[params.get("name")]
-
-                series = series_cls(**params)
-
-                series.set_state(series_state)
-
-                timeframe.add_series(series)
-            
-            timeframe.build_levels()
-
-            timeframes[tf_name] = timeframe
-
         self.timeframes = timeframes
+        self.strategy = strategy
 
         self.state = EngineState(
             boot_id=self.boot_id,

@@ -17,11 +17,18 @@ pub struct Timeframe {
     pub timeframe_ms: u64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct Strategy {
+    pub kind: String,
+    pub params: HashMap<String, Value>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EngineState {
     pub tick_index: usize,
     pub time: u64,
     pub timeframes: HashMap<String, Timeframe>,
+    pub strategy: Strategy,
 }
 
 impl Default for EngineState {
@@ -30,6 +37,10 @@ impl Default for EngineState {
             tick_index: 0,
             time: 0,
             timeframes: HashMap::new(),
+            strategy: Strategy {
+                kind: "Strategy1".to_string(),
+                params: HashMap::new(),
+            },
         }
     }
 }
@@ -40,6 +51,7 @@ pub struct EngineStateMessage {
     pub tick_index: usize,
     pub time: u64,
     pub timeframes: HashMap<String, Timeframe>,
+    pub strategy: Strategy,
 }
 
 impl From<EngineStateMessage> for EngineState {
@@ -48,6 +60,7 @@ impl From<EngineStateMessage> for EngineState {
             tick_index: message.tick_index,
             time: message.time,
             timeframes: message.timeframes,
+            strategy: message.strategy
         }
     }
 }

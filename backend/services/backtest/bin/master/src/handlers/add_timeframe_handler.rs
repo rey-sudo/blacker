@@ -22,6 +22,7 @@ pub async fn add_timeframe_handler(
         let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
         master.engine_state.timeframes.insert(req.timeframe.id.clone(), req.timeframe);
+        master.version += 1;
         
         drop(master);
         

@@ -95,17 +95,13 @@ def listen():
 def update_state(data) -> bool:
     boot_id = data['boot_id']
     state = data['engine_state']
+    version = data['version']
 
-    #TODO: CHECK STRUCT
+    print(state, version)
     
     # If the master sends and EngineState None
     if engine.status == 'init':
-        if state == None:
-            engine.boot_id = boot_id
-            engine.status = 'ready'
-            listen()
-            return True
-        else:
+            engine.version = version
             engine.boot_id = boot_id
             engine.set_state(engine_state=state)
             engine.status = 'ready'
@@ -113,6 +109,9 @@ def update_state(data) -> bool:
             return True
         
     if engine.status == 'ready':
+        if engine.version != version:
+            print("Engine version is diferent restarting engine")
+            sys.exit(1)        
         if engine.boot_id != boot_id:
             print("Engine boot_it is diferent restarting engine")
             sys.exit(1)

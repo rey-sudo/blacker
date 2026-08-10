@@ -19,6 +19,7 @@ pub struct ReportRequest {
 pub struct ReportResponse {
     pub ok: bool,
     pub boot_id: String,
+    pub version: usize,
     pub engine_state: EngineState,
 }
 
@@ -42,7 +43,8 @@ pub async fn report_state_handler(
         ReportResponse {
             ok: true,
             boot_id: state.boot_id.clone(),
-            engine_state: master.engine_state.clone()
+            version: master.version.clone(),
+            engine_state: master.engine_state.clone(),
         }
     };
 

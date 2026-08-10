@@ -1,22 +1,5 @@
+import type { ChartTimeframe } from "~/components/Chart.vue";
 import type { LayoutSeries } from ".";
-
-/**
- * ConnectedSlave def.
- */
-export interface ConnectedSlave {
-  id: string;
-  connected: boolean;
-  status: string;
-}
-
-/**
- * Backtest timeframe.
- */
-export interface ChartTimeframe {
-  name: string;
-  series: Record<string, unknown>;
-  timeframe_ms: number;
-}
 
 /**
  * EngineState def.
@@ -25,6 +8,15 @@ export interface EngineState {
   tick_index: number;
   time: number;
   timeframes: Record<string, ChartTimeframe>;
+}
+
+/**
+ * ConnectedSlave def.
+ */
+export interface ConnectedSlave {
+  id: string;
+  connected: boolean;
+  status: string;
 }
 
 /**
@@ -135,7 +127,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       function updateSession(data: MasterState) {
         globalState.value = data;
 
-        console.log(globalState.value);
+        console.log(JSON.stringify(globalState.value));
 
         notify({
           type: "live-update",

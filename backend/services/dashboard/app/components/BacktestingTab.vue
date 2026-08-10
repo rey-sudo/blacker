@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import { DEFAULT_SERIES, useBacktestingTabStore } from "~/stores/tabs";
-import Chart, {
-  type ChartSerie,
-  type ChartTimeframe,
-} from "~/components/Chart.vue";
+import { useBacktestingTabStore } from "~/stores/tabs";
+import Chart, { type ChartTimeframe } from "~/components/Chart.vue";
 
 // Define props to receive the unique identifier for the current tab
 const props = defineProps({
@@ -43,22 +40,17 @@ const charts = ref<InstanceType<typeof Chart>[]>([]);
 const unsubscribe = tabStore.subscribe((event: any) => {
   switch (event.type) {
     case "live-update":
-      const timeframeEntries = Object.entries(
+      for (const [i, [key, timeframe]] of Object.entries(
         tabStore.globalState.engine_state.timeframes,
-      ).entries();
-
-      for (const [i, [key, timeframe]] of timeframeEntries) {
+      ).entries()) {
         const chart = charts.value[i];
 
         chart?.applyLayout(timeframe as ChartTimeframe);
 
-        const seriesEntries = Object.entries(timeframe.series).entries();
-
-        for (const [ii, [key, serie]] of seriesEntries) {
-          const serie_ = serie as ChartSerie;
-          const history = serie_?.history;
-
-          chart?.patchData(key, history);
+        for (const [ii, [key, serie]] of Object.entries(
+          timeframe.series,
+        ).entries()) {
+          chart?.patchData(key, serie?.history);
 
           chart?.applyOptions(key, {
             legend: "Bitcoin/Tether USD",

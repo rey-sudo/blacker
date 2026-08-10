@@ -57,6 +57,7 @@ pub enum MasterStatus {
 
 #[derive(Clone, Serialize)]
 pub struct MasterState {
+    pub version: usize,
     pub status: MasterStatus,
     pub replay_status: ReplayStatus,
     pub replay_step: ReplayStep,
@@ -154,6 +155,7 @@ impl AppState {
         let connected_slaves: HashMap<SlaveId, ConnectedSlaveState> = HashMap::new();
 
         let master_state: MasterState = MasterState {
+            version: 0,
             status: MasterStatus::Pending,
             replay_status: ReplayStatus::Stopped,
             replay_step,
@@ -170,13 +172,11 @@ impl AppState {
             boot_id,
             replay_batch_size,
             master: Arc::new(RwLock::new(master_state)),
-
             replay_notify: Arc::new(Notify::new()),
             engine_notify: Arc::new(Notify::new()),
             execution_notify: Arc::new(Notify::new()),
             engine_ack_notify: Arc::new(Notify::new()),
             execution_ack_notify: Arc::new(Notify::new()),
-
             master_state_tx,
         }
     }
