@@ -9,14 +9,14 @@ use std::time::Instant;
 use tokio::sync::RwLockWriteGuard;
 
 #[derive(Deserialize)]
-pub struct ReportRequest {
+pub struct Request {
     pub id: SlaveId,
     pub status: String,
     pub initialized: bool,
 }
 
 #[derive(Serialize)]
-pub struct ReportResponse {
+pub struct Response {
     pub ok: bool,
     pub boot_id: String,
     pub version: usize,
@@ -25,9 +25,9 @@ pub struct ReportResponse {
 
 pub async fn report_state_handler(
     State(state): State<AppState>,
-    Json(req): Json<ReportRequest>,
-) -> (StatusCode, Json<ReportResponse>) {
-    let response: ReportResponse = {
+    Json(req): Json<Request>,
+) -> (StatusCode, Json<Response>) {
+    let response: Response = {
         let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
         master.connected_slaves.insert(
@@ -40,7 +40,7 @@ pub async fn report_state_handler(
             },
         );
 
-        ReportResponse {
+        Response {
             ok: true,
             boot_id: state.boot_id.clone(),
             version: master.version.clone(),

@@ -52,7 +52,7 @@ def handle_tick(tick: Tick, is_last: bool):
             print("Ignoring old tick.")
             return #ACK
     
-    if engine.state != None:
+    if engine.state.tick_index != 0:
         if engine.state.tick_index != tick.tick_index - 1:
             print(
                 f"Ignoring tick index. "
@@ -96,8 +96,6 @@ def update_state(data) -> bool:
     boot_id = data['boot_id']
     state = data['engine_state']
     version = data['version']
-
-    print(state, version)
     
     # If the master sends and EngineState None
     if engine.status == 'init':

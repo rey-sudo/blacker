@@ -14,7 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::master::state::{AppState, MasterState};
-use crate::slaves::engine::{EngineStateMessage};
+use crate::slaves::engine::{EngineState, EngineStateMessage};
 use anyhow::{Result, anyhow};
 use futures::TryStreamExt;
 use pulsar::consumer::Message;
@@ -92,7 +92,7 @@ pub fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
             };
 
             // Deserialize the received EngineState message.
-            let engine_state: EngineStateMessage = match message.deserialize() {
+            let engine_state_message: EngineStateMessage = match message.deserialize() {
                 Ok(state) => state,
 
                 Err(error) => {
@@ -106,8 +106,6 @@ pub fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
                 }
             };
 
-            let engine_tick_index: usize = engine_state.tick_index;
-
             {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
@@ -115,17 +113,13 @@ pub fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
                     state.boot_id.as_str(),
                     state.replay_batch_size,
                     &master,
-                    &engine_state,
+                    &engine_state_message,
                 ) {
                     Ok(()) => {
-                        master.engine_state = engine_state.into();
-
-                        if engine_tick_index % 10_000 == 0 {
-                            info!(
-                                master_tick_index = master.tick_index,
-                                engine_tick_index, "EngineState received."
-                            );
-                        }
+                        master.engine_state = EngineState::from_message(
+                            engine_state_message,
+                            master.engine_state.strategy.clone(),
+                        );
                     }
                     Err(reason) => {
                         error!(?reason, "Rejected EngineState ACKing...");

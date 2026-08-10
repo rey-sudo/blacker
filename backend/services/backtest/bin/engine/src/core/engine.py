@@ -75,7 +75,7 @@ class TradingEngine:
             boot_id=self.boot_id,
             tick_index=tick.tick_index,
             time=tick.time,
-            timeframes=self.timeframes,
+            timeframes=self.timeframes
         )
 
         signal = self.strategy.evaluate(self.state)

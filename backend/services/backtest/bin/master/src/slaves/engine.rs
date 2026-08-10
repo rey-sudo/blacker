@@ -45,22 +45,21 @@ impl Default for EngineState {
     }
 }
 
+impl EngineState {
+    pub fn from_message(message: EngineStateMessage, strategy: Strategy) -> Self {
+        Self {
+            tick_index: message.tick_index,
+            time: message.time,
+            timeframes: message.timeframes,
+            strategy,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EngineStateMessage {
     pub boot_id: String,
     pub tick_index: usize,
     pub time: u64,
     pub timeframes: HashMap<String, Timeframe>,
-    pub strategy: Strategy,
-}
-
-impl From<EngineStateMessage> for EngineState {
-    fn from(message: EngineStateMessage) -> Self {
-        Self {
-            tick_index: message.tick_index,
-            time: message.time,
-            timeframes: message.timeframes,
-            strategy: message.strategy
-        }
-    }
 }
