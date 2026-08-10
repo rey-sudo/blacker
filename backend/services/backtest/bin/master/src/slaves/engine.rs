@@ -8,6 +8,8 @@ pub struct Series {
     pub kind: String,
     pub level: u32,
     pub params: HashMap<String, Value>,
+    #[serde(flatten)]
+    pub extra: HashMap<String, Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,7 +37,7 @@ impl Default for EngineState {
         Self {
             tick_index: 0,
             time: 0,
-            timeframes: HashMap::new()
+            timeframes: HashMap::new(),
         }
     }
 }
@@ -48,3 +50,8 @@ pub struct EngineStateMessage {
     pub timeframes: HashMap<String, Timeframe>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct EngineStrategy {
+    pub kind: String,
+    pub params: HashMap<String, Value>,
+}

@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+from strategy.base import Strategy
 from core.engine_state import EngineState
 from strategy.registry import STRATEGY_REGISTRY
 from ingestion.tick import Tick
@@ -22,18 +23,16 @@ from series.registry import SERIES_REGISTRY
 
 class TradingEngine:
     def __init__(self, strategy=None, timeframes=None):
-        self.version = 0,
-        self.status = 'init'
-        self.boot_id = None
-        self.state = None
-        self.listening = False
-        self.strategy = strategy
+        self.status: str = 'init'
+        self.boot_id: str | None = None
+        self.state: EngineState | None = None
+        self.strategy: Strategy | None = strategy
         self.timeframes: dict[str, Timeframe] = timeframes or {}
 
         for timeframe in self.timeframes.values():
             timeframe.engine = self
 
-    def set_state(self, engine_state: dict) -> None:
+    def set_state(self, engine_state: dict, strategy: dict) -> None:
         """
         Restores the engine state from a serialized dictionary.
         """
@@ -53,9 +52,8 @@ class TradingEngine:
             timeframe.build_levels()
             timeframes[timeframe.id] = timeframe
 
-        strategy_value = engine_state["strategy"]
-        strategy_cls = STRATEGY_REGISTRY[strategy_value["kind"]]
-        strategy = strategy_cls(**strategy_value["params"])
+        strategy_cls = STRATEGY_REGISTRY[strategy["kind"]]
+        strategy = strategy_cls(**strategy["params"])
 
         self.timeframes = timeframes
         self.strategy = strategy

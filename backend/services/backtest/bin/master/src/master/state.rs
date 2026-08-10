@@ -14,15 +14,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    slaves::{engine::EngineState, execution::ExecutionState},
+    slaves::{
+        engine::{EngineState, EngineStrategy},
+        execution::ExecutionState,
+    },
     snapshot::ReplaySnapshot,
     tasks::ReplayStep,
 };
 use anyhow::Result;
 use cursor_db::{binary::BinaryFile, trade::Trade};
 use serde::{Deserialize, Serialize};
-use std::fmt;
 use std::sync::Arc;
+use std::{collections::HashMap, fmt};
 use tokio::sync::{Notify, RwLock, watch};
 use tokio::sync::{RwLockReadGuard, watch::Sender};
 use tracing::info;
@@ -62,8 +65,8 @@ pub struct MasterState {
     pub tick_data: Arc<BinaryFile>,
     pub tick_index: usize,
     pub engine_state: EngineState,
-    #[serde(skip)]
     pub execution_state: ExecutionState,
+    pub engine_strategy: EngineStrategy,
 }
 
 impl fmt::Debug for MasterState {
@@ -71,6 +74,7 @@ impl fmt::Debug for MasterState {
         f.debug_struct("MasterState")
             .field("status", &self.status)
             .field("replay_status", &self.replay_status)
+            .field("replay_step", &self.replay_step)
             .field("tick_index", &self.tick_index)
             .field("engine_state", &self.engine_state)
             .field("execution_state", &self.execution_state)
@@ -144,7 +148,12 @@ impl AppState {
                 snapshot.execution_state,
             ),
 
-            None => (0, ReplayStep::PublishTick, EngineState::default(), ExecutionState::default()),
+            None => (
+                0,
+                ReplayStep::PublishTick,
+                EngineState::default(),
+                ExecutionState::default(),
+            ),
         };
 
         let master_state: MasterState = MasterState {
@@ -155,6 +164,10 @@ impl AppState {
             tick_index,
             engine_state,
             execution_state,
+            engine_strategy: EngineStrategy {
+                kind: "Strategy1".to_string(),
+                params: HashMap::new(),
+            }
         };
 
         let (master_state_tx, _) = watch::channel(Arc::new(String::from("{}")));

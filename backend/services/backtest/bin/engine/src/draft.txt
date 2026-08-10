@@ -1,0 +1,105 @@
+
+#http://localhost:3002/api/backtest/master/get-state
+
+
+"""
+engine_config = {
+    "timeframes": {
+        "1m": {
+            "id": "1m",
+            "timeframe_ms": 60000,
+            "series": {
+                "candle-series": {
+                    "level": 0,
+                    "kind": "CandleSeries",
+                    "id": "candle-series",
+                    "params": {}                    
+                }
+            }
+        },
+    },
+  "strategy": {
+    "kind": "MyStrategy",
+    "params": {}
+  }
+}
+
+
+
+
+        {   
+            "params": {
+                "level": 1,
+                "name": "EmaSeries",
+                "id": "EmaSeries_55",
+                "source": "CandleBubbleSeries1",
+                "period": 55
+            }
+        },
+        {  
+            "params": {
+                "level": 1, 
+                "name": "EmaSeries",
+                "id": "EmaSeries_25",
+                "source": "CandleBubbleSeries1",
+                "period": 25
+            }
+        }, 
+        {   
+            "params": {
+                "level": 1,
+                "name": "ADXSeries",
+                "id": "ADXSeries",
+                "source": "CandleBubbleSeries1",
+                "dilen": 14,
+                "adxlen": 14,
+                "key_level": 23
+            }
+        },
+        {   
+            "params": {
+                "level": 1,
+                "name": "SqueezeSeries",
+                "id": "SqueezeSeries",
+                "source": "CandleBubbleSeries1",
+                "length": 20,
+                "mult": 2.0,
+                "lengthKC": 20,
+                "multKC": 1.5,
+                "useTrueRange": True
+            }
+        }
+
+    {
+      "name": "30m",
+      "timeframe_ms": 1800000,
+      "series": [ 
+        {
+          "params": {
+              "level": 0,
+               "name": "CandleBubbleSeries",
+               "id": "CandleBubbleSeries2",
+          }
+        },
+        {
+          "params": {
+              "level": 1,
+              "name": "EmaSeries",
+              "id": "EmaSeries_55",
+              "source": "CandleBubbleSeries2",
+              "period": 55
+          }
+        },
+        {
+          "params": {
+              "level": 1,
+              "name": "EmaSeries",
+              "id": "EmaSeries_25",
+              "source": "CandleBubbleSeries2",
+              "period": 25
+          }
+        }
+      ]
+    }
+
+"""

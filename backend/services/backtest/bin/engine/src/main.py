@@ -13,13 +13,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import sys
-import threading
-from core.heartbeat_task import HeartbeatTask
+import requests
 from ingestion.tick import Tick
 from core.engine import TradingEngine
 from ingestion.pulsar_consumer import PulsarConsumer
 from publication.pulsar_publisher import PulsarPublisher
+
+#-----------------------------------------------------------------------------------------------------------------------
+# IMPLEMENTATION
+#-----------------------------------------------------------------------------------------------------------------------
 
 consumer = PulsarConsumer(
         service_url="pulsar://localhost:6650",
@@ -34,26 +36,34 @@ publisher = PulsarPublisher(
 
 engine = TradingEngine()
 
+#-----------------------------------------------------------------------------------------------------------------------
+# HANDLE TICKS
+#-----------------------------------------------------------------------------------------------------------------------
+def get_backtest_state():
+    response = requests.get(
+        "http://localhost:3002/api/backtest/master/get-state"
+    )
+    response.raise_for_status()
+    return response.json()
+
 def handle_tick(tick: Tick, is_last: bool):
     #time.sleep(5) #DEBUG
+
+    if engine.status == 'init':
+        data = get_backtest_state()
+        engine.boot_id = data["boot_id"]
+        engine.set_state(engine_state=data['master']['engine_state'], strategy=data['master']['engine_strategy'])
+        engine.status = 'ready'
 
     if engine.status != 'ready':
         raise Exception("Engine is not ready.")  #NACK
 
     if engine.boot_id != tick.boot_id:
-        print(
-            f"Incorrect boot_id."
-            f"engine.boot_id={engine.boot_id}, tick.boot_id={tick.boot_id}"
-        )
-
-        if tick.boot_id > engine.boot_id:
-            raise Exception("Incorrect upper boot_id.")  #NACK
-        else:
-            print("Ignoring old tick.")
-            return #ACK
-    
-    if engine.state.tick_index != 0:
-        if engine.state.tick_index != tick.tick_index - 1:
+        print(f"Incorrect boot_id engine.boot_id={engine.boot_id}, tick.boot_id={tick.boot_id}")
+        return #ACK 
+      
+    if engine.state.tick_index > 0:
+        if tick.tick_index - 1 != engine.state.tick_index:
             print(
                 f"Ignoring tick index. "
                 f"engine.state.tick_index={engine.state.tick_index}, "
@@ -62,7 +72,7 @@ def handle_tick(tick: Tick, is_last: bool):
             )
 
             raise Exception("Incorrect tick index.") #NACK
-    
+               
     state, signal = engine.on_tick(tick)
 
     if signal:
@@ -72,175 +82,13 @@ def handle_tick(tick: Tick, is_last: bool):
         print(f"Processed: {tick.tick_index}")
 
     if is_last:
-        publisher.publish(state)
-
-def listen():
-    if engine.listening:
-        return
-    
-    engine.listening = True
-    
-    thread = threading.Thread(
-        target=consumer.listen,
-        args=(handle_tick,),
-        daemon=True,
-    )
-
-    thread.start()
-
-#-----------------------------------------------------------------------------------------------------------------------
-# HANDLE STATE
-#----------------------------------------------------------------------------------------------------------------------- 
-
-def update_state(data) -> bool:
-    boot_id = data['boot_id']
-    state = data['engine_state']
-    version = data['version']
-    
-    # If the master sends and EngineState None
-    if engine.status == 'init':
-            engine.version = version
-            engine.boot_id = boot_id
-            engine.set_state(engine_state=state)
-            engine.status = 'ready'
-            listen()
-            return True
-        
-    if engine.status == 'ready':
-        if engine.version != version:
-            print("Engine version is diferent restarting engine")
-            sys.exit(1)        
-        if engine.boot_id != boot_id:
-            print("Engine boot_it is diferent restarting engine")
-            sys.exit(1)
-            
-    return True   
-     
-heartbeat = HeartbeatTask(
-    master_url="http://localhost:3002/api/backtest/master/report-state",
-    apply_state=update_state,
-    engine=engine
-)
+        publisher.publish(state) 
 
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN
-#----------------------------------------------------------------------------------------------------------------------- 
+#-----------------------------------------------------------------------------------------------------------------------
 
 def main():
-    heartbeat.start()
+    consumer.listen(handle_tick)
 
 main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-engine_config = {
-    "timeframes": {
-        "1m": {
-            "id": "1m",
-            "timeframe_ms": 60000,
-            "series": {
-                "candle-series": {
-                    "level": 0,
-                    "kind": "CandleSeries",
-                    "id": "candle-series",
-                    "params": {}                    
-                }
-            }
-        },
-    },
-  "strategy": {
-    "kind": "MyStrategy",
-    "params": {}
-  }
-}
-
-
-
-
-        {   
-            "params": {
-                "level": 1,
-                "name": "EmaSeries",
-                "id": "EmaSeries_55",
-                "source": "CandleBubbleSeries1",
-                "period": 55
-            }
-        },
-        {  
-            "params": {
-                "level": 1, 
-                "name": "EmaSeries",
-                "id": "EmaSeries_25",
-                "source": "CandleBubbleSeries1",
-                "period": 25
-            }
-        }, 
-        {   
-            "params": {
-                "level": 1,
-                "name": "ADXSeries",
-                "id": "ADXSeries",
-                "source": "CandleBubbleSeries1",
-                "dilen": 14,
-                "adxlen": 14,
-                "key_level": 23
-            }
-        },
-        {   
-            "params": {
-                "level": 1,
-                "name": "SqueezeSeries",
-                "id": "SqueezeSeries",
-                "source": "CandleBubbleSeries1",
-                "length": 20,
-                "mult": 2.0,
-                "lengthKC": 20,
-                "multKC": 1.5,
-                "useTrueRange": True
-            }
-        }
-
-    {
-      "name": "30m",
-      "timeframe_ms": 1800000,
-      "series": [ 
-        {
-          "params": {
-              "level": 0,
-               "name": "CandleBubbleSeries",
-               "id": "CandleBubbleSeries2",
-          }
-        },
-        {
-          "params": {
-              "level": 1,
-              "name": "EmaSeries",
-              "id": "EmaSeries_55",
-              "source": "CandleBubbleSeries2",
-              "period": 55
-          }
-        },
-        {
-          "params": {
-              "level": 1,
-              "name": "EmaSeries",
-              "id": "EmaSeries_25",
-              "source": "CandleBubbleSeries2",
-              "period": 25
-          }
-        }
-      ]
-    }
-
-"""
