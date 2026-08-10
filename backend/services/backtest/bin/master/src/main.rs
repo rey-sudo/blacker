@@ -15,7 +15,7 @@
 
 use cursor_db::binary::BinaryFile;
 use master::master::state::AppState;
-use master::server::start_http_server;
+use master::server::server::start_http_server;
 use master::snapshot::{ReplaySnapshot, load_snapshot};
 use master::tasks::{master_monitor, replay_task, slave_monitor, engine_consumer};
 use pulsar::{Pulsar, TokioExecutor};

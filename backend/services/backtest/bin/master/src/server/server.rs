@@ -1,10 +1,10 @@
-use crate::{routes, master::state::AppState};
+use crate::{master::state::AppState, server::router};
 use axum::Router;
 use tracing::info;
 
 pub async fn start_http_server(state: AppState) {
     let app: Router = Router::new()
-    .nest("/api/backtest", routes::router())
+    .nest("/api/backtest", router::router())
     .with_state(state);
 
     let listener: tokio::net::TcpListener =

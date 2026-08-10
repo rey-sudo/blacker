@@ -2,9 +2,7 @@ use crate::{
     handlers::{
         add_timeframe_handler, get_state_handler, report_state_handler, start_backtest_handler,
         stop_backtest_handler,
-    },
-    master::state::AppState,
-    ws::websocket_handler,
+    }, master::state::AppState, server::ws::websocket_handler
 };
 use axum::{
     Router,
