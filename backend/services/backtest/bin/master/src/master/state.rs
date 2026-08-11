@@ -58,6 +58,7 @@ pub enum MasterStatus {
 
 #[derive(Clone, Serialize)]
 pub struct MasterState {
+    pub config_hash: String,
     pub status: MasterStatus,
     pub replay_status: ReplayStatus,
     pub replay_step: ReplayStep,
@@ -140,8 +141,9 @@ impl AppState {
 
         let replay_batch_size: usize = 150000;
 
-        let (tick_index, replay_step, engine_state, execution_state) = match snapshot {
+        let (config_hash, tick_index, replay_step, engine_state, execution_state) = match snapshot {
             Some(snapshot) => (
+                snapshot.config_hash,
                 snapshot.tick_index,
                 snapshot.replay_step,
                 snapshot.engine_state,
@@ -149,6 +151,7 @@ impl AppState {
             ),
 
             None => (
+                Uuid::now_v7().to_string(),
                 0,
                 ReplayStep::PublishTick,
                 EngineState::default(),
@@ -157,6 +160,7 @@ impl AppState {
         };
 
         let master_state: MasterState = MasterState {
+            config_hash,
             status: MasterStatus::Ready,
             replay_status: ReplayStatus::Stopped,
             replay_step,

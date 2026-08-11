@@ -3,6 +3,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Tick:
     boot_id: str
+    config_hash: str
     tick_index: int
     trade_id: int
     time: int

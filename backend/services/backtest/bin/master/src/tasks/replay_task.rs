@@ -51,6 +51,7 @@ pub struct TickMessage {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TickBatchMessage {
     pub boot_id: String,
+    pub config_hash: String,
     pub first_tick_index: usize,
     pub ticks: Vec<TickMessage>,
 }
@@ -130,6 +131,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                     let message: TickBatchMessage = TickBatchMessage {
                         boot_id: state.boot_id.clone(),
+                        config_hash: master.config_hash.clone(),
                         first_tick_index: master.tick_index,
                         ticks: ticks.iter().map(TickMessage::from).collect(),
                     };

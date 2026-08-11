@@ -11,22 +11,12 @@ export interface EngineState {
 }
 
 /**
- * ConnectedSlave def.
- */
-export interface ConnectedSlave {
-  id: string;
-  connected: boolean;
-  status: string;
-}
-
-/**
  * BacktestSessionMessage.
  */
 export interface MasterState {
   status: string;
   replay_status: string;
   replay_step: string;
-  connected_slaves: Record<string, ConnectedSlave>;
   tick_index: number;
   engine_state: EngineState;
 }
@@ -58,7 +48,6 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         status: "",
         replay_status: "",
         replay_step: "",
-        connected_slaves: {},
         tick_index: 0,
         engine_state: {
           tick_index: 0,
@@ -85,14 +74,9 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
         () => Object.keys(globalState.value.engine_state.timeframes).length > 0,
       );
 
-      const isEngineConnected = computed(
-        () => globalState.value.connected_slaves["Engine"]?.connected ?? false,
-      );
+      const isEngineConnected = computed(() => true);
 
-      const isExecutionConnected = computed(
-        () =>
-          globalState.value.connected_slaves["Execution"]?.connected ?? false,
-      );
+      const isExecutionConnected = computed(() => true);
 
       //---------------------------------------------------------------------
       // SUBSCRIPTIONS
@@ -126,9 +110,6 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
        */
       function updateSession(data: MasterState) {
         globalState.value = data;
-
-        console.log(JSON.stringify(globalState.value));
-
         notify({
           type: "live-update",
           data,

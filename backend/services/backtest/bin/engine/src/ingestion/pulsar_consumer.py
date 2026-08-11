@@ -1,3 +1,5 @@
+import sys
+
 from pulsar import Client, ConsumerType, InitialPosition
 from ingestion.tick import Tick
 import msgpack
@@ -22,7 +24,7 @@ class PulsarConsumer:
         )
 
     def _decode_batch(self, msg):
-        boot_id, first_tick_index, raw_ticks = msgpack.unpackb(
+        boot_id, config_hash, first_tick_index, raw_ticks = msgpack.unpackb(
             msg.data(),
             raw=False,
         )
@@ -30,6 +32,7 @@ class PulsarConsumer:
         ticks = [
             Tick(
                 boot_id=boot_id,
+                config_hash=config_hash,
                 tick_index=first_tick_index + offset,
                 trade_id=trade_id,
                 time=time,
@@ -55,11 +58,14 @@ class PulsarConsumer:
                 last = len(ticks) - 1
 
                 for i, tick in enumerate(ticks):
-                    callback(
-                        tick,
-                        is_last=(i == last),
-    )
-
+                    sig = callback(
+                            tick,
+                            is_last=(i == last)
+                            )
+                    
+                    if sig is 'kill':
+                        sys.exit(1)
+                        
                 self.consumer.acknowledge(msg)
 
             except Exception as e:

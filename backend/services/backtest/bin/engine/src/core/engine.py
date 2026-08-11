@@ -25,6 +25,7 @@ class TradingEngine:
     def __init__(self, strategy=None, timeframes=None):
         self.status: str = 'init'
         self.boot_id: str | None = None
+        self.config_hash: str | None = None
         self.state: EngineState | None = None
         self.strategy: Strategy | None = strategy
         self.timeframes: dict[str, Timeframe] = timeframes or {}
@@ -32,10 +33,12 @@ class TradingEngine:
         for timeframe in self.timeframes.values():
             timeframe.engine = self
 
-    def set_state(self, engine_state: dict, strategy: dict) -> None:
+    def set_state(self, config_hash: str, engine_state: dict, strategy: dict) -> None:
         """
         Restores the engine state from a serialized dictionary.
         """
+
+        self.config_hash = config_hash
 
         timeframes = {}
 
@@ -60,6 +63,7 @@ class TradingEngine:
 
         self.state = EngineState(
             boot_id=self.boot_id,
+            config_hash=self.config_hash,
             tick_index=engine_state["tick_index"],
             time=engine_state["time"],
             timeframes=self.timeframes,
@@ -71,6 +75,7 @@ class TradingEngine:
 
         self.state = EngineState(
             boot_id=self.boot_id,
+            config_hash=self.config_hash,
             tick_index=tick.tick_index,
             time=tick.time,
             timeframes=self.timeframes

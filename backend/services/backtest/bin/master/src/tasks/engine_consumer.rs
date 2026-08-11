@@ -32,24 +32,27 @@ impl DeserializeMessage for EngineStateMessage {
 }
 
 fn validate_engine_state(
-    boot_id: &str,
-    replay_batch_size: usize,
+    state: &AppState,
     master: &MasterState,
-    engine: &EngineStateMessage,
+    engine_state_message: &EngineStateMessage,
 ) -> Result<()> {
-    if engine.boot_id != boot_id {
+    if engine_state_message.boot_id != state.boot_id {
         return Err(anyhow!("Unexpected boot_id."));
+    }
+
+    if engine_state_message.config_hash != master.config_hash {
+        return Err(anyhow!("Unexpected config_hash."));
     }
 
     let remaining: usize = master.tick_data.len() - master.tick_index;
 
-    let expected_last_tick: usize = master.tick_index + remaining.min(replay_batch_size) - 1;
+    let expected_last_tick: usize = master.tick_index + remaining.min(state.replay_batch_size) - 1;
 
-    if engine.tick_index != expected_last_tick {
+    if engine_state_message.tick_index != expected_last_tick {
         return Err(anyhow!(
             "Unexpected engine tick_index. Expected {}, got {}",
             expected_last_tick,
-            engine.tick_index
+            engine_state_message.tick_index
         ));
     }
 
@@ -102,7 +105,8 @@ pub fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
                         error!(?error, "Failed to ACK invalid EngineState.");
                     }
 
-                    std::process::exit(1);
+                    continue
+
                 }
             };
 
@@ -111,8 +115,7 @@ pub fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
                 match validate_engine_state(
-                    state.boot_id.as_str(),
-                    state.replay_batch_size,
+                    &state,
                     &master,
                     &engine_state_message,
                 ) {

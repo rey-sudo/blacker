@@ -13,6 +13,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+import time
+
 import requests
 from ingestion.tick import Tick
 from core.engine import TradingEngine
@@ -37,22 +39,38 @@ publisher = PulsarPublisher(
 engine = TradingEngine()
 
 #-----------------------------------------------------------------------------------------------------------------------
+# FETCH STATE
+#-----------------------------------------------------------------------------------------------------------------------
+
+def fetch_state():
+    try:
+        response = requests.get(
+            "http://localhost:3002/api/backtest/master/get-state",
+            timeout=10
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error getting backtest state: {e}")
+        return None
+    except ValueError as e:
+        print(f"Error parsing response JSON: {e}")
+        return None
+
+#-----------------------------------------------------------------------------------------------------------------------
 # HANDLE TICKS
 #-----------------------------------------------------------------------------------------------------------------------
-def get_backtest_state():
-    response = requests.get(
-        "http://localhost:3002/api/backtest/master/get-state"
-    )
-    response.raise_for_status()
-    return response.json()
 
 def handle_tick(tick: Tick, is_last: bool):
-    #time.sleep(5) #DEBUG
-
     if engine.status == 'init':
-        data = get_backtest_state()
+        data = fetch_state()
+        if data is None:
+            raise Exception("Master endpoint error.")  #NACK
+
         engine.boot_id = data["boot_id"]
-        engine.set_state(engine_state=data['master']['engine_state'], strategy=data['master']['engine_strategy'])
+        engine.set_state(config_hash=data['master']['config_hash'],
+                         engine_state=data['master']['engine_state'],
+                         strategy=data['master']['engine_strategy'])
         engine.status = 'ready'
 
     if engine.status != 'ready':
@@ -61,12 +79,15 @@ def handle_tick(tick: Tick, is_last: bool):
     if engine.boot_id != tick.boot_id:
         print(f"Incorrect boot_id engine.boot_id={engine.boot_id}, tick.boot_id={tick.boot_id}")
         return #ACK 
-      
+
+    if engine.config_hash != tick.config_hash:
+        print(f"Incorrect config_hash engine.config_hash={engine.config_hash}, tick.config_hash={tick.config_hash}")
+        return #ACK 
+          
     if engine.state.tick_index > 0:
         if tick.tick_index - 1 != engine.state.tick_index:
             print(
-                f"Ignoring tick index. "
-                f"engine.state.tick_index={engine.state.tick_index}, "
+                f"Ignoring tick index. engine.state.tick_index={engine.state.tick_index}, "
                 f"tick.tick_index={tick.tick_index}, "
                 f"expected={engine.state.tick_index + 1}"
             )
@@ -83,6 +104,7 @@ def handle_tick(tick: Tick, is_last: bool):
 
     if is_last:
         publisher.publish(state) 
+        time.sleep(5) 
 
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN

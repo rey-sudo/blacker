@@ -13,6 +13,7 @@ use tracing::debug;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReplaySnapshot {
+    pub config_hash: String,
     pub tick_index: usize,
     pub replay_step: ReplayStep,
     pub engine_state: EngineState,
@@ -36,7 +37,8 @@ pub async fn save_snapshot(master: &MasterState) -> Result<()> {
         fs::create_dir_all(parent).await?;
     }
 
-    let snapshot = ReplaySnapshot {
+    let snapshot: ReplaySnapshot = ReplaySnapshot {
+        config_hash: master.config_hash.clone(),
         tick_index: master.tick_index,
         replay_step: master.replay_step,
         engine_state: master.engine_state.clone(),
