@@ -112,32 +112,15 @@ def handle_tick(tick: Tick, is_last: bool):
     # TICK SEQUENCE
     # ----------------------------------------------------------
 
-    expected = engine.state.tick_index + 1
+    if engine.state.tick_index > 0:
+        if tick.tick_index - 1 != engine.state.tick_index:
+            print(
+                f"Incorrect tick index. engine.state.tick_index={engine.state.tick_index}, "
+                f"tick.tick_index={tick.tick_index}, "
+                f"expected={engine.state.tick_index + 1}"
+            )
 
-    if tick.tick_index < expected:
-
-        print(
-            f"Ignoring stale tick "
-            f"state={engine.state.tick_index} "
-            f"tick={tick.tick_index}"
-        )
-
-        return  # ACK
-
-
-    if tick.tick_index > expected:
-
-        print(
-            f"Missing tick(s) "
-            f"state={engine.state.tick_index} "
-            f"tick={tick.tick_index} "
-            f"expected={expected}"
-        )
-
-        raise Exception(
-            "Incorrect tick index."
-        )  # NACK
-
+            raise Exception("Incorrect tick index.")  # NACK
 
     # ----------------------------------------------------------
     # PROCESS
