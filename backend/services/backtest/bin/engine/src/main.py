@@ -62,49 +62,103 @@ def fetch_state():
 #-----------------------------------------------------------------------------------------------------------------------
 
 def handle_tick(tick: Tick, is_last: bool):
-    if engine.status == 'init':
-        data = fetch_state()
-        if data is None:
-            raise Exception("Master endpoint error.")  #NACK
 
-        engine.boot_id = data["boot_id"]
-        engine.set_state(config_hash=data['master']['config_hash'],
-                         engine_state=data['master']['engine_state'],
-                         strategy=data['master']['engine_strategy'])
-        engine.status = 'ready'
+    # ----------------------------------------------------------
+    # BOOTSTRAP
+    # ----------------------------------------------------------
 
-    if engine.status != 'ready':
-        raise Exception("Engine is not ready.")  #NACK
+    if engine.status == "init":
 
-    if engine.boot_id != tick.boot_id:
-        print(f"Incorrect boot_id engine.boot_id={engine.boot_id}, tick.boot_id={tick.boot_id}")
-        return #ACK 
+        state = fetch_state()
 
-    if engine.config_hash != tick.config_hash:
-        print(f"Incorrect config_hash engine.config_hash={engine.config_hash}, tick.config_hash={tick.config_hash}")
-        return #ACK 
-          
-    if engine.state.tick_index > 0:
-        if tick.tick_index - 1 != engine.state.tick_index:
-            print(
-                f"Ignoring tick index. engine.state.tick_index={engine.state.tick_index}, "
-                f"tick.tick_index={tick.tick_index}, "
-                f"expected={engine.state.tick_index + 1}"
-            )
+        if state is None:
+            raise Exception("Master endpoint error.")  # NACK
 
-            raise Exception("Incorrect tick index.") #NACK
-               
+        engine.boot_id = state["boot_id"]
+
+        engine.set_state(
+            config_hash=state["master"]["config_hash"],
+            engine_state=state["master"]["engine_state"],
+            strategy=state["master"]["engine_strategy"],
+        )
+
+        engine.status = "ready"
+
+
+    # ----------------------------------------------------------
+    # ENGINE READY
+    # ----------------------------------------------------------
+
+    if engine.status != "ready":
+        raise Exception("Engine is not ready.")  # NACK
+
+
+    # ----------------------------------------------------------
+    # BOOT VALIDATION
+    # ----------------------------------------------------------
+
+    if engine.boot_id != tick.boot_id or engine.config_hash != tick.config_hash:
+        print(
+            f"Incorrect boot_id / config_hash reseting..."
+            f"engine={engine.boot_id}/{engine.config_hash}"
+            f"tick={tick.boot_id}/{tick.config_hash}"
+        )
+
+        engine.reset()
+        return #ACK
+        
+
+    # ----------------------------------------------------------
+    # TICK SEQUENCE
+    # ----------------------------------------------------------
+
+    expected = engine.state.tick_index + 1
+
+    if tick.tick_index < expected:
+
+        print(
+            f"Ignoring stale tick "
+            f"state={engine.state.tick_index} "
+            f"tick={tick.tick_index}"
+        )
+
+        return  # ACK
+
+
+    if tick.tick_index > expected:
+
+        print(
+            f"Missing tick(s) "
+            f"state={engine.state.tick_index} "
+            f"tick={tick.tick_index} "
+            f"expected={expected}"
+        )
+
+        raise Exception(
+            "Incorrect tick index."
+        )  # NACK
+
+
+    # ----------------------------------------------------------
+    # PROCESS
+    # ----------------------------------------------------------
+
     state, signal = engine.on_tick(tick)
 
     if signal:
         print("SIGNAL:", signal)
-    
+
     if tick.tick_index % 100_000 == 0:
         print(f"Processed: {tick.tick_index}")
 
+
+    # ----------------------------------------------------------
+    # LAST
+    # ----------------------------------------------------------
+
     if is_last:
-        publisher.publish(state) 
-        time.sleep(5) 
+        publisher.publish(state)
+        time.sleep(5)
 
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN

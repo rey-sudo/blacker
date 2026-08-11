@@ -33,6 +33,14 @@ class TradingEngine:
         for timeframe in self.timeframes.values():
             timeframe.engine = self
 
+    def reset(self):
+        self.status = "init"
+        self.boot_id = None
+        self.config_hash = None
+        self.state = None
+        self.strategy = None
+        self.timeframes = {}
+
     def set_state(self, config_hash: str, engine_state: dict, strategy: dict) -> None:
         """
         Restores the engine state from a serialized dictionary.
