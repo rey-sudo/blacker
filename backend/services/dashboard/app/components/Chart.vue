@@ -1,22 +1,20 @@
 <script setup lang="ts">
-// BLACKER
-// Copyright (C) 2026 Juan José Caballero Rey
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation version 3 of the License.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+import {
+  onBeforeUnmount,
+  onMounted,
+  ref,
+} from "vue";
 
 import { createChart } from "@/packages/src/index";
-import type { AnyChartSeries, ChartEngine } from "~/packages/src/core/types";
-import { seriesRegistry, type SeriesId } from "~/stores/tabs";
+import type { ChartOptions } from "~/packages/src/core/config";
+import type {
+  AnyChartSeries,
+  ChartEngine,
+} from "~/packages/src/core/types";
+import {
+  seriesRegistry,
+  type SeriesId,
+} from "~/stores/tabs";
 
 export type ChartSerie = Record<string, unknown>;
 
@@ -31,34 +29,93 @@ interface RuntimeSeries {
   serie: AnyChartSeries;
 }
 
-const _allSeries = new Map<SeriesId, RuntimeSeries>();
+/**
+ * IMPORTANT:
+ *
+ * This Map belongs to ONE Chart.vue instance.
+ * Never define it outside the component instance.
+ */
+const allSeries = new Map<SeriesId, RuntimeSeries>();
 
-function _cleanAllSeries() {
-  _allSeries.forEach((runtime) => {
-    runtime.chart.api.destroy();
-    runtime.serie.destroy();
-  });
+const container = ref<HTMLDivElement | null>(null);
 
-  _allSeries.clear();
+/**
+ * Charts created by root series.
+ *
+ * Multiple series can belong to the same chart, so we keep
+ * track of the actual chart instances separately.
+ */
+const charts = new Set<ChartEngine>();
+
+/**
+ * Remove all series and charts created by this component.
+ */
+function cleanAllSeries() {
+  const uniqueCharts = new Set<ChartEngine>();
+
+  for (const runtime of allSeries.values()) {
+    uniqueCharts.add(runtime.chart);
+  }
+
+  for (const runtime of allSeries.values()) {
+    try {
+      runtime.serie.destroy();
+    } catch {
+      // Series may already have been destroyed by its chart.
+    }
+  }
+
+  for (const chart of uniqueCharts) {
+    try {
+      chart.api.destroy();
+    } catch {
+      // Chart may already have been destroyed.
+    }
+  }
+
+  allSeries.clear();
+  charts.clear();
+
+  container.value?.replaceChildren();
 }
 
 /**
- * Applies the provided chart layout by recreating all series in the
- * order they are defined. Root series create new charts, while child
- * series are attached to the chart of their parent.
- *
- * @throws {Error} If a series references a parent that has not been created.
+ * Creates a DOM element for a root chart.
  */
-function applyLayout(cl: ChartTimeframe) {
-  _cleanAllSeries();
+function addChartContainer(seriesId: SeriesId): HTMLDivElement {
+  if (!container.value) {
+    throw new Error("Chart container is not mounted.");
+  }
 
-  const timeframeEntries = Object.entries(cl.series).entries();
+  const element = document.createElement("div");
 
-  for (const [index, [serieId, serieValue]] of timeframeEntries) {
-    // Create the series builder from its registered type and configuration.
-    const seriesFactory = seriesRegistry["CandleBubbleSeries"];
+  element.className = "chart-area";
+  element.dataset.seriesId = seriesId;
+
+  container.value.appendChild(element);
+
+  return element;
+}
+
+/**
+ * Applies a timeframe layout.
+ *
+ * Root series create a chart.
+ * Child series reuse their parent's chart.
+ */
+function applyLayout(timeframe: ChartTimeframe) {
+  // Layout is a structural operation.
+  // Rebuild the series/charts only here.
+  cleanAllSeries();
+
+  for (const [seriesId, seriesValue] of Object.entries(
+    timeframe.series,
+  )) {
+    const seriesFactory =
+      seriesRegistry["CandleBubbleSeries"];
+
     const build = seriesFactory({
-      id: "candle-series",
+      id: seriesId,
       label: "Candlesticks",
       layer: "background",
       color: "red",
@@ -69,74 +126,112 @@ function applyLayout(cl: ChartTimeframe) {
       },
     });
 
-    // Root series create a new chart instance.
-    if (!serieValue?.parent) {
-      const chart = createChart(_addChildToContainer(serieId));
+    // -------------------------------------------------------------------------
+    // Root series
+    // -------------------------------------------------------------------------
+
+    if (!seriesValue?.parent) {
+      const chart = createChart(
+        addChartContainer(seriesId),
+      );
+
       const serie = chart.api.addSeries(build);
 
-      _allSeries.set(serieId, { chart, serie });
+      allSeries.set(seriesId, {
+        chart,
+        serie,
+      });
+
+      charts.add(chart);
 
       continue;
     }
 
-    // Child series reuse the chart created by their parent.
-    const parent = _allSeries.get("parent");
+    // -------------------------------------------------------------------------
+    // Child series
+    // -------------------------------------------------------------------------
+
+    const parent = allSeries.get(
+      seriesValue.parent,
+    );
+
     if (!parent) {
       throw new Error(
-        `Parent series "${serieValue.parent}" has not been created.`,
+        `Parent series "${seriesValue.parent}" has not been created.`,
       );
     }
 
     const serie = parent.chart.api.addSeries(build);
 
-    _allSeries.set(serieId, { chart: parent.chart, serie });
+    allSeries.set(seriesId, {
+      chart: parent.chart,
+      serie,
+    });
   }
 }
 
-function applyOptions(serieId: SeriesId, config: any) {
-  _allSeries.get(serieId)?.chart.api.applyOptions(config);
-}
+/**
+ * Applies options to the chart that owns the series.
+ */
+function applyOptions(
+  seriesId: SeriesId,
+  config: Partial<ChartOptions>,
+) {
+  const runtime = allSeries.get(seriesId);
 
-function setData(serieId: SeriesId, data: any) {
-  _allSeries.get(serieId)?.serie.setData(data);
-}
+  if (!runtime) {
+    console.warn(
+      `Cannot apply options: series "${seriesId}" not found.`,
+    );
 
-function patchData(serieId: SeriesId, data: any) {
-  _allSeries.get(serieId)?.serie.patchData(data);
-}
-
-function updateLive(serieId: SeriesId, candle: any) {
-  _allSeries.get(serieId)?.serie.update(candle);
-}
-
-function getSeriesById(serieId: SeriesId) {
-  return _allSeries.get(serieId);
-}
-
-function _addChildToContainer(id: SeriesId): HTMLDivElement {
-  const container = document.getElementById("chart-container");
-
-  if (!container) {
-    console.error("Element #chart-container not found");
-    throw new Error("No Chart container");
+    return;
   }
 
-  const newDiv = document.createElement("div");
-
-  if (id) newDiv.id = id;
-  newDiv.className = "chart-area";
-
-  container.appendChild(newDiv);
-
-  return newDiv;
+  runtime.chart.api.applyOptions(config);
 }
 
-onBeforeUnmount(() => {
-  _cleanAllSeries();
+/**
+ * Sets the complete data of a series.
+ */
+function setData(
+  seriesId: SeriesId,
+  data: any,
+) {
+  allSeries.get(seriesId)?.serie.setData(data);
+}
 
-  document.getElementById("chart-container")?.replaceChildren();
-});
+/**
+ * Patches existing series data.
+ */
+function patchData(
+  seriesId: SeriesId,
+  data: any,
+) {
+  allSeries.get(seriesId)?.serie.patchData(data);
+}
 
+/**
+ * Updates a live candle/tick.
+ */
+function updateLive(
+  seriesId: SeriesId,
+  candle: any,
+) {
+  allSeries.get(seriesId)?.serie.update(candle);
+}
+
+/**
+ * Returns the runtime series.
+ */
+function getSeriesById(
+  seriesId: SeriesId,
+) {
+  return allSeries.get(seriesId);
+}
+
+/**
+ * Expose the public Chart.vue API.
+ */
 defineExpose({
   patchData,
   getSeriesById,
@@ -145,24 +240,48 @@ defineExpose({
   setData,
   updateLive,
 });
+
+/**
+ * Make sure the component is mounted before charts are created.
+ */
+onMounted(() => {
+  if (!container.value) {
+    throw new Error(
+      "Chart container was not mounted.",
+    );
+  }
+});
+
+/**
+ * Completely clean up this Chart.vue instance.
+ */
+onBeforeUnmount(() => {
+  cleanAllSeries();
+});
 </script>
 
 <template>
-  <div class="chart-container" id="chart-container"></div>
+  <div
+    ref="container"
+    class="chart-container"
+  />
 </template>
 
-<style lang="css" scoped>
+<style scoped>
 .chart-container {
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100%;
+  min-height: 0;
   box-sizing: border-box;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .chart-area {
-  min-height: 100%;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
 }
 </style>

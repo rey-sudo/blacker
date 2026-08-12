@@ -20,18 +20,22 @@ async fn handle_socket(mut socket: WebSocket, state: AppState) {
     info!("WebSocket client connected");
 
     let mut rx: Receiver<Arc<String>> = state.master_state_tx.subscribe();
+
     state.publish_master_state().await;
 
     loop {
-        let payload: Arc<String> = rx.borrow().clone();
-
-        if let Err(err) = socket.send(Message::Text(payload.to_string().into())).await {
-            debug!("WebSocket disconnected: {}", err);
+        if rx.changed().await.is_err() {
+            warn!("master_state_tx closed");
             break;
         }
 
-        if rx.changed().await.is_err() {
-            warn!("master_state_tx closed");
+        let payload: Arc<String> = rx.borrow_and_update().clone();
+
+        if let Err(err) = socket
+            .send(Message::Text(payload.to_string().into()))
+            .await
+        {
+            debug!("WebSocket disconnected: {}", err);
             break;
         }
     }

@@ -1,68 +1,124 @@
 <script setup lang="ts">
-// BLACKER
-// Copyright (C) 2026 Juan José Caballero Rey
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation version 3 of the License.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+import {
+  computed,
+  nextTick,
+  onUnmounted,
+  ref,
+  type ComponentPublicInstance,
+} from "vue";
 
 import { useBacktestingTabStore } from "~/stores/tabs";
 import Chart, { type ChartTimeframe } from "~/components/Chart.vue";
 
-// Define props to receive the unique identifier for the current tab
-const props = defineProps({
-  tabId: {
-    type: String,
-    required: true,
-  },
-});
+const props = defineProps<{
+  tabId: string;
+}>();
 
-// Initialize the main store containing tab definitions
+// -----------------------------------------------------------------------------
+// Tab / Store
+// -----------------------------------------------------------------------------
+
 const tabManager = useTabManager();
 const tab = tabManager.getTabById(props.tabId)!;
 const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 
-// Connect to backtest websocket
+// -----------------------------------------------------------------------------
+// WebSocket
+// -----------------------------------------------------------------------------
+
+// Keep the session alive for the lifetime of this component.
 const _session = useBacktestingSession(props.tabId, tabStore.symbol);
 
-// Charts.
-const charts = ref<InstanceType<typeof Chart>[]>([]);
-
-// Subscription to tabStore must be before the websocket connection.
-const unsubscribe = tabStore.subscribe((event: any) => {
-  switch (event.type) {
-    case "live-update":
-      for (const [i, [key, timeframe]] of Object.entries(
-        tabStore.globalState.engine_state.timeframes,
-      ).entries()) {
-        const chart = charts.value[i];
-
-        chart?.applyLayout(timeframe as ChartTimeframe);
-
-        for (const [ii, [key, serie]] of Object.entries(
-          timeframe.series,
-        ).entries()) {
-          chart?.patchData(key, serie?.history);
-
-          chart?.applyOptions(key, {
-            legend: "Bitcoin/Tether USD",
-          });
-        }
-      }
-
-      break;
-  }
-});
+// -----------------------------------------------------------------------------
+// State
+// -----------------------------------------------------------------------------
 
 const activeTimeframe = ref("1m");
+
+const timeframeIds = computed(() =>
+  Object.keys(tabStore.globalState.engine_state.timeframes),
+);
+
+// -----------------------------------------------------------------------------
+// Chart instances
+// -----------------------------------------------------------------------------
+
+type ChartInstance = InstanceType<typeof Chart>;
+
+const charts = ref<Record<string, ChartInstance>>({});
+
+const setChartRef = (
+  timeframeId: string,
+  instance: Element | ComponentPublicInstance | null,
+) => {
+  if (!instance) {
+    delete charts.value[timeframeId];
+    return;
+  }
+
+  const chart = instance as ChartInstance;
+
+  // Vue can invoke the ref callback more than once.
+  if (charts.value[timeframeId] === chart) {
+    return;
+  }
+
+  charts.value[timeframeId] = chart;
+};
+
+// -----------------------------------------------------------------------------
+// Chart updates
+// -----------------------------------------------------------------------------
+
+const updateChart = async (timeframeId: string, timeframe: ChartTimeframe) => {
+  const chart = charts.value[timeframeId];
+
+  if (!chart) return;
+
+  // 1. Crear/reconstruir estructura
+  chart.applyLayout(timeframe);
+
+  // 2. Esperar a que Vue/DOM termine
+  await nextTick();
+
+  // 3. Aplicar opciones
+  for (const [seriesId, series] of Object.entries(timeframe.series)) {
+    chart.applyOptions(seriesId, {
+      legend: "BTCUSDT " + timeframe.id
+    });
+  }
+
+  // 4. Finalmente datos
+  for (const [seriesId, series] of Object.entries(timeframe.series)) {
+    chart.patchData(seriesId, series?.history);
+  }
+};
+
+const updateCharts = async () => {
+  await nextTick();
+
+  const timeframes = tabStore.globalState.engine_state.timeframes;
+
+  for (const [timeframeId, timeframe] of Object.entries(timeframes)) {
+    updateChart(timeframeId, timeframe as ChartTimeframe);
+  }
+};
+
+// -----------------------------------------------------------------------------
+// Store subscription
+// -----------------------------------------------------------------------------
+
+const unsubscribe = tabStore.subscribe(async (event) => {
+  if (event.type !== "live-update") {
+    return;
+  }
+
+  await updateCharts();
+});
+
+// -----------------------------------------------------------------------------
+// Cleanup
+// -----------------------------------------------------------------------------
 
 onUnmounted(() => {
   unsubscribe();
@@ -73,18 +129,19 @@ onUnmounted(() => {
   <div class="backtesting-tab">
     <BacktestingToolbar
       :tab-id="tabId"
-      :timeframes="Object.keys(tabStore.globalState.engine_state.timeframes)"
+      :timeframes="timeframeIds"
       :active-timeframe="activeTimeframe"
       @update:timeframe="activeTimeframe = $event"
     />
 
-    <Chart
-      v-for="(timeframe, key) in tabStore.globalState.engine_state.timeframes"
-      :key="key"
-      ref="charts"
-      v-show="key === activeTimeframe"
-      :timeframe="timeframe"
-    />
+    <div
+      v-for="timeframeId in timeframeIds"
+      :key="timeframeId"
+      v-show="timeframeId === activeTimeframe"
+      class="chart-container"
+    >
+      <Chart :ref="(el) => setChartRef(timeframeId, el)" />
+    </div>
   </div>
 </template>
 
@@ -97,5 +154,12 @@ onUnmounted(() => {
   flex-direction: column;
   box-sizing: border-box;
   padding: var(--tab-content-padding);
+}
+
+.chart-container {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
 }
 </style>
