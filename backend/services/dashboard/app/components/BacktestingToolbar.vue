@@ -22,7 +22,21 @@ const props = defineProps({
     type: String,
     required: true,
   },
+
+  timeframes: {
+    type: Array as PropType<string[]>,
+    required: true,
+  },
+
+  activeTimeframe: {
+    type: String,
+    required: true,
+  },
 });
+
+const emit = defineEmits<{
+  "update:timeframe": [timeframe: string];
+}>();
 
 const tabsStore = useTabManager();
 const tab = tabsStore.getTabById(props.tabId);
@@ -177,11 +191,21 @@ const onTimeframeAdded = () => {
     </div>
 
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
-
-    <UButton color="neutral" variant="outline" size="sm">{{
-      Object.keys(tabStore.globalState.engine_state.timeframes)
-    }}</UButton>
-
+    
+    <UButton
+      v-for="timeframe in props.timeframes"
+      :key="timeframe"
+      color="neutral"
+      variant="outline"
+      size="sm"
+      :class="{
+        'bg-neutral-200 dark:bg-neutral-800':
+          timeframe === props.activeTimeframe,
+      }"
+      @click="emit('update:timeframe', timeframe)"
+    >
+      {{ timeframe }}
+    </UButton>
     <!----------------------------------------------------------------------------------------------------------------------
   BACKTEST CONTROLS
 ----------------------------------------------------------------------------------------------------------------------->

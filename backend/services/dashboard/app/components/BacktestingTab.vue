@@ -33,7 +33,7 @@ const _session = useBacktestingSession(props.tabId, tabStore.symbol);
 // State
 // -----------------------------------------------------------------------------
 
-const activeTimeframe = ref("1m");
+const activeTimeframe = ref("15m");
 
 const timeframeIds = computed(() =>
   Object.keys(tabStore.globalState.engine_state.timeframes),
@@ -84,7 +84,7 @@ const updateChart = async (timeframeId: string, timeframe: ChartTimeframe) => {
   // 3. Aplicar opciones
   for (const [seriesId, series] of Object.entries(timeframe.series)) {
     chart.applyOptions(seriesId, {
-      legend: "BTCUSDT " + timeframe.id
+      legend: "BTCUSDT " + timeframe.id,
     });
   }
 
@@ -134,13 +134,20 @@ onUnmounted(() => {
       @update:timeframe="activeTimeframe = $event"
     />
 
-    <div
-      v-for="timeframeId in timeframeIds"
-      :key="timeframeId"
-      v-show="timeframeId === activeTimeframe"
-      class="chart-container"
-    >
-      <Chart :ref="(el) => setChartRef(timeframeId, el)" />
+    <div class="charts">
+      <div
+        v-for="timeframeId in timeframeIds"
+        :key="timeframeId"
+        class="chart-wrapper"
+        :class="{
+          'chart-wrapper--active':
+            timeframeId === activeTimeframe,
+        }"
+      >
+        <Chart
+          :ref="el => setChartRef(timeframeId, el)"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -156,10 +163,26 @@ onUnmounted(() => {
   padding: var(--tab-content-padding);
 }
 
-.chart-container {
+.charts {
+  position: relative;
   flex: 1;
   min-height: 0;
   width: 100%;
+}
+
+.chart-wrapper {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
   height: 100%;
+
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.chart-wrapper--active {
+  visibility: visible;
+  pointer-events: auto;
 }
 </style>
