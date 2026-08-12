@@ -20,7 +20,6 @@ import {
   ref,
   type ComponentPublicInstance,
 } from "vue";
-
 import { useBacktestingTabStore } from "~/stores/tabs";
 import Chart, { type ChartTimeframe } from "~/components/Chart.vue";
 

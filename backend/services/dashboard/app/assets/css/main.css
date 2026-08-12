@@ -17,7 +17,7 @@
 }
 
 .dark {
-  --chart-background: var(--ui-color-neutral-950);
+  --chart-background: var(--ui-color-neutral-1000);
 }
 
 * {
