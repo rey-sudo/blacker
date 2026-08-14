@@ -124,7 +124,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
         match replay_step {
             ReplayStep::PublishTick => {
-                 // Acquire a read lock on the master state.
+                // Acquire a read lock on the master state.
                 let (first_tick_index, batch_size, message) = {
                     let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
@@ -137,7 +137,6 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                         let mut master: RwLockWriteGuard<'_, MasterState> =
                             state.master.write().await;
-
                         master.replay_status = ReplayStatus::Stopped;
 
                         info!("Replay stopped no more ticks");
