@@ -24,39 +24,41 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 
 //----------------------------------------------------------------------------------------------------------------------
 // IMPLEMENTATION
 //----------------------------------------------------------------------------------------------------------------------
 
-/// Replay state machine.
+/// Defines the replay state machine.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ReplayStep {
+    /// Publishes the next tick to Pulsar.
     PublishTick,
+    /// Waits for the engine to process the tick.
     WaitEngine,
+    /// Waits for the execution result.
     WaitExecution,
+    /// Persists the current replay state.
     Persist,
 }
 
-/// Serializable trade payload published to Pulsar during replay.
+/// Represents a serializable trade tick.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TickMessage {
+    /// Unique tick identifier.
     pub id: u64,
+    /// Tick timestamp.
     pub time: u64,
+    /// Trade price.
     pub price: u64,
+    /// Trade quantity.
     pub qty: u64,
+    /// Indicates whether the buyer was the maker.
     pub is_buyer_maker: u8,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TickBatchMessage {
-    pub boot_id: String,
-    pub config_hash: String,
-    pub first_tick_index: usize,
-    pub ticks: Vec<TickMessage>,
-}
-
+/// Converts a [`Tick`] into a [`TickMessage`].
 impl From<&Tick> for TickMessage {
     fn from(tick: &Tick) -> Self {
         Self {
@@ -69,8 +71,21 @@ impl From<&Tick> for TickMessage {
     }
 }
 
+/// Represents a batch of trade ticks published to Pulsar.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TickBatchMessage {
+    /// Unique identifier for the replay boot.
+    pub boot_id: String,
+    /// Hash identifying the replay configuration.
+    pub config_hash: String,
+    /// Index of the first tick in the batch.
+    pub first_tick_index: usize,
+    /// Ticks included in the batch.
+    pub ticks: Vec<TickMessage>,
+}
+
 impl SerializeMessage for TickBatchMessage {
-    /// Serializes the tick message into a MessagePack payload for Pulsar.
+    /// Serializes the tick batch into a MessagePack payload for Pulsar.
     fn serialize_message(input: Self) -> Result<producer::Message, PulsarError> {
         let payload: Vec<u8> = rmp_serde::to_vec(&input)
             .map_err(|e: rmp_serde::encode::Error| PulsarError::Custom(e.to_string()))?;
