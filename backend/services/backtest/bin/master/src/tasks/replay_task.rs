@@ -197,15 +197,19 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
             }
 
             ReplayStep::WaitEngine => {
+                // Wait for the engine to finish processing the current batch.
                 state.engine_notify.notified().await;
 
+                // Move to the execution wait state.
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
                 master.replay_step = ReplayStep::WaitExecution;
             }
 
             ReplayStep::WaitExecution => {
+                // Wait for the execution result.
                 //state.execution_notify.notified().await;
 
+                // Move to the persistence state.
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
                 master.replay_step = ReplayStep::Persist;
             }
@@ -213,13 +217,15 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
             ReplayStep::Persist => {
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
+                // Calculate the number of ticks remaining to process.
                 let remaining: usize = master.tick_data.len() - master.tick_index;
-
                 let processed: usize = remaining.min(state.replay_batch_size);
 
+                // Advance the replay position by the number of processed ticks.
                 master.tick_index += processed;
                 master.replay_step = ReplayStep::PublishTick;
 
+                // Save a snapshot every one million processed ticks.
                 if master.tick_index % 1_000_000 == 0 {
                     save_snapshot(&master).await?;
                 }
@@ -229,6 +235,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 state.engine_ack_notify.notify_one();
                 state.execution_ack_notify.notify_one();
 
+                // Publish the updated master state.
                 state.publish_master_state().await?;
             }
         }
