@@ -17,9 +17,11 @@ use cursor_db::binary::BinaryFile;
 use master::master::state::AppState;
 use master::server::server::start_http_server;
 use master::snapshot::{ReplaySnapshot, load_snapshot};
-use master::tasks::{replay_task, engine_consumer};
+use master::tasks::{engine_consumer, replay_task};
 use pulsar::{Pulsar, TokioExecutor};
 use std::sync::Arc;
+use tokio::task::JoinSet;
+use tracing::{error, info};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -39,11 +41,28 @@ async fn main() -> anyhow::Result<()> {
 
     let state: AppState = AppState::new(tick_data, snapshot);
 
-    replay_task::run(state.clone(), pulsar.clone());
+    let mut tasks: JoinSet<Result<(), anyhow::Error>> = JoinSet::new();
 
-    engine_consumer::run(state.clone(), pulsar.clone());
+    tasks.spawn(replay_task::run(state.clone(), pulsar.clone()));
+    tasks.spawn(engine_consumer::run(state.clone(), pulsar.clone()));
 
     start_http_server(state).await;
+
+    while let Some(result) = tasks.join_next().await {
+        match result {
+            Ok(Ok(())) => {
+                info!("Task finished");
+            }
+            Ok(Err(error)) => {
+                error!(%error, "Task failed");
+                std::process::exit(1);
+            }
+            Err(error) => {
+                error!(%error, "Task panicked");
+                std::process::exit(1);
+            }
+        }
+    }
 
     Ok(())
 }

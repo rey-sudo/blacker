@@ -15,6 +15,7 @@
 
 use crate::master::state::{AppState, MasterState, ReplayStatus, Tick};
 use crate::snapshot::save_snapshot;
+use anyhow::Result;
 use producer::SendFuture;
 use pulsar::ProducerOptions;
 use pulsar::{Error as PulsarError, Pulsar, TokioExecutor};
@@ -86,7 +87,7 @@ impl SerializeMessage for TickBatchMessage {
 //----------------------------------------------------------------------------------------------------------------------
 
 /// Executes the replay state machine until the replay finishes or is stopped.
-async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> anyhow::Result<()> {
+async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> Result<()> {
     loop {
         tokio::time::sleep(Duration::from_millis(60_000)).await; //DEBUG
 
@@ -218,40 +219,31 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
     Ok(())
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+// RUN
+//----------------------------------------------------------------------------------------------------------------------
+
 /// Starts the asynchronous replay worker.
-pub fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
-    tokio::spawn(async move {
-        // 1. Pulsar Producer: Create the pulsar producer.
-        let mut producer: Producer<TokioExecutor> = match pulsar
-            .producer()
-            .with_topic("persistent://public/default/master.tick")
-            .with_options(ProducerOptions {
-                batch_size: Some(0),
-                batch_timeout: Some(Duration::from_millis(1)),
-                block_queue_if_full: true,
-                ..Default::default()
-            })
-            .build()
-            .await
-        {
-            Ok(p) => p,
-            Err(error) => {
-                error!(?error, "Failed to create Replay producer.");
-                std::process::exit(1);
-            }
-        };
+pub async fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) -> Result<()> {
+    // Create the Pulsar producer.
+    let mut producer: Producer<TokioExecutor> = pulsar
+        .producer()
+        .with_topic("persistent://public/default/master.tick")
+        .with_options(ProducerOptions {
+            batch_size: Some(0),
+            batch_timeout: Some(Duration::from_millis(1)),
+            block_queue_if_full: true,
+            ..Default::default()
+        })
+        .build()
+        .await?;
 
-        info!("Running replay task...");
+    info!("Running replay task...");
 
-        // 2. Main loop: Start the main loop.
-        match run_replay(state.clone(), &mut producer).await {
-            Ok(()) => {}
-            Err(error) => {
-                error!(?error, "Replay failed with fatal error.");
-                std::process::exit(1);
-            }
-        }
+    // Run the replay loop.
+    run_replay(state, &mut producer).await?;
 
-        info!("Replay task terminated.");
-    });
+    info!("Replay task terminated.");
+
+    Ok(())
 }

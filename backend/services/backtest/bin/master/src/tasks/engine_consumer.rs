@@ -59,102 +59,97 @@ fn validate_engine_state(
     Ok(())
 }
 
-pub fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) {
-    tokio::spawn(async move {
-        // 1. Create Consumer: create pulsar consumer.
-        let mut consumer: Consumer<EngineStateMessage, TokioExecutor> = match pulsar
-            .consumer()
-            .with_topic("persistent://public/default/engine.state")
-            .with_subscription_type(SubType::Exclusive)
-            .with_subscription("master-sub")
-            .build()
-            .await
-        {
-            Ok(con) => con,
+pub async fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) -> Result<()> {
+    // 1. Create Consumer: create pulsar consumer.
+    let mut consumer: Consumer<EngineStateMessage, TokioExecutor> = match pulsar
+        .consumer()
+        .with_topic("persistent://public/default/engine.state")
+        .with_subscription_type(SubType::Exclusive)
+        .with_subscription("master-sub")
+        .build()
+        .await
+    {
+        Ok(con) => con,
+        Err(error) => {
+            error!(?error, "Failed to create EngineState consumer.");
+            return Err(error.into());
+        }
+    };
+
+    info!("Starting engine consumer...");
+
+    // 1. Start Loop: start the main loop.
+    loop {
+        //  Receive the next EngineState message from Pulsar.
+        let message: Message<EngineStateMessage> = match consumer.try_next().await {
+            Ok(Some(msg)) => msg,
+            Ok(None) => {
+                info!("Engine consumer closed.");
+                break;
+            }
             Err(error) => {
-                error!(?error, "Failed to create EngineState consumer.");
-                return;
+                error!(?error, "Failed to receive EngineState.");
+                continue;
             }
         };
 
-        info!("Starting engine consumer...");
+        // Deserialize the received EngineState message.
+        let engine_state_message: EngineStateMessage = match message.deserialize() {
+            Ok(state) => state,
 
-        // 1. Start Loop: start the main loop.
-        loop {
-            //  Receive the next EngineState message from Pulsar.
-            let message: Message<EngineStateMessage> = match consumer.try_next().await {
-                Ok(Some(msg)) => msg,
-                Ok(None) => {
-                    info!("Engine consumer closed.");
-                    break;
+            Err(error) => {
+                error!(?error, "Failed to deserialize EngineState. Aborting.");
+
+                if let Err(error) = consumer.ack(&message).await {
+                    error!(?error, "Failed to ACK invalid EngineState.");
                 }
-                Err(error) => {
-                    error!(?error, "Failed to receive EngineState.");
-                    continue;
+
+                continue;
+            }
+        };
+
+        // Validate message.
+        {
+            let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
+
+            match validate_engine_state(&state, &master, &engine_state_message) {
+                Ok(()) => {
+                    master.engine_state = EngineState {
+                        tick_index: engine_state_message.tick_index,
+                        time: engine_state_message.time,
+                        timeframes: engine_state_message.timeframes,
+                    };
                 }
-            };
+                Err(reason) => {
+                    error!(?reason, "Rejected EngineState ACKing...");
 
-            // Deserialize the received EngineState message.
-            let engine_state_message: EngineStateMessage = match message.deserialize() {
-                Ok(state) => state,
-
-                Err(error) => {
-                    error!(?error, "Failed to deserialize EngineState. Aborting.");
+                    drop(master);
 
                     if let Err(error) = consumer.ack(&message).await {
-                        error!(?error, "Failed to ACK invalid EngineState.");
+                        error!(?error, "Failed to early ACK EngineState.");
                     }
 
-                    continue
-
-                }
-            };
-
-            // Validate message.
-            {
-                let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
-
-                match validate_engine_state(
-                    &state,
-                    &master,
-                    &engine_state_message,
-                ) {
-                    Ok(()) => {
-                        master.engine_state = EngineState {
-                            tick_index: engine_state_message.tick_index,
-                            time: engine_state_message.time,
-                            timeframes: engine_state_message.timeframes,
-                        };
-                    }
-                    Err(reason) => {
-                        error!(?reason, "Rejected EngineState ACKing...");
-
-                        drop(master);
-
-                        if let Err(error) = consumer.ack(&message).await {
-                            error!(?error, "Failed to early ACK EngineState.");
-                        }
-
-                        continue;
-                    }
-                }
-            }
-
-            state.engine_notify.notify_one();
-
-            state.engine_ack_notify.notified().await;
-
-            match consumer.ack(&message).await {
-                Ok(_) => {
-                    // info!("EngineState ACK.");
-                }
-                Err(error) => {
-                    error!(?error, "Failed to ACK EngineState.");
                     continue;
                 }
             }
         }
 
-        info!("Engine consumer finished.");
-    });
+        state.engine_notify.notify_one();
+
+        state.engine_ack_notify.notified().await;
+
+        match consumer.ack(&message).await {
+            Ok(_) => {
+                // info!("EngineState ACK.");
+            }
+            Err(error) => {
+                error!(?error, "Failed to ACK EngineState.");
+                continue;
+            }
+        }
+    }
+
+    info!("Engine consumer finished.");
+
+    Ok(())
 }
