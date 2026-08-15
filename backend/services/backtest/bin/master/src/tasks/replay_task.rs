@@ -15,7 +15,7 @@
 
 use crate::master::state::{AppState, MasterState, ReplayStatus, Tick};
 use crate::snapshot::save_snapshot;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use producer::SendFuture;
 use pulsar::ProducerOptions;
 use pulsar::{Error as PulsarError, Pulsar, TokioExecutor};
@@ -261,14 +261,17 @@ pub async fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) -> Result<
             ..Default::default()
         })
         .build()
-        .await?;
+        .await
+        .context("Failed to create Pulsar producer")?;
 
     info!("Running replay task...");
 
     // Run the replay loop.
-    run_replay(state, &mut producer).await?;
+    run_replay(state, &mut producer)
+        .await
+        .context("Replay state machine failed")?;
 
-    info!("Replay task terminated.");
+    info!("Replay task terminated");
 
     Ok(())
 }
