@@ -12,8 +12,9 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
+use anyhow::Result;
 use cursor_db::binary::BinaryFile;
+use master::config::AppConfig;
 use master::master::state::AppState;
 use master::server::server::start_http_server;
 use master::snapshot::{ReplaySnapshot, load_snapshot};
@@ -24,8 +25,12 @@ use tokio::task::JoinSet;
 use tracing::{error, info};
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> Result<()> {
+    dotenvy::dotenv().ok();
+
     tracing_subscriber::fmt::init();
+
+    let config: AppConfig = AppConfig::from_env()?;
 
     let pulsar: Arc<Pulsar<TokioExecutor>> = Arc::new(
         Pulsar::builder("pulsar://localhost:6650", TokioExecutor)
@@ -45,7 +50,6 @@ async fn main() -> anyhow::Result<()> {
 
     tasks.spawn(replay_task::run(state.clone(), pulsar.clone()));
     tasks.spawn(engine_consumer::run(state.clone(), pulsar.clone()));
-
     tasks.spawn(start_http_server(state));
 
     while let Some(result) = tasks.join_next().await {
