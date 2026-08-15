@@ -46,7 +46,7 @@ async fn main() -> anyhow::Result<()> {
     tasks.spawn(replay_task::run(state.clone(), pulsar.clone()));
     tasks.spawn(engine_consumer::run(state.clone(), pulsar.clone()));
 
-    start_http_server(state).await;
+    tasks.spawn(start_http_server(state));
 
     while let Some(result) = tasks.join_next().await {
         match result {
