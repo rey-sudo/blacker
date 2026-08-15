@@ -109,7 +109,7 @@ const updateChart = async (timeframeId: string, timeframe: ChartTimeframe) => {
   // Populate each series with its latest historical data.
   for (const [seriesId, series] of Object.entries(timeframe.series)) {
     chart.applyOptions(seriesId, {
-      legend: "BTCUSDT " + timeframe.id,
+      legend: tabStore.globalState.symbol + " " + timeframe.id,
     });
 
     chart.patchData(seriesId, series?.history);

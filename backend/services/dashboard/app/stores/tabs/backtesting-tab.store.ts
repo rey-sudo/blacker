@@ -10,15 +10,28 @@ export interface EngineState {
   timeframes: Record<string, ChartTimeframe>;
 }
 
+type Value = unknown;
+
+/**
+ * EngineStrategy.
+ */
+export interface EngineStrategy {
+  kind: string;
+  params: Record<string, Value>;
+}
+
 /**
  * BacktestSessionMessage.
  */
 export interface MasterState {
+  symbol: string;
+  config_hash: string;
   status: string;
   replay_status: string;
   replay_step: string;
   tick_index: number;
   engine_state: EngineState;
+  engine_strategy: EngineStrategy;
 }
 
 /**
@@ -45,6 +58,8 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       //---------------------------------------------------------------------
 
       const globalState = ref<MasterState>({
+        symbol: "",
+        config_hash: "",
         status: "",
         replay_status: "",
         replay_step: "",
@@ -54,6 +69,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
           time: 0,
           timeframes: {},
         },
+        engine_strategy: { kind: "", params: {} },
       });
 
       const id = tab.id;
@@ -110,6 +126,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
        */
       function updateSession(data: MasterState) {
         globalState.value = data;
+
         notify({
           type: "live-update",
           data,

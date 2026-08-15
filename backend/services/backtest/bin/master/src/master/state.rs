@@ -14,6 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    config::AppConfig,
     slaves::{
         engine::{EngineState, EngineStrategy},
         execution::ExecutionState,
@@ -58,6 +59,7 @@ pub enum MasterStatus {
 
 #[derive(Clone, Serialize)]
 pub struct MasterState {
+    pub symbol: String,
     pub config_hash: String,
     pub status: MasterStatus,
     pub replay_status: ReplayStatus,
@@ -122,9 +124,9 @@ impl MasterState {
 
 #[derive(Clone)]
 pub struct AppState {
+    pub master: Arc<RwLock<MasterState>>,
     pub boot_id: String,
     pub replay_batch_size: usize,
-    pub master: Arc<RwLock<MasterState>>,
     pub replay_notify: Arc<Notify>,
     pub engine_notify: Arc<Notify>,
     pub execution_notify: Arc<Notify>,
@@ -134,7 +136,11 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(tick_data: Arc<BinaryFile>, snapshot: Option<ReplaySnapshot>) -> Self {
+    pub fn new(
+        config: AppConfig,
+        tick_data: Arc<BinaryFile>,
+        snapshot: Option<ReplaySnapshot>,
+    ) -> Self {
         info!("Loading Snapshot...");
 
         let boot_id: String = Uuid::now_v7().to_string();
@@ -160,6 +166,7 @@ impl AppState {
         };
 
         let master_state: MasterState = MasterState {
+            symbol: config.symbol,
             config_hash,
             status: MasterStatus::Ready,
             replay_status: ReplayStatus::Stopped,
@@ -171,15 +178,15 @@ impl AppState {
             engine_strategy: EngineStrategy {
                 kind: "Strategy1".to_string(),
                 params: HashMap::new(),
-            }
+            },
         };
 
         let (master_state_tx, _) = watch::channel(Arc::new(String::from("{}")));
 
         Self {
+            master: Arc::new(RwLock::new(master_state)),
             boot_id,
             replay_batch_size,
-            master: Arc::new(RwLock::new(master_state)),
             replay_notify: Arc::new(Notify::new()),
             engine_notify: Arc::new(Notify::new()),
             execution_notify: Arc::new(Notify::new()),

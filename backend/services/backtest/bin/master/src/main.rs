@@ -44,7 +44,7 @@ async fn main() -> Result<()> {
 
     let snapshot: Option<ReplaySnapshot> = load_snapshot().await?;
 
-    let state: AppState = AppState::new(tick_data, snapshot);
+    let state: AppState = AppState::new(config, tick_data, snapshot);
 
     let mut tasks: JoinSet<Result<(), anyhow::Error>> = JoinSet::new();
 
