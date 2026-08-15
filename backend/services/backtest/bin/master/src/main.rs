@@ -12,7 +12,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use anyhow::Result;
+use anyhow::{Context, Result};
 use cursor_db::binary::BinaryFile;
 use master::config::AppConfig;
 use master::master::state::AppState;
@@ -33,14 +33,14 @@ async fn main() -> Result<()> {
     let config: AppConfig = AppConfig::from_env()?;
 
     let pulsar: Arc<Pulsar<TokioExecutor>> = Arc::new(
-        Pulsar::builder("pulsar://localhost:6650", TokioExecutor)
+        Pulsar::builder(&config.pulsar_url, TokioExecutor)
             .with_outbound_channel_size(1000)
             .build()
             .await
-            .expect("Invalid Pulsar URL"),
+            .context("Failed to create Pulsar client")?,
     );
 
-    let tick_data: Arc<BinaryFile> = Arc::new(BinaryFile::open("./input/binance_ticks.bin")?);
+    let tick_data: Arc<BinaryFile> = Arc::new(BinaryFile::open(&config.tick_data_path)?);
 
     let snapshot: Option<ReplaySnapshot> = load_snapshot().await?;
 
