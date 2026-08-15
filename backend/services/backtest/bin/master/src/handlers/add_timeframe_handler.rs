@@ -36,6 +36,9 @@ pub async fn add_timeframe_handler(
     State(state): State<AppState>,
     Json(req): Json<Request>,
 ) -> (StatusCode, Json<Response>) {
+    
+    //TODO: validate Timeframe params
+
     let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
     if master

@@ -15,13 +15,12 @@
 
         Alerts</UButton
       >
-      <UButton color="neutral" size="xs" variant="ghost">Order History</UButton>
+      <UButton color="neutral" size="xs" variant="ghost">History</UButton>
 
       <UButton color="neutral" size="xs" variant="ghost">Backtesting</UButton>
 
-      <UButton color="neutral" size="xs" variant="ghost">Algorithmic</UButton>
+      <UButton color="neutral" size="xs" variant="ghost">Bots</UButton>
 
-     <UButton color="neutral" size="xs" variant="ghost">Console</UButton>
       <USeparator orientation="vertical" class="h-6 pl-2 pr-2" />
       <FooterTime />
       <USeparator orientation="vertical" class="h-6 px-2" />
