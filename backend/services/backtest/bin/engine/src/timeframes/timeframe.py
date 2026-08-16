@@ -62,7 +62,6 @@ class Timeframe:
         return self._series[series_id]
 
     def build_levels(self):
-        print(f"building series level {self.id}")
         groups = defaultdict(list)
 
         for series in self._series.values():
