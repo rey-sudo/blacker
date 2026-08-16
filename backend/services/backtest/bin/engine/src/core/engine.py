@@ -13,13 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+from aggregator.bar_aggregator import BarAggregator
 from strategy.base import Strategy
 from core.engine_state import EngineState
 from strategy.registry import STRATEGY_REGISTRY
 from ingestion.tick import Tick
 from timeframes.timeframe import Timeframe
 from series.registry import SERIES_REGISTRY
-
 
 class TradingEngine:
     def __init__(self, strategy=None, timeframes=None):
@@ -29,6 +29,7 @@ class TradingEngine:
         self.state: EngineState | None = None
         self.strategy: Strategy | None = strategy
         self.timeframes: dict[str, Timeframe] = timeframes or {}
+        self.bar_aggregator: BarAggregator | None = None
 
         for timeframe in self.timeframes.values():
             timeframe.engine = self
@@ -66,8 +67,13 @@ class TradingEngine:
         strategy_cls = STRATEGY_REGISTRY[strategy["kind"]]
         strategy = strategy_cls(**strategy["params"])
 
-        self.timeframes = timeframes
+        
         self.strategy = strategy
+        self.timeframes = timeframes
+        self.bar_aggregator = BarAggregator(
+            timeframes=self.timeframes
+        )
+
 
         self.state = EngineState(
             boot_id=self.boot_id,
@@ -78,8 +84,10 @@ class TradingEngine:
         )
 
     def on_tick(self, tick: Tick):
+        self.bar_aggregator.update(tick)
+
         for timeframe in self.timeframes.values():
-            timeframe.update(tick)
+            timeframe.update()
 
         self.state = EngineState(
             boot_id=self.boot_id,

@@ -97,11 +97,12 @@ def handle_tick(tick: Tick, is_last: bool):
     # ----------------------------------------------------------
 
     if engine.boot_id != tick.boot_id or engine.config_hash != tick.config_hash:
-        print(
+        if tick.tick_index % 100_000 == 0:
+            print(
             f"Incorrect boot_id / config_hash reseting..."
             f"engine={engine.boot_id}/{engine.config_hash}"
             f"tick={tick.boot_id}/{tick.config_hash}"
-        )
+            )
 
         engine.reset()
         return #ACK
