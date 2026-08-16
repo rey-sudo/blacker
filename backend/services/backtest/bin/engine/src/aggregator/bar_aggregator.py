@@ -1,7 +1,4 @@
-from collections import deque
-from copy import deepcopy
 from dataclasses import dataclass, field
-
 from ingestion.tick import Tick
 
 

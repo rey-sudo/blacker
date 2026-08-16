@@ -4,7 +4,6 @@ from series.series import Series
 
 MAX_HISTORY = 500
 
-
 @dataclass(frozen=True)
 class Candle:
     time: int
@@ -26,23 +25,13 @@ class CandleSeries(Series):
         kind: str,
         id: str,
         params: dict,
-        **kwargs,
     ):
-        super().__init__(
-            level,
-            kind,
-            id,
-            params,
-        )
-
-        self.extra = kwargs
-
+        super().__init__(level, kind, id, params)
+        
         self._live: Candle | None = None
-
         self.history: deque[Candle] = deque(
             maxlen=MAX_HISTORY
         )
-
         self.is_new: bool = False
         self.last_bar_start_ts: int | None = None
 
@@ -145,34 +134,27 @@ class CandleSeries(Series):
                 if self.live
                 else None
             ),
-
             "history": [
                 asdict(candle)
                 for candle in self.history
             ],
-
             "is_new": self.is_new,
             "last_bar_start_ts": self.last_bar_start_ts,
         }
 
     def set_state(self, state: dict) -> None:
-
         self.live = (
-            Candle(**state["live"])
-            if state["live"] is not None
+            Candle(**state.get("live"))
+            if state.get("live") is not None
             else None
         )
-
         self.history = deque(
             (
                 Candle(**candle)
-                for candle in state["history"]
+                for candle in (state.get("history") or [])
             ),
             maxlen=MAX_HISTORY,
         )
-
-        self.is_new = state["is_new"]
-
-        self.last_bar_start_ts = (
-            state["last_bar_start_ts"]
-        )
+        self.is_new = state.get("is_new")
+        self.last_bar_start_ts = state.get("last_bar_start_ts")
+        

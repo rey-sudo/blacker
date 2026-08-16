@@ -31,9 +31,6 @@ class TradingEngine:
         self.timeframes: dict[str, Timeframe] = timeframes or {}
         self.bar_aggregator: BarAggregator | None = None
 
-        for timeframe in self.timeframes.values():
-            timeframe.engine = self
-
     def reset(self):
         self.status = "init"
         self.boot_id = None
@@ -51,16 +48,26 @@ class TradingEngine:
 
         timeframes = {}
 
-        for tf_id, tf_value in engine_state["timeframes"].items():
-            timeframe = Timeframe(
-                id=tf_id,
-                timeframe_ms=tf_value["timeframe_ms"],
-            )
-
-            for series_id, series_value in tf_value["series"].items():
-                series_cls = SERIES_REGISTRY[series_value.get("kind")]
-                timeframe.add_series(series_cls(**series_value))   
-                         
+        for tf_value in engine_state["timeframes"].values():
+            timeframe = Timeframe()
+            timeframe.set_state(tf_value)
+            
+            #
+            # Add Timeframe series
+            #
+            for state in tf_value["series"].values():
+                kind = state["kind"]
+                series = SERIES_REGISTRY[kind](
+                    state.get("level"),
+                    kind,
+                    state.get("id"),
+                    state.get("params"),
+                )
+                series.set_state(state)
+                timeframe.add_series(series)
+            #
+            # Build the series execution level
+            #                         
             timeframe.build_levels()
             timeframes[timeframe.id] = timeframe
 
@@ -73,8 +80,6 @@ class TradingEngine:
         self.bar_aggregator = BarAggregator(
             timeframes=self.timeframes
         )
-
-
         self.state = EngineState(
             boot_id=self.boot_id,
             config_hash=self.config_hash,
