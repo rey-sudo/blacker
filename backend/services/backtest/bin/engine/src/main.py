@@ -37,6 +37,8 @@ publisher = PulsarPublisher(
 
 engine = TradingEngine()
 
+RESET_DELAY = 30.0
+
 #-----------------------------------------------------------------------------------------------------------------------
 # FETCH STATE
 #-----------------------------------------------------------------------------------------------------------------------
@@ -60,26 +62,23 @@ def fetch_state():
 # HANDLE TICKS
 #-----------------------------------------------------------------------------------------------------------------------
 
-def handle_tick(tick: Tick, is_last: bool):
+def handle_tick(cstate: dict, tick: Tick):
     # ----------------------------------------------------------
     # BOOTSTRAP
     # ----------------------------------------------------------
 
     if engine.status == "init":
 
-        state = fetch_state()
-
-        if state is None:
+        res = fetch_state()
+        if res  is None:
             raise Exception("Master endpoint error.")  # NACK
 
-        engine.boot_id = state["boot_id"]
-
+        engine.boot_id = res["boot_id"]
         engine.set_state(
-            config_hash=state["master"]["config_hash"],
-            engine_state=state["master"]["engine_state"],
-            strategy=state["master"]["engine_strategy"],
+            config_hash=res["master"]["config_hash"],
+            engine_state=res["master"]["engine_state"],
+            strategy=res["master"]["engine_strategy"],
         )
-
         engine.status = "ready"
 
 
@@ -95,16 +94,34 @@ def handle_tick(tick: Tick, is_last: bool):
     # BOOT VALIDATION
     # ----------------------------------------------------------
 
-    if engine.boot_id != tick.boot_id or engine.config_hash != tick.config_hash:
-        if tick.tick_index % 100_000 == 0:
-            print(
-            f"Incorrect boot_id / config_hash reseting..."
-            f"engine={engine.boot_id}/{engine.config_hash}"
-            f"tick={tick.boot_id}/{tick.config_hash}"
-            )
+    is_strange = (
+        engine.boot_id != tick.boot_id
+        or engine.config_hash != tick.config_hash
+    )
 
+    if is_strange:
+        cstate["last_strange_tick_at"] = time.monotonic()
+
+        print(
+            f"Incorrect boot_id / config_hash "
+            f"engine={engine.boot_id}/{engine.config_hash} "
+            f"tick={tick.boot_id}/{tick.config_hash}"
+        )
+
+        return "ACK"
+    
+    last_strange_tick_at = cstate.get("last_strange_tick_at")
+
+    if last_strange_tick_at is not None:
+        elapsed = time.monotonic() - last_strange_tick_at
+
+        if elapsed < RESET_DELAY:
+            return  "NACK"
+
+        cstate["last_strange_tick_at"] = None
         engine.reset()
-        return #ACK
+        
+        return "ACK"
         
 
     # ----------------------------------------------------------
@@ -124,7 +141,7 @@ def handle_tick(tick: Tick, is_last: bool):
     # PROCESS
     # ----------------------------------------------------------
 
-    state, signal = engine.on_tick(tick)
+    engine_state, signal = engine.on_tick(tick)
 
     if signal:
         print("SIGNAL:", signal)
@@ -137,8 +154,8 @@ def handle_tick(tick: Tick, is_last: bool):
     # LAST
     # ----------------------------------------------------------
 
-    if is_last:
-        publisher.publish(state)
+    if cstate.get("is_last"):
+        publisher.publish(engine_state)
         time.sleep(5)
 
 #-----------------------------------------------------------------------------------------------------------------------

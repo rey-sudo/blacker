@@ -46,30 +46,45 @@ class PulsarConsumer:
 
         return boot_id, first_tick_index, ticks
 
+    def ack(self, msg):
+        self.consumer.acknowledge(msg)
+
+    def nack(self, msg):
+        self.consumer.negative_acknowledge(msg)
+
     def listen(self, callback):
         print("Consumer listening.")
+
+        state = {
+            "last_strange_tick_at": None,
+            "is_last": False,
+        }
 
         while True:
             msg = self.consumer.receive()
 
             try:
-                boot_id, first_tick_index, ticks = self._decode_batch(msg)
+                _, _, ticks = self._decode_batch(msg)
 
                 last = len(ticks) - 1
 
                 for i, tick in enumerate(ticks):
-                    sig = callback(
-                            tick,
-                            is_last=(i == last)
-                            )
-                    
-                    if sig is 'kill':
-                        sys.exit(1)
-                        
-                self.consumer.acknowledge(msg)
+                    state["is_last"] = i == last
+
+                    sig = callback(state, tick)
+
+                    if sig == "NACK":
+                        self.nack(msg)
+                        break 
+
+                    if sig == "ACK":
+                        continue
+
+                else:
+                    self.ack(msg)
 
             except Exception as e:
-                self.consumer.negative_acknowledge(msg)
+                self.nack(msg)
                 print(f"Error listening message: {e}")
 
     def close(self):
