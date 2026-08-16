@@ -22,7 +22,7 @@ class Timeframe:
         return {
             "id": self.id,
             "timeframe_ms": self.timeframe_ms,
-            "live": asdict(self.live),
+            "live": asdict(self.live) if self.live is not None else None,
             "history": [
                 asdict(bar)
                 for bar in self.history

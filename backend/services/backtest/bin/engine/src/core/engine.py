@@ -43,7 +43,6 @@ class TradingEngine:
         """
         Restores the engine state from a serialized dictionary.
         """
-
         self.config_hash = config_hash
 
         timeframes = {}
