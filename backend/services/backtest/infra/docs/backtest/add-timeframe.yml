@@ -14,7 +14,7 @@ http:
           "id": "1m",
           "series": {
             "candle-series": {
-              "id": "candle-series-1",
+              "id": "candle-series-0",
               "kind": "CandleSeries",
               "level": 0,
               "params": {}

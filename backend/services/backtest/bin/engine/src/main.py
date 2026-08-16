@@ -14,7 +14,6 @@
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import time
-
 import requests
 from ingestion.tick import Tick
 from core.engine import TradingEngine
@@ -115,9 +114,8 @@ def handle_tick(tick: Tick, is_last: bool):
     if engine.state.tick_index > 0:
         if tick.tick_index - 1 != engine.state.tick_index:
             print(
-                f"Incorrect tick index. engine.state.tick_index={engine.state.tick_index}, "
-                f"tick.tick_index={tick.tick_index}, "
-                f"expected={engine.state.tick_index + 1}"
+                f"Incorrect engine.state.tick_index={engine.state.tick_index}, "
+                f"tick.tick_index={tick.tick_index}, expected={engine.state.tick_index + 1}"
             )
 
             raise Exception("Incorrect tick index.")  # NACK
