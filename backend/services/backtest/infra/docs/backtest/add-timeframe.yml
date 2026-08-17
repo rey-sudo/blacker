@@ -11,16 +11,16 @@ http:
     data: |-
       {
         "timeframe": {
-          "id": "1m",
+          "id": "5m",
           "series": {
             "candle-series": {
-              "id": "candle-series-0",
+              "id": "candle-series-1",
               "kind": "CandleSeries",
               "level": 0,
               "params": {}
             }
           },
-          "timeframe_ms": 60000
+          "timeframe_ms": 300000
         }
       }
   auth: inherit

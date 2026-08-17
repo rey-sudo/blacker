@@ -32,12 +32,15 @@ class TradingEngine:
         self.bar_aggregator: BarAggregator | None = None
 
     def reset(self):
+        print("Reseting engine...")
+
         self.status = "init"
         self.boot_id = None
         self.config_hash = None
         self.state = None
         self.strategy = None
         self.timeframes = {}
+        self.bar_aggregator = None
 
     def set_state(self, config_hash: str, engine_state: dict, strategy: dict) -> None:
         """

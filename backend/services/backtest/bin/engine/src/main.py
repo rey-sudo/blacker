@@ -102,16 +102,19 @@ def handle_tick(cstate: dict, tick: Tick):
     )
 
     if is_strange:
-        if tick.tick_index % 1_000 == 0:
-            print(
-                f"Incorrect boot_id / config_hash "
-                f"engine={engine.boot_id}/{engine.config_hash} "
-                f"tick={tick.boot_id}/{tick.config_hash}"
-            )
+        print(f"Incorrect boot_id / config_hash ")
+
+        is_old = (
+            tick.boot_id < engine.boot_id 
+            or tick.config_hash < engine.config_hash
+        )
+
+        if is_old:
+            return TickResponse.ACKALL
 
         engine.reset()
-        return TickResponse.ACKALL
-    
+        return TickResponse.NACK
+
     # ----------------------------------------------------------
     # TICK SEQUENCE
     # ----------------------------------------------------------
