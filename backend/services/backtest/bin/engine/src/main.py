@@ -62,7 +62,7 @@ def handle_tick(cstate: dict, tick: Tick):
         res = _fetch_state()
         if res is None:
             print("Master endpoint error.")
-            return "NACK"
+            return False
 
         engine.boot_id = res["boot_id"]
         engine.set_state(
@@ -71,15 +71,16 @@ def handle_tick(cstate: dict, tick: Tick):
             strategy=res["master"]["engine_strategy"],
         )
         engine.status = "ready"
+        return True
 
     # ----------------------------------------------------------
     # BOOTSTRAP
     # ----------------------------------------------------------
 
     if engine.status == "init":
-        return _sync_master_state()
-
-
+        if not _sync_master_state():
+            return "NACK"
+       
     if engine.status != "ready":
         print("Engine is not ready.")
         return "NACK"
@@ -103,7 +104,6 @@ def handle_tick(cstate: dict, tick: Tick):
             )
 
         engine.reset()
-
         return "ACK"
     
     # ----------------------------------------------------------
