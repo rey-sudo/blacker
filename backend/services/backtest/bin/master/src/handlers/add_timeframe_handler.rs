@@ -14,8 +14,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    master::state::{AppState, MasterState},
+    master::state::{AppState, MasterState, ReplayStatus},
     slaves::engine::Timeframe,
+    tasks::ReplayStep,
 };
 use axum::{Json, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};
@@ -36,10 +37,15 @@ pub async fn add_timeframe_handler(
     State(state): State<AppState>,
     Json(req): Json<Request>,
 ) -> (StatusCode, Json<Response>) {
-    
     //TODO: validate Timeframe params
 
     let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
+
+    if master.replay_status == ReplayStatus::Running
+        && master.replay_step == ReplayStep::PublishTick
+    {
+        return (StatusCode::CONFLICT, Json(Response { ok: false }));
+    }
 
     if master
         .engine_state

@@ -76,7 +76,10 @@ class PulsarConsumer:
 
                     if sig == "ACK":
                         continue
-
+                    
+                    if sig == "ACKALL":
+                        self.ack(msg)
+                        break
                 else:
                     self.ack(msg)
 

@@ -45,6 +45,7 @@ engine = TradingEngine()
 class TickResponse(StrEnum):
     ACK = "ACK"
     NACK = "NACK"
+    ACKALL= "ACKALL"
 
 def handle_tick(cstate: dict, tick: Tick):
 
@@ -109,7 +110,7 @@ def handle_tick(cstate: dict, tick: Tick):
             )
 
         engine.reset()
-        return TickResponse.ACK
+        return TickResponse.ACKALL
     
     # ----------------------------------------------------------
     # TICK SEQUENCE
