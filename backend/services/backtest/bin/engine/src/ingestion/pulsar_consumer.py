@@ -51,11 +51,10 @@ class PulsarConsumer:
         self.consumer.negative_acknowledge(msg)
 
     def listen(self, callback):
-        print("Consumer listening.")
+        print("Consumer listening")
 
         state = {
-            "is_last": False,
-            "blacklist": set()
+            "is_last": False
         }
 
         while True:

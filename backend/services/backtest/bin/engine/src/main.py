@@ -63,9 +63,6 @@ def fetch_state():
 #-----------------------------------------------------------------------------------------------------------------------
 
 def handle_tick(cstate: dict, tick: Tick):
-    if tick.boot_id in cstate["blacklist"] or tick.config_hash in cstate["blacklist"]:
-        print("Bloqueado")
-        return "ACK"
     # ----------------------------------------------------------
     # BOOTSTRAP
     # ----------------------------------------------------------
@@ -74,7 +71,8 @@ def handle_tick(cstate: dict, tick: Tick):
 
         res = fetch_state()
         if res  is None:
-            raise Exception("Master endpoint error.")  # NACK
+            print("Master endpoint error.")
+            return "NACK"
 
         engine.boot_id = res["boot_id"]
         engine.set_state(
@@ -111,9 +109,6 @@ def handle_tick(cstate: dict, tick: Tick):
                 f"tick={tick.boot_id}/{tick.config_hash}"
             )
 
-        
-        cstate["blacklist"].add(tick.boot_id)
-        cstate["blacklist"].add(tick.config_hash)
         engine.reset()
 
         return "ACK"
@@ -150,7 +145,6 @@ def handle_tick(cstate: dict, tick: Tick):
 
     if cstate.get("is_last"):
         publisher.publish(new_state)
-        time.sleep(5)
 
 #-----------------------------------------------------------------------------------------------------------------------
 # MAIN

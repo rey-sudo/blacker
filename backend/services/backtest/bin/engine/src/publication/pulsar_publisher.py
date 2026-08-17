@@ -8,19 +8,11 @@ class PulsarPublisher:
         topic="persistent://public/default/engine.state",
     ):
         self.client = Client(service_url)
-
         self.producer: Producer = self.client.create_producer(topic, batching_enabled=False)
 
 
     def publish(self, engine_state: EngineState):
-        payload = engine_state.to_msgpack()
-
-        print(
-            f"PULSAR PAYLOAD: {len(payload):,} bytes "
-            f"({len(payload) / 1024 / 1024:.4f} MiB)"
-        )
-
-        self.producer.send(payload)
+        self.producer.send(engine_state.to_msgpack())
 
 
     def close(self):
