@@ -37,40 +37,30 @@ publisher = PulsarPublisher(
 
 engine = TradingEngine()
 
-RESET_DELAY = 30.0
-
-#-----------------------------------------------------------------------------------------------------------------------
-# FETCH STATE
-#-----------------------------------------------------------------------------------------------------------------------
-
-def fetch_state():
-    try:
-        response = requests.get(
-            "http://localhost:3002/api/backtest/master/get-state",
-            timeout=10
-        )
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error getting backtest state: {e}")
-        return None
-    except ValueError as e:
-        print(f"Error parsing response JSON: {e}")
-        return None
-
 #-----------------------------------------------------------------------------------------------------------------------
 # HANDLE TICKS
 #-----------------------------------------------------------------------------------------------------------------------
 
 def handle_tick(cstate: dict, tick: Tick):
-    # ----------------------------------------------------------
-    # BOOTSTRAP
-    # ----------------------------------------------------------
 
-    if engine.status == "init":
+    def _fetch_state():
+        try:
+            response = requests.get(
+                "http://localhost:3002/api/backtest/master/get-state",
+                timeout=10
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            print(f"Error getting backtest state: {e}")
+            return None
+        except ValueError as e:
+            print(f"Error parsing response JSON: {e}")
+            return None
 
-        res = fetch_state()
-        if res  is None:
+    def _sync_master_state():
+        res = _fetch_state()
+        if res is None:
             print("Master endpoint error.")
             return "NACK"
 
@@ -82,6 +72,12 @@ def handle_tick(cstate: dict, tick: Tick):
         )
         engine.status = "ready"
 
+    # ----------------------------------------------------------
+    # BOOTSTRAP
+    # ----------------------------------------------------------
+
+    if engine.status == "init":
+        return _sync_master_state()
 
     # ----------------------------------------------------------
     # ENGINE READY
