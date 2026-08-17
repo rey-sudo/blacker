@@ -19,6 +19,7 @@ from ingestion.tick import Tick
 from core.engine import TradingEngine
 from ingestion.pulsar_consumer import PulsarConsumer
 from publication.pulsar_publisher import PulsarPublisher
+from enum import StrEnum
 
 #-----------------------------------------------------------------------------------------------------------------------
 # IMPLEMENTATION
@@ -40,6 +41,10 @@ engine = TradingEngine()
 #-----------------------------------------------------------------------------------------------------------------------
 # HANDLE TICKS
 #-----------------------------------------------------------------------------------------------------------------------
+
+class TickResponse(StrEnum):
+    ACK = "ACK"
+    NACK = "NACK"
 
 def handle_tick(cstate: dict, tick: Tick):
 
@@ -79,11 +84,11 @@ def handle_tick(cstate: dict, tick: Tick):
 
     if engine.status == "init":
         if not _sync_master_state():
-            return "NACK"
+            return TickResponse.NACK
        
     if engine.status != "ready":
         print("Engine is not ready.")
-        return "NACK"
+        return TickResponse.NACK
 
 
     # ----------------------------------------------------------
@@ -104,7 +109,7 @@ def handle_tick(cstate: dict, tick: Tick):
             )
 
         engine.reset()
-        return "ACK"
+        return TickResponse.ACK
     
     # ----------------------------------------------------------
     # TICK SEQUENCE
@@ -117,7 +122,7 @@ def handle_tick(cstate: dict, tick: Tick):
                 f"tick.tick_index={tick.tick_index}, expected={engine.state.tick_index + 1}"
             )
 
-            return "NACK"
+            return TickResponse.NACK
 
     # ----------------------------------------------------------
     # PROCESS
