@@ -1,5 +1,3 @@
-import sys
-
 from pulsar import Client, ConsumerType, InitialPosition
 from ingestion.tick import Tick
 import msgpack
@@ -56,8 +54,8 @@ class PulsarConsumer:
         print("Consumer listening.")
 
         state = {
-            "last_strange_tick_at": None,
             "is_last": False,
+            "blacklist": set()
         }
 
         while True:

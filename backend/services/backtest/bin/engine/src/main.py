@@ -63,6 +63,9 @@ def fetch_state():
 #-----------------------------------------------------------------------------------------------------------------------
 
 def handle_tick(cstate: dict, tick: Tick):
+    if tick.boot_id in cstate["blacklist"] or tick.config_hash in cstate["blacklist"]:
+        print("Bloqueado")
+        return "ACK"
     # ----------------------------------------------------------
     # BOOTSTRAP
     # ----------------------------------------------------------
@@ -87,7 +90,8 @@ def handle_tick(cstate: dict, tick: Tick):
     # ----------------------------------------------------------
 
     if engine.status != "ready":
-        raise Exception("Engine is not ready.")  # NACK
+        print("Engine is not ready.")
+        return "NACK"
 
 
     # ----------------------------------------------------------
@@ -100,30 +104,20 @@ def handle_tick(cstate: dict, tick: Tick):
     )
 
     if is_strange:
-        cstate["last_strange_tick_at"] = time.monotonic()
+        if tick.tick_index % 1_000 == 0:
+            print(
+                f"Incorrect boot_id / config_hash "
+                f"engine={engine.boot_id}/{engine.config_hash} "
+                f"tick={tick.boot_id}/{tick.config_hash}"
+            )
 
-        print(
-            f"Incorrect boot_id / config_hash "
-            f"engine={engine.boot_id}/{engine.config_hash} "
-            f"tick={tick.boot_id}/{tick.config_hash}"
-        )
+        
+        cstate["blacklist"].add(tick.boot_id)
+        cstate["blacklist"].add(tick.config_hash)
+        engine.reset()
 
         return "ACK"
     
-    last_strange_tick_at = cstate.get("last_strange_tick_at")
-
-    if last_strange_tick_at is not None:
-        elapsed = time.monotonic() - last_strange_tick_at
-
-        if elapsed < RESET_DELAY:
-            return  "NACK"
-
-        cstate["last_strange_tick_at"] = None
-        engine.reset()
-        
-        return "ACK"
-        
-
     # ----------------------------------------------------------
     # TICK SEQUENCE
     # ----------------------------------------------------------
@@ -135,13 +129,13 @@ def handle_tick(cstate: dict, tick: Tick):
                 f"tick.tick_index={tick.tick_index}, expected={engine.state.tick_index + 1}"
             )
 
-            raise Exception("Incorrect tick index.")  # NACK
+            return "NACK"
 
     # ----------------------------------------------------------
     # PROCESS
     # ----------------------------------------------------------
 
-    engine_state, signal = engine.on_tick(tick)
+    new_state, signal = engine.on_tick(tick)
 
     if signal:
         print("SIGNAL:", signal)
@@ -155,7 +149,7 @@ def handle_tick(cstate: dict, tick: Tick):
     # ----------------------------------------------------------
 
     if cstate.get("is_last"):
-        publisher.publish(engine_state)
+        publisher.publish(new_state)
         time.sleep(5)
 
 #-----------------------------------------------------------------------------------------------------------------------

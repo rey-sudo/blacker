@@ -1,10 +1,6 @@
 from dataclasses import dataclass, field
 from ingestion.tick import Tick
 
-
-MAX_HISTORY = 500
-
-
 @dataclass
 class PriceLevel:
     price: float
@@ -77,7 +73,6 @@ class BarAggregator:
         Tick
           ↓
         Timeframe.live
-        Timeframe.history
 
     Cada Timeframe mantiene su propia barra según
     timeframe.timeframe_ms.
@@ -137,8 +132,6 @@ class BarAggregator:
         # --------------------------------------------------
         # Nuevo timeframe
         # --------------------------------------------------
-
-        timeframe.history.append(live)
 
         timeframe.live = self._new_bar(
             tick,
@@ -361,10 +354,6 @@ class BarAggregator:
         for timeframe in self.timeframes.values():
 
             if timeframe.live is not None:
-
-                timeframe.history.append(
-                    timeframe.live
-                )
 
                 timeframe.live = None
 

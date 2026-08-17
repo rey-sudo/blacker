@@ -3,7 +3,7 @@ from dataclasses import asdict
 from aggregator.bar_aggregator import Bar
 from series.series import Series
 
-MAX_HISTORY = 50
+MAX_HISTORY = 10
 
 class Timeframe:
     def __init__(self):
@@ -14,7 +14,6 @@ class Timeframe:
         self.timeframe_ms: int = 0
         # Used by BarAggregator, Series
         self.live: Bar | None = None
-        self.history: deque[Bar] = deque(maxlen=MAX_HISTORY)
         self.is_new: bool = False
         self.is_closed: bool = False
 
@@ -23,10 +22,6 @@ class Timeframe:
             "id": self.id,
             "timeframe_ms": self.timeframe_ms,
             "live": asdict(self.live) if self.live is not None else None,
-            "history": [
-                asdict(bar)
-                for bar in self.history
-            ],
             "is_new": self.is_new,
             "is_closed": self.is_closed,
             "series": {
@@ -43,13 +38,6 @@ class Timeframe:
             Bar(**state.get("live"))
             if state.get("live") is not None
             else None
-        )
-        self.history = deque(
-            (
-                Bar(**bar)
-                for bar in (state.get("history") or [])
-            ),
-            maxlen=MAX_HISTORY,
         )
         self.is_new = state.get("is_new")
         self.is_closed = state.get("is_closed")

@@ -17,8 +17,8 @@ class EngineState:
             "tick_index": self.tick_index,
             "time": self.time,
             "timeframes": {
-                name: timeframe.to_dict()
-                for name, timeframe in self.timeframes.items()
+                key: timeframe.to_dict()
+                for key, timeframe in self.timeframes.items()
             },
         }
 
