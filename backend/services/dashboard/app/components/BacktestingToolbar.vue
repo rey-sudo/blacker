@@ -182,7 +182,7 @@ const onTimeframeAdded = () => {
     </div>
 
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
-    
+
     <UButton
       v-for="timeframe in props.timeframes"
       :key="timeframe"
@@ -202,12 +202,17 @@ const onTimeframeAdded = () => {
 ----------------------------------------------------------------------------------------------------------------------->
     <div class="backtesting-toolbar-controls">
       <UButton
+        title="Back"
+        color="neutral"
+        icon="lucide:step-back"
+        variant="outline"
+      />
+      <UButton
         :disabled="tabStore.isRunning"
         title="Play"
         color="neutral"
-        icon="material-symbols:play-arrow"
+          icon="lucide:play"
         @click="tabStore.startBacktest()"
-        label="Play"
         :variant="tabStore.isRunning ? 'solid' : 'outline'"
         :loading="tabStore.isRunning"
       />
@@ -216,10 +221,15 @@ const onTimeframeAdded = () => {
         :disabled="!tabStore.isRunning"
         title="Stop"
         color="neutral"
-        icon="material-symbols:stop"
+        icon="lucide:square"
         @click="tabStore.stopBacktest()"
-        label="Stop"
         :variant="tabStore.isRunning ? 'outline' : 'solid'"
+      />
+      <UButton
+        title="Next"
+        color="neutral"
+        icon="lucide:step-forward"
+        variant="outline"
       />
     </div>
   </div>
