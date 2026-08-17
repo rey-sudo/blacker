@@ -79,9 +79,6 @@ def handle_tick(cstate: dict, tick: Tick):
     if engine.status == "init":
         return _sync_master_state()
 
-    # ----------------------------------------------------------
-    # ENGINE READY
-    # ----------------------------------------------------------
 
     if engine.status != "ready":
         print("Engine is not ready.")
@@ -89,7 +86,7 @@ def handle_tick(cstate: dict, tick: Tick):
 
 
     # ----------------------------------------------------------
-    # BOOT VALIDATION
+    # OP VALIDATION
     # ----------------------------------------------------------
 
     is_strange = (
