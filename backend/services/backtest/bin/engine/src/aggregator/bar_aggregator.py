@@ -359,18 +359,6 @@ class BarAggregator:
     # FLUSH
     # ======================================================
 
-    def flush(self) -> None:
-        """
-        Finaliza las barras live de todos los Timeframes.
-
-        Útil al terminar un backtest.
-        """
-
+    def flush(self):
         for timeframe in self.timeframes.values():
-
-            if timeframe.live is not None:
-
-                timeframe.live = None
-
-            timeframe.is_new = False
-            timeframe.is_closed = False
+            timeframe.flush()

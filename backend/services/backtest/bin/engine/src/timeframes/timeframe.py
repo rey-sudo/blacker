@@ -1,3 +1,18 @@
+# BLACKER
+# Copyright (C) 2026 Juan José Caballero Rey
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 from collections import defaultdict, deque
 from dataclasses import asdict
 from aggregator.bar_aggregator import Bar
@@ -65,13 +80,27 @@ class Timeframe:
         Actualiza todas las Series usando el estado
         actual del Timeframe.
 
-        La barra live/history es construida por
-        BarAggregator.
+        La barra live es construida por BarAggregator.
         """
-
         for level in self._levels:
             for series in level:
                 series.update()
 
 
- 
+    def flush(self):
+        """
+        Procesa la última barra live antes de finalizar
+        el Timeframe.
+        """
+        if self.live is None:
+            return
+
+        # Give the final push to the series.
+        for level in self._levels:
+            for series in level:
+                series.update()
+
+        # The last bar has already been consumed by the series.
+        self.live = None
+        self.is_new = False
+        self.is_closed = False

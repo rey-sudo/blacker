@@ -48,6 +48,9 @@ class TickResponse(StrEnum):
     ACKALL= "ACKALL"
 
 def handle_tick(cstate: dict, tick: Tick):
+    # ----------------------------------------------------------
+    # FUNCTIONS
+    # ----------------------------------------------------------
 
     def _fetch_state():
         try:
