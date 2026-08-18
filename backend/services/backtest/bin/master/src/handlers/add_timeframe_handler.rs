@@ -60,7 +60,7 @@ pub async fn add_timeframe_handler(
         .timeframes
         .insert(req.timeframe.id.clone(), req.timeframe);
 
-    master.config_hash = Uuid::now_v7().to_string();
+    master.config_id = Uuid::now_v7().to_string();
 
     drop(master);
 

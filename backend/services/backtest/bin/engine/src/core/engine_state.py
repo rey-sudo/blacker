@@ -5,7 +5,7 @@ from dataclasses import dataclass
 @dataclass
 class EngineState:
     boot_id: str
-    config_hash: str
+    config_id: str
     tick_index: int
     time: int
     timeframes: dict
@@ -13,7 +13,7 @@ class EngineState:
     def to_dict(self):
         return {
             "boot_id": self.boot_id,
-            "config_hash": self.config_hash,
+            "config_id": self.config_id,
             "tick_index": self.tick_index,
             "time": self.time,
             "timeframes": {

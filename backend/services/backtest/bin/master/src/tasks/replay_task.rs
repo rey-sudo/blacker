@@ -77,7 +77,7 @@ pub struct TickBatchMessage {
     /// Unique identifier for the replay boot.
     pub boot_id: String,
     /// Hash identifying the replay configuration.
-    pub config_hash: String,
+    pub config_id: String,
     /// Index of the first tick in the batch.
     pub first_tick_index: usize,
     /// Ticks included in the batch.
@@ -149,7 +149,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                     // Build the message to publish to Pulsar.
                     let message: TickBatchMessage = TickBatchMessage {
                         boot_id: state.boot_id.clone(),
-                        config_hash: master.config_hash.clone(),
+                        config_id: master.config_id.clone(),
                         first_tick_index: master.tick_index,
                         ticks: ticks.iter().map(TickMessage::from).collect(),
                     };

@@ -45,7 +45,7 @@ impl Default for EngineState {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EngineStateMessage {
     pub boot_id: String,
-    pub config_hash: String,
+    pub config_id: String,
     pub tick_index: usize,
     pub time: u64,
     pub timeframes: HashMap<String, Timeframe>,

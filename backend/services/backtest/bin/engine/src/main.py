@@ -72,7 +72,7 @@ def handle_tick(cstate: dict, tick: Tick):
 
         engine.boot_id = res["boot_id"]
         engine.set_state(
-            config_hash=res["master"]["config_hash"],
+            config_id=res["master"]["config_id"],
             engine_state=res["master"]["engine_state"],
             strategy=res["master"]["engine_strategy"],
         )
@@ -98,15 +98,15 @@ def handle_tick(cstate: dict, tick: Tick):
 
     is_strange = (
         engine.boot_id != tick.boot_id
-        or engine.config_hash != tick.config_hash
+        or engine.config_id != tick.config_id
     )
 
     if is_strange:
-        print(f"Incorrect boot_id / config_hash ")
+        print(f"Incorrect boot_id / config_id ")
 
         is_old = (
             tick.boot_id < engine.boot_id 
-            or tick.config_hash < engine.config_hash
+            or tick.config_id < engine.config_id
         )
 
         if is_old:

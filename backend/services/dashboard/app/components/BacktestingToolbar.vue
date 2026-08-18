@@ -353,7 +353,7 @@ const onTimeframeAdded = () => {
   display: flex;
   align-items: center;
   margin-left: auto;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .ctrl-btn {

@@ -22,7 +22,7 @@ class PulsarConsumer:
         )
 
     def _decode_batch(self, msg):
-        boot_id, config_hash, first_tick_index, raw_ticks = msgpack.unpackb(
+        boot_id, config_id, first_tick_index, raw_ticks = msgpack.unpackb(
             msg.data(),
             raw=False,
         )
@@ -30,7 +30,7 @@ class PulsarConsumer:
         ticks = [
             Tick(
                 boot_id=boot_id,
-                config_hash=config_hash,
+                config_id=config_id,
                 tick_index=first_tick_index + offset,
                 trade_id=trade_id,
                 time=time,

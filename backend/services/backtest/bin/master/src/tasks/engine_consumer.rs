@@ -40,8 +40,8 @@ fn validate_engine_state(
         return Err(anyhow!("Unexpected boot_id."));
     }
 
-    if engine_state_message.config_hash != master.config_hash {
-        return Err(anyhow!("Unexpected config_hash."));
+    if engine_state_message.config_id != master.config_id {
+        return Err(anyhow!("Unexpected config_id."));
     }
 
     let remaining: usize = master.tick_data.len() - master.tick_index;
