@@ -58,16 +58,6 @@ pub async fn add_timeframe_handler(
         );
     }
 
-    if master.replay_step == ReplayStep::PublishTick {
-        return (
-            StatusCode::CONFLICT,
-            Json(Response {
-                success: false,
-                message: "Cannot add timeframe while publishing tick.".to_string(),
-            }),
-        );
-    }
-
     if master.engine_state.timeframes.contains_key(&req.id) {
         return (
             StatusCode::CONFLICT,
@@ -77,7 +67,6 @@ pub async fn add_timeframe_handler(
             }),
         );
     }
-
 
     let series_id: String = format!("candle-series-{}-{}", req.id, Uuid::now_v7());
 
