@@ -18,18 +18,10 @@ use crate::slaves::engine::{EngineState, EngineStateMessage};
 use anyhow::{Result, anyhow};
 use futures::TryStreamExt;
 use pulsar::consumer::Message;
-use pulsar::{Consumer, DeserializeMessage, Payload, Pulsar, SubType, TokioExecutor};
+use pulsar::{Consumer, Pulsar, SubType, TokioExecutor};
 use std::sync::Arc;
 use tokio::sync::RwLockWriteGuard;
 use tracing::{error, info};
-
-impl DeserializeMessage for EngineStateMessage {
-    type Output = Result<EngineStateMessage, rmp_serde::decode::Error>;
-
-    fn deserialize_message(payload: &Payload) -> Self::Output {
-        rmp_serde::from_slice(&payload.data)
-    }
-}
 
 fn validate_engine_state(
     state: &AppState,

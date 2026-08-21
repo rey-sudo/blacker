@@ -1,3 +1,4 @@
+use pulsar::{DeserializeMessage, Payload};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -49,6 +50,14 @@ pub struct EngineStateMessage {
     pub tick_index: usize,
     pub time: u64,
     pub timeframes: HashMap<String, Timeframe>,
+}
+
+impl DeserializeMessage for EngineStateMessage {
+    type Output = Result<EngineStateMessage, rmp_serde::decode::Error>;
+
+    fn deserialize_message(payload: &Payload) -> Self::Output {
+        rmp_serde::from_slice(&payload.data)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

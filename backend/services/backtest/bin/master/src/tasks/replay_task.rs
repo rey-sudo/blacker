@@ -222,8 +222,9 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 // Wait for the engine to finish processing the current batch.
                 //
                 state.engine_notify.notified().await;
-
+                //
                 // Move to the execution wait state.
+                //
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
                 master.replay_step = ReplayStep::WaitExecution;
             }
@@ -278,7 +279,9 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
 /// Starts the asynchronous replay worker.
 pub async fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) -> Result<()> {
+    //
     // Create the Pulsar producer.
+    //
     let mut producer: Producer<TokioExecutor> = pulsar
         .producer()
         .with_topic("persistent://public/default/master.tick")
@@ -293,8 +296,9 @@ pub async fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) -> Result<
         .context("Failed to create Pulsar producer")?;
 
     info!("Running replay task...");
-
+    //
     // Run the replay loop.
+    //
     run_replay(state, &mut producer)
         .await
         .context("Replay state machine failed")?;
