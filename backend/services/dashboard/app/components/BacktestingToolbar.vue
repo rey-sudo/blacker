@@ -103,6 +103,31 @@ const timeframeModalItems = ref<SelectItem[]>([
 ]);
 const timeframeSelected = ref("1m");
 
+async function onStartBacktest() {
+  try {
+    await tabStore.startBacktest();
+  } catch (err: any) {
+    toast.add({
+      title: "Error starting backtest",
+      description: err.data.message,
+      icon: "i-lucide-circle-x",
+      color: "error",
+    });
+  }
+}
+
+async function onStopBacktest() {
+  try {
+    await tabStore.stopBacktest();
+  } catch (err: any) {
+    toast.add({
+      title: "Error stopping backtest",
+      description: err.data.message,
+      icon: "i-lucide-circle-x",
+      color: "error",
+    });
+  }
+}
 async function onTimeframeAdded() {
   try {
     await tabStore.addTimeframe(timeframeSelected.value);
@@ -223,7 +248,7 @@ async function onTimeframeAdded() {
         title="Play"
         color="neutral"
         icon="lucide:play"
-        @click="tabStore.startBacktest()"
+        @click="onStartBacktest"
         :variant="tabStore.isRunning ? 'solid' : 'outline'"
         :loading="tabStore.isRunning"
       />
@@ -233,7 +258,7 @@ async function onTimeframeAdded() {
         title="Stop"
         color="neutral"
         icon="lucide:square"
-        @click="tabStore.stopBacktest()"
+        @click="onStopBacktest"
         :variant="tabStore.isRunning ? 'outline' : 'solid'"
       />
       <UButton

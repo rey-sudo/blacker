@@ -92,6 +92,7 @@ pub async fn add_timeframe_handler(
                 kind: "CandleSeries".to_string(),
                 level: 0,
                 params: HashMap::new(),
+                extra: None
             },
         )]),
         timeframe_ms,

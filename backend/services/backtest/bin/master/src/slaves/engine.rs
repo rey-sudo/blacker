@@ -9,8 +9,8 @@ pub struct Series {
     pub kind: String,
     pub level: u8,
     pub params: HashMap<String, Value>,
-    // #[serde(flatten)]
-    //pub extra: HashMap<String, Value>,
+    #[serde(flatten)]
+    pub extra: Option<HashMap<String, Value>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -134,12 +134,10 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
        */
       async function startBacktest() {
         try {
-          const response = await $fetch("/api/backtest/master/start-backtest", {
+          return await $fetch("/api/backtest/master/start-backtest", {
             method: "POST",
             body: {},
           });
-
-          return response;
         } catch (err: any) {
           console.error("[BacktestingTabStore] Failed to start backtest:", err);
           throw err;
@@ -151,12 +149,10 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
        */
       async function stopBacktest() {
         try {
-          const response = await $fetch("/api/backtest/master/stop-backtest", {
+          return await $fetch("/api/backtest/master/stop-backtest", {
             method: "POST",
             body: {},
           });
-
-          return response;
         } catch (err: any) {
           console.error("[BacktestingTabStore] Failed to stop backtest:", err);
           throw err;
