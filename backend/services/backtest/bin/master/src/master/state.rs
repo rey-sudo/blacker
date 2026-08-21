@@ -113,7 +113,7 @@ impl MasterState {
         })
     }
 
-    pub fn can_publish(&self) -> bool {
+    pub fn can_publish_to_slaves(&self) -> bool {
         self.status == MasterStatus::Ready && self.replay_status == ReplayStatus::Running
     }
 }

@@ -14,11 +14,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use std::collections::HashMap;
-
 use crate::{
     master::state::{AppState, MasterState, ReplayStatus},
-    slaves::engine::{Series, Timeframe},
-    tasks::ReplayStep,
+    slaves::engine::{Series, Timeframe}
 };
 use axum::{Json, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};
