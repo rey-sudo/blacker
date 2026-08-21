@@ -9,7 +9,7 @@ pub struct Series {
     pub kind: String,
     pub level: u8,
     pub params: HashMap<String, Value>,
-   // #[serde(flatten)]
+    // #[serde(flatten)]
     //pub extra: HashMap<String, Value>,
 }
 
@@ -18,6 +18,21 @@ pub struct Timeframe {
     pub id: String,
     pub series: HashMap<String, Series>,
     pub timeframe_ms: u64,
+}
+
+impl Timeframe {
+    pub fn timeframe_ms(id: &str) -> Option<u64> {
+        match id {
+            "1m" => Some(60_000),
+            "5m" => Some(300_000),
+            "15m" => Some(900_000),
+            "30m" => Some(1_800_000),
+            "1h" => Some(3_600_000),
+            "4h" => Some(14_400_000),
+            "1d" => Some(86_400_000),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

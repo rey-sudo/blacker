@@ -166,19 +166,12 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       /**
        * Add timeframe request.
        */
-      async function addTimeframe({
-        id,
-        timeframe_ms,
-      }: {
-        id: string;
-        timeframe_ms: number;
-      }) {
+      async function addTimeframe(timeframeId: string) {
         try {
           return await $fetch("/api/backtest/master/add-timeframe", {
             method: "POST",
             body: {
-              id,
-              timeframe_ms,
+              id: timeframeId,
             },
           });
         } catch (err: any) {

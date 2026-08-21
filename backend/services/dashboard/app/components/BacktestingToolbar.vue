@@ -101,17 +101,11 @@ const timeframeModalItems = ref<SelectItem[]>([
   "4h",
   "6h",
 ]);
-
-const timeframeSelected = ref("5m");
+const timeframeSelected = ref("1m");
 
 async function onTimeframeAdded() {
-  const params = {
-    id: timeframeSelected.value,
-    timeframe_ms: 60_000,
-  };
-
   try {
-    await tabStore.addTimeframe(params);
+    await tabStore.addTimeframe(timeframeSelected.value);
   } catch (err: any) {
     toast.add({
       title: "Error adding timeframe",

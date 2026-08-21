@@ -13,21 +13,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use std::collections::HashMap;
 use crate::{
     master::state::{AppState, MasterState, ReplayStatus},
-    slaves::engine::{Series, Timeframe}
+    slaves::engine::{Series, Timeframe},
 };
 use axum::{Json, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use tokio::sync::RwLockWriteGuard;
+use tracing::info;
 use uuid::Uuid;
 
 /// Request payload for adding a new timeframe.
 #[derive(Debug, Deserialize)]
 pub struct Request {
     pub id: String,
-    pub timeframe_ms: u64,
 }
 
 /// Response returned after attempting to add a timeframe.
@@ -66,10 +66,23 @@ pub async fn add_timeframe_handler(
         );
     }
 
+    let timeframe_ms: u64 = match Timeframe::timeframe_ms(&req.id) {
+        Some(ms) => ms,
+        None => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(Response {
+                    success: false,
+                    message: format!("Invalid timeframe: {}", req.id),
+                }),
+            );
+        }
+    };
+
     let series_id: String = format!("candle-series-{}-{}", req.id, Uuid::now_v7());
 
     let timeframe: Timeframe = Timeframe {
-        id: req.id,
+        id: req.id.clone(),
         series: HashMap::from([(
             series_id.clone(),
             Series {
@@ -79,7 +92,7 @@ pub async fn add_timeframe_handler(
                 params: HashMap::new(),
             },
         )]),
-        timeframe_ms: req.timeframe_ms,
+        timeframe_ms,
     };
 
     master
@@ -92,6 +105,8 @@ pub async fn add_timeframe_handler(
     drop(master);
 
     let _ = state.publish_master_state().await;
+
+    info!("Timeframe added {}", req.id);
 
     (
         StatusCode::CREATED,
