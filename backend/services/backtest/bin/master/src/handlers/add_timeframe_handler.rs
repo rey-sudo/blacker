@@ -23,28 +23,44 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLockWriteGuard;
 use uuid::Uuid;
 
+/// Request payload for adding a new timeframe.
 #[derive(Debug, Deserialize)]
 pub struct Request {
     pub timeframe: Timeframe,
 }
 
+/// Response returned after attempting to add a timeframe.
 #[derive(Serialize)]
 pub struct Response {
-    pub ok: bool,
+    pub success: bool,
+    pub message: String,
 }
 
+/// Adds a new timeframe to the master engine_state.
 pub async fn add_timeframe_handler(
     State(state): State<AppState>,
     Json(req): Json<Request>,
 ) -> (StatusCode, Json<Response>) {
-    //TODO: validate Timeframe params
-
     let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
-    if master.replay_status == ReplayStatus::Running
-        && master.replay_step == ReplayStep::PublishTick
-    {
-        return (StatusCode::CONFLICT, Json(Response { ok: false }));
+    if master.replay_status != ReplayStatus::Stopped {
+        return (
+            StatusCode::CONFLICT,
+            Json(Response {
+                success: false,
+                message: "Cannot add timeframe while replay is running.".to_string(),
+            }),
+        );
+    }
+
+    if master.replay_step == ReplayStep::PublishTick {
+        return (
+            StatusCode::CONFLICT,
+            Json(Response {
+                success: false,
+                message: "Cannot add timeframe while publishing tick.".to_string(),
+            }),
+        );
     }
 
     if master
@@ -52,7 +68,13 @@ pub async fn add_timeframe_handler(
         .timeframes
         .contains_key(&req.timeframe.id)
     {
-        return (StatusCode::CONFLICT, Json(Response { ok: false }));
+        return (
+            StatusCode::CONFLICT,
+            Json(Response {
+                success: false,
+                message: "The specified timeframe already exists.".to_string(),
+            }),
+        );
     }
 
     master
@@ -66,5 +88,11 @@ pub async fn add_timeframe_handler(
 
     let _ = state.publish_master_state().await;
 
-    (StatusCode::CREATED, Json(Response { ok: true }))
+    (
+        StatusCode::CREATED,
+        Json(Response {
+            success: true,
+            message: "Timeframe added successfully.".to_string(),
+        }),
+    )
 }
