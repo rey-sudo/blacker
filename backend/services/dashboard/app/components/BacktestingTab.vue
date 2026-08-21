@@ -38,8 +38,9 @@ const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 // -----------------------------------------------------------------------------
 // WebSocket
 // -----------------------------------------------------------------------------
-
+//
 // Keep the session alive for the lifetime of this component.
+//
 const _session = useBacktestingSession(props.tabId, tabStore.symbol);
 
 // -----------------------------------------------------------------------------
@@ -53,7 +54,7 @@ const timeframeIds = computed(() =>
 );
 
 // -----------------------------------------------------------------------------
-// Chart instances
+// Chart.vue instances
 // -----------------------------------------------------------------------------
 
 type ChartInstance = InstanceType<typeof Chart>;
@@ -68,23 +69,28 @@ const charts = ref<Record<string, ChartInstance>>({});
  */
 const setChartRef = (
   timeframeId: string,
-  instance: Element | ComponentPublicInstance | null,
+  el: Element | ComponentPublicInstance | null,
 ) => {
+  //
   // Vue passes null when the component is unmounted or the ref is removed.
-  if (!instance) {
+  //
+  if (!el) {
     delete charts.value[timeframeId];
     return;
   }
-
+  //
   // Cast the Vue component instance to the exposed Chart component type.
-  const chart = instance as ChartInstance;
-
+  //
+  const chart = el as ChartInstance;
+  //
   // Vue can invoke the ref callback more than once.
+  //
   if (charts.value[timeframeId] === chart) {
     return;
   }
-  
+  //
   // Register the Chart instance under its corresponding timeframe.
+  //
   charts.value[timeframeId] = chart;
 };
 
@@ -96,17 +102,22 @@ const setChartRef = (
  * Rebuilds and updates a chart for a specific timeframe.
  */
 const updateChart = async (timeframeId: string, timeframe: ChartTimeframe) => {
+  //
   // Get the Chart component registered for this timeframe.
+  //
   const chart = charts.value[timeframeId];
   if (!chart) return;
-
+  //
   // Rebuild the chart structure and create all required series.
+  //
   chart.applyLayout(timeframe);
-
+  //
   // Wait for Vue and the chart DOM structure to finish updating.
+  //
   await nextTick();
-
+  //
   // Populate each series with its latest historical data.
+  //
   for (const [seriesId, series] of Object.entries(timeframe.series)) {
     chart.applyOptions(seriesId, {
       legend: tabStore.globalState.symbol + " " + timeframe.id,
@@ -120,10 +131,13 @@ const updateChart = async (timeframeId: string, timeframe: ChartTimeframe) => {
  * Updates all registered charts using the latest timeframe state.
  */
 const updateCharts = async () => {
+  //
   // Wait until Vue has completed the current rendering cycle.
+  //
   await nextTick();
-
+  //
   // Update each chart with its corresponding timeframe data.
+  //
   const timeframes = tabStore.globalState.engine_state.timeframes;
   for (const [timeframeId, timeframe] of Object.entries(timeframes)) {
     updateChart(timeframeId, timeframe as ChartTimeframe);
