@@ -134,7 +134,7 @@ const updateCharts = async () => {
 // Store subscription
 // -----------------------------------------------------------------------------
 
-const unsubscribe = tabStore.subscribe(async (event) => {
+const unsubscribe = tabStore.listeners.subscribe(async (event) => {
   if (event.type !== "live-update") {
     return;
   }

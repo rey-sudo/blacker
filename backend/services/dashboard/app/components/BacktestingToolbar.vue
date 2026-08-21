@@ -38,12 +38,14 @@ const emit = defineEmits<{
   "update:timeframe": [timeframe: string];
 }>();
 
+const toast = useToast();
+
 const tabsStore = useTabManager();
 const tab = tabsStore.getTabById(props.tabId);
 const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 
 //----------------------------------------------------------------------------------------------------------------------
-// STATES
+// SLAVE STATES
 //----------------------------------------------------------------------------------------------------------------------
 
 interface BacktestSlaveStatus {
@@ -76,7 +78,7 @@ const backtestState = computed<BacktestSlaveStatus[]>(() => [
 
 const timeframeModalOpen = ref(false);
 const timeframeModalTitle = ref("Add Custom Interval");
-const timeframeItems = ref<SelectItem[]>([
+const timeframeModalItems = ref<SelectItem[]>([
   {
     type: "label",
     label: "Minutes",
@@ -100,12 +102,27 @@ const timeframeItems = ref<SelectItem[]>([
   "6h",
 ]);
 
-const timeframeSelected = ref("1m");
+const timeframeSelected = ref("5m");
 
-const onTimeframeAdded = () => {
-  tabStore.addTimeframe(timeframeSelected.value);
+async function onTimeframeAdded() {
+  const params = {
+    id: timeframeSelected.value,
+    timeframe_ms: 60_000,
+  };
+
+  try {
+    await tabStore.addTimeframe(params);
+  } catch (err: any) {
+    toast.add({
+      title: "Error adding timeframe",
+      description: err.data.message,
+      icon: "i-lucide-circle-x",
+      color: "error",
+    });
+  }
+
   timeframeModalOpen.value = false;
-};
+}
 </script>
 
 <template>
@@ -152,7 +169,7 @@ const onTimeframeAdded = () => {
                 class="w-full"
                 v-model="timeframeSelected"
                 size="lg"
-                :items="timeframeItems"
+                :items="timeframeModalItems"
               />
             </UFormField>
           </UForm>
@@ -211,7 +228,7 @@ const onTimeframeAdded = () => {
         :disabled="tabStore.isRunning"
         title="Play"
         color="neutral"
-          icon="lucide:play"
+        icon="lucide:play"
         @click="tabStore.startBacktest()"
         :variant="tabStore.isRunning ? 'solid' : 'outline'"
         :loading="tabStore.isRunning"

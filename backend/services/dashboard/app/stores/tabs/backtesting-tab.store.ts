@@ -98,28 +98,24 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       // SUBSCRIPTIONS
       //---------------------------------------------------------------------
 
-      const listeners = new Set<Listener>();
+      const listeners = (() => {
+        const set = new Set<Listener>();
 
-      function subscribe(listener: Listener) {
-        listeners.add(listener);
+        return {
+          subscribe(listener: Listener) {
+            set.add(listener);
+            return () => set.delete(listener);
+          },
 
-        return () => listeners.delete(listener);
-      }
-
-      function notify(event: BacktestingTabStoreEvent) {
-        listeners.forEach((listener) => listener(event));
-      }
+          notify(event: BacktestingTabStoreEvent) {
+            set.forEach((listener) => listener(event));
+          },
+        };
+      })();
 
       //---------------------------------------------------------------------
       // METHODS
       //---------------------------------------------------------------------
-
-      /**
-       * Adds a timeframe if it is not already registered.
-       */
-      function addTimeframe(tf: string) {
-        //TODO: POST QUERY
-      }
 
       /**
        * Update session ws data.
@@ -127,7 +123,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       function updateSession(data: MasterState) {
         globalState.value = data;
 
-        notify({
+        listeners.notify({
           type: "live-update",
           data,
         });
@@ -168,6 +164,30 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       }
 
       /**
+       * Add timeframe request.
+       */
+      async function addTimeframe({
+        id,
+        timeframe_ms,
+      }: {
+        id: string;
+        timeframe_ms: number;
+      }) {
+        try {
+          return await $fetch("/api/backtest/master/add-timeframe", {
+            method: "POST",
+            body: {
+              id,
+              timeframe_ms,
+            },
+          });
+        } catch (err: any) {
+          console.error("[BacktestingTabStore] Failed to add timeframe:", err);
+          throw err;
+        }
+      }
+
+      /**
        * Returns the associated tab instance.
        */
       function getTab() {
@@ -186,14 +206,14 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       function onUnmount() {}
 
       return {
+        addTimeframe,
         isExecutionConnected,
         isEngineConnected,
         isPending,
         stopBacktest,
         isRunning,
         startBacktest,
-        subscribe,
-        addTimeframe,
+        listeners,
         updateSession,
         tabTitle,
         tabColor,
