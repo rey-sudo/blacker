@@ -6,10 +6,10 @@ use std::collections::HashMap;
 pub struct Series {
     pub id: String,
     pub kind: String,
-    pub level: u32,
+    pub level: u8,
     pub params: HashMap<String, Value>,
-    #[serde(flatten)]
-    pub extra: HashMap<String, Value>,
+   // #[serde(flatten)]
+    //pub extra: HashMap<String, Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

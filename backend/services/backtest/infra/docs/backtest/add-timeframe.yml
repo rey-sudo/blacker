@@ -10,18 +10,8 @@ http:
     type: json
     data: |-
       {
-        "timeframe": {
-          "id": "1m",
-          "series": {
-            "candle-series": {
-              "id": "candle-series-0",
-              "kind": "CandleSeries",
-              "level": 0,
-              "params": {}
-            }
-          },
-          "timeframe_ms": 60000
-        }
+        "id": "1m",
+        "timeframe_ms": 60000
       }
   auth: inherit
 

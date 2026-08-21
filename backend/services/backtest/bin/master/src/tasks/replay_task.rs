@@ -105,9 +105,10 @@ impl SerializeMessage for TickBatchMessage {
 async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> Result<()> {
     loop {
         tokio::time::sleep(Duration::from_millis(10_000)).await; //DEBUG
-
-        {
-            // Check whether the master is ready to publish.
+        //
+        // Check whether the master is ready to publish.
+        //
+        {   
             let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
             if !master.can_publish() {
@@ -115,8 +116,9 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 continue;
             }
         }
-
+        //
         // Read the current replay step.
+        //
         let replay_step: ReplayStep = {
             let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
             master.replay_step
@@ -124,14 +126,18 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
         match replay_step {
             ReplayStep::PublishTick => {
+                //
                 // Acquire a read lock on the master state.
+                //
                 let (first_tick_index, batch_size, message) = {
                     let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
-
+                    //
                     // Get the next batch of ticks to replay.
+                    //
                     let ticks: &[Tick] = master.tick_batch(state.replay_batch_size);
-
+                    //
                     // Stop the replay when there are no more ticks.
+                    //
                     if ticks.is_empty() {
                         drop(master);
 
@@ -145,8 +151,9 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                     }
 
                     let batch_size: usize = ticks.len();
-
+                    //
                     // Build the message to publish to Pulsar.
+                    //
                     let message: TickBatchMessage = TickBatchMessage {
                         boot_id: state.boot_id.clone(),
                         config_id: master.config_id.clone(),
@@ -156,8 +163,9 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 
                     (master.tick_index, batch_size, message)
                 };
-
+                //
                 // Send the tick batch to Pulsar without blocking the producer.
+                //
                 let send_future: SendFuture = match producer.send_non_blocking(message).await {
                     Ok(f) => f,
                     Err(e) => {
@@ -169,8 +177,9 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                         continue;
                     }
                 };
-
+                //
                 // Wait for the producer to confirm the message.
+                //
                 match send_future.await {
                     Ok(_receipt) => {
                         if first_tick_index % 100_000 == 0 {
@@ -190,8 +199,9 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                         continue;
                     }
                 }
-
+                //
                 // Wait for the engine to process the published batch.
+                //
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
                 master.replay_step = ReplayStep::WaitEngine;
             }

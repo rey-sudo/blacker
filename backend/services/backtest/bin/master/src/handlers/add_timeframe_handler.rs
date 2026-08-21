@@ -13,9 +13,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use std::collections::HashMap;
+
 use crate::{
     master::state::{AppState, MasterState, ReplayStatus},
-    slaves::engine::Timeframe,
+    slaves::engine::{Series, Timeframe},
     tasks::ReplayStep,
 };
 use axum::{Json, extract::State, http::StatusCode};
@@ -26,7 +28,8 @@ use uuid::Uuid;
 /// Request payload for adding a new timeframe.
 #[derive(Debug, Deserialize)]
 pub struct Request {
-    pub timeframe: Timeframe,
+    pub id: String,
+    pub timeframe_ms: u64,
 }
 
 /// Response returned after attempting to add a timeframe.
@@ -41,6 +44,8 @@ pub async fn add_timeframe_handler(
     State(state): State<AppState>,
     Json(req): Json<Request>,
 ) -> (StatusCode, Json<Response>) {
+    //TODO: validate deep params.
+
     let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
     if master.replay_status != ReplayStatus::Stopped {
@@ -63,11 +68,7 @@ pub async fn add_timeframe_handler(
         );
     }
 
-    if master
-        .engine_state
-        .timeframes
-        .contains_key(&req.timeframe.id)
-    {
+    if master.engine_state.timeframes.contains_key(&req.id) {
         return (
             StatusCode::CONFLICT,
             Json(Response {
@@ -77,10 +78,27 @@ pub async fn add_timeframe_handler(
         );
     }
 
+
+    let series_id: String = format!("candle-series-{}-{}", req.id, Uuid::now_v7());
+
+    let timeframe: Timeframe = Timeframe {
+        id: req.id,
+        series: HashMap::from([(
+            series_id.clone(),
+            Series {
+                id: series_id,
+                kind: "CandleSeries".to_string(),
+                level: 0,
+                params: HashMap::new(),
+            },
+        )]),
+        timeframe_ms: req.timeframe_ms,
+    };
+
     master
         .engine_state
         .timeframes
-        .insert(req.timeframe.id.clone(), req.timeframe);
+        .insert(timeframe.id.clone(), timeframe);
 
     master.config_id = Uuid::now_v7().to_string();
 
