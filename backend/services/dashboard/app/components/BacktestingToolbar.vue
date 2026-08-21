@@ -54,7 +54,7 @@ interface BacktestSlaveStatus {
   color: any;
 }
 
-const backtestState = computed<BacktestSlaveStatus[]>(() => [
+const slavesStatus = computed<BacktestSlaveStatus[]>(() => [
   {
     key: "master",
     label: "Master",
@@ -124,9 +124,9 @@ async function onTimeframeAdded() {
     <!----------------------------------------------------------------------------------------------------------------------
   WORKER STATES
 ----------------------------------------------------------------------------------------------------------------------->
-    <div class="backtesting-toolbar-workers">
+    <div class="backtesting-toolbar-slaves">
       <UButton
-        v-for="state in backtestState"
+        v-for="state in slavesStatus"
         :key="state.key"
         variant="outline"
         color="neutral"
@@ -170,7 +170,7 @@ async function onTimeframeAdded() {
         </template>
 
         <template #footer>
-          <div class="content w-100 flex justify-end gap-2">
+          <div class="content w-full flex justify-end gap-2">
             <UButton
               color="neutral"
               size="md"
@@ -257,107 +257,22 @@ async function onTimeframeAdded() {
   box-shadow: var(--card-shadow);
   border-radius: var(--ui-radius);
 }
-/* ─── symbol ─────────────────────────────────────────── */
-.symbol {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  flex-shrink: 0;
-}
 
-.symbol-badge {
-  display: flex;
-  font-weight: 600;
-  align-items: center;
-  color: var(--ui-text);
-  letter-spacing: 0.075em;
-  font-size: var(--text-md);
-}
-
-.symbol-sub {
-  font-size: calc(var(--text-xs) * 0.75);
-  color: var(--ui-text-muted);
-  letter-spacing: 0.125em;
-  padding-left: 1rem;
-}
-
-/* ─── workers ─────────────────────────────────────────── */
-.backtesting-toolbar-workers {
+.backtesting-toolbar-slaves {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.backtesting-toolbar-workers .label {
+.backtesting-toolbar-slaves .label {
   color: var(--ui-text-muted);
   font-weight: 500;
 }
 
-.backtesting-toolbar-workers .value {
-  font-weight: 600;
-}
-
-/* ─── Timeframes ─────────────────────────────────────────── */
 .backtesting-toolbar-timeframes {
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-.tf-label {
-  font-size: 0.55rem;
-  letter-spacing: 0.15em;
-  color: rgba(255 255 255 / 0.25);
-  margin-right: 4px;
-}
-
-.tf-chip {
-  padding: 0.25rem 1rem;
-  cursor: pointer;
-  border-radius: var(--ui-radius);
-  border: 1px solid var(--ui-border);
-  background: var(--ui-bg);
-  color: var(--ui-text-muted);
-  font-family: inherit;
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  transition: all 0.15s ease;
-}
-
-.tf-chip:hover {
-  background: rgba(255 255 255 / 0.07);
-  color: rgba(255 255 255 / 0.7);
-  border-color: rgba(255 255 255 / 0.15);
-}
-
-.tf-chip--active {
-  background: color-mix(in srgb, var(--ui-primary) 25%, transparent);
-  border-color: color-mix(in srgb, var(--ui-primary) 50%, transparent);
-  color: var(--ui-primary);
-}
-
-.tf-add {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 3px;
-  border: 1px dashed rgba(255 255 255 / 0.15);
-  background: transparent;
-  color: rgba(255 255 255 / 0.3);
-  font-family: inherit;
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  margin-left: 2px;
-  transition: all 0.15s ease;
-}
-
-.tf-add:hover {
-  border-color: rgba(255 255 255 / 0.28);
-  color: rgba(255 255 255 / 0.55);
 }
 
 .backtesting-toolbar-controls {
@@ -365,63 +280,5 @@ async function onTimeframeAdded() {
   align-items: center;
   margin-left: auto;
   gap: 0.75rem;
-}
-
-.ctrl-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 14px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  font-family: inherit;
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.ctrl-btn:disabled {
-  opacity: 0.28;
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
-/* Play */
-.ctrl-btn--play {
-  background: rgba(56 189 120 / 0.12);
-  border-color: rgba(56 189 120 / 0.25);
-  color: #38bd78;
-}
-
-.ctrl-btn--play:not(:disabled):hover {
-  background: rgba(56 189 120 / 0.22);
-  border-color: rgba(56 189 120 / 0.45);
-  box-shadow: 0 0 12px rgba(56 189 120 / 0.2);
-}
-
-.ctrl-btn--play.ctrl-btn--active {
-  background: rgba(56 189 120 / 0.18);
-  border-color: #38bd78;
-  box-shadow: 0 0 14px rgba(56 189 120 / 0.25);
-}
-
-/* Stop */
-.ctrl-btn--stop {
-  background: rgba(239 68 68 / 0.1);
-  border-color: rgba(239 68 68 / 0.2);
-  color: #ef4444;
-}
-
-.ctrl-btn--stop:not(:disabled):hover {
-  background: rgba(239 68 68 / 0.2);
-  border-color: rgba(239 68 68 / 0.4);
-  box-shadow: 0 0 12px rgba(239 68 68 / 0.18);
-}
-
-.ctrl-btn--stop.ctrl-btn--active {
-  background: rgba(239 68 68 / 0.16);
-  border-color: #ef4444;
 }
 </style>
