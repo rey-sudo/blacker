@@ -45,16 +45,16 @@ const tab = tabsStore.getTabById(props.tabId);
 const tabStore = useBacktestingTabStore(tab as BacktestingTab);
 
 //----------------------------------------------------------------------------------------------------------------------
-// SLAVE STATES
+// SLAVE STATE
 //----------------------------------------------------------------------------------------------------------------------
 
-interface BacktestSlaveStatus {
+interface KeyLabelColor {
   key: string;
   label: string;
   color: any;
 }
 
-const slavesStatus = computed<BacktestSlaveStatus[]>(() => [
+const slavesStatus = computed<KeyLabelColor[]>(() => [
   {
     key: "master",
     label: "Master",

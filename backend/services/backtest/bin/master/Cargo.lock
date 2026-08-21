@@ -1507,6 +1507,7 @@ dependencies = [
  "dotenvy",
  "futures",
  "pulsar",
+ "rand 0.10.2",
  "rmp-serde",
  "serde",
  "serde_bytes",

@@ -79,7 +79,9 @@ pub async fn add_timeframe_handler(
         }
     };
 
-    let series_id: String = format!("candle-series-{}-{}", req.id, Uuid::now_v7());
+    let n: u32 = rand::RngExt::random::<u32>(&mut rand::rng());
+
+    let series_id: String = format!("candle-series-{}-{}", req.id, n);
 
     let timeframe: Timeframe = Timeframe {
         id: req.id.clone(),
