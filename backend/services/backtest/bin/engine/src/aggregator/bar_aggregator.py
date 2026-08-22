@@ -40,7 +40,7 @@ class PriceLevel:
         return self.ask_volume - self.bid_volume
 
 
-@dataclass
+@dataclass(slots=True)
 class Bar:
     time: int
 
