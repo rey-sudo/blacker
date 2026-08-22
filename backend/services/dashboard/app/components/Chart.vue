@@ -240,14 +240,15 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .chart-container {
-  display: flex;
-  flex-direction: column;
   width: 100%;
   height: 100%;
+  display: flex;
   min-height: 0;
-  box-sizing: border-box;
   overflow: hidden;
+  flex-direction: column;
+  box-sizing: border-box;
   border-radius: var(--ui-radius);
+  background: var(--chart-background);
 }
 
 .chart-area {
