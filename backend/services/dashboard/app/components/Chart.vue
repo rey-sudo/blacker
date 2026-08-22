@@ -110,10 +110,10 @@ function applyLayout(timeframe: ChartTimeframe) {
 
     const build = seriesFactory({
       id: seriesId,
-      label: seriesValue.label,
-      color: seriesValue.color,
-      layer: seriesValue.layer,
-      priceTagColor: seriesValue.priceTagColor,
+      label: seriesValue.params?.label as string,
+      color: seriesValue.params?.color as string,
+      layer: seriesValue.params.layer as "background" | "foreground",
+      priceTagColor: seriesValue.params.priceTagColor as string,
       params: seriesValue.params as any,
     });
 

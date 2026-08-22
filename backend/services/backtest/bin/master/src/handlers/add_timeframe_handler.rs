@@ -84,19 +84,14 @@ pub async fn add_timeframe_handler(
 
     let series_id: String = format!("candle-series-{}-{}", req.id, n);
 
-    let extra: Option<HashMap<String, Value>> = Some(HashMap::from([
+    let params: HashMap<String, Value> = HashMap::from([
         ("label".to_string(), json!("Candlesticks")),
         ("layer".to_string(), json!("background")),
-        ("color".to_string(), json!("red")),
+        ("color".to_string(), json!("#1cdac4")),
         ("priceTagColor".to_string(), json!("#F23645")),
-        (
-            "params".to_string(),
-            json!({
-                "bullColor": "#089981",
-                "bearColor": "#F23645"
-            }),
-        ),
-    ]));
+        ("bullColor".to_string(), json!("#089981")),
+        ("bearColor".to_string(), json!("#F23645"))
+    ]);
 
     let timeframe: Timeframe = Timeframe {
         id: req.id.clone(),
@@ -106,8 +101,8 @@ pub async fn add_timeframe_handler(
                 id: series_id,
                 kind: "CandleSeries".to_string(),
                 level: 0,
-                params: HashMap::new(),
-                extra,
+                params,
+                extra: None,
             },
         )]),
         timeframe_ms,
