@@ -99,8 +99,6 @@ function addChartContainer(seriesId: SeriesId): HTMLDivElement {
   return element;
 }
 
-
-
 /**
  * Applies a timeframe layout.
  */
@@ -112,14 +110,11 @@ function applyLayout(timeframe: ChartTimeframe) {
 
     const build = seriesFactory({
       id: seriesId,
-      label: "Candlesticks",
-      layer: "background",
-      color: "red",
-      priceTagColor: "#F23645",
-      params: {
-        bullColor: "#089981",
-        bearColor: "#F23645",
-      },
+      label: seriesValue.label,
+      color: seriesValue.color,
+      layer: seriesValue.layer,
+      priceTagColor: seriesValue.priceTagColor,
+      params: seriesValue.params as any,
     });
 
     // -------------------------------------------------------------------------

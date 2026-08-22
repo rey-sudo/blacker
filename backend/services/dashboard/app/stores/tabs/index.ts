@@ -23,11 +23,4 @@ export type SeriesRegistry = typeof seriesRegistry;
 export type SeriesKind = keyof SeriesRegistry;
 export type SeriesId = string;
 
-export type LayoutSeries<K extends SeriesKind = SeriesKind> = {
-  id: SeriesId;
-  kind: K;
-  parent?: SeriesId;
-  options: any;
-};
-
 export { useBacktestingTabStore };

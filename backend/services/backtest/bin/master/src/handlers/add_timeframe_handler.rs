@@ -19,6 +19,7 @@ use crate::{
 };
 use axum::{Json, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
 use std::collections::HashMap;
 use tokio::sync::RwLockWriteGuard;
 use tracing::info;
@@ -83,6 +84,20 @@ pub async fn add_timeframe_handler(
 
     let series_id: String = format!("candle-series-{}-{}", req.id, n);
 
+    let extra: Option<HashMap<String, Value>> = Some(HashMap::from([
+        ("label".to_string(), json!("Candlesticks")),
+        ("layer".to_string(), json!("background")),
+        ("color".to_string(), json!("red")),
+        ("priceTagColor".to_string(), json!("#F23645")),
+        (
+            "params".to_string(),
+            json!({
+                "bullColor": "#089981",
+                "bearColor": "#F23645"
+            }),
+        ),
+    ]));
+
     let timeframe: Timeframe = Timeframe {
         id: req.id.clone(),
         series: HashMap::from([(
@@ -92,7 +107,7 @@ pub async fn add_timeframe_handler(
                 kind: "CandleSeries".to_string(),
                 level: 0,
                 params: HashMap::new(),
-                extra: None
+                extra,
             },
         )]),
         timeframe_ms,
