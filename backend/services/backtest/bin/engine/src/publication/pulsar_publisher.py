@@ -8,7 +8,7 @@ class PulsarPublisher:
         topic="persistent://public/default/engine.state",
     ):
         self.client = Client(service_url)
-        self.producer: Producer = self.client.create_producer(topic, batching_enabled=False, chunking_enabled=True)
+        self.producer: Producer = self.client.create_producer(topic, batching_enabled=False)
 
 
     def publish(self, engine_state: EngineState):

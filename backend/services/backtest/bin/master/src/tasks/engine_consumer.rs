@@ -58,7 +58,6 @@ pub async fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) -> Result<
         .with_topic("persistent://public/default/engine.state")
         .with_subscription_type(SubType::Exclusive)
         .with_subscription("master-sub")
-        .with_options(ConsumerOptions::default().with_receiver_queue_size(10_000))
         .build()
         .await
     {
