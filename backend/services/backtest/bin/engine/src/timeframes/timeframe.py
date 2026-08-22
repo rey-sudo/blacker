@@ -48,9 +48,8 @@ class Timeframe:
     def set_state(self, state: dict) -> None:
         self.id = state.get("id")
         self.timeframe_ms = state.get("timeframe_ms")
-
         self.live = (
-            Bar(**state.get("live"))
+            Bar.from_dict(state["live"])
             if state.get("live") is not None
             else None
         )
