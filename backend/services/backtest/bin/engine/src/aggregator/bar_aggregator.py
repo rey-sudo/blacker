@@ -79,15 +79,6 @@ class Bar:
         return self.volume_price_sum / self.total_volume
 
     def to_dict(self) -> dict:
-        for price, level in self.volume_at_price.items():
-            if not isinstance(level, PriceLevel):
-                raise TypeError(
-                    f"volume_at_price corrupted: "
-                    f"price={price!r}, "
-                    f"level_type={type(level).__name__}, "
-                    f"level={level!r}"
-                )
-
         return {
             "time": self.time,
             "open": self.open,
@@ -111,28 +102,17 @@ class Bar:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Bar":
-        volume_at_price = {
+        data = data.copy()
+
+        data["volume_at_price"] = {
             float(price): PriceLevel(**level)
-            for price, level in data.get("volume_at_price", {}).items()
+            for price, level in data.get(
+                "volume_at_price",
+                {}
+            ).items()
         }
 
-        return cls(
-            time=data["time"],
-            open=data["open"],
-            high=data["high"],
-            low=data["low"],
-            close=data["close"],
-            total_volume=data.get("total_volume", 0.0),
-            bid_volume=data.get("bid_volume", 0.0),
-            ask_volume=data.get("ask_volume", 0.0),
-            trades=data.get("trades", 0),
-            min_trade=data.get("min_trade", 0.0),
-            max_trade=data.get("max_trade", 0.0),
-            volume_price_sum=data.get("volume_price_sum", 0.0),
-            volume_at_price=volume_at_price,
-            start_ts=data.get("start_ts", 0),
-            end_ts=data.get("end_ts", 0),
-        )    
+        return cls(**data)
 
 class BarAggregator:
     """

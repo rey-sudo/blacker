@@ -18,7 +18,7 @@ use crate::slaves::engine::{EngineState, EngineStateMessage};
 use anyhow::{Result, anyhow};
 use futures::TryStreamExt;
 use pulsar::consumer::Message;
-use pulsar::{Consumer, Pulsar, SubType, TokioExecutor};
+use pulsar::{Consumer, ConsumerOptions, Pulsar, SubType, TokioExecutor};
 use std::sync::Arc;
 use tokio::sync::RwLockWriteGuard;
 use tracing::{error, info};
@@ -28,7 +28,6 @@ fn validate_engine_state(
     master: &MasterState,
     engine_state_message: &EngineStateMessage,
 ) -> Result<()> {
-
     if engine_state_message.boot_id != state.boot_id {
         return Err(anyhow!("Unexpected boot_id."));
     }
@@ -59,6 +58,7 @@ pub async fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) -> Result<
         .with_topic("persistent://public/default/engine.state")
         .with_subscription_type(SubType::Exclusive)
         .with_subscription("master-sub")
+        .with_options(ConsumerOptions::default().with_receiver_queue_size(10_000))
         .build()
         .await
     {
