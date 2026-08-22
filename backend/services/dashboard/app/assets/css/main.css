@@ -5,7 +5,7 @@
   --footer-height: 2.25rem;
   --footer-background: var(--ui-bg);
   --tab-content-padding: 0.25rem;
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.18);
+  --card-shadow: 0 8px 24px rgba(15, 17, 23, 0.18);
 }
 
 :root {

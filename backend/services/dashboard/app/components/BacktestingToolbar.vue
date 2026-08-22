@@ -284,11 +284,11 @@ async function onTimeframeAdded() {
 
 <style scoped>
 .backtesting-toolbar {
-  height: 4rem;
+  height: 3rem;
   display: flex;
   overflow: hidden;
   align-items: center;
-  padding: 0.25rem 1rem;
+  padding: 0rem 1rem;
   background: var(--ui-bg);
   box-shadow: var(--card-shadow);
   border-radius: var(--ui-radius);
