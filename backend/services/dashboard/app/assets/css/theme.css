@@ -44,20 +44,12 @@ text-8xl	6rem (96px)
 text-9xl	8rem (128px)
 
 rounded-xs
-
 rounded-sm
-
 rounded-md
-
 rounded-lg
-
 rounded-xl
-
 rounded-2xl
-
 rounded-3xl
-
-
 */
 
 :root {
@@ -184,7 +176,7 @@ rounded-3xl
   --ui-header-height: 2.5rem;
 
   /* ========== Radius (Nuxt estándar) ========== */
-  --ui-radius: 5px;
+  --ui-radius: 4px;
 }
 
 .dark {
@@ -222,5 +214,5 @@ rounded-3xl
   --ui-header-height: 2.5rem;
 
   /* ========== Radius ========== */
-  --ui-radius: 5px;
+  --ui-radius: 4px;
 }

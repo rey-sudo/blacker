@@ -31,6 +31,7 @@ export interface ChartTimeframe {
   id: string;
   series: Record<string, Series>;
   timeframe_ms: number;
+  [key: string]: any;
 }
 
 interface RuntimeSeries {
@@ -246,6 +247,7 @@ onBeforeUnmount(() => {
   min-height: 0;
   box-sizing: border-box;
   overflow: hidden;
+  border-radius: var(--ui-radius);
 }
 
 .chart-area {

@@ -215,24 +215,31 @@ async function onTimeframeAdded() {
           </div>
         </template>
       </UModal>
+
+      <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
+
+      <UButton
+        v-for="timeframe in props.timeframes"
+        :key="timeframe"
+        color="neutral"
+        variant="outline"
+        size="sm"
+        :class="{
+          'bg-neutral-200 dark:bg-neutral-800':
+            timeframe === props.activeTimeframe,
+        }"
+        @click="emit('update:timeframe', timeframe)"
+      >
+        {{ timeframe }}
+      </UButton>
     </div>
 
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
 
-    <UButton
-      v-for="timeframe in props.timeframes"
-      :key="timeframe"
-      color="neutral"
-      variant="outline"
-      size="sm"
-      :class="{
-        'bg-neutral-200 dark:bg-neutral-800':
-          timeframe === props.activeTimeframe,
-      }"
-      @click="emit('update:timeframe', timeframe)"
+    <UButton color="neutral" variant="outline" icon="lucide:plus" size="sm"
+      >Series</UButton
     >
-      {{ timeframe }}
-    </UButton>
+
     <!----------------------------------------------------------------------------------------------------------------------
   BACKTEST CONTROLS
 ----------------------------------------------------------------------------------------------------------------------->
@@ -242,6 +249,7 @@ async function onTimeframeAdded() {
         color="neutral"
         icon="lucide:step-back"
         variant="outline"
+        size="sm"
       />
       <UButton
         :disabled="tabStore.isRunning"
@@ -251,6 +259,7 @@ async function onTimeframeAdded() {
         @click="onStartBacktest"
         :variant="tabStore.isRunning ? 'solid' : 'outline'"
         :loading="tabStore.isRunning"
+        size="sm"
       />
 
       <UButton
@@ -260,12 +269,14 @@ async function onTimeframeAdded() {
         icon="lucide:square"
         @click="onStopBacktest"
         :variant="tabStore.isRunning ? 'outline' : 'solid'"
+        size="sm"
       />
       <UButton
         title="Next"
         color="neutral"
         icon="lucide:step-forward"
         variant="outline"
+        size="sm"
       />
     </div>
   </div>
@@ -275,9 +286,9 @@ async function onTimeframeAdded() {
 .backtesting-toolbar {
   height: 4rem;
   display: flex;
-  padding: 0.5rem 1rem;
   overflow: hidden;
   align-items: center;
+  padding: 0.25rem 1rem;
   background: var(--ui-bg);
   box-shadow: var(--card-shadow);
   border-radius: var(--ui-radius);
@@ -304,6 +315,6 @@ async function onTimeframeAdded() {
   display: flex;
   align-items: center;
   margin-left: auto;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 </style>
