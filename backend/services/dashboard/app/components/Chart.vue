@@ -13,28 +13,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import {
-  onBeforeUnmount,
-  onMounted,
-  ref,
-} from "vue";
-
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { createChart } from "@/packages/src/index";
 import type { ChartOptions } from "~/packages/src/core/config";
-import type {
-  AnyChartSeries,
-  ChartEngine,
-} from "~/packages/src/core/types";
-import {
-  seriesRegistry,
-  type SeriesId,
-} from "~/stores/tabs";
+import type { AnyChartSeries, ChartEngine } from "~/packages/src/core/types";
+import { seriesRegistry, type SeriesId, type SeriesKind } from "~/stores/tabs";
 
-export type ChartSerie = Record<string, unknown>;
+export interface Series {
+  id: string;
+  kind: string;
+  level: number;
+  params: Record<string, unknown>;
+  [key: string]: any;
+}
 
 export interface ChartTimeframe {
   id: string;
-  series: Record<string, ChartSerie>;
+  series: Record<string, Series>;
   timeframe_ms: number;
 }
 
@@ -44,20 +39,17 @@ interface RuntimeSeries {
 }
 
 /**
- * IMPORTANT:
- *
  * This Map belongs to ONE Chart.vue instance.
- * Never define it outside the component instance.
  */
 const allSeries = new Map<SeriesId, RuntimeSeries>();
 
+/**
+ * Main Chart container.
+ */
 const container = ref<HTMLDivElement | null>(null);
 
 /**
- * Charts created by root series.
- *
- * Multiple series can belong to the same chart, so we keep
- * track of the actual chart instances separately.
+ * Multiple series can belong to the same chart.
  */
 const charts = new Set<ChartEngine>();
 
@@ -65,26 +57,22 @@ const charts = new Set<ChartEngine>();
  * Remove all series and charts created by this component.
  */
 function cleanAllSeries() {
-  const uniqueCharts = new Set<ChartEngine>();
+  const _uniqueCharts = new Set<ChartEngine>();
 
-  for (const runtime of allSeries.values()) {
-    uniqueCharts.add(runtime.chart);
+  for (const item of allSeries.values()) {
+    _uniqueCharts.add(item.chart);
   }
 
-  for (const runtime of allSeries.values()) {
+  for (const item of allSeries.values()) {
     try {
-      runtime.serie.destroy();
-    } catch {
-      // Series may already have been destroyed by its chart.
-    }
+      item.serie.destroy();
+    } catch {}
   }
 
-  for (const chart of uniqueCharts) {
+  for (const chart of _uniqueCharts) {
     try {
       chart.api.destroy();
-    } catch {
-      // Chart may already have been destroyed.
-    }
+    } catch {}
   }
 
   allSeries.clear();
@@ -111,22 +99,16 @@ function addChartContainer(seriesId: SeriesId): HTMLDivElement {
   return element;
 }
 
+
+
 /**
  * Applies a timeframe layout.
- *
- * Root series create a chart.
- * Child series reuse their parent's chart.
  */
 function applyLayout(timeframe: ChartTimeframe) {
-  // Layout is a structural operation.
-  // Rebuild the series/charts only here.
   cleanAllSeries();
 
-  for (const [seriesId, seriesValue] of Object.entries(
-    timeframe.series,
-  )) {
-    const seriesFactory =
-      seriesRegistry["CandleBubbleSeries"];
+  for (const [seriesId, seriesValue] of Object.entries(timeframe.series)) {
+    const seriesFactory = seriesRegistry[seriesValue.kind as SeriesKind];
 
     const build = seriesFactory({
       id: seriesId,
@@ -145,9 +127,7 @@ function applyLayout(timeframe: ChartTimeframe) {
     // -------------------------------------------------------------------------
 
     if (!seriesValue?.parent) {
-      const chart = createChart(
-        addChartContainer(seriesId),
-      );
+      const chart = createChart(addChartContainer(seriesId));
 
       const serie = chart.api.addSeries(build);
 
@@ -165,9 +145,7 @@ function applyLayout(timeframe: ChartTimeframe) {
     // Child series
     // -------------------------------------------------------------------------
 
-    const parent = allSeries.get(
-      seriesValue.parent,
-    );
+    const parent = allSeries.get(seriesValue.parent);
 
     if (!parent) {
       throw new Error(
@@ -184,19 +162,18 @@ function applyLayout(timeframe: ChartTimeframe) {
   }
 }
 
+// -------------------------------------------------------------------------
+// EXPOSED API
+// -------------------------------------------------------------------------
+
 /**
  * Applies options to the chart that owns the series.
  */
-function applyOptions(
-  seriesId: SeriesId,
-  config: Partial<ChartOptions>,
-) {
+function applyOptions(seriesId: SeriesId, config: Partial<ChartOptions>) {
   const runtime = allSeries.get(seriesId);
 
   if (!runtime) {
-    console.warn(
-      `Cannot apply options: series "${seriesId}" not found.`,
-    );
+    console.warn(`Cannot apply options: series "${seriesId}" not found.`);
 
     return;
   }
@@ -207,39 +184,28 @@ function applyOptions(
 /**
  * Sets the complete data of a series.
  */
-function setData(
-  seriesId: SeriesId,
-  data: any,
-) {
+function setData(seriesId: SeriesId, data: any) {
   allSeries.get(seriesId)?.serie.setData(data);
 }
 
 /**
  * Patches existing series data.
  */
-function patchData(
-  seriesId: SeriesId,
-  data: any,
-) {
+function patchData(seriesId: SeriesId, data: any) {
   allSeries.get(seriesId)?.serie.patchData(data);
 }
 
 /**
  * Updates a live candle/tick.
  */
-function updateLive(
-  seriesId: SeriesId,
-  candle: any,
-) {
+function updateLive(seriesId: SeriesId, candle: any) {
   allSeries.get(seriesId)?.serie.update(candle);
 }
 
 /**
  * Returns the runtime series.
  */
-function getSeriesById(
-  seriesId: SeriesId,
-) {
+function getSeriesById(seriesId: SeriesId) {
   return allSeries.get(seriesId);
 }
 
@@ -260,9 +226,7 @@ defineExpose({
  */
 onMounted(() => {
   if (!container.value) {
-    throw new Error(
-      "Chart container was not mounted.",
-    );
+    throw new Error("Chart container was not mounted.");
   }
 });
 
@@ -275,10 +239,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div
-    ref="container"
-    class="chart-container"
-  />
+  <div ref="container" class="chart-container" />
 </template>
 
 <style scoped>
