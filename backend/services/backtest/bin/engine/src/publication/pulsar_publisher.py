@@ -12,7 +12,13 @@ class PulsarPublisher:
 
 
     def publish(self, engine_state: EngineState):
-        self.producer.send(engine_state.to_msgpack())
+        payload = engine_state.to_msgpack()
+
+        size_mb = len(payload) / (1024 * 1024)
+
+        print(f"EngineState message size: {size_mb:.3f} MB")
+
+        self.producer.send(payload)
 
 
     def close(self):

@@ -36,7 +36,7 @@ class Timeframe:
         return {
             "id": self.id,
             "timeframe_ms": self.timeframe_ms,
-            "live": asdict(self.live) if self.live is not None else None,
+            "live": self.live.to_dict() if self.live is not None else None,
             "is_new": self.is_new,
             "is_closed": self.is_closed,
             "series": {

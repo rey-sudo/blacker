@@ -78,6 +78,23 @@ class Bar:
 
         return self.volume_price_sum / self.total_volume
 
+    def to_dict(self) -> dict:
+        return {
+            "time": self.time,
+            "open": self.open,
+            "high": self.high,
+            "low": self.low,
+            "close": self.close,
+            "total_volume": self.total_volume,
+            "bid_volume": self.bid_volume,
+            "ask_volume": self.ask_volume,
+            "trades": self.trades,
+            "min_trade": self.min_trade,
+            "max_trade": self.max_trade,
+            "volume_price_sum": self.volume_price_sum,
+            "start_ts": self.start_ts,
+            "end_ts": self.end_ts,
+        }
 
 class BarAggregator:
     """
