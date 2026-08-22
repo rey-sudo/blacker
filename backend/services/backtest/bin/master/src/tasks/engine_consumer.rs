@@ -28,6 +28,7 @@ fn validate_engine_state(
     master: &MasterState,
     engine_state_message: &EngineStateMessage,
 ) -> Result<()> {
+
     if engine_state_message.boot_id != state.boot_id {
         return Err(anyhow!("Unexpected boot_id."));
     }
@@ -94,6 +95,8 @@ pub async fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) -> Result<
 
                 if let Err(error) = consumer.ack(&message).await {
                     error!(?error, "Failed to ACK invalid EngineState.");
+
+                    //TODO: THIS IS FATAL ERROR
                 }
 
                 continue;

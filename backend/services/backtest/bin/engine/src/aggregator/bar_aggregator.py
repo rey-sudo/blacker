@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from ingestion.tick import Tick
 
 @dataclass
@@ -92,6 +92,10 @@ class Bar:
             "min_trade": self.min_trade,
             "max_trade": self.max_trade,
             "volume_price_sum": self.volume_price_sum,
+            "volume_at_price": {
+                str(price): asdict(level)
+                for price, level in self.volume_at_price.items()
+            },
             "start_ts": self.start_ts,
             "end_ts": self.end_ts,
         }
