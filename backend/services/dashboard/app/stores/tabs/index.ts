@@ -1,8 +1,7 @@
+import { Candlestick, type CandlestickConfig } from "~/packages/playground/series/Candlestick/Candlestick";
 import { TabKind, type Tab } from "../tabManager.store";
 import { useBacktestingTabStore } from "./backtesting-tab.store";
 import { useTradingTabStore } from "./trading-tab.store";
-import { CandleBubbleSeries, type CandleBubbleConfig } from "~/packages/playground/indicators/CandleBubbleSeries/CandleBubbleSeries";
-import { EMASeries } from "~/packages/playground/indicators/EMASeries/EMASeries";
 
 export function useTabContentStore(tab: Tab) {
   if (!tab) return null;
@@ -17,7 +16,7 @@ export function useTabContentStore(tab: Tab) {
 }
 
 export const seriesRegistry = {
-  CandleSeries: (config: CandleBubbleConfig) => CandleBubbleSeries(config),
+  Candlestick: (config: CandlestickConfig) => Candlestick(config),
 } as const;
 export type SeriesRegistry = typeof seriesRegistry;
 export type SeriesKind = keyof SeriesRegistry;

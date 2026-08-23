@@ -17,7 +17,7 @@ class Candle:
     end_ts: int
 
 
-class CandleSeries(Series):
+class Candlestick(Series):
 
     def __init__(
         self,

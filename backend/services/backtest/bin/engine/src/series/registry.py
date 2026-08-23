@@ -1,13 +1,5 @@
-from series.SqueezeSeries import SqueezeSeries
-from series.ADXSeries import ADXSeries
-from series.EmaSeries import EmaSeries
-from series.CandleBubbleSeries import CandleBubbleSeries
-from series.CandleSeries import CandleSeries
+from series.Candlestick import Candlestick
 
 SERIES_REGISTRY = {
-    "CandleSeries": CandleSeries,
-    "CandleBubbleSeries": CandleBubbleSeries,
-    "EmaSeries": EmaSeries,
-    "ADXSeries": ADXSeries,
-    "SqueezeSeries": SqueezeSeries
+    "Candlestick": Candlestick,
 }

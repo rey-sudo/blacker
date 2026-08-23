@@ -85,7 +85,7 @@ pub async fn add_timeframe_handler(
     let series_id: String = format!("candle-series-{}-{}", req.id, n);
 
     let series_params: HashMap<String, Value> = HashMap::from([
-        ("label".to_string(), json!("Candlesticks")),
+        ("label".to_string(), json!("Candlestick")),
         ("layer".to_string(), json!("background")),
         ("color".to_string(), json!("#1cdac4")),
         ("priceTagColor".to_string(), json!("#F23645")),
@@ -99,7 +99,7 @@ pub async fn add_timeframe_handler(
             series_id.clone(),
             Series {
                 id: series_id,
-                kind: "CandleSeries".to_string(),
+                kind: "Candlestick".to_string(),
                 level: 0,
                 params: series_params,
                 extra: None,
