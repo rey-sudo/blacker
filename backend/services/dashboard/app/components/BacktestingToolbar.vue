@@ -290,7 +290,6 @@ async function onTimeframeAdded() {
   align-items: center;
   padding: 0rem 1rem;
   background: var(--ui-bg);
-  box-shadow: var(--card-shadow);
   border-radius: var(--ui-radius);
 }
 
