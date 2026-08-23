@@ -52,7 +52,7 @@ class Candlestick(Series):
         CandleSeries solamente la transforma a Candle.
         """
 
-        bar = self.timeframe.live
+        bar = self._timeframe.live
 
         if bar is None:
             self.is_new = False

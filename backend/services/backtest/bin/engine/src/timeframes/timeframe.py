@@ -57,7 +57,7 @@ class Timeframe:
         self.is_closed = state.get("is_closed")
 
     def add_series(self, series: Series):
-        series.timeframe = self
+        series._timeframe = self
         self._series[series.id] = series
 
     def get_series(self, series_id: str) -> Series:

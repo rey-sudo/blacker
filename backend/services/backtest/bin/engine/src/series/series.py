@@ -25,15 +25,15 @@ class Series(ABC):
     and updates itself from incoming ticks.
     """
     def __init__(self, level: int, kind: str, id: str, params: dict):
-        self.level = level
-        self.kind = kind
         self.id = id
+        self.kind = kind
+        self.level = level
         self.params = params
-        self.timeframe = None
+        self._timeframe = None
 
     @property
     def timeframe_ms(self) -> int:
-        return self.timeframe.timeframe_ms
+        return self._timeframe.timeframe_ms
 
     @property
     @abstractmethod
