@@ -24,11 +24,12 @@ class Series(ABC):
     A series owns its complete state (history, live data, indicators, etc.)
     and updates itself from incoming ticks.
     """
-    def __init__(self, level: int, kind: str, id: str, params: dict):
+    def __init__(self, id: str,  kind: str, level: int, params: dict, parent_id: str | None):
         self.id = id
         self.kind = kind
         self.level = level
         self.params = params
+        self.parent_id = parent_id
         self._timeframe = None
 
     @property

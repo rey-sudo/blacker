@@ -53,17 +53,17 @@ class TradingEngine:
         for tf_value in engine_state["timeframes"].values():
             timeframe = Timeframe()
             timeframe.set_state(tf_value)
-            
             #
             # Add Timeframe series
             #
             for state in tf_value["series"].values():
-                kind = state["kind"]
-                series = SERIES_REGISTRY[kind](
-                    state.get("level"),
-                    kind,
+
+                series = SERIES_REGISTRY[state["kind"]](
                     state.get("id"),
+                    state.get("kind"),
+                    state.get("level"),
                     state.get("params"),
+                    state.get("parent_id"),
                 )
                 series.set_state(state)
                 timeframe.add_series(series)

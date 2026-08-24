@@ -21,12 +21,13 @@ class Candlestick(Series):
 
     def __init__(
         self,
-        level: int,
-        kind: str,
         id: str,
+        kind: str,
+        level: int,
         params: dict,
+        parent_id: str | None
     ):
-        super().__init__(level, kind, id, params)
+        super().__init__(id, kind, level, params, parent_id)
         
         self._live: Candle | None = None
         self.history: deque[Candle] = deque(
@@ -49,7 +50,7 @@ class Candlestick(Series):
         de su Timeframe.
 
         BarAggregator es quien construye la barra.
-        CandleSeries solamente la transforma a Candle.
+        Candlestick solamente la transforma a Candle.
         """
 
         bar = self._timeframe.live
@@ -124,11 +125,13 @@ class Candlestick(Series):
 
     def to_dict(self):
         return {
-            "level": self.level,
-            "kind": self.kind,
             "id": self.id,
+            "kind": self.kind,
+            "level": self.level,            
             "params": self.params,
+            "parent_id": self.parent_id,
 
+            #Extra
             "live": (
                 asdict(self.live)
                 if self.live
