@@ -9,6 +9,7 @@ pub struct Series {
     pub kind: String,
     pub level: u8,
     pub params: HashMap<String, Value>,
+    pub parent_id: Option<String>,
     #[serde(flatten)]
     pub extra: Option<HashMap<String, Value>>,
 }

@@ -43,7 +43,8 @@ pub async fn add_timeframe_handler(
     State(state): State<AppState>,
     Json(req): Json<Request>,
 ) -> (StatusCode, Json<Response>) {
-    //TODO: validate deep params.
+
+    //TODO: validate params.
 
     let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
@@ -102,6 +103,7 @@ pub async fn add_timeframe_handler(
                 kind: "Candlestick".to_string(),
                 level: 0,
                 params: series_params,
+                parent_id: None,
                 extra: None,
             },
         )]),
