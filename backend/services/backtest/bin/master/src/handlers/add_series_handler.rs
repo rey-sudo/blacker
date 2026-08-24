@@ -50,6 +50,18 @@ pub async fn add_series_handler(
 ) -> (StatusCode, Json<Response>) {
     //TODO: validate params.
 
+    /*
+    TODO: Validate Series UI const params:
+
+        let series_params: HashMap<String, Value> = HashMap::from([
+        ("label".to_string(), json!("Candlestick")),
+        ("layer".to_string(), json!("background")),
+        ("color".to_string(), json!("#1cdac4")),
+        ("priceTagColor".to_string(), json!("#F23645")),
+    ]);
+
+     */
+
     let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
     if master.replay_status != ReplayStatus::Stopped {

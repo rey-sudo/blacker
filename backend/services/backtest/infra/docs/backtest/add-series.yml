@@ -12,13 +12,15 @@ http:
       {
         "timeframe_id": "1m",
         "id": "ema",
-        "kind": "LineSeries",
+        "kind": "EMA",
         "level": 1,
         "params": {
-          "label": "EMA 20",
-          "color": "#FF9800"
+          "label": "EMA 55",
+          "layer": "foreground",
+          "color": "#FF9800",
+          "priceTagColor": "#FF9800"
         },
-        "parent_id": "candle-series-1m-3027738621"
+        "parent_id": "candlestick-1m-3798315513"
       }
   auth: inherit
 
