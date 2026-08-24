@@ -1,91 +1,349 @@
+# BLACKER
+# Copyright (C) 2026 Juan José Caballero Rey
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 from collections import deque
 from dataclasses import asdict, dataclass
-from series.series import Series
-from ingestion.tick import Tick
 
-MAX_HISTORY_LEN = 500
+from series.series import Series
+
+
+MAX_HISTORY = 500
+
 
 @dataclass(frozen=True)
-class Ema:
+class EMAValue:
     time: int
     value: float
     start_ts: int
     end_ts: int
 
-class EmaSeries(Series):
-    def __init__(self, level:int, name: str, id: str, source: str, period: int):
-        super().__init__(level, name, id)
 
-        self.source = source
-        self.period = period
+class EMA(Series):
 
-        self._internal: Ema | None = None  # estado real, nunca suprimido
-        self.live: Ema | None = None       # estado visible (None durante warm-up)
-
-        self.history: deque[Ema] = deque(maxlen=MAX_HISTORY_LEN)
-        
-    def to_dict(self):
-        return {
-            "params": {
-                "level": self.level,
-                "name": self.name,
-                "id": self.id,
-                "source": self.source,
-                "period": self.period,
-            },
-            "live": asdict(self.live) if self.live is not None else None,
-            "history": [asdict(ema) for ema in self.history],
-        }
-
-    def set_state(self, state: dict) -> None:
-        self.history = deque(
-            (Ema(**ema) for ema in state["history"]),
-            maxlen=MAX_HISTORY_LEN,
+    def __init__(
+        self,
+        id: str,
+        kind: str,
+        level: int,
+        params: dict,
+        parent_id: str | None,
+    ):
+        super().__init__(
+            id,
+            kind,
+            level,
+            params,
+            parent_id,
         )
 
-        self.live = (
-            Ema(**state["live"]) if state["live"] is not None else None
+        # ==================================================
+        # PARAMETERS
+        # ==================================================
+
+        self.length: int = int(
+            params.get("length", 55)
         )
 
-        # _internal se reconstruye desde live, o desde el último history
-        # si live está suprimido por warm-up
-        self._internal = self.live or (self.history[-1] if self.history else None)
+        if self.length <= 0:
+            raise ValueError(
+                "EMA length must be greater than 0"
+            )
 
-    def update(self, tick: Tick) -> None:
-        source = self.timeframe.get_series(self.source)
+        # ==================================================
+        # STATE
+        # ==================================================
 
-        if source.live is None:
+        # Last confirmed EMA value.
+        self._live: EMAValue | None = None
+
+        # Previous confirmed EMA values.
+        self.history: deque[EMAValue] = deque(
+            maxlen=MAX_HISTORY
+        )
+
+        # Used only until the initial SMA is available.
+        self._seed_values: deque[float] = deque(
+            maxlen=self.length
+        )
+
+        # Current confirmed EMA.
+        self._ema: float | None = None
+
+    # ======================================================
+    # PROPERTIES
+    # ======================================================
+
+    @property
+    def live(self) -> EMAValue | None:
+        return self._live
+
+    @live.setter
+    def live(
+        self,
+        value: EMAValue | None,
+    ) -> None:
+        self._live = value
+
+    @property
+    def value(self) -> float | None:
+        return self._ema
+
+    @property
+    def is_ready(self) -> bool:
+        return self._ema is not None
+
+    @property
+    def alpha(self) -> float:
+        """
+        EMA smoothing coefficient.
+
+        alpha = 2 / (N + 1)
+        """
+
+        return 2.0 / (
+            self.length + 1.0
+        )
+
+    # ======================================================
+    # EMA MATHEMATICS
+    # ======================================================
+
+    def _calculate(
+        self,
+        close: float,
+    ) -> float | None:
+        """
+        Process exactly one confirmed closing price.
+
+        Initialization:
+
+            EMA_N = SMA_N
+
+        Recurrence:
+
+            EMA_t =
+                alpha * Close_t
+                + (1 - alpha) * EMA_(t-1)
+        """
+
+        # --------------------------------------------------
+        # INITIALIZATION
+        # --------------------------------------------------
+
+        if self._ema is None:
+
+            self._seed_values.append(close)
+
+            if len(self._seed_values) < self.length:
+                return None
+
+            self._ema = (
+                sum(self._seed_values)
+                / self.length
+            )
+
+            return self._ema
+
+        # --------------------------------------------------
+        # RECURSIVE EMA
+        # --------------------------------------------------
+
+        self._ema = (
+            self.alpha * close
+            + (1.0 - self.alpha) * self._ema
+        )
+
+        return self._ema
+
+    # ======================================================
+    # VALUE CREATION
+    # ======================================================
+
+    @staticmethod
+    def _to_value(
+        bar,
+        value: float,
+    ) -> EMAValue:
+
+        return EMAValue(
+            time=bar.time,
+            value=value,
+            start_ts=bar.start_ts,
+            end_ts=bar.end_ts,
+        )
+
+    # ======================================================
+    # UPDATE
+    # ======================================================
+
+    def update(self) -> None:
+        """
+        Processes exactly one newly confirmed bar.
+
+        The EMA never uses Timeframe.live.
+
+        It consumes:
+
+            Timeframe.closed
+
+        when:
+
+            Timeframe.is_closed == True
+        """
+
+        timeframe = self._timeframe
+
+        # --------------------------------------------------
+        # No confirmed bar event
+        # --------------------------------------------------
+
+        if not timeframe.is_closed:
             return
 
-        candle = source.live
-        k = 2 / (self.period + 1)
+        bar = timeframe.closed
 
-        # ── Calcular valor interno (siempre, desde la primera vela) ──
+        if bar is None:
+            return
 
-        if self._internal is None:
-            # Primera vela: seed
-            value = candle.close
+        # --------------------------------------------------
+        # Prevent duplicate processing
+        # --------------------------------------------------
 
-        elif self._internal.start_ts == candle.start_ts:
-            # Misma vela viva: recalcular desde última confirmada
-            previous = self.history[-1].value if self.history else self._internal.value
-            value = candle.close * k + previous * (1 - k)
+        if (
+            self.live is not None
+            and self.live.start_ts == bar.start_ts
+        ):
+            return
 
-        else:
-            # Nueva vela: confirmar la anterior en history
-            self.history.append(self._internal)
-            previous = self._internal.value
-            value = candle.close * k + previous * (1 - k)
+        # --------------------------------------------------
+        # Previous EMA becomes history
+        # --------------------------------------------------
 
-        self._internal = Ema(
-            time=candle.time,
-            value=value,
-            start_ts=candle.start_ts,
-            end_ts=candle.end_ts,
+        if self.live is not None:
+            self.history.append(self.live)
+
+        # --------------------------------------------------
+        # Calculate from confirmed close
+        # --------------------------------------------------
+
+        value = self._calculate(
+            bar.close
         )
 
-        # ── Warm-up: solo exponer al exterior cuando hay suficiente historia ──
-        if len(self.history) >= self.period - 1:
-            self.live = self._internal
-        else:
+        # --------------------------------------------------
+        # Warm-up period
+        # --------------------------------------------------
+
+        if value is None:
             self.live = None
+            return
+
+        # --------------------------------------------------
+        # Store confirmed EMA
+        # --------------------------------------------------
+
+        self.live = self._to_value(
+            bar,
+            value,
+        )
+
+    # ======================================================
+    # SERIALIZATION
+    # ======================================================
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "kind": self.kind,
+            "level": self.level,
+            "params": self.params,
+            "parent_id": self.parent_id,
+
+            "live": (
+                asdict(self.live)
+                if self.live is not None
+                else None
+            ),
+
+            "history": [
+                asdict(value)
+                for value in self.history
+            ],
+
+            "seed_values": list(
+                self._seed_values
+            ),
+
+            "ema": self._ema,
+        }
+
+    # ======================================================
+    # STATE RESTORATION
+    # ======================================================
+
+    def set_state(
+        self,
+        state: dict,
+    ) -> None:
+
+        # --------------------------------------------------
+        # LIVE
+        # --------------------------------------------------
+
+        live_state = state.get("live")
+
+        self.live = (
+            EMAValue(**live_state)
+            if live_state is not None
+            else None
+        )
+
+        # --------------------------------------------------
+        # HISTORY
+        # --------------------------------------------------
+
+        self.history = deque(
+            (
+                EMAValue(**value)
+                for value in (
+                    state.get("history") or []
+                )
+            ),
+            maxlen=MAX_HISTORY,
+        )
+
+        # --------------------------------------------------
+        # SEED
+        # --------------------------------------------------
+
+        self._seed_values = deque(
+            (
+                float(value)
+                for value in (
+                    state.get("seed_values") or []
+                )
+            ),
+            maxlen=self.length,
+        )
+
+        # --------------------------------------------------
+        # EMA STATE
+        # --------------------------------------------------
+
+        self._ema = (
+            float(state["ema"])
+            if state.get("ema") is not None
+            else None
+        )

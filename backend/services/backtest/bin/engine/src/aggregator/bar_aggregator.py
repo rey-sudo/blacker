@@ -182,6 +182,7 @@ class BarAggregator:
         # --------------------------------------------------
         # Nuevo timeframe
         # --------------------------------------------------
+        timeframe.closed = timeframe.live
 
         timeframe.live = self._new_bar(
             tick,

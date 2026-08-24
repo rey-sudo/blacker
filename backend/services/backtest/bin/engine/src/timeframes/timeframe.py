@@ -29,6 +29,7 @@ class Timeframe:
         self.timeframe_ms: int = 0
         # Used by BarAggregator, Series
         self.live: Bar | None = None
+        self.closed: Bar | None = None
         self.is_new: bool = False
         self.is_closed: bool = False
 
@@ -37,6 +38,7 @@ class Timeframe:
             "id": self.id,
             "timeframe_ms": self.timeframe_ms,
             "live": self.live.to_dict() if self.live is not None else None,
+            "closed": self.closed.to_dict() if self.closed is not None else None,
             "is_new": self.is_new,
             "is_closed": self.is_closed,
             "series": {
@@ -53,6 +55,11 @@ class Timeframe:
             if state.get("live") is not None
             else None
         )
+        self.closed = (
+            Bar.from_dict(state["closed"])
+            if state.get("closed") is not None
+            else None
+        )        
         self.is_new = state.get("is_new")
         self.is_closed = state.get("is_closed")
 
@@ -85,21 +92,48 @@ class Timeframe:
             for series in level:
                 series.update()
 
+        self.is_new = False
+        self.is_closed = False                
 
     def flush(self):
         """
-        Procesa la última barra live antes de finalizar
-        el Timeframe.
+        Finaliza la última barra live del Timeframe.
+
+        La última barra pasa a considerarse cerrada para que
+        los indicadores puedan procesarla antes de finalizar.
         """
+
         if self.live is None:
             return
 
+        # --------------------------------------------------
+        # La última barra pasa a ser la barra cerrada
+        # --------------------------------------------------
+
+        self.closed = self.live
+
+        # --------------------------------------------------
+        # La barra acaba de cerrarse.
+        # No nació una nueva barra.
+        # --------------------------------------------------
+
+        self.is_new = False
+        self.is_closed = True
+
+        # --------------------------------------------------
         # Give the final push to the series.
+        # --------------------------------------------------
+
         for level in self._levels:
             for series in level:
                 series.update()
 
-        # The last bar has already been consumed by the series.
+        # --------------------------------------------------
+        # Ya no existe una barra live.
+        # `closed` conserva la última barra confirmada.
+        # --------------------------------------------------
+
         self.live = None
+
         self.is_new = False
         self.is_closed = False

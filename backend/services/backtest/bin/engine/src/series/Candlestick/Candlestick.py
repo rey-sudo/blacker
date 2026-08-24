@@ -1,8 +1,27 @@
+# BLACKER
+# Copyright (C) 2026 Juan José Caballero Rey
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 from collections import deque
 from dataclasses import asdict, dataclass
+
+from aggregator.bar_aggregator import Bar
 from series.series import Series
 
+
 MAX_HISTORY = 500
+
 
 @dataclass(frozen=True)
 class Candle:
@@ -12,7 +31,6 @@ class Candle:
     low: float
     close: float
     volume: float
-
     start_ts: int
     end_ts: int
 
@@ -25,16 +43,21 @@ class Candlestick(Series):
         kind: str,
         level: int,
         params: dict,
-        parent_id: str | None
+        parent_id: str | None,
     ):
-        super().__init__(id, kind, level, params, parent_id)
-        
+        super().__init__(
+            id,
+            kind,
+            level,
+            params,
+            parent_id,
+        )
+
         self._live: Candle | None = None
+
         self.history: deque[Candle] = deque(
             maxlen=MAX_HISTORY
         )
-        self.is_new: bool = False
-        self.last_bar_start_ts: int | None = None
 
     @property
     def live(self) -> Candle | None:
@@ -44,113 +67,87 @@ class Candlestick(Series):
     def live(self, value: Candle | None):
         self._live = value
 
+    @staticmethod
+    def _to_candle(bar: Bar) -> Candle:
+        return Candle(
+            time=bar.time,
+            open=bar.open,
+            high=bar.high,
+            low=bar.low,
+            close=bar.close,
+            volume=bar.total_volume,
+            start_ts=bar.start_ts,
+            end_ts=bar.end_ts,
+        )
+
     def update(self) -> None:
         """
         Actualiza la Candle usando la barra actual
         de su Timeframe.
 
-        BarAggregator es quien construye la barra.
-        Candlestick solamente la transforma a Candle.
+        BarAggregator construye y actualiza la Bar.
+
+        Timeframe.is_new indica si la Bar actual
+        acaba de comenzar.
+
+        Candlestick solamente transforma Bar -> Candle
+        y administra live/history.
         """
 
-        bar = self._timeframe.live
+        timeframe = self._timeframe
+        bar = timeframe.live
 
         if bar is None:
-            self.is_new = False
             return
 
         # --------------------------------------------------
         # Nueva barra del timeframe
         # --------------------------------------------------
 
-        if (
-            self.live is None
-            or self.live.start_ts != bar.start_ts
-        ):
+        if timeframe.is_new:
 
             if self.live is not None:
                 self.history.append(self.live)
 
-            self.live = Candle(
-                time=bar.time,
+            self.live = self._to_candle(bar)
 
-                open=bar.open,
-                high=bar.high,
-                low=bar.low,
-                close=bar.close,
-
-                volume=bar.total_volume,
-
-                start_ts=bar.start_ts,
-                end_ts=bar.end_ts,
-            )
-
-            self.is_new = True
+            return
 
         # --------------------------------------------------
         # Actualización de la barra actual
         # --------------------------------------------------
 
-        else:
+        self.live = self._to_candle(bar)
 
-            self.live = Candle(
-                time=bar.time,
-
-                open=bar.open,
-                high=bar.high,
-                low=bar.low,
-                close=bar.close,
-
-                volume=bar.total_volume,
-
-                start_ts=bar.start_ts,
-                end_ts=bar.end_ts,
-            )
-
-            self.is_new = False
-
-        self.last_bar_start_ts = bar.start_ts
-
-    def flush(self) -> None:
-        """
-        Finaliza la Candle actual.
-        """
-
-        if self.live is not None:
-            self.history.append(self.live)
-            self.live = None
-
-        self.is_new = False
-        self.last_bar_start_ts = None
-
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "id": self.id,
             "kind": self.kind,
-            "level": self.level,            
+            "level": self.level,
             "params": self.params,
             "parent_id": self.parent_id,
 
-            #Extra
             "live": (
                 asdict(self.live)
-                if self.live
+                if self.live is not None
                 else None
             ),
+
             "history": [
                 asdict(candle)
                 for candle in self.history
             ],
-            "is_new": self.is_new,
-            "last_bar_start_ts": self.last_bar_start_ts,
         }
 
     def set_state(self, state: dict) -> None:
+        live_state = state.get("live")
+
         self.live = (
-            Candle(**state.get("live"))
-            if state.get("live") is not None
+            Candle(**live_state)
+            if live_state is not None
             else None
         )
+
         self.history = deque(
             (
                 Candle(**candle)
@@ -158,6 +155,3 @@ class Candlestick(Series):
             ),
             maxlen=MAX_HISTORY,
         )
-        self.is_new = state.get("is_new")
-        self.last_bar_start_ts = state.get("last_bar_start_ts")
-        

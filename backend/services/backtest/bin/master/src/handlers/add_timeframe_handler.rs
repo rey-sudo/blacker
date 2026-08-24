@@ -109,6 +109,7 @@ pub async fn add_timeframe_handler(
         )]),
         timeframe_ms,
         live: None,
+        closed: None,
         is_new: false,
         is_closed: false
     };

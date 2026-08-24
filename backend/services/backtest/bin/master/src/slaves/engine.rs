@@ -20,6 +20,7 @@ pub struct Timeframe {
     pub series: HashMap<String, Series>,
     pub timeframe_ms: u64,
     pub live: Option<HashMap<String, Value>>,
+    pub closed: Option<HashMap<String, Value>>,
     pub is_new: bool,
     pub is_closed: bool,
 }
