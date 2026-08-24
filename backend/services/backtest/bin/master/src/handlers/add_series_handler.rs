@@ -15,15 +15,14 @@
 
 use crate::{
     master::state::{AppState, MasterState, ReplayStatus},
-    slaves::engine::{Series, Timeframe}
+    slaves::engine::{Series, Timeframe},
 };
-use axum::{extract::State, http::StatusCode, Json};
+use axum::{Json, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use tokio::sync::RwLockWriteGuard;
 use tracing::info;
-
 
 /// Request payload for adding a new series.
 #[derive(Debug, Deserialize)]
@@ -49,11 +48,9 @@ pub async fn add_series_handler(
     State(state): State<AppState>,
     Json(req): Json<Request>,
 ) -> (StatusCode, Json<Response>) {
-
     //TODO: validate params.
 
-    let mut master: RwLockWriteGuard<'_, MasterState> =
-        state.master.write().await;
+    let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
 
     if master.replay_status != ReplayStatus::Stopped {
         return (
@@ -65,17 +62,15 @@ pub async fn add_series_handler(
         );
     }
 
-    let timeframe: &mut Timeframe = match master.engine_state.timeframes.get_mut(&req.timeframe_id) {
+    let timeframe: &mut Timeframe = match master.engine_state.timeframes.get_mut(&req.timeframe_id)
+    {
         Some(t) => t,
         None => {
             return (
                 StatusCode::NOT_FOUND,
                 Json(Response {
                     success: false,
-                    message: format!(
-                        "Timeframe not found: {}",
-                        req.timeframe_id
-                    ),
+                    message: format!("Timeframe not found: {}", req.timeframe_id),
                 }),
             );
         }
@@ -86,16 +81,32 @@ pub async fn add_series_handler(
             StatusCode::CONFLICT,
             Json(Response {
                 success: false,
-                message: format!(
-                    "The specified series already exists: {}",
-                    req.id
-                ),
+                message: format!("The specified series already exists: {}", req.id),
             }),
         );
     }
 
+    if let Some(parent_id) = &req.parent_id {
+        if !timeframe.series.contains_key(parent_id) {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(Response {
+                    success: false,
+                    message: format!(
+                        "Parent series not found in timeframe {}: {}",
+                        req.timeframe_id, parent_id
+                    ),
+                }),
+            );
+        }
+    }
+
+    let n: u32 = rand::RngExt::random::<u32>(&mut rand::rng());
+
+    let series_id: String = format!("{}-{}-{}", req.id, req.timeframe_id, n);
+
     let series: Series = Series {
-        id: req.id.clone(),
+        id: series_id,
         kind: req.kind,
         level: req.level,
         params: req.params,
@@ -103,7 +114,7 @@ pub async fn add_series_handler(
         extra: None,
     };
 
-    timeframe.series.insert(req.id.clone(), series);
+    timeframe.series.insert(series.id.clone(), series);
 
     master.config_id = uuid::Uuid::now_v7().to_string();
 
@@ -111,10 +122,7 @@ pub async fn add_series_handler(
 
     let _ = state.publish_master_state().await;
 
-    info!(
-        "Series added {} to timeframe {}",
-        req.id, req.timeframe_id
-    );
+    info!("Series added {} to timeframe {}", req.id, req.timeframe_id);
 
     (
         StatusCode::CREATED,

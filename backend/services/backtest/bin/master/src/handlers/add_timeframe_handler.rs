@@ -83,7 +83,7 @@ pub async fn add_timeframe_handler(
 
     let n: u32 = rand::RngExt::random::<u32>(&mut rand::rng());
 
-    let series_id: String = format!("candle-series-{}-{}", req.id, n);
+    let series_id: String = format!("candlestick-{}-{}", req.id, n);
 
     let series_params: HashMap<String, Value> = HashMap::from([
         ("label".to_string(), json!("Candlestick")),

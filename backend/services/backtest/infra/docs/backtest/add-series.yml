@@ -1,0 +1,29 @@
+info:
+  name: add-series
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: http://localhost:3002/api/backtest/master/add-series
+  body:
+    type: json
+    data: |-
+      {
+        "timeframe_id": "1m",
+        "id": "ema",
+        "kind": "LineSeries",
+        "level": 1,
+        "params": {
+          "label": "EMA 20",
+          "color": "#FF9800"
+        },
+        "parent_id": "candle-series-1m-3027738621"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
