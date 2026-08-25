@@ -18,7 +18,8 @@ http:
           "label": "EMA 55",
           "layer": "foreground",
           "color": "#FF9800",
-          "priceTagColor": "#FF9800"
+          "priceTagColor": "#FF9800",
+          "length": 55
         },
         "parent_id": "candlestick-1m-2610708134"
       }

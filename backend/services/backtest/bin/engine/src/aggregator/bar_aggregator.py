@@ -18,25 +18,53 @@ from ingestion.tick import Tick
 
 @dataclass
 class PriceLevel:
+    """
+    Aggregated trade statistics for a single price level within a bar.
+
+    Volume is split by aggressor side:
+        - ask_volume: aggressive buy volume
+        - bid_volume: aggressive sell volume
+
+    Therefore:
+        delta = ask_volume - bid_volume
+    """    
+
     price: float
 
     bid_volume: float = 0.0
     ask_volume: float = 0.0
+    # Total traded volume at this exact price.
+    # Invariant:
+    #     total_volume = bid_volume + ask_volume    
     total_volume: float = 0.0
-
+    #
+    # Number of trades executed at this price.
+    #
     trades: int = 0
-
+    #
+    # Smallest and largest individual trade size at this price.
+    #
     min_trade: float = 0.0
     max_trade: float = 0.0
-
+    # Number of trades classified by aggressor side.
+    # Invariant:
+    #     trades = buy_trades + sell_trades
     buy_trades: int = 0
     sell_trades: int = 0
-
+    #
+    # Largest individual trade executed by each aggressor side.
+    #
     max_buy_trade: float = 0.0
     max_sell_trade: float = 0.0
 
     @property
     def delta(self) -> float:
+        """
+        Return aggressive buy volume minus aggressive sell volume.
+
+        Positive delta  -> net aggressive buying.
+        Negative delta  -> net aggressive selling.
+        """        
         return self.ask_volume - self.bid_volume
 
 
