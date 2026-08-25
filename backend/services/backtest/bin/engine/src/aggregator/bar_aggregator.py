@@ -164,6 +164,15 @@ class BarAggregator:
             return
 
         # --------------------------------------------------
+        # Protección: tick fuera de orden
+        # --------------------------------------------------
+
+        if start_ts < live.start_ts:
+            raise RuntimeError(
+                "BarAggregator received out-of-order tick"
+            )
+    
+        # --------------------------------------------------
         # Mismo timeframe
         # --------------------------------------------------
 

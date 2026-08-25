@@ -24,6 +24,7 @@ export interface Series {
   kind: string;
   level: number;
   params: Record<string, unknown>;
+  parent_id: string | null;
   [key: string]: any;
 }
 
@@ -122,7 +123,7 @@ function applyLayout(timeframe: ChartTimeframe) {
     // Root series
     // -------------------------------------------------------------------------
 
-    if (!seriesValue?.parent) {
+    if (!seriesValue?.parent_id) {
       const chart = createChart(addChartContainer(seriesId));
 
       const serie = chart.api.addSeries(build);
@@ -141,11 +142,11 @@ function applyLayout(timeframe: ChartTimeframe) {
     // Child series
     // -------------------------------------------------------------------------
 
-    const parent = allSeries.get(seriesValue.parent);
+    const parent = allSeries.get(seriesValue.parent_id);
 
     if (!parent) {
       throw new Error(
-        `Parent series "${seriesValue.parent}" has not been created.`,
+        `Parent series "${seriesValue.parent_id}" has not been created.`,
       );
     }
 
