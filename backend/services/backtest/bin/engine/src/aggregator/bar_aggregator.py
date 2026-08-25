@@ -209,38 +209,68 @@ class Bar:
 
 class BarAggregator:
     """
-    Agrega ticks directamente en los Timeframes registrados.
+    Aggregate ordered ticks directly into the registered timeframes.
 
-    El BarAggregator es responsable de:
+    Data flow:
 
         Tick
           ↓
+        BarAggregator
+          ↓
         Timeframe.live
 
-    Cada Timeframe mantiene su propia barra según
+    Each Timeframe maintains its own bar according to
     timeframe.timeframe_ms.
+
+    The aggregator expects ticks to be ordered by event time.
+    Reordering is handled externally by the reorder buffer.
     """
 
     def __init__(self, timeframes=None):
         self.timeframes = timeframes or {}
 
     def update(self, tick: Tick) -> None:
+        """
+        Feed one ordered tick into every registered timeframe.
+        """        
         for timeframe in self.timeframes.values():
             self._update_timeframe(timeframe, tick)
 
     def _update_timeframe(self, timeframe, tick: Tick) -> None:
+        """
+        Assign the tick to its timeframe bucket and update the live bar.
+
+        Bucket calculation:
+
+            bucket = floor(tick_time / timeframe_ms)
+
+        Bucket start:
+
+            start_ts = bucket × timeframe_ms
+
+        Bucket end:
+
+            end_ts = start_ts + timeframe_ms
+        """        
 
         timeframe_ms = timeframe.timeframe_ms
-
+        #
+        # Integer division identifies the timeframe bucket containing the tick.
+        # 
         bucket = tick.time // timeframe_ms
-
+        #
+        # Align the bucket to the exact timeframe boundary.
+        #
         start_ts = bucket * timeframe_ms
+        #
+        # The bucket covers [start_ts, end_ts).
+        # 
         end_ts = start_ts + timeframe_ms
 
         live = timeframe.live
 
         # --------------------------------------------------
-        # Primera barra
+        # First bar
         # --------------------------------------------------
 
         if live is None:
@@ -257,8 +287,14 @@ class BarAggregator:
             return
 
         # --------------------------------------------------
-        # Protección: tick fuera de orden
+        # Out-of-order tick protection
         # --------------------------------------------------
+
+        # The external reorder buffer guarantees chronological
+        # event-time ordering.
+        #
+        # If the tick belongs to an earlier bucket, the contract
+        # has been violated and the aggregator must not mutate state.
 
         if start_ts < live.start_ts:
             raise RuntimeError(
@@ -266,7 +302,7 @@ class BarAggregator:
             )
     
         # --------------------------------------------------
-        # Mismo timeframe
+        # Same timeframe
         # --------------------------------------------------
 
         if start_ts == live.start_ts:
@@ -282,16 +318,24 @@ class BarAggregator:
             return
 
         # --------------------------------------------------
-        # Nuevo timeframe
+        # New timeframe
         # --------------------------------------------------
-        timeframe.closed = timeframe.live
 
+        # The previous live bar is now closed because the current
+        # tick belongs to a later timeframe bucket. 
+        #        
+        timeframe.closed = timeframe.live
+        #
+        # Start a new live bar using the current tick.
+        #
         timeframe.live = self._new_bar(
             tick,
             start_ts,
             end_ts,
         )
-
+        #
+        # A new live bar was created and the previous bar was closed.
+        #
         timeframe.is_new = True
         timeframe.is_closed = True
 
@@ -305,52 +349,101 @@ class BarAggregator:
         start_ts: int,
         end_ts: int,
     ) -> Bar:
+        """
+        Create the first bar state from a single tick.
+        The first tick simultaneously defines:
 
+            open = high = low = close = tick.price
+
+        and initializes all volume/trade accumulators.
+        """
+
+        # is_buyer_maker == 0 means the buyer was the taker/aggressor.
+        #
+        # Therefore:
+        #     is_buy = True  -> aggressive buy
+        #     is_buy = False -> aggressive sell        
         is_buy = tick.is_buyer_maker == 0
 
         price = tick.price
         qty = tick.qty
-
+        #
+        # Initialize the footprint level for the first traded price.
+        #
         level = PriceLevel(
             price=price,
-
+            #
+            # Aggressive sells are attributed to bid volume.
+            #
             bid_volume=qty if not is_buy else 0.0,
+            #
+            # Aggressive buys are attributed to ask volume.
+            #
             ask_volume=qty if is_buy else 0.0,
-
+            #
+            # The first trade is the complete volume at this price.
+            #
             total_volume=qty,
-
+            #
+            # One trade has occurred.
+            #
             trades=1,
-
+            #
+            # The first trade is both the minimum and maximum.
+            #
             min_trade=qty,
             max_trade=qty,
-
+            #
+            # Classify the first trade by aggressor side.
+            #
             buy_trades=1 if is_buy else 0,
             sell_trades=0 if is_buy else 1,
-
+            #
+            # Initialize the largest trade for each side.
+            #
             max_buy_trade=qty if is_buy else 0.0,
             max_sell_trade=qty if not is_buy else 0.0,
         )
 
         return Bar(
+            #
+            # Convert the bucket start from milliseconds to seconds.
+            #
             time=start_ts // 1000,
-
+            #
+            # The first trade defines the complete initial OHLC state.
+            #
             open=price,
             high=price,
             low=price,
             close=price,
-
+            #
+            # Initialize volume from the first trade.
+            #
             total_volume=qty,
-
+            #
+            # Initialize aggressor-side volume.
+            #
             bid_volume=qty if not is_buy else 0.0,
             ask_volume=qty if is_buy else 0.0,
-
+            #
+            # One trade exists.
+            #
             trades=1,
-
+            #
+            # First trade is both minimum and maximum.
+            #
             min_trade=qty,
             max_trade=qty,
-
+            #
+            # First VWAP numerator contribution:
+            #
+            #     Σ(price × volume) = price × qty
+            #
             volume_price_sum=price * qty,
-
+            #
+            # Initialize footprint with the first traded price.
+            #
             volume_at_price={
                 price: level
             },
@@ -368,45 +461,75 @@ class BarAggregator:
         bar: Bar,
         tick: Tick,
     ) -> None:
+        """
+        Incorporate one additional tick into an existing live bar.
 
+        The method updates:
+
+            - OHLC
+            - total/aggressor volume
+            - trade count
+            - trade-size statistics
+            - VWAP accumulator
+            - volume-at-price statistics
+        """
         price = tick.price
         qty = tick.qty
-
+        #
+        # Buyer-maker == 0 means the buyer was the aggressor.
+        #
         is_buy = tick.is_buyer_maker == 0
 
         # --------------------------------------------------
         # OHLC
         # --------------------------------------------------
 
+        #
+        # High is the maximum traded price observed so far.
+        #
         bar.high = max(
             bar.high,
             price,
         )
-
+        #
+        # Low is the minimum traded price observed so far.
+        #
         bar.low = min(
             bar.low,
             price,
         )
-
+        #
+        # Close is always the most recent traded price.
+        #
         bar.close = price
 
         # --------------------------------------------------
         # Volume
         # --------------------------------------------------
 
+        #
+        # Every trade contributes exactly once to total volume.
+        #
         bar.total_volume += qty
-
+        #
+        # Classify the trade by aggressor side.
+        #
         if is_buy:
             bar.ask_volume += qty
         else:
             bar.bid_volume += qty
-
+        #
+        # Each incoming tick represents one execution/trade.
+        #
         bar.trades += 1
 
         # --------------------------------------------------
         # Trade size
         # --------------------------------------------------
 
+        #
+        # Update the minimum trade size.
+        #
         if bar.min_trade == 0:
             bar.min_trade = qty
         else:
@@ -414,7 +537,9 @@ class BarAggregator:
                 bar.min_trade,
                 qty,
             )
-
+        #
+        # Update the maximum trade size.
+        #
         bar.max_trade = max(
             bar.max_trade,
             qty,
@@ -424,6 +549,11 @@ class BarAggregator:
         # VWAP accumulator
         # --------------------------------------------------
 
+        #
+        # Add this trade's contribution to the VWAP numerator:
+        #
+        #     Σ(price_i × qty_i)
+        #
         bar.volume_price_sum += (
             price * qty
         )
@@ -431,11 +561,15 @@ class BarAggregator:
         # --------------------------------------------------
         # Volume At Price
         # --------------------------------------------------
-
+        #
+        # Retrieve the footprint level for this exact traded price.
+        #
         level = bar.volume_at_price.get(price)
 
         if level is None:
-
+            #
+            # First trade ever observed at this price.
+            #
             level = PriceLevel(
                 price=price,
 
@@ -464,30 +598,57 @@ class BarAggregator:
         # Price level volume
         # --------------------------------------------------
 
+        #
+        # Add the current trade to the total volume at this price.
+        #
         level.total_volume += qty
 
         if is_buy:
+            #
+            # Add aggressive buy volume at this price.
+            #
             level.ask_volume += qty
+            #
+            # Count this execution as an aggressive buy.
+            #
             level.buy_trades += 1
+            #
+            # Track the largest aggressive buy at this price.
+            #
             level.max_buy_trade = max(
                 level.max_buy_trade,
                 qty,
             )
         else:
+            #
+            # Add aggressive sell volume at this price.
+            #
             level.bid_volume += qty
+            #
+            # Count this execution as an aggressive sell.
+            #
             level.sell_trades += 1
+            #
+            # Track the largest aggressive sell at this price.
+            #
             level.max_sell_trade = max(
                 level.max_sell_trade,
                 qty,
             )
-
+        #
+        # One additional execution occurred at this price.
+        #
         level.trades += 1
-
+        #
+        # Update minimum trade size at this price.
+        #
         level.min_trade = min(
             level.min_trade,
             qty,
         )
-
+        #
+        # Update maximum trade size at this price.
+        #
         level.max_trade = max(
             level.max_trade,
             qty,
@@ -498,5 +659,11 @@ class BarAggregator:
     # ======================================================
 
     def flush(self):
+        """
+        Flush the current live bar of every registered timeframe.
+
+        Timeframe.flush() is responsible for deciding how the final
+        partial bar is finalized and propagated to its Series.
+        """        
         for timeframe in self.timeframes.values():
             timeframe.flush()
