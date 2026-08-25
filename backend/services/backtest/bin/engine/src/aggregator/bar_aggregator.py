@@ -70,43 +70,102 @@ class PriceLevel:
 
 @dataclass(slots=True)
 class Bar:
-    time: int
+    """
+    Aggregated OHLCV and order-flow data for one timeframe bucket.
 
+    The bar is built directly from trades/ticks and contains:
+
+        - OHLC price data
+        - total volume
+        - aggressive buy/sell volume
+        - trade count and trade-size statistics
+        - VWAP accumulator
+        - volume-at-price / footprint data
+
+    The BarAggregator owns the construction of this object.
+    """
+    # 
+    # Human-readable bar timestamp in Unix seconds.
+    #        
+    time: int
+    #
+    # OHLC values derived from the trades inside the bucket.
+    #
     open: float
     high: float
     low: float
     close: float
-
+    #
+    # Total traded volume.
+    #
     total_volume: float = 0.0
+    # Volume classified by aggressor side.
+    #
+    # Invariant:
+    #     total_volume = bid_volume + ask_volume    
     bid_volume: float = 0.0
     ask_volume: float = 0.0
-
+    #
+    # Number of trades/executions contained in the bar.
+    #
     trades: int = 0
-
+    #
+    # Smallest and largest individual trade size.
+    #
     min_trade: float = 0.0
     max_trade: float = 0.0
-
+    # Running VWAP numerator:
+    #
+    #     volume_price_sum = Σ(price_i × quantity_i)
+    #
+    # VWAP is calculated as:
+    #
+    #     VWAP = volume_price_sum / total_volume
     volume_price_sum: float = 0.0
-
+    #
+    # Footprint data indexed by traded price.
+    #
     volume_at_price: dict[float, PriceLevel] = field(
         default_factory=dict
     )
-
+    #
+    # Time boundaries of the timeframe bucket in milliseconds.
+    #
     start_ts: int = 0
     end_ts: int = 0
 
     @property
     def delta(self) -> float:
+        """
+        Return the net aggressive volume of the bar.
+
+        Formula:
+            delta = ask_volume - bid_volume
+        """        
         return self.ask_volume - self.bid_volume
 
     @property
     def vwap(self) -> float:
+        """
+        Return the volume-weighted average price of the bar.
+
+        Formula:
+            VWAP = Σ(price × volume) / Σ(volume)
+
+        A zero-volume bar has no defined VWAP, so 0.0 is returned.
+        """        
         if self.total_volume <= 0:
             return 0.0
 
         return self.volume_price_sum / self.total_volume
 
     def to_dict(self) -> dict:
+        """
+        Serialize the bar into a dictionary.
+
+        PriceLevel keys are converted to strings because dictionary
+        keys are commonly serialized as strings by JSON.
+        """        
         return {
             "time": self.time,
             "open": self.open,
@@ -130,6 +189,12 @@ class Bar:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Bar":
+        """
+        Reconstruct a Bar from its serialized dictionary representation.
+
+        Serialized volume_at_price keys are strings, so they are converted
+        back to float before reconstructing PriceLevel objects.
+        """        
         data = data.copy()
 
         data["volume_at_price"] = {
