@@ -108,6 +108,8 @@ function applyLayout(timeframe: ChartTimeframe) {
   cleanAllSeries();
 
   for (const [seriesId, seriesValue] of Object.entries(timeframe.series)) {
+    console.log(seriesId);
+
     const seriesFactory = seriesRegistry[seriesValue.kind as SeriesKind];
 
     const build = seriesFactory({
@@ -142,12 +144,13 @@ function applyLayout(timeframe: ChartTimeframe) {
     // Child series
     // -------------------------------------------------------------------------
 
-    const parent = allSeries.get(seriesValue.parent_id);
+    const parent = allSeries.get(seriesValue?.parent_id);
 
     if (!parent) {
-      throw new Error(
-        `Parent series "${seriesValue.parent_id}" has not been created.`,
+      console.error(
+        `Parent series "${seriesValue?.parent_id}" has not been created.`,
       );
+      return;
     }
 
     const serie = parent.chart.api.addSeries(build);
