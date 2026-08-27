@@ -191,40 +191,70 @@ function createRuntimeSeries(seriesId: SeriesId, seriesValue: Series) {
  * before their children in the returned object.
  */
 function resolveSeriesOrder(series: Record<string, Series>): Series[] {
+  //
+  // Stores series in the resolved parent-before-child order. 
+  //
   const result: Series[] = [];
-
+  //
+  // Tracks series currently being processed to detect circular dependencies.
+  //
   const visiting = new Set<SeriesId>();
+  //
+  // Tracks series that have already been fully processed.
+  //
   const visited = new Set<SeriesId>();
-
-  function visit(seriesId: SeriesId) {
+  //
+  // Recursively processes a series and its parent dependencies.
+  //
+  function _visit(seriesId: SeriesId) {
+    //
+    // Skip the series if it has already been processed.
+    //
     if (visited.has(seriesId)) {
       return;
     }
-
+    //
+    // Throw if the current dependency chain contains a cycle.
+    //
     if (visiting.has(seriesId)) {
       throw new Error(`Circular series dependency detected at "${seriesId}".`);
     }
-
+    //
+    //  Get the current series by its ID.
+    //
     const current = series[seriesId];
-
+    //
+    // Throw if the requested series does not exist.
+    //
     if (!current) {
       throw new Error(`Series "${seriesId}" does not exist.`);
     }
-
+    //
+    //  Mark the series as currently being processed.
+    //
     visiting.add(seriesId);
-
+    //
+    // Process the parent before the current series.
+    //
     if (current.parent_id) {
-      visit(current.parent_id);
+      _visit(current.parent_id);
     }
-
+    //
+    // Mark the series as no longer being processed.
+    //
     visiting.delete(seriesId);
+    //
+    // Mark the series as fully processed. 
+    //
     visited.add(seriesId);
-
+    //
+    // Add the series after its parent has been added. 
+    //
     result.push(current);
   }
 
   for (const seriesId of Object.keys(series)) {
-    visit(seriesId);
+    _visit(seriesId);
   }
 
   return result;
