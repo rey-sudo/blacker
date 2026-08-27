@@ -107,9 +107,10 @@ function addChartContainer(seriesId: SeriesId): HTMLDivElement {
 function applyLayout(timeframe: ChartTimeframe) {
   cleanAllSeries();
 
-  for (const [seriesId, seriesValue] of Object.entries(timeframe.series)) {
-    console.log(seriesId);
-
+  for (const [seriesId, seriesValue] of Object.entries(timeframe.series).sort(
+    ([, a], [, b]) => a.level - b.level,
+  )) {
+    
     const seriesFactory = seriesRegistry[seriesValue.kind as SeriesKind];
 
     const build = seriesFactory({
