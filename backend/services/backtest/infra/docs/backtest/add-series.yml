@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "timeframe_id": "15m",
+        "timeframe_id": "1h",
         "id": "ema",
         "kind": "EMA",
         "level": 1,
@@ -22,7 +22,7 @@ http:
           "period": 55,
           "lineWidth": 2
         },
-        "parent_id": "candlestick-15m-2437355019"
+        "parent_id": "candlestick-1h-3588949134"
       }
   auth: inherit
 

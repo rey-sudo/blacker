@@ -1,13 +1,12 @@
 <template>
   <div class="footer">
     <div class="flex items-center justify-center gap-2">
-      <UButton color="neutral" size="xs" variant="ghost"
-        >Positions
+      <UButton color="neutral" size="xs" variant="ghost">Live</UButton>
 
-        <template #trailing>
-          <UBadge size="xs" color="neutral" variant="subtle">2</UBadge>
-        </template>
-      </UButton>
+      <UButton color="neutral" size="xs" variant="ghost">Backtesting</UButton>
+
+      <UButton color="neutral" size="xs" variant="ghost">Bots</UButton>
+
       <UButton color="neutral" size="xs" variant="ghost">
         <template #trailing>
           <UBadge size="xs" color="neutral" variant="subtle">1</UBadge>
@@ -15,18 +14,11 @@
 
         Alerts</UButton
       >
-      <UButton color="neutral" size="xs" variant="ghost">History</UButton>
-
-      <UButton color="neutral" size="xs" variant="ghost">Backtesting</UButton>
-
-      <UButton color="neutral" size="xs" variant="ghost">Bots</UButton>
 
       <USeparator orientation="vertical" class="h-6 pl-2 pr-2" />
       <FooterTime />
       <USeparator orientation="vertical" class="h-6 px-2" />
     </div>
-
-   
   </div>
 </template>
 
