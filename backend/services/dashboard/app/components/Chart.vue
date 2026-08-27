@@ -96,7 +96,11 @@ function cleanAllSeries() {
 /**
  * Creates a DOM element for a root chart.
  */
-function addChartContainer(seriesId: SeriesId): HTMLDivElement {
+function addChartContainer(
+  seriesId: SeriesId,
+  width: string,
+  height: string,
+): HTMLDivElement {
   if (!container.value) {
     throw new Error("Chart container is not mounted.");
   }
@@ -105,6 +109,9 @@ function addChartContainer(seriesId: SeriesId): HTMLDivElement {
 
   element.className = "chart-area";
   element.dataset.seriesId = seriesId;
+
+  element.style.width = width;
+  element.style.height = height;
 
   container.value.appendChild(element);
 
@@ -147,7 +154,9 @@ function createRuntimeSeries(seriesId: SeriesId, seriesValue: Series) {
   // -------------------------------------------------------------------------
 
   if (!seriesValue.parent_id) {
-    const chart = createChart(addChartContainer(seriesId));
+    const chart = createChart(
+      addChartContainer(seriesId, build.width, build.height),
+    );
     const serie = chart.api.addSeries(build);
 
     allSeries.set(seriesId, {
@@ -192,7 +201,7 @@ function createRuntimeSeries(seriesId: SeriesId, seriesValue: Series) {
  */
 function resolveSeriesOrder(series: Record<string, Series>): Series[] {
   //
-  // Stores series in the resolved parent-before-child order. 
+  // Stores series in the resolved parent-before-child order.
   //
   const result: Series[] = [];
   //
@@ -244,11 +253,11 @@ function resolveSeriesOrder(series: Record<string, Series>): Series[] {
     //
     visiting.delete(seriesId);
     //
-    // Mark the series as fully processed. 
+    // Mark the series as fully processed.
     //
     visited.add(seriesId);
     //
-    // Add the series after its parent has been added. 
+    // Add the series after its parent has been added.
     //
     result.push(current);
   }
@@ -512,19 +521,32 @@ onBeforeUnmount(() => {
 .chart-container {
   width: 100%;
   height: 100%;
-  display: flex;
   min-height: 0;
-  overflow: hidden;
+  display: flex;
   flex-direction: column;
+  gap: 1rem;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
   box-sizing: border-box;
   border-radius: var(--ui-radius);
-  background: var(--chart-background);
+  background: var(--chart-bg);
 }
 
-.chart-area {
+::v-deep(.chart-area) {
   width: 100%;
-  height: 100%;
+  flex: 0 0 auto;
   min-height: 0;
-  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+  position: relative;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--ui-border);
 }
 </style>
