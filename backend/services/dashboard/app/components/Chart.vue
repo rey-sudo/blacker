@@ -110,7 +110,6 @@ function applyLayout(timeframe: ChartTimeframe) {
   for (const [seriesId, seriesValue] of Object.entries(timeframe.series).sort(
     ([, a], [, b]) => a.level - b.level,
   )) {
-    
     const seriesFactory = seriesRegistry[seriesValue.kind as SeriesKind];
 
     const build = seriesFactory({

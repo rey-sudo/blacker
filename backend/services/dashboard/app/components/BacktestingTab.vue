@@ -183,7 +183,7 @@ onUnmounted(() => {
           'chart-wrapper--active': timeframeId === activeTimeframe,
         }"
       >
-        <Chart :ref="(el) => setChartRef(timeframeId, el)" />
+        <Chart :key="timeframeId" :ref="(el) => setChartRef(timeframeId, el)" />
       </div>
     </div>
   </div>
