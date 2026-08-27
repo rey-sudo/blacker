@@ -15,7 +15,6 @@
 
 from collections import deque
 from dataclasses import asdict, dataclass
-
 from series.series import Series
 
 
@@ -26,8 +25,6 @@ MAX_HISTORY = 500
 class EMAValue:
     time: int
     value: float
-    start_ts: int
-    end_ts: int
 
 
 class EMA(Series):
@@ -48,220 +45,78 @@ class EMA(Series):
             parent_id,
         )
 
-        # ==================================================
-        # PARAMETERS
-        # ==================================================
+        self.period = int(params.get("period", 55))
 
-        self.length: int = int(
-            params.get("length", 55)
-        )
+        if self.period <= 0:
+            raise ValueError("EMA period must be greater than 0")
 
-        if self.length <= 0:
-            raise ValueError(
-                "EMA length must be greater than 0"
-            )
-
-        # ==================================================
-        # STATE
-        # ==================================================
-
-        # Last confirmed EMA value.
         self._live: EMAValue | None = None
 
-        # Previous confirmed EMA values.
         self.history: deque[EMAValue] = deque(
             maxlen=MAX_HISTORY
         )
-
-        # Used only until the initial SMA is available.
-        self._seed_values: deque[float] = deque(
-            maxlen=self.length
-        )
-
-        # Current confirmed EMA.
-        self._ema: float | None = None
-
-    # ======================================================
-    # PROPERTIES
-    # ======================================================
 
     @property
     def live(self) -> EMAValue | None:
         return self._live
 
     @live.setter
-    def live(
-        self,
-        value: EMAValue | None,
-    ) -> None:
+    def live(self, value: EMAValue | None):
         self._live = value
 
-    @property
-    def value(self) -> float | None:
-        return self._ema
+    def _calculate(self, close: float) -> float:
+        alpha = 2.0 / (self.period + 1.0)
 
-    @property
-    def is_ready(self) -> bool:
-        return self._ema is not None
+        if self.live is None:
+            return close
 
-    @property
-    def alpha(self) -> float:
-        """
-        EMA smoothing coefficient.
-
-        alpha = 2 / (N + 1)
-        """
-
-        return 2.0 / (
-            self.length + 1.0
+        return (
+            alpha * close
+            + (1.0 - alpha) * self.live.value
         )
-
-    # ======================================================
-    # EMA MATHEMATICS
-    # ======================================================
-
-    def _calculate(
-        self,
-        close: float,
-    ) -> float | None:
-        """
-        Process exactly one confirmed closing price.
-
-        Initialization:
-
-            EMA_N = SMA_N
-
-        Recurrence:
-
-            EMA_t =
-                alpha * Close_t
-                + (1 - alpha) * EMA_(t-1)
-        """
-
-        # --------------------------------------------------
-        # INITIALIZATION
-        # --------------------------------------------------
-
-        if self._ema is None:
-
-            self._seed_values.append(close)
-
-            if len(self._seed_values) < self.length:
-                return None
-
-            self._ema = (
-                sum(self._seed_values)
-                / self.length
-            )
-
-            return self._ema
-
-        # --------------------------------------------------
-        # RECURSIVE EMA
-        # --------------------------------------------------
-
-        self._ema = (
-            self.alpha * close
-            + (1.0 - self.alpha) * self._ema
-        )
-
-        return self._ema
-
-    # ======================================================
-    # VALUE CREATION
-    # ======================================================
-
-    @staticmethod
-    def _to_value(
-        bar,
-        value: float,
-    ) -> EMAValue:
-
-        return EMAValue(
-            time=bar.time,
-            value=value,
-            start_ts=bar.start_ts,
-            end_ts=bar.end_ts,
-        )
-
-    # ======================================================
-    # UPDATE
-    # ======================================================
 
     def update(self) -> None:
         """
-        Processes exactly one newly confirmed bar.
+        Actualiza la EMA usando el close de la Candle actual.
 
-        The EMA never uses Timeframe.live.
+        Candlestick es la Series padre y proporciona:
 
-        It consumes:
+            timeframe.live
+            timeframe.is_new
 
-            Timeframe.closed
+        La EMA solamente transforma:
 
-        when:
-
-            Timeframe.is_closed == True
+            Candle.close -> EMA
         """
 
         timeframe = self._timeframe
+        candle = timeframe.live
 
-        # --------------------------------------------------
-        # No confirmed bar event
-        # --------------------------------------------------
-
-        if not timeframe.is_closed:
+        if candle is None:
             return
 
-        bar = timeframe.closed
-
-        if bar is None:
-            return
-
-        # --------------------------------------------------
-        # Prevent duplicate processing
-        # --------------------------------------------------
-
-        if (
-            self.live is not None
-            and self.live.start_ts == bar.start_ts
-        ):
-            return
-
-        # --------------------------------------------------
-        # Previous EMA becomes history
-        # --------------------------------------------------
-
-        if self.live is not None:
-            self.history.append(self.live)
-
-        # --------------------------------------------------
-        # Calculate from confirmed close
-        # --------------------------------------------------
-
-        value = self._calculate(
-            bar.close
+        value = EMAValue(
+            time=candle.time,
+            value=self._calculate(candle.close),
         )
 
         # --------------------------------------------------
-        # Warm-up period
+        # Nueva Candle del timeframe
         # --------------------------------------------------
 
-        if value is None:
-            self.live = None
+        if timeframe.is_new:
+
+            if self.live is not None:
+                self.history.append(self.live)
+
+            self.live = value
             return
 
         # --------------------------------------------------
-        # Store confirmed EMA
+        # Actualización de la Candle actual
         # --------------------------------------------------
 
-        self.live = self._to_value(
-            bar,
-            value,
-        )
-
-    # ======================================================
-    # SERIALIZATION
-    # ======================================================
+        self.live = value
 
     def to_dict(self) -> dict:
         return {
@@ -270,37 +125,18 @@ class EMA(Series):
             "level": self.level,
             "params": self.params,
             "parent_id": self.parent_id,
-
             "live": (
                 asdict(self.live)
                 if self.live is not None
                 else None
             ),
-
             "history": [
                 asdict(value)
                 for value in self.history
             ],
-
-            "seed_values": list(
-                self._seed_values
-            ),
-
-            "ema": self._ema,
         }
 
-    # ======================================================
-    # STATE RESTORATION
-    # ======================================================
-
-    def set_state(
-        self,
-        state: dict,
-    ) -> None:
-
-        # --------------------------------------------------
-        # LIVE
-        # --------------------------------------------------
+    def set_state(self, state: dict) -> None:
 
         live_state = state.get("live")
 
@@ -310,40 +146,10 @@ class EMA(Series):
             else None
         )
 
-        # --------------------------------------------------
-        # HISTORY
-        # --------------------------------------------------
-
         self.history = deque(
             (
                 EMAValue(**value)
-                for value in (
-                    state.get("history") or []
-                )
+                for value in (state.get("history") or [])
             ),
             maxlen=MAX_HISTORY,
-        )
-
-        # --------------------------------------------------
-        # SEED
-        # --------------------------------------------------
-
-        self._seed_values = deque(
-            (
-                float(value)
-                for value in (
-                    state.get("seed_values") or []
-                )
-            ),
-            maxlen=self.length,
-        )
-
-        # --------------------------------------------------
-        # EMA STATE
-        # --------------------------------------------------
-
-        self._ema = (
-            float(state["ema"])
-            if state.get("ema") is not None
-            else None
         )
