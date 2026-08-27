@@ -18,8 +18,6 @@ from dataclasses import asdict
 from aggregator.bar_aggregator import Bar
 from series.series import Series
 
-MAX_HISTORY = 10
-
 class Timeframe:
     def __init__(self):
         self._series: dict[str, Series] = {}

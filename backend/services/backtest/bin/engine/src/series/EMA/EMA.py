@@ -15,6 +15,7 @@
 
 from collections import deque
 from dataclasses import asdict, dataclass
+
 from series.series import Series
 
 
@@ -48,9 +49,14 @@ class EMA(Series):
         self.period = int(params.get("period", 55))
 
         if self.period <= 0:
-            raise ValueError("EMA period must be greater than 0")
+            raise ValueError(
+                "EMA period must be greater than 0"
+            )
 
         self._live: EMAValue | None = None
+
+        # Última EMA calculada sobre una candle cerrada.
+        self._closed: EMAValue | None = None
 
         self.history: deque[EMAValue] = deque(
             maxlen=MAX_HISTORY
@@ -67,56 +73,57 @@ class EMA(Series):
     def _calculate(self, close: float) -> float:
         alpha = 2.0 / (self.period + 1.0)
 
-        if self.live is None:
+        if self._closed is None:
             return close
 
         return (
             alpha * close
-            + (1.0 - alpha) * self.live.value
+            + (1.0 - alpha) * self._closed.value
         )
 
     def update(self) -> None:
-        """
-        Actualiza la EMA usando el close de la Candle actual.
-
-        Candlestick es la Series padre y proporciona:
-
-            timeframe.live
-            timeframe.is_new
-
-        La EMA solamente transforma:
-
-            Candle.close -> EMA
-        """
 
         timeframe = self._timeframe
+
+        # --------------------------------------------------
+        # Candle cerrada
+        # --------------------------------------------------
+
+        if timeframe.is_closed:
+
+            candle = timeframe.closed
+
+            if candle is not None:
+
+                value = EMAValue(
+                    time=candle.time,
+                    value=self._calculate(
+                        candle.close
+                    ),
+                )
+
+                if self._closed is not None:
+                    self.history.append(
+                        self._closed
+                    )
+
+                self._closed = value
+
+        # --------------------------------------------------
+        # Candle viva
+        # --------------------------------------------------
+
         candle = timeframe.live
 
         if candle is None:
             return
 
-        value = EMAValue(
+        self.live = EMAValue(
             time=candle.time,
-            value=self._calculate(candle.close),
+            value=self._calculate(
+                candle.close
+            ),
         )
-
-        # --------------------------------------------------
-        # Nueva Candle del timeframe
-        # --------------------------------------------------
-
-        if timeframe.is_new:
-
-            if self.live is not None:
-                self.history.append(self.live)
-
-            self.live = value
-            return
-
-        # --------------------------------------------------
-        # Actualización de la Candle actual
-        # --------------------------------------------------
-
-        self.live = value
 
     def to_dict(self) -> dict:
         return {
@@ -146,10 +153,20 @@ class EMA(Series):
             else None
         )
 
+        history = [
+            EMAValue(**value)
+            for value in (
+                state.get("history") or []
+            )
+        ]
+
         self.history = deque(
-            (
-                EMAValue(**value)
-                for value in (state.get("history") or [])
-            ),
+            history,
             maxlen=MAX_HISTORY,
+        )
+
+        self._closed = (
+            history[-1]
+            if history
+            else None
         )
