@@ -517,7 +517,7 @@ onBeforeUnmount(() => {
   <div ref="container" class="chart-container" />
 </template>
 
-<style scoped>
+<style>
 .chart-container {
   width: 100%;
   height: 100%;
@@ -532,21 +532,28 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   border-radius: var(--ui-radius);
   background: var(--chart-bg);
+  scrollbar-gutter: stable;
 }
 
-::v-deep(.chart-area) {
-  width: 100%;
-  flex: 0 0 auto;
-  min-height: 0;
+/* Chrome / Edge / Safari */
+.chart-container::-webkit-scrollbar {
+  width: 19px;
+}
 
-  display: flex;
-  flex-direction: column;
+.chart-container::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-  overflow: hidden;
-  position: relative;
+.chart-container::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.45);
+  border-radius: var(--ui-radius);
+  border: 4px solid transparent;
+  background-clip: padding-box;
+}
 
-  box-sizing: border-box;
-
-  border: 1px solid var(--ui-border);
+.chart-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.7);
+  border: 3px solid transparent;
+  background-clip: padding-box;
 }
 </style>
