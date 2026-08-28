@@ -530,9 +530,12 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
 
   box-sizing: border-box;
-  border-radius: var(--ui-radius);
-  background: var(--chart-bg);
+
   scrollbar-gutter: stable;
+}
+
+.chart-area {
+  border-radius: var(--ui-radius);
 }
 
 /* Chrome / Edge / Safari */
@@ -547,13 +550,12 @@ onBeforeUnmount(() => {
 .chart-container::-webkit-scrollbar-thumb {
   background: rgba(128, 128, 128, 0.45);
   border-radius: var(--ui-radius);
-  border: 4px solid transparent;
+  border-left: 4px solid transparent;
   background-clip: padding-box;
 }
 
 .chart-container::-webkit-scrollbar-thumb:hover {
   background: rgba(128, 128, 128, 0.7);
-  border: 3px solid transparent;
   background-clip: padding-box;
 }
 </style>
