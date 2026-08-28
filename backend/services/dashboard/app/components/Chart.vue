@@ -549,7 +549,6 @@ onBeforeUnmount(() => {
 
 .chart-container::-webkit-scrollbar-thumb {
   background: rgba(128, 128, 128, 0.45);
-  border-radius: var(--ui-radius);
   border-left: 4px solid transparent;
   background-clip: padding-box;
 }
