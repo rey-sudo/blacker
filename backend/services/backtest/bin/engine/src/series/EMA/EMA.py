@@ -15,7 +15,6 @@
 
 from collections import deque
 from dataclasses import asdict, dataclass
-
 from series.series import Series
 
 

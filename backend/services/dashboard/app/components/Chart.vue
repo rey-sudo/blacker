@@ -525,12 +525,9 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-
   overflow-y: auto;
   overflow-x: hidden;
-
   box-sizing: border-box;
-
   scrollbar-gutter: stable;
 }
 

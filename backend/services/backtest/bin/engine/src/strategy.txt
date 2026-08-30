@@ -1,0 +1,5 @@
+Una vez confirmado el cruce alcista o bajista:
+    1. Ejecutar todos los buy y los sell adentro del trayecto hasta el siguiente cross.
+    2. Si durante buy aparece un sell entonces cancelar el buy y empezar el sell
+    3. Ejecutar 3 targets.
+    4. Usar ema 200 como estrategia de salida.
