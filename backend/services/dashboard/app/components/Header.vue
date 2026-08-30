@@ -6,8 +6,7 @@
     </div>
 
     <div class="header__right gap-4 flex items-center h-[inherit]">
-      <HeaderThemeButton />
-      <HeaderSettingsButton />
+
     </div>
   </div>
 </template>

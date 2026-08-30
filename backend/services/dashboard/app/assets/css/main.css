@@ -1,5 +1,5 @@
 :root {
-  --header-height: 2.5rem;
+  --header-height: 2.25rem;
   --header-background: var(--ui-bg);
   --main-background: var(--ui-bg-accented);
   --footer-height: 2.25rem;
@@ -13,7 +13,6 @@
   --chart-header-background: var(--ui-bg);
   --chart-header-height: 2.5rem;
   --chart-radius: var(--ui-radius);
-  --chart-toolbar-height: 2.25rem;
 }
 
 .dark {

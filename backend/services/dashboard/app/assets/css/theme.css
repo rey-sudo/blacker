@@ -165,7 +165,7 @@ rounded-3xl
 
   --ui-container: 1440px;
   --ui-header-height: 2.5rem;
-  --ui-radius: 2px;
+  --ui-radius: 3px;
 }
 
 
@@ -200,5 +200,5 @@ rounded-3xl
   --ui-container: 1440px;
   --ui-header-height: 2.5rem;
 
-  --ui-radius: 2px;
+  --ui-radius: 3px;
 }

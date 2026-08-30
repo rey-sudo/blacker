@@ -177,7 +177,7 @@ async function onTimeframeAdded() {
         }"
         :overlay="false"
       >
-        <UButton color="neutral" variant="outline" icon="lucide:plus" size="sm"
+        <UButton color="neutral" variant="outline" icon="lucide:plus" size="xs"
           >Timeframe</UButton
         >
 
@@ -223,7 +223,7 @@ async function onTimeframeAdded() {
         :key="timeframe"
         color="neutral"
         variant="outline"
-        size="sm"
+        size="xs"
         :class="{
           'bg-neutral-200 dark:bg-neutral-800':
             timeframe === props.activeTimeframe,
@@ -236,7 +236,7 @@ async function onTimeframeAdded() {
 
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
 
-    <UButton color="neutral" variant="outline" icon="lucide:plus" size="sm"
+    <UButton color="neutral" variant="outline" icon="lucide:plus" size="xs"
       >Series</UButton
     >
 
@@ -284,13 +284,12 @@ async function onTimeframeAdded() {
 
 <style scoped>
 .backtesting-toolbar {
-  height: var(--header-height);
   display: flex;
   overflow: hidden;
   align-items: center;
   padding: 0rem 1rem;
   background: var(--ui-bg);
-  border-radius: var(--ui-radius);
+  border-radius: 999px;
 }
 
 .backtesting-toolbar-slaves {

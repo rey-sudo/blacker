@@ -16,8 +16,13 @@
       >
 
       <USeparator orientation="vertical" class="h-6 pl-2 pr-2" />
+      
       <FooterTime />
+
       <USeparator orientation="vertical" class="h-6 px-2" />
+
+      <HeaderThemeButton />
+      <HeaderSettingsButton />
     </div>
   </div>
 </template>
@@ -30,7 +35,6 @@
   height: var(--footer-height);
   padding: 0 1rem;
   width: 100%;
-  z-index: 100;
   display: flex;
   align-items: center;
 }

@@ -1,8 +1,9 @@
 <template>
   <div class="layout">
+    <Footer />
+    <USeparator/>
     <Header />
     <NuxtPage />
-    <Footer />
   </div>
 </template>
 
@@ -10,7 +11,7 @@
 .layout {
   display: grid;
   height: 100dvh;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto auto 1fr;
   background: var(--main-background);
 }
 
