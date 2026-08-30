@@ -289,7 +289,7 @@ async function onTimeframeAdded() {
   align-items: center;
   padding: 0rem 1rem;
   background: var(--ui-bg);
-  border-radius: 999px;
+  border-radius: var(--ui-radius);
 }
 
 .backtesting-toolbar-slaves {
