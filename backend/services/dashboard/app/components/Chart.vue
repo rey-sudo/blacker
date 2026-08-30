@@ -524,7 +524,7 @@ onBeforeUnmount(() => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.25rem;
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -540,7 +540,7 @@ onBeforeUnmount(() => {
 
 /* Chrome / Edge / Safari */
 .chart-container::-webkit-scrollbar {
-  width: 19px;
+  width: 17px;
 }
 
 .chart-container::-webkit-scrollbar-track {

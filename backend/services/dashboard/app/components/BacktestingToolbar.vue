@@ -284,7 +284,7 @@ async function onTimeframeAdded() {
 
 <style scoped>
 .backtesting-toolbar {
-  height: 3rem;
+  height: var(--header-height);
   display: flex;
   overflow: hidden;
   align-items: center;
