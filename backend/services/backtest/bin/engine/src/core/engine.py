@@ -104,6 +104,6 @@ class TradingEngine:
             timeframes=self.timeframes
         )
 
-        signal = self.strategy.evaluate(self.state)
+        result = self.strategy.evaluate(self.state)
 
-        return self.state, signal
+        return self.state, result
