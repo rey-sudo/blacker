@@ -104,6 +104,28 @@ class TradingEngine:
             timeframes=self.timeframes
         )
 
-        result = self.strategy.evaluate(self.state)
+        signal = self.strategy.evaluate(self.state)
 
-        return self.state, result
+        #orders = self.order_manager.handle(self.state, signal)
+
+        print(signal)
+
+        return self.state, signal
+
+
+
+"""
+        fills = self.execution.process(
+            tick,
+            orders,
+        )
+
+        for fill in fills:
+            new_orders = self.order_manager.on_fill(fill)
+
+            self.execution.submit(new_orders)
+
+"""
+
+
+
