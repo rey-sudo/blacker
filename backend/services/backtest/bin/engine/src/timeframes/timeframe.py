@@ -15,6 +15,7 @@
 
 from collections import defaultdict, deque
 from dataclasses import asdict
+from typing import Any
 from aggregator.bar_aggregator import Bar
 from series.series import Series
 
@@ -65,9 +66,22 @@ class Timeframe:
         series._timeframe = self
         self._series[series.id] = series
 
-    def get_series(self, series_id: str) -> Series:
-        return self._series[series_id]
+    def get_series(
+        self,
+        kind: str,
+        label: str,
+    ):
+        for series in self._series.values():
+            if (
+                series.kind == kind
+                and series.params.get("label") == label
+            ):
+                return series
 
+        raise KeyError(
+            f"Series not found: kind={kind!r}, label={label!r}"
+        )
+    
     def build_levels(self):
         groups = defaultdict(list)
 
