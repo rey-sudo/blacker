@@ -22,14 +22,14 @@ from timeframes.timeframe import Timeframe
 from series.registry import SERIES_REGISTRY
 
 class TradingEngine:
-    def __init__(self, strategy=None, timeframes=None):
+    def __init__(self):
         self.status: str = 'init'
         self.boot_id: str | None = None
         self.config_id: str | None = None
         self.state: EngineState | None = None
-        self.strategy: Strategy | None = strategy
-        self.timeframes: dict[str, Timeframe] = timeframes or {}
+        self.timeframes: dict[str, Timeframe] = {}
         self.bar_aggregator: BarAggregator | None = None
+        self.strategy: Strategy | None = None
 
     def reset(self):
         print("Reseting engine...")
@@ -38,18 +38,21 @@ class TradingEngine:
         self.boot_id = None
         self.config_id = None
         self.state = None
-        self.strategy = None
         self.timeframes = {}
         self.bar_aggregator = None
+        self.strategy = None
 
-    def set_state(self, config_id: str, engine_state: dict, strategy: dict) -> None:
+    def set_state(self, boot_id: str, config_id: str, engine_state: dict) -> None:
         """
         Restores the engine state from a serialized dictionary.
         """
+        self.boot_id = boot_id
         self.config_id = config_id
 
         timeframes = {}
-
+        #
+        # Setup timeframes and series
+        #
         for tf_value in engine_state["timeframes"].values():
             timeframe = Timeframe()
             timeframe.set_state(tf_value)
@@ -59,35 +62,44 @@ class TradingEngine:
             for state in tf_value["series"].values():
 
                 series = SERIES_REGISTRY[state["kind"]](
-                    state.get("id"),
-                    state.get("kind"),
-                    state.get("level"),
-                    state.get("params"),
-                    state.get("parent_id"),
+                    state["id"],
+                    state["kind"],
+                    state["level"],
+                    state["params"],
+                    state["parent_id"],
                 )
                 series.set_state(state)
+
                 timeframe.add_series(series)
             #
             # Build the series execution level
             #                         
             timeframe.build_levels()
             timeframes[timeframe.id] = timeframe
+        #
+        # Build engine strategy
+        #
+        strategy = STRATEGY_REGISTRY[engine_state["strategy"]["kind"]](
+            engine_state["strategy"]["kind"],
+            engine_state["strategy"]["params"]        
+        )
+        strategy.set_state(engine_state["strategy"])
 
-        strategy_cls = STRATEGY_REGISTRY[strategy["kind"]]
-        strategy = strategy_cls(**strategy["params"])
-
-        
-        self.strategy = strategy
         self.timeframes = timeframes
         self.bar_aggregator = BarAggregator(
             timeframes=self.timeframes
         )
+        self.strategy = strategy        
+        #
+        # Engine state
+        #
         self.state = EngineState(
             boot_id=self.boot_id,
             config_id=self.config_id,
             tick_index=engine_state["tick_index"],
-            time=engine_state["time"],
+            time=engine_state["time"], 
             timeframes=self.timeframes,
+            strategy=self.strategy 
         )
 
     def on_tick(self, tick: Tick):
@@ -101,14 +113,13 @@ class TradingEngine:
             config_id=self.config_id,
             tick_index=tick.tick_index,
             time=tick.time,
-            timeframes=self.timeframes
+            timeframes=self.timeframes, 
+            strategy=self.strategy  
         )
 
         signal = self.strategy.evaluate(self.state)
 
         #orders = self.order_manager.handle(self.state, signal)
-
-        print(signal)
 
         return self.state, signal
 

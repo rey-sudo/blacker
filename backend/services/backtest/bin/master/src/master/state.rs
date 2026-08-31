@@ -16,7 +16,7 @@
 use crate::{
     config::AppConfig,
     slaves::{
-        engine::{EngineState, EngineStrategy},
+        engine::{EngineState},
         execution::ExecutionState,
     },
     snapshot::ReplaySnapshot,
@@ -68,8 +68,7 @@ pub struct MasterState {
     pub tick_data: Arc<BinaryFile>,
     pub tick_index: usize,
     pub engine_state: EngineState,
-    pub execution_state: ExecutionState,
-    pub engine_strategy: EngineStrategy,
+    pub execution_state: ExecutionState
 }
 
 impl fmt::Debug for MasterState {
@@ -174,11 +173,7 @@ impl AppState {
             tick_data,
             tick_index,
             engine_state,
-            execution_state,
-            engine_strategy: EngineStrategy {
-                kind: "Strategy1".to_string(),
-                params: HashMap::new(),
-            },
+            execution_state
         };
 
         let (master_state_tx, _) = watch::channel(Arc::new(String::from("{}")));

@@ -1,5 +1,6 @@
 import json
 import msgpack
+from strategy.base import Strategy
 from dataclasses import dataclass
 
 @dataclass
@@ -9,6 +10,7 @@ class EngineState:
     tick_index: int
     time: int
     timeframes: dict
+    strategy: Strategy
 
     def to_dict(self):
         return {
@@ -20,6 +22,7 @@ class EngineState:
                 key: timeframe.to_dict()
                 for key, timeframe in self.timeframes.items()
             },
+            "strategy": self.strategy.to_dict()
         }
 
     def to_json(self) -> str:

@@ -18,7 +18,7 @@ use crate::slaves::engine::{EngineState, EngineStateMessage};
 use anyhow::{Result, anyhow};
 use futures::TryStreamExt;
 use pulsar::consumer::Message;
-use pulsar::{Consumer, ConsumerOptions, Pulsar, SubType, TokioExecutor};
+use pulsar::{Consumer, Pulsar, SubType, TokioExecutor};
 use std::sync::Arc;
 use tokio::sync::RwLockWriteGuard;
 use tracing::{error, info};
@@ -112,6 +112,7 @@ pub async fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) -> Result<
                         tick_index: engine_state_message.tick_index,
                         time: engine_state_message.time,
                         timeframes: engine_state_message.timeframes,
+                        strategy: engine_state_message.strategy
                     };
                 }
                 Err(reason) => {

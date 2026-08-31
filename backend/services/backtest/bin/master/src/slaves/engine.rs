@@ -41,9 +41,11 @@ impl Timeframe {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct Strategy {
+pub struct EngineStrategy {
     pub kind: String,
     pub params: HashMap<String, Value>,
+    #[serde(flatten)]
+    pub extra: Option<HashMap<String, Value>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,6 +53,7 @@ pub struct EngineState {
     pub tick_index: usize,
     pub time: u64,
     pub timeframes: HashMap<String, Timeframe>,
+    pub strategy: EngineStrategy,
 }
 
 impl Default for EngineState {
@@ -59,6 +62,11 @@ impl Default for EngineState {
             tick_index: 0,
             time: 0,
             timeframes: HashMap::new(),
+            strategy: EngineStrategy {
+                kind: "Strategy1".to_string(),
+                params: HashMap::new(),
+                extra: None
+            },
         }
     }
 }
@@ -70,6 +78,7 @@ pub struct EngineStateMessage {
     pub tick_index: usize,
     pub time: u64,
     pub timeframes: HashMap<String, Timeframe>,
+    pub strategy: EngineStrategy,
 }
 
 impl DeserializeMessage for EngineStateMessage {
@@ -78,10 +87,4 @@ impl DeserializeMessage for EngineStateMessage {
     fn deserialize_message(payload: &Payload) -> Self::Output {
         rmp_serde::from_slice(&payload.data)
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct EngineStrategy {
-    pub kind: String,
-    pub params: HashMap<String, Value>,
 }

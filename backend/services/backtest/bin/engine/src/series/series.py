@@ -28,7 +28,7 @@ class Series(ABC):
         self.id = id
         self.kind = kind
         self.level = level
-        self.params = params
+        self.params = params 
         self.parent_id = parent_id
         self._timeframe = None
 

@@ -73,11 +73,10 @@ def handle_tick(cstate: dict, tick: Tick):
             print("Master endpoint error.")
             return False
 
-        engine.boot_id = res["boot_id"]
         engine.set_state(
+            boot_id=res["boot_id"],
             config_id=res["master"]["config_id"],
             engine_state=res["master"]["engine_state"],
-            strategy=res["master"]["engine_strategy"],
         )
         engine.status = "ready"
         return True
