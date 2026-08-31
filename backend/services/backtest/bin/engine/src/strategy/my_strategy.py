@@ -32,11 +32,6 @@ class Strategy1(Strategy):
 
         tf = state.timeframes.get("1m")
 
-        candles = tf.get_series(
-            "Candlestick",
-            "Candlestick"
-        )
-
         ema_55 = tf.get_series(
             "EMA",
             "EMA 55"
@@ -47,26 +42,21 @@ class Strategy1(Strategy):
             "EMA 200"
         )
 
+        previous_55 = ema_55.history[-1]
+        previous_200 = ema_200.history[-1]
+
         current_55 = ema_55.live
         current_200 = ema_200.live
 
-        if not hasattr(self, "previous_ema_55"):
-            self.previous_ema_55 = current_55
-            self.previous_ema_200 = current_200
-            return None
-
         cross_up = (
-            self.previous_ema_55.value <= self.previous_ema_200.value
+            previous_55.value <= previous_200.value
             and current_55.value > current_200.value
         )
 
         cross_down = (
-            self.previous_ema_55.value >= self.previous_ema_200.value
+            previous_55.value >= previous_200.value
             and current_55.value < current_200.value
         )
-
-        self.previous_ema_55 = current_55
-        self.previous_ema_200 = current_200
 
         if cross_up:
             return Signal(

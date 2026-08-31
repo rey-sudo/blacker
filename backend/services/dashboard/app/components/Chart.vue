@@ -529,6 +529,8 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
   box-sizing: border-box;
   scrollbar-gutter: stable;
+  background: var(--ui-bg);
+  border-radius: var(--ui-radius);
 }
 
 .chart-area {

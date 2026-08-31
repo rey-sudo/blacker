@@ -174,6 +174,8 @@ onUnmounted(() => {
       @update:timeframe="activeTimeframe = $event"
     />
 
+    <USeparator />
+
     <div class="charts">
       <div
         v-for="timeframeId in timeframeIds"
@@ -191,13 +193,13 @@ onUnmounted(() => {
 
 <style scoped>
 .backtesting-tab {
-  gap: 0.25rem;
+  gap: 0rem;
   height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding: var(--tab-content-padding);
+
 }
 
 .charts {

@@ -65,11 +65,6 @@ const slavesStatus = computed<KeyLabelColor[]>(() => [
     label: "Engine",
     color: tabStore.isEngineConnected ? "success" : "error",
   },
-  {
-    key: "execution",
-    label: "Execution",
-    color: false ? "success" : "error",
-  },
 ]);
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -290,6 +285,7 @@ async function onTimeframeAdded() {
   padding: 0rem 1rem;
   background: var(--ui-bg);
   border-radius: var(--ui-radius);
+  height: var(--header-height);
 }
 
 .backtesting-toolbar-slaves {
