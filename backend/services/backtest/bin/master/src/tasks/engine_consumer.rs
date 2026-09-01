@@ -14,7 +14,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::master::state::{AppState, MasterState};
-use crate::slaves::engine::{EngineState, EngineStateMessage};
+use crate::engine::engine::{EngineState, EngineStateMessage};
 use anyhow::{Result, anyhow};
 use futures::TryStreamExt;
 use pulsar::consumer::Message;

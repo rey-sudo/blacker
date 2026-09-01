@@ -7,20 +7,11 @@
 
       <UButton color="neutral" size="xs" variant="ghost">Bots</UButton>
 
-      <UButton color="neutral" size="xs" variant="ghost">
-        <template #trailing>
-          <UBadge size="xs" color="neutral" variant="subtle">1</UBadge>
-        </template>
-
-        Alerts</UButton
-      >
-
-      <USeparator orientation="vertical" class="h-6 pl-2 pr-2" />
-      
+      <USeparator orientation="vertical" class="h-6 px-1" />
       <FooterTime />
-
-      <USeparator orientation="vertical" class="h-6 px-2" />
-
+      <USeparator orientation="vertical" class="h-6 px-1" />
+      
+      <HeaderNotificationButton />
       <HeaderThemeButton />
       <HeaderSettingsButton />
     </div>

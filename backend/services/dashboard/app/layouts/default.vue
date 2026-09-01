@@ -1,8 +1,9 @@
 <template>
   <div class="layout">
-    <Header />
-    <USeparator />
     <Footer />
+    <USeparator />
+    <Header />
+
     <USeparator />
     <NuxtPage />
   </div>

@@ -15,7 +15,7 @@
 
 use crate::{
     config::AppConfig,
-    slaves::{
+    engine::{
         engine::{EngineState}
     },
     snapshot::ReplaySnapshot,

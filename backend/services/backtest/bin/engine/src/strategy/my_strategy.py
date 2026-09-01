@@ -30,44 +30,5 @@ class Strategy1(Strategy):
 
     def evaluate(self, state: EngineState):
 
-        tf = state.timeframes.get("1m")
-
-        ema_55 = tf.get_series(
-            "EMA",
-            "EMA 55"
-        )
-
-        ema_200 = tf.get_series(
-            "EMA",
-            "EMA 200"
-        )
-
-        previous_55 = ema_55.history[-1]
-        previous_200 = ema_200.history[-1]
-
-        current_55 = ema_55.live
-        current_200 = ema_200.live
-
-        cross_up = (
-            previous_55.value <= previous_200.value
-            and current_55.value > current_200.value
-        )
-
-        cross_down = (
-            previous_55.value >= previous_200.value
-            and current_55.value < current_200.value
-        )
-
-        if cross_up:
-            return Signal(
-                action="BUY",
-                quantity=1,
-                order_type=OrderType.MARKET,
-            )
-
-        if cross_down:
-            return Signal(
-                action="EXIT",
-            )
 
         return None

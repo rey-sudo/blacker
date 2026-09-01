@@ -15,7 +15,7 @@
 
 use crate::{
     master::state::{AppState, MasterState, ReplayStatus},
-    slaves::engine::{Series, Timeframe},
+    engine::engine::{Series, Timeframe},
 };
 use axum::{Json, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};
