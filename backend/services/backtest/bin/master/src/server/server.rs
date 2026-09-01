@@ -4,7 +4,7 @@ use axum::Router;
 use tracing::info;
 
 /// Starts the HTTP server.
-pub async fn start_http_server(state: AppState) -> Result<()> {
+pub async fn run(state: AppState) -> Result<()> {
     let app: Router = Router::new()
         .nest("/api/backtest", router::router())
         .with_state(state);

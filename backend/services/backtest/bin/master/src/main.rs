@@ -16,7 +16,7 @@ use anyhow::{Context, Result};
 use cursor_db::binary::BinaryFile;
 use master::config::AppConfig;
 use master::master::state::AppState;
-use master::server::server::start_http_server;
+use master::server;
 use master::snapshot::{ReplaySnapshot, load_snapshot};
 use master::tasks::{engine_consumer, replay_task};
 use pulsar::{Pulsar, TokioExecutor};
@@ -50,7 +50,7 @@ async fn main() -> Result<()> {
 
     tasks.spawn(replay_task::run(state.clone(), pulsar.clone()));
     tasks.spawn(engine_consumer::run(state.clone(), pulsar.clone()));
-    tasks.spawn(start_http_server(state));
+    tasks.spawn(server::run(state));
 
     while let Some(result) = tasks.join_next().await {
         match result {

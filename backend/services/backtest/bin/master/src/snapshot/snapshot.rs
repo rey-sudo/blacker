@@ -1,6 +1,6 @@
 use crate::{
     master::state::MasterState,
-    slaves::{engine::EngineState, execution::ExecutionState},
+    slaves::{engine::EngineState},
     tasks::ReplayStep,
 };
 use anyhow::{Context, Result, bail};
@@ -17,7 +17,6 @@ pub struct ReplaySnapshot {
     pub tick_index: usize,
     pub replay_step: ReplayStep,
     pub engine_state: EngineState,
-    pub execution_state: ExecutionState,
 }
 
 const SNAPSHOT_PATH: &str = "./data/replay.bin";
@@ -41,8 +40,7 @@ pub async fn save_snapshot(master: &MasterState) -> Result<()> {
         config_id: master.config_id.clone(),
         tick_index: master.tick_index,
         replay_step: master.replay_step,
-        engine_state: master.engine_state.clone(),
-        execution_state: master.execution_state.clone(),
+        engine_state: master.engine_state.clone()
     };
 
     let payload: Vec<u8> = rmp_serde::to_vec(&snapshot)?;

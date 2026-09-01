@@ -30,35 +30,53 @@ use tracing::{info, warn};
 // IMPLEMENTATION
 //----------------------------------------------------------------------------------------------------------------------
 
+///
 /// Defines the replay state machine.
+///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ReplayStep {
+    //
     /// Publishes the next tick to Pulsar.
+    ///
     PublishTick,
+    ///
     /// Waits for the engine to process the tick.
+    ///
     WaitEngine,
-    /// Waits for the execution result.
-    WaitExecution,
+    ///
     /// Persists the current replay state.
+    ///
     Persist,
 }
-
+///
 /// Represents a serializable trade tick.
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TickMessage {
+    ///
     /// Unique tick identifier.
+    ///
     pub id: u64,
+    ///
     /// Tick timestamp.
+    ///
     pub time: u64,
+    ///
     /// Trade price.
+    ///
     pub price: u64,
+    //
     /// Trade quantity.
+    ///
     pub qty: u64,
+    ///
     /// Indicates whether the buyer was the maker.
+    ///
     pub is_buyer_maker: u8,
 }
-
+///
 /// Converts a [`Tick`] into a [`TickMessage`].
+///
 impl From<&Tick> for TickMessage {
     fn from(tick: &Tick) -> Self {
         Self {
@@ -70,22 +88,33 @@ impl From<&Tick> for TickMessage {
         }
     }
 }
-
+///
 /// Represents a batch of trade ticks published to Pulsar.
+///
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TickBatchMessage {
+    ///
     /// Unique identifier for the replay boot.
+    ///
     pub boot_id: String,
+    ///
     /// Hash identifying the replay configuration.
+    ///
     pub config_id: String,
+    ///
     /// Index of the first tick in the batch.
+    ///
     pub first_tick_index: usize,
+    ///
     /// Ticks included in the batch.
+    ///
     pub ticks: Vec<TickMessage>,
 }
 
 impl SerializeMessage for TickBatchMessage {
+    ///
     /// Serializes the tick batch into a MessagePack payload for Pulsar.
+    ///
     fn serialize_message(input: Self) -> Result<producer::Message, PulsarError> {
         let payload: Vec<u8> = rmp_serde::to_vec(&input)
             .map_err(|e: rmp_serde::encode::Error| PulsarError::Custom(e.to_string()))?;
@@ -98,11 +127,15 @@ impl SerializeMessage for TickBatchMessage {
 }
 
 //----------------------------------------------------------------------------------------------------------------------
-// REPLAY STATE MACHINE
+// REPLAY MACHINE
 //----------------------------------------------------------------------------------------------------------------------
 
+///
 /// Runs the replay state machine until the replay is stopped.
+///
 async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> Result<()> {
+    info!("Running replay task...");
+
     loop {
         tokio::time::sleep(Duration::from_millis(60_000)).await; //DEBUG
         //
@@ -111,7 +144,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
         {
             let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
-            if !master.can_publish_to_slaves() {
+            if !master.can_publish() {
                 tokio::time::sleep(Duration::from_millis(1_000)).await;
                 continue;
             }
@@ -223,17 +256,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 //
                 state.engine_notify.notified().await;
                 //
-                // Move to the execution wait state.
-                //
-                let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
-                master.replay_step = ReplayStep::WaitExecution;
-            }
-
-            ReplayStep::WaitExecution => {
-                //state.execution_notify.notified().await;
-
-                //
-                // Move to the persistence state.
+                // Move to the persist state.
                 //
                 let mut master: RwLockWriteGuard<'_, MasterState> = state.master.write().await;
                 master.replay_step = ReplayStep::Persist;
@@ -257,14 +280,14 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
                 if master.tick_index % 1_000_000 == 0 {
                     save_snapshot(&master).await?;
                 }
-
+                //
+                // Drop the unused master lock.
+                //
                 drop(master);
-
+                //
+                // Ack engine consumer and publish the updated master state.
+                //
                 state.engine_ack_notify.notify_one();
-                state.execution_ack_notify.notify_one();
-                //
-                // Publish the updated master state.
-                //
                 state.publish_master_state().await?;
             }
         }
@@ -276,8 +299,9 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
 //----------------------------------------------------------------------------------------------------------------------
 // RUN
 //----------------------------------------------------------------------------------------------------------------------
-
+///
 /// Starts the asynchronous replay worker.
+///
 pub async fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) -> Result<()> {
     //
     // Create the Pulsar producer.
@@ -293,17 +317,14 @@ pub async fn run(state: AppState, pulsar: Arc<Pulsar<TokioExecutor>>) -> Result<
         })
         .build()
         .await
-        .context("Failed to create Pulsar producer")?;
+        .context("Failed to create Pulsar producer.")?;
 
-    info!("Running replay task...");
     //
     // Run the replay loop.
     //
     run_replay(state, &mut producer)
         .await
-        .context("Replay state machine failed")?;
-
-    info!("Replay task terminated");
+        .context("Replay state machine failed.")?;
 
     Ok(())
 }

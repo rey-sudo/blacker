@@ -16,8 +16,7 @@
 use crate::{
     config::AppConfig,
     slaves::{
-        engine::{EngineState},
-        execution::ExecutionState,
+        engine::{EngineState}
     },
     snapshot::ReplaySnapshot,
     tasks::ReplayStep,
@@ -68,7 +67,6 @@ pub struct MasterState {
     pub tick_data: Arc<BinaryFile>,
     pub tick_index: usize,
     pub engine_state: EngineState,
-    pub execution_state: ExecutionState
 }
 
 impl fmt::Debug for MasterState {
@@ -79,7 +77,6 @@ impl fmt::Debug for MasterState {
             .field("replay_step", &self.replay_step)
             .field("tick_index", &self.tick_index)
             .field("engine_state", &self.engine_state)
-            .field("execution_state", &self.execution_state)
             .finish()
     }
 }
@@ -112,7 +109,7 @@ impl MasterState {
         })
     }
 
-    pub fn can_publish_to_slaves(&self) -> bool {
+    pub fn can_publish(&self) -> bool {
         self.status == MasterStatus::Ready && self.replay_status == ReplayStatus::Running
     }
 }
@@ -128,9 +125,7 @@ pub struct AppState {
     pub replay_batch_size: usize,
     pub replay_notify: Arc<Notify>,
     pub engine_notify: Arc<Notify>,
-    pub execution_notify: Arc<Notify>,
     pub engine_ack_notify: Arc<Notify>,
-    pub execution_ack_notify: Arc<Notify>,
     pub master_state_tx: Sender<Arc<String>>,
 }
 
@@ -140,19 +135,18 @@ impl AppState {
         tick_data: Arc<BinaryFile>,
         snapshot: Option<ReplaySnapshot>,
     ) -> Self {
-        info!("Loading Snapshot...");
+        info!("Loading snapshot...");
 
         let boot_id: String = Uuid::now_v7().to_string();
 
         let replay_batch_size: usize = 150000;
 
-        let (config_id, tick_index, replay_step, engine_state, execution_state) = match snapshot {
+        let (config_id, tick_index, replay_step, engine_state) = match snapshot {
             Some(snapshot) => (
                 snapshot.config_id,
                 snapshot.tick_index,
                 snapshot.replay_step,
                 snapshot.engine_state,
-                snapshot.execution_state,
             ),
 
             None => (
@@ -160,7 +154,6 @@ impl AppState {
                 0,
                 ReplayStep::PublishTick,
                 EngineState::default(),
-                ExecutionState::default(),
             ),
         };
 
@@ -172,8 +165,7 @@ impl AppState {
             replay_step,
             tick_data,
             tick_index,
-            engine_state,
-            execution_state
+            engine_state
         };
 
         let (master_state_tx, _) = watch::channel(Arc::new(String::from("{}")));
@@ -184,9 +176,7 @@ impl AppState {
             replay_batch_size,
             replay_notify: Arc::new(Notify::new()),
             engine_notify: Arc::new(Notify::new()),
-            execution_notify: Arc::new(Notify::new()),
             engine_ack_notify: Arc::new(Notify::new()),
-            execution_ack_notify: Arc::new(Notify::new()),
             master_state_tx,
         }
     }
