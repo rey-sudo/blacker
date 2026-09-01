@@ -70,7 +70,7 @@ export const useTradingTabStore = (tab: TradingTab) =>
     const timeframe = ref("1m");
     const isPaused = ref(false);
     const history = ref<any>([]);
-    const tabTitle = computed(() => `${symbol.value} - ${timeframe.value}`);
+    const tabTitle = computed(() => `${symbol.value} ${timeframe.value}`);
     const layout = ref<ChartLayout>({
       series: new Map<SeriesId, LayoutSeries>(),
     });

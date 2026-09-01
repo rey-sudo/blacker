@@ -74,7 +74,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
 
       const id = tab.id;
       const symbol = ref(tab.symbol);
-      const tabTitle = computed(() => `${symbol.value} - BT`);
+      const tabTitle = computed(() => `${symbol.value} BT`);
       const tabColor = "warning";
 
       const status = computed(() => globalState.value.status);
