@@ -36,7 +36,7 @@ use tracing::{info, warn};
 ///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ReplayStep {
-    //
+    ///
     /// Publishes the next tick to Pulsar.
     ///
     PublishTick,
