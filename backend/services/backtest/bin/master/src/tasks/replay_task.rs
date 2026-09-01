@@ -24,6 +24,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::{RwLockReadGuard, RwLockWriteGuard};
+use tokio::time::sleep;
 use tracing::{info, warn};
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -137,7 +138,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
     info!("Running replay task...");
 
     loop {
-        tokio::time::sleep(Duration::from_millis(60_000)).await; //DEBUG
+        sleep(Duration::from_millis(60_000)).await; //DEBUG
         //
         // Check whether the master is ready to publish.
         //
@@ -145,7 +146,7 @@ async fn run_replay(state: AppState, producer: &mut Producer<TokioExecutor>) -> 
             let master: RwLockReadGuard<'_, MasterState> = state.master.read().await;
 
             if !master.can_publish() {
-                tokio::time::sleep(Duration::from_millis(1_000)).await;
+                sleep(Duration::from_millis(1_000)).await;
                 continue;
             }
         }
