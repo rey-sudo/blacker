@@ -72,7 +72,7 @@ const slavesStatus = computed<KeyLabelColor[]>(() => [
 //----------------------------------------------------------------------------------------------------------------------
 
 const timeframeModalOpen = ref(false);
-const timeframeModalTitle = ref("Add Custom Interval");
+const timeframeModalTitle = ref("Add Timeframe");
 const timeframeModalItems = ref<SelectItem[]>([
   {
     type: "label",
@@ -97,6 +97,17 @@ const timeframeModalItems = ref<SelectItem[]>([
   "6h",
 ]);
 const timeframeSelected = ref("1m");
+
+//----------------------------------------------------------------------------------------------------------------------
+// SERIES
+//----------------------------------------------------------------------------------------------------------------------
+
+const seriesModalOpen = ref(false);
+const seriesModalTitle = ref("Add Series");
+
+//----------------------------------------------------------------------------------------------------------------------
+// HANDLERS
+//----------------------------------------------------------------------------------------------------------------------
 
 async function onStartBacktest() {
   try {
@@ -123,7 +134,7 @@ async function onStopBacktest() {
     });
   }
 }
-async function onTimeframeAdded() {
+async function onTimeframeSelected() {
   try {
     await tabStore.addTimeframe(timeframeSelected.value);
   } catch (err: any) {
@@ -141,10 +152,9 @@ async function onTimeframeAdded() {
 
 <template>
   <div class="backtesting-toolbar">
-    <!----------------------------------------------------------------------------------------------------------------------
-  WORKER STATES
------------------------------------------------------------------------------------------------------------------------>
-    <div class="backtesting-toolbar-slaves">
+    <!----------WORKER STATES ------------>
+
+    <div class="backtesting-toolbar-workers">
       <UButton
         v-for="state in slavesStatus"
         :key="state.key"
@@ -158,10 +168,10 @@ async function onTimeframeAdded() {
     </div>
 
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
-    <!----------------------------------------------------------------------------------------------------------------------
-  ADD TIMEFRAMES
------------------------------------------------------------------------------------------------------------------------>
-    <div class="backtesting-toolbar-timeframes">
+
+    <!--------- TIMEFRAMES ---------->
+
+    <div class="backtesting-toolbar-controls">
       <UModal
         v-model:open="timeframeModalOpen"
         :title="timeframeModalTitle"
@@ -203,44 +213,76 @@ async function onTimeframeAdded() {
               color="neutral"
               size="md"
               variant="solid"
-              @click="onTimeframeAdded"
+              @click="onTimeframeSelected"
             >
               Add
             </UButton>
           </div>
         </template>
       </UModal>
+
+      <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
+
+      <UModal
+        v-model:open="seriesModalOpen"
+        :title="seriesModalTitle"
+        :close="{
+          color: 'neutral',
+          variant: 'outline',
+          class: 'rounded-full',
+        }"
+        :overlay="false"
+      >
+        <UButton color="neutral" variant="outline" icon="lucide:plus" size="xs"
+          >Series</UButton
+        >
+
+        <template #body>
+
+        </template>
+
+        <template #footer>
+          <div class="content w-full flex justify-end gap-2">
+            <UButton
+              color="neutral"
+              size="md"
+              variant="outline"
+              @click="seriesModalOpen = false"
+              >Cancel</UButton
+            >
+
+            <UButton
+              color="neutral"
+              size="md"
+              variant="solid"
+              @click="onTimeframeSelected"
+            >
+              Add
+            </UButton>
+          </div>
+        </template>
+      </UModal>
+
+      <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
+
+      <UButton
+        v-for="timeframe in props.timeframes"
+        :key="timeframe"
+        color="neutral"
+        variant="outline"
+        size="xs"
+        :class="{
+          'bg-neutral-200 dark:bg-neutral-800':
+            timeframe === props.activeTimeframe,
+        }"
+        @click="emit('update:timeframe', timeframe)"
+      >
+        {{ timeframe }}
+      </UButton>
     </div>
+    <!------------- BACKTEST REPLAY ------------>
 
-    <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
-
-    <UButton color="neutral" variant="outline" icon="lucide:plus" size="xs"
-      >Series</UButton
-    >
-    
-    <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
-
-    <UButton
-      v-for="timeframe in props.timeframes"
-      :key="timeframe"
-      color="neutral"
-      variant="outline"
-      size="xs"
-      :class="{
-        'bg-neutral-200 dark:bg-neutral-800':
-          timeframe === props.activeTimeframe,
-      }"
-      @click="emit('update:timeframe', timeframe)"
-    >
-      {{ timeframe }}
-    </UButton>
-
-
-
-    <!----------------------------------------------------------------------------------------------------------------------
-  BACKTEST CONTROLS
------------------------------------------------------------------------------------------------------------------------>
-    <div class="backtesting-toolbar-controls">
+    <div class="backtesting-toolbar-replay">
       <UButton
         title="Back"
         color="neutral"
@@ -290,24 +332,24 @@ async function onTimeframeAdded() {
   height: var(--header-height);
 }
 
-.backtesting-toolbar-slaves {
+.backtesting-toolbar-workers {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.backtesting-toolbar-slaves .label {
+.backtesting-toolbar-workers .label {
   color: var(--ui-text-muted);
   font-weight: 500;
 }
 
-.backtesting-toolbar-timeframes {
+.backtesting-toolbar-controls {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
-.backtesting-toolbar-controls {
+.backtesting-toolbar-replay {
   display: flex;
   align-items: center;
   margin-left: auto;
