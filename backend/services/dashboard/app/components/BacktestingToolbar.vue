@@ -210,23 +210,6 @@ async function onTimeframeAdded() {
           </div>
         </template>
       </UModal>
-
-      <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
-
-      <UButton
-        v-for="timeframe in props.timeframes"
-        :key="timeframe"
-        color="neutral"
-        variant="outline"
-        size="xs"
-        :class="{
-          'bg-neutral-200 dark:bg-neutral-800':
-            timeframe === props.activeTimeframe,
-        }"
-        @click="emit('update:timeframe', timeframe)"
-      >
-        {{ timeframe }}
-      </UButton>
     </div>
 
     <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
@@ -234,6 +217,25 @@ async function onTimeframeAdded() {
     <UButton color="neutral" variant="outline" icon="lucide:plus" size="xs"
       >Series</UButton
     >
+    
+    <USeparator orientation="vertical" class="h-10 pl-4 pr-4" />
+
+    <UButton
+      v-for="timeframe in props.timeframes"
+      :key="timeframe"
+      color="neutral"
+      variant="outline"
+      size="xs"
+      :class="{
+        'bg-neutral-200 dark:bg-neutral-800':
+          timeframe === props.activeTimeframe,
+      }"
+      @click="emit('update:timeframe', timeframe)"
+    >
+      {{ timeframe }}
+    </UButton>
+
+
 
     <!----------------------------------------------------------------------------------------------------------------------
   BACKTEST CONTROLS

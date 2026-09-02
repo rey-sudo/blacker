@@ -197,9 +197,9 @@ onUnmounted(() => {
   height: 100%;
   min-height: 0;
   display: flex;
+  padding: var(--tab-content-padding);
   flex-direction: column;
   box-sizing: border-box;
-
 }
 
 .charts {
@@ -207,6 +207,7 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   width: 100%;
+ 
 }
 
 .chart-wrapper {
