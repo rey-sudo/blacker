@@ -16,75 +16,27 @@
 
 import { h, resolveComponent } from "vue";
 import type { TableColumn, TableRow } from "@nuxt/ui";
-
-export type Instrument = {
-  id: string;
-  source: string;
-  symbol: string;
-  status: "sync" | "unsync";
-  legend: string;
-  market: string;
-};
+import type { Series } from "./Chart.vue";
 
 const props = defineProps<{
-  data: Instrument[];
+  data: Series[];
 }>();
 
 const emit = defineEmits<{
-  (e: "select", instrument: Instrument): void;
+  (e: "select", instrument: Series): void;
 }>();
 
-const UBadge = resolveComponent("UBadge");
-
-const columns: TableColumn<Instrument>[] = [
+const columns: TableColumn<Series>[] = [
   {
-    accessorKey: "source",
-    header: "Source",
-    cell: ({ row }) => `${row.getValue("source")}`,
-  },
-  {
-    accessorKey: "symbol",
-    header: "Symbol",
-    cell: ({ row }) => {
-      return row.getValue("symbol");
-    },
-  },
-  {
-    accessorKey: "legend",
-    header: "Legend",
-  },
-  {
-    accessorKey: "market",
-    header: "Market",
-    meta: {
-      class: {
-        th: "text-right",
-        td: "text-right font-medium",
-      },
-    },
-    cell: ({ row }) => {
-      return row.getValue("market");
-    },
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const color = {
-        sync: "success" as const,
-        unsync: "error" as const,
-      }[row.getValue("status") as string];
-
-      return h(UBadge, { class: "capitalize", variant: "subtle", color }, () =>
-        row.getValue("status"),
-      );
-    },
-  },
+    accessorKey: "name",
+    header: "Name",
+    cell: ({ row }) => `${row.getValue("name")}`,
+  }
 ];
 
 const globalFilter = ref("");
 
-function onSelect(e: Event, row: TableRow<Instrument>) {
+function onSelect(e: Event, row: TableRow<Series>) {
   emit("select", row.original);
 }
 </script>

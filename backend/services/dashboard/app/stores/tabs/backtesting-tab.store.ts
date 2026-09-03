@@ -8,6 +8,7 @@ export interface EngineState {
   tick_index: number;
   time: number;
   timeframes: Record<string, ChartTimeframe>;
+  strategy: EngineStrategy;
 }
 
 type Value = unknown;
@@ -31,7 +32,6 @@ export interface MasterState {
   replay_step: string;
   tick_index: number;
   engine_state: EngineState;
-  engine_strategy: EngineStrategy;
 }
 
 /**
@@ -68,8 +68,8 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
           tick_index: 0,
           time: 0,
           timeframes: {},
-        },
-        engine_strategy: { kind: "", params: {} },
+          strategy: { kind: "", params: {} },
+        }
       });
 
       const id = tab.id;

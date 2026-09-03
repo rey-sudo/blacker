@@ -104,6 +104,7 @@ pub async fn add_timeframe_handler(
                 level: 0,
                 params: series_params,
                 parent_id: None,
+                primary: true,
                 extra: None,
             },
         )]),

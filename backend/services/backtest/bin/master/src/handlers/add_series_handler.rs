@@ -14,8 +14,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    master::state::{AppState, MasterState, ReplayStatus},
     engine::engine::{Series, Timeframe},
+    master::state::{AppState, MasterState, ReplayStatus},
 };
 use axum::{Json, extract::State, http::StatusCode};
 use serde::{Deserialize, Serialize};
@@ -34,6 +34,7 @@ pub struct Request {
     pub level: u8,
     pub params: HashMap<String, Value>,
     pub parent_id: Option<String>,
+    pub primary: bool,
 }
 
 /// Response returned after attempting to add a series.
@@ -98,6 +99,24 @@ pub async fn add_series_handler(
         );
     }
 
+    if req.primary
+        && timeframe
+            .series
+            .values()
+            .any(|series: &Series| series.primary)
+    {
+        return (
+            StatusCode::CONFLICT,
+            Json(Response {
+                success: false,
+                message: format!(
+                    "A primary series already exists in timeframe: {}",
+                    req.timeframe_id
+                ),
+            }),
+        );
+    }
+
     if let Some(parent_id) = &req.parent_id {
         if !timeframe.series.contains_key(parent_id) {
             return (
@@ -123,6 +142,7 @@ pub async fn add_series_handler(
         level: req.level,
         params: req.params,
         parent_id: req.parent_id,
+        primary: req.primary,
         extra: None,
     };
 

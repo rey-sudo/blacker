@@ -16,6 +16,7 @@
 import { ref, computed } from "vue";
 import type { SelectItem } from "@nuxt/ui";
 import { useBacktestingTabStore } from "~/stores/tabs/backtesting-tab.store";
+import type { Series } from "./Chart.vue";
 
 const props = defineProps({
   tabId: {
@@ -104,6 +105,23 @@ const timeframeSelected = ref("1m");
 
 const seriesModalOpen = ref(false);
 const seriesModalTitle = ref("Add Series");
+const seriesData: Series[] = [
+  {
+    id: "ema",
+    kind: "EMA",
+    level: 1,
+    params: {
+      label: "EMA 55",
+      layer: "foreground",
+      color: "#FF9800",
+      priceTagColor: "#FF9800",
+      period: 55,
+      lineWidth: 1,
+    },
+    parent_id: null,
+    name: "Exponential Moving Average",
+  },
+];
 
 //----------------------------------------------------------------------------------------------------------------------
 // HANDLERS
@@ -134,6 +152,7 @@ async function onStopBacktest() {
     });
   }
 }
+
 async function onTimeframeSelected() {
   try {
     await tabStore.addTimeframe(timeframeSelected.value);
@@ -147,6 +166,35 @@ async function onTimeframeSelected() {
   }
 
   timeframeModalOpen.value = false;
+}
+
+async function onSeriesSelected(event: Series) {
+  try {
+    const params = {
+      ...event,
+      timeframe_id: timeframeSelected.value,
+      parent_id: "candlestick-1m-705590009",
+    };
+
+    console.log(params);
+
+    toast.add({
+      title: "Success",
+      description: `Series ${event.kind} added`,
+      icon: "i-lucide-circle-check",
+      color: "success",
+    });
+
+  } catch (err: any) {
+    toast.add({
+      title: "Error adding series",
+      description: err.data.message,
+      icon: "i-lucide-circle-x",
+      color: "error",
+    });
+  }
+
+  seriesModalOpen.value = false;
 }
 </script>
 
@@ -232,34 +280,16 @@ async function onTimeframeSelected() {
           class: 'rounded-full',
         }"
         :overlay="false"
+        :ui="{
+          content: 'w-fit max-w-none rounded-lg shadow-lg ring ring-default',
+        }"
       >
         <UButton color="neutral" variant="outline" icon="lucide:plus" size="xs"
           >Series</UButton
         >
 
         <template #body>
-
-        </template>
-
-        <template #footer>
-          <div class="content w-full flex justify-end gap-2">
-            <UButton
-              color="neutral"
-              size="md"
-              variant="outline"
-              @click="seriesModalOpen = false"
-              >Cancel</UButton
-            >
-
-            <UButton
-              color="neutral"
-              size="md"
-              variant="solid"
-              @click="onTimeframeSelected"
-            >
-              Add
-            </UButton>
-          </div>
+          <SeriesSearch :data="seriesData" @select="onSeriesSelected" />
         </template>
       </UModal>
 
