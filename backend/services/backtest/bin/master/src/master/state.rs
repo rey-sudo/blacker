@@ -25,7 +25,7 @@ use anyhow::Result;
 use cursor_db::{binary::BinaryFile, trade::Trade};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use std::{collections::HashMap, fmt};
+use std::{fmt};
 use tokio::sync::{Notify, RwLock, watch};
 use tokio::sync::{RwLockReadGuard, watch::Sender};
 use tracing::info;

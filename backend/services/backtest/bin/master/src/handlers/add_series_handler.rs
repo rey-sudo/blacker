@@ -32,9 +32,9 @@ pub struct Request {
     pub id: String,
     pub kind: String,
     pub level: u8,
-    pub params: HashMap<String, Value>,
-    pub parent_id: Option<String>,
     pub primary: bool,
+    pub overlay: bool,
+    pub params: HashMap<String, Value>
 }
 
 /// Response returned after attempting to add a series.
@@ -117,21 +117,6 @@ pub async fn add_series_handler(
         );
     }
 
-    if let Some(parent_id) = &req.parent_id {
-        if !timeframe.series.contains_key(parent_id) {
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(Response {
-                    success: false,
-                    message: format!(
-                        "Parent series not found in timeframe {}: {}",
-                        req.timeframe_id, parent_id
-                    ),
-                }),
-            );
-        }
-    }
-
     let n: u32 = rand::RngExt::random::<u32>(&mut rand::rng());
 
     let series_id: String = format!("{}-{}-{}", req.id, req.timeframe_id, n);
@@ -140,9 +125,9 @@ pub async fn add_series_handler(
         id: series_id,
         kind: req.kind,
         level: req.level,
-        params: req.params,
-        parent_id: req.parent_id,
         primary: req.primary,
+        overlay: req.overlay,
+        params: req.params,
         extra: None,
     };
 
