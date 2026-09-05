@@ -149,9 +149,7 @@ const updateCharts = async () => {
 // -----------------------------------------------------------------------------
 
 const unsubscribe = tabStore.listeners.subscribe(async (event) => {
-  if (event.type !== "live-update") {
-    return;
-  }
+  if (event.type !== "live-update") return;
 
   await updateCharts();
 });
@@ -207,7 +205,6 @@ onUnmounted(() => {
   flex: 1;
   min-height: 0;
   width: 100%;
- 
 }
 
 .chart-wrapper {

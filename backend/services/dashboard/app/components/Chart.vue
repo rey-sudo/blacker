@@ -250,7 +250,7 @@ function createOverlaySeries(seriesId: SeriesId, seriesValue: Series) {
     ...seriesValue,
     chart: primaryChart,
     serie,
-    kind: seriesValue.kind as SeriesKind
+    kind: seriesValue.kind as SeriesKind,
   });
 }
 
@@ -343,7 +343,7 @@ function requiresRecreation(
     return true;
   }
 
-  if (runtime.params !== seriesValue.params) {
+  if (JSON.stringify(runtime.params) !== JSON.stringify(seriesValue.params)) {
     return true;
   }
 
@@ -412,7 +412,7 @@ function applyLayout(timeframe: ChartTimeframe) {
   }
 
   /**
-   * Destroy overlays before the primary. 
+   * Destroy overlays before the primary.
    * The primary owns their ChartEngine.
    */
   seriesToRemove.sort((a, b) => {
