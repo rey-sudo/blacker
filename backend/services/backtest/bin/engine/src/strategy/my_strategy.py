@@ -32,6 +32,8 @@ class Strategy1(Strategy):
 
         tf = state.timeframes.get("1m")
 
+        return None
+
         ema_55 = tf.get_series(
             "EMA",
             "EMA 55"
