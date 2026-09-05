@@ -1,6 +1,4 @@
-import type { ChartTimeframe } from "~/components/Chart.vue";
-import type { LayoutSeries } from ".";
-
+import type { ChartTimeframe, Series } from "~/components/Chart.vue";
 /**
  * EngineState def.
  */
@@ -37,9 +35,7 @@ export interface MasterState {
 /**
  * Store event
  */
-type BacktestingTabStoreEvent =
-  | { type: "series-added"; series: LayoutSeries }
-  | { type: "live-update"; data: any };
+type BacktestingTabStoreEvent = { type: "live-update"; data: any };
 
 /**
  * Store event handler.
@@ -69,7 +65,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
           time: 0,
           timeframes: {},
           strategy: { kind: "", params: {} },
-        }
+        },
       });
 
       const id = tab.id;
@@ -177,6 +173,24 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       }
 
       /**
+       * Add series request.
+       */
+      async function addSeries(timeframeId: string, series: Series) {
+        try {
+          return await $fetch("/api/backtest/master/add-series", {
+            method: "POST",
+            body: {
+              timeframe_id: timeframeId,
+              ...series
+            },
+          });
+        } catch (err: any) {
+          console.error("[BacktestingTabStore] Failed to add series:", err);
+          throw err;
+        }
+      }
+
+      /**
        * Returns the associated tab instance.
        */
       function getTab() {
@@ -195,6 +209,7 @@ export const useBacktestingTabStore = (tab: BacktestingTab) =>
       function onUnmount() {}
 
       return {
+        addSeries,
         addTimeframe,
         isExecutionConnected,
         isEngineConnected,

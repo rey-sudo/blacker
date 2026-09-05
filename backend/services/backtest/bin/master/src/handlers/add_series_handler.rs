@@ -24,7 +24,9 @@ use std::collections::HashMap;
 use tokio::sync::RwLockWriteGuard;
 use tracing::info;
 
+///
 /// Request payload for adding a new series.
+/// 
 #[derive(Debug, Deserialize)]
 pub struct Request {
     pub timeframe_id: String,
@@ -36,15 +38,17 @@ pub struct Request {
     pub overlay: bool,
     pub params: HashMap<String, Value>
 }
-
+///
 /// Response returned after attempting to add a series.
+/// 
 #[derive(Serialize)]
 pub struct Response {
     pub success: bool,
     pub message: String,
 }
-
+///
 /// Adds a new series to an existing timeframe.
+/// 
 pub async fn add_series_handler(
     State(state): State<AppState>,
     Json(req): Json<Request>,

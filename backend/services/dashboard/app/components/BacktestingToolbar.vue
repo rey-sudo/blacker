@@ -97,7 +97,7 @@ const timeframeModalItems = ref<SelectItem[]>([
   "4h",
   "6h",
 ]);
-const timeframeSelected = ref("1m");
+const timeframeSelected = ref("");
 
 //----------------------------------------------------------------------------------------------------------------------
 // SERIES
@@ -120,7 +120,7 @@ const seriesData: Series[] = [
       period: 55,
       lineWidth: 1,
     },
-    name: "Exponential Moving Average"
+    name: "Exponential Moving Average",
   },
 ];
 
@@ -169,18 +169,14 @@ async function onTimeframeSelected() {
   timeframeModalOpen.value = false;
 }
 
-async function onSeriesSelected(event: Series) {
+async function onSeriesSelected(series: Series) {
   try {
-    const params = {
-      ...event,
-      timeframe_id: timeframeSelected.value,
-    };
-
-    console.log(params);
+    
+    await tabStore.addSeries(timeframeSelected.value, series)
 
     toast.add({
       title: "Success",
-      description: `Series ${event.kind} added`,
+      description: `Series ${series.kind} added`,
       icon: "i-lucide-circle-check",
       color: "success",
     });
