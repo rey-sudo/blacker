@@ -14,11 +14,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import { onBeforeUnmount, onMounted, ref } from "vue";
-
 import { createChart } from "@/packages/src/index";
 import type { ChartOptions } from "~/packages/src/core/config";
 import type { AnyChartSeries, ChartEngine } from "~/packages/src/core/types";
-
 import { seriesRegistry, type SeriesId, type SeriesKind } from "~/stores/tabs";
 
 export interface Series {
@@ -44,6 +42,7 @@ interface RuntimeSeries {
   kind: SeriesKind;
   primary: boolean;
   overlay: boolean;
+  params: Record<string, unknown>;
 }
 
 /**
@@ -213,6 +212,7 @@ function createPrimarySeries(seriesId: SeriesId, seriesValue: Series) {
     kind: seriesValue.kind as SeriesKind,
     primary: true,
     overlay: false,
+    params: seriesValue.params,
   });
 }
 
@@ -239,13 +239,14 @@ function createOverlaySeries(seriesId: SeriesId, seriesValue: Series) {
     kind: seriesValue.kind as SeriesKind,
     primary: false,
     overlay: true,
+    params: seriesValue.params,
   });
 }
 
 /**
  * Creates a runtime series according to its type.
  */
-function createRuntimeSeries(seriesId: SeriesId, seriesValue: Series) {
+function _createRuntimeSeries(seriesId: SeriesId, seriesValue: Series) {
   validateSeries(seriesValue);
 
   if (seriesValue.primary) {
@@ -258,6 +259,7 @@ function createRuntimeSeries(seriesId: SeriesId, seriesValue: Series) {
 }
 
 /**
+ ** -------------------------------------------------------------------------
  * Resolves the creation order.
  *
  * The primary must exist before overlays because overlays
@@ -265,6 +267,7 @@ function createRuntimeSeries(seriesId: SeriesId, seriesValue: Series) {
  *
  * level is only used to preserve the existing ordering
  * between series. It is NOT used to determine ownership.
+ * -------------------------------------------------------------------------
  */
 function resolveSeriesOrder(series: Record<string, Series>): Series[] {
   return Object.values(series).sort((a, b) => {
@@ -279,7 +282,7 @@ function resolveSeriesOrder(series: Record<string, Series>): Series[] {
 /**
  * Removes a single runtime series.
  */
-function destroySeries(seriesId: SeriesId) {
+function _destroySeries(seriesId: SeriesId) {
   const runtime = allSeries.get(seriesId);
 
   if (!runtime) {
@@ -302,10 +305,12 @@ function destroySeries(seriesId: SeriesId) {
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Determines whether an existing runtime series
  * can be reused.
  *
  * A series must be recreated if its kind or topology changes.
+ * -------------------------------------------------------------------------
  */
 function requiresRecreation(
   runtime: RuntimeSeries,
@@ -323,13 +328,19 @@ function requiresRecreation(
     return true;
   }
 
+  if (runtime.params !== seriesValue.params) {
+    return true;
+  }
+
   return false;
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Removes ChartEngines that no longer own active series.
+ * -------------------------------------------------------------------------
  */
-function cleanupEmptyCharts() {
+function _cleanupEmptyCharts() {
   const activeCharts = new Set<ChartEngine>();
 
   for (const runtime of allSeries.values()) {
@@ -354,6 +365,7 @@ function cleanupEmptyCharts() {
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Applies a timeframe layout.
  *
  * Reconciliation is incremental:
@@ -364,6 +376,7 @@ function cleanupEmptyCharts() {
  * - Series whose kind/topology changed are recreated.
  *
  * Data is intentionally NOT updated here.
+ * -------------------------------------------------------------------------
  */
 function applyLayout(timeframe: ChartTimeframe) {
   const definitions = timeframe.series;
@@ -386,9 +399,9 @@ function applyLayout(timeframe: ChartTimeframe) {
   }
 
   /**
-   * Destroy overlays before the primary.
-   *
-   * The primary owns their ChartEngine.
+   * -------------------------------------------------------------------------
+   * Destroy overlays before the primary. The primary owns their ChartEngine.
+   * -------------------------------------------------------------------------
    */
   seriesToRemove.sort((a, b) => {
     const seriesA = definitions[a];
@@ -406,7 +419,7 @@ function applyLayout(timeframe: ChartTimeframe) {
   });
 
   for (const seriesId of seriesToRemove) {
-    destroySeries(seriesId);
+    _destroySeries(seriesId);
   }
 
   /**
@@ -426,11 +439,8 @@ function applyLayout(timeframe: ChartTimeframe) {
 
     const existing = allSeries.get(seriesId);
 
-    /**
-     * New series.
-     */
     if (!existing) {
-      createRuntimeSeries(seriesId, seriesValue);
+      _createRuntimeSeries(seriesId, seriesValue);
 
       continue;
     }
@@ -439,30 +449,21 @@ function applyLayout(timeframe: ChartTimeframe) {
      * Existing series whose runtime topology changed.
      */
     if (requiresRecreation(existing, seriesValue)) {
-      destroySeries(seriesId);
+      _destroySeries(seriesId);
 
-      createRuntimeSeries(seriesId, seriesValue);
+      _createRuntimeSeries(seriesId, seriesValue);
 
       continue;
     }
-
-    /**
-     * Existing compatible series.
-     *
-     * Keep both the ChartEngine and AnyChartSeries alive.
-     *
-     * Data updates happen separately through:
-     * setData()
-     * patchData()
-     * updateLive()
-     */
   }
 
-  cleanupEmptyCharts();
+  _cleanupEmptyCharts();
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Applies options to the ChartEngine owning the series.
+ * -------------------------------------------------------------------------
  */
 function applyOptions(seriesId: SeriesId, config: Partial<ChartOptions>) {
   const runtime = allSeries.get(seriesId);
@@ -477,35 +478,45 @@ function applyOptions(seriesId: SeriesId, config: Partial<ChartOptions>) {
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Sets the complete data of a series.
+ * -------------------------------------------------------------------------
  */
 function setData(seriesId: SeriesId, data: any) {
   allSeries.get(seriesId)?.serie.setData(data);
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Patches existing series data.
+ * -------------------------------------------------------------------------
  */
 function patchData(seriesId: SeriesId, data: any) {
   allSeries.get(seriesId)?.serie.patchData(data);
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Updates the latest live candle/tick.
+ * -------------------------------------------------------------------------
  */
 function updateLive(seriesId: SeriesId, candle: any) {
   allSeries.get(seriesId)?.serie.update(candle);
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Returns the runtime series.
+ * -------------------------------------------------------------------------
  */
 function getSeriesById(seriesId: SeriesId) {
   return allSeries.get(seriesId);
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Public Chart.vue API.
+ * -------------------------------------------------------------------------
  */
 defineExpose({
   patchData,
@@ -517,7 +528,9 @@ defineExpose({
 });
 
 /**
+ * -------------------------------------------------------------------------
  * Make sure the component is mounted before charts are created.
+ * -------------------------------------------------------------------------
  */
 onMounted(() => {
   if (!container.value) {
@@ -526,7 +539,9 @@ onMounted(() => {
 });
 
 /**
+ * -------------------------------------------------------------------------
  * Completely clean up this Chart.vue instance.
+ * -------------------------------------------------------------------------
  */
 onBeforeUnmount(() => {
   cleanAllSeries();
@@ -559,7 +574,8 @@ onBeforeUnmount(() => {
 
 /* Chrome / Edge / Safari */
 .chart-container::-webkit-scrollbar {
-  width: 17px;
+  background: var(--ui-bg-accented);
+  width: 16px;
 }
 
 .chart-container::-webkit-scrollbar-track {
