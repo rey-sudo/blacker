@@ -1,0 +1,59 @@
+:root {
+  --header-height: 2.5rem;
+  --header-background: var(--ui-bg);
+  --main-background: var(--ui-bg-accented);
+  --footer-background: var(--ui-bg);
+  --tab-content-padding: 0.25rem;
+  --card-shadow: 0 8px 24px rgba(15, 17, 23, 0.18);
+}
+
+:root {
+  --chart-bg: white;
+  --chart-header-background: var(--ui-bg);
+  --chart-header-height: 2.5rem;
+  --chart-radius: var(--ui-radius);
+}
+
+.dark {
+  --chart-bg: var(--ui-color-neutral-1000);
+}
+
+* {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+body {
+  font-variation-settings: "wdth" 100;
+  font-optical-sizing: auto;
+  font-style: normal;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+div {
+  caret-color: transparent;
+  user-select: text;
+}
+
+body :not(input):not(textarea):not([contenteditable="true"]):focus {
+  outline: none;
+}

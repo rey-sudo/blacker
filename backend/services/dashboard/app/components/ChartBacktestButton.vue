@@ -1,0 +1,85 @@
+<template>
+  <UModal
+    v-model:open="open"
+    :title="title"
+    :close="{
+      color: 'neutral',
+      variant: 'outline',
+      class: 'rounded-full',
+    }"
+    :overlay="false"
+  >
+    <UButton
+      class="ml-auto"
+      color="neutral"
+      size="xs"
+      variant="ghost"
+      icon="material-symbols:fast-forward"
+      >Backtest</UButton
+    >
+
+    <template #body>
+      <p class="w-100 fz-1">
+       Test and validate your strategy before trading live.
+      </p>
+    </template>
+
+    <template #footer>
+      <div class="content w-100 flex justify-end gap-2">
+        <UButton
+          color="neutral"
+          size="md"
+          variant="outline"
+          @click="open = false"
+          >Cancel</UButton
+        >
+
+        <UButton color="neutral" size="md" variant="solid" @click="onCreate"
+          >Create</UButton
+        >
+      </div>
+    </template>
+  </UModal>
+</template>
+
+<script setup lang="ts">
+import { useTradingTabStore } from "~/stores/tabs/trading-tab.store";
+
+const props = defineProps({
+  tabId: {
+    type: String,
+    required: true,
+  },
+});
+
+const tabsStore = useTabManager();
+
+const tab: ComputedRef<Tab | undefined> = computed(() =>
+  tabsStore.getTabById(props.tabId),
+);
+
+const tabStore = computed(() =>
+  tab.value ? useTradingTabStore(tab.value) : undefined,
+);
+
+const open = ref(false);
+
+const title = computed(() => {
+  return `Create a backtest for ${tabStore.value?.symbol}`;
+});
+
+const onCreate = () => {
+  const newTab: BacktestingTab = {
+    id: "newId",
+    kind: TabKind.Backtesting,
+    title: "backtest title",
+    subtitle: "sub title",
+    description: "description",
+    color: "neutral",
+    symbol: tabStore.value?.symbol || "symbol",
+  };
+
+  tabsStore.addTab(newTab);
+  open.value = false;
+};
+</script>

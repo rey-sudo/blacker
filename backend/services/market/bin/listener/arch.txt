@@ -1,0 +1,19 @@
+                    WebSocket
+                        │
+                        ▼
+                Reader Task (1)
+                        │
+             async_channel::Sender<Tick>
+                        │
+                        ▼
+                Batch Builder (1)
+                        │
+          async_channel::Sender<Batch>
+                        │
+        ┌───────────────┼───────────────┐
+        ▼               ▼               ▼
+    Writer 1        Writer 2        Writer N
+        │               │               │
+        └───────────────┴───────────────┘
+                        │
+                  ClickHouse

@@ -1,0 +1,22 @@
+[package]
+name = "listener"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-channel = "2.5.0"
+tokio = { version = "1.53.1", features = ["full"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+anyhow = "1.0.104"
+futures-util = "0.3.33"
+tracing = "0.1.44"
+tokio-tungstenite = { version = "0.30.0", features = [
+    "rustls-tls-webpki-roots"
+] }
+rustls = { version = "0.23.42", features = ["ring"] }
+tracing-subscriber = "0.3.23"
+chrono = { version = "0.4.45", features = ["serde"] }
+rust_decimal = "1.42.1"
+xxhash-rust = { version = "0.8.18", features = ["xxh3"] }
+clickhouse = "0.15.1"

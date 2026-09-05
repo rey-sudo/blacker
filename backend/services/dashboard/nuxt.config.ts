@@ -1,0 +1,50 @@
+// BLACKER
+// Copyright (C) 2026 Juan José Caballero Rey - https://github.com/rey-sudo
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation version 3 of the License.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+export default defineNuxtConfig({
+  vite: {
+    optimizeDeps: {
+      include: [
+        "@internationalized/date",
+        "@msgpack/msgpack",
+        "@vue/devtools-core",
+        "@vue/devtools-kit",
+        "sortablejs",
+      ],
+    },
+  },
+  nitro: {
+    preset: "node",
+    experimental: {
+      websocket: true,
+    },
+  },
+  ssr: false,
+  compatibilityDate: "2025-07-15",
+  devtools: { enabled: true },
+  css: [
+    "~/assets/css/theme.css",
+    "~/assets/css/main.css",
+    "~/packages/playground/chart.css",
+  ],
+  ui: {
+    colorMode: true,
+  },
+  modules: [
+    ["@pinia/nuxt", { autoImports: ["defineStore"] }],
+    "pinia-plugin-persistedstate/nuxt",
+    "@nuxt/ui",
+  ],
+});

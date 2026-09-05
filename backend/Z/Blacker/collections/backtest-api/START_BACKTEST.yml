@@ -1,0 +1,21 @@
+info:
+  name: START_BACKTEST
+  type: websocket
+  seq: 1
+
+websocket:
+  url: ws://localhost:8100/backtest
+  message:
+    type: json
+    data: |-
+      {
+        "command": "START_BACKTEST",
+        "payload": {
+          "symbol": "BTCUSDT"
+        }
+      }
+  auth: inherit
+
+settings:
+  timeout: 0
+  keepAliveInterval: 0

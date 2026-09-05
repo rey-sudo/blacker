@@ -1,0 +1,226 @@
+<script setup lang="ts">
+// BLACKER
+// Copyright (C) 2026 Juan José Caballero Rey
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation version 3 of the License.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+import {
+  computed,
+  nextTick,
+  onUnmounted,
+  ref,
+  type ComponentPublicInstance,
+} from "vue";
+import { useBacktestingTabStore } from "~/stores/tabs";
+import Chart, { type ChartTimeframe } from "~/components/Chart.vue";
+
+const props = defineProps<{
+  tabId: string;
+}>();
+
+// -----------------------------------------------------------------------------
+// Tab / Store
+// -----------------------------------------------------------------------------
+
+const tabManager = useTabManager();
+const tab = tabManager.getTabById(props.tabId)!;
+const tabStore = useBacktestingTabStore(tab as BacktestingTab);
+
+// -----------------------------------------------------------------------------
+// WebSocket
+// -----------------------------------------------------------------------------
+//
+// Keep the session alive for the lifetime of this component.
+//
+const _session = useBacktestingSession(props.tabId, tabStore.symbol);
+
+// -----------------------------------------------------------------------------
+// State
+// -----------------------------------------------------------------------------
+
+const activeTimeframe = ref("1m");
+
+const timeframeIds = computed(() =>
+  Object.keys(tabStore.globalState.engine_state.timeframes),
+);
+
+// -----------------------------------------------------------------------------
+// Chart.vue instances
+// -----------------------------------------------------------------------------
+
+type ChartInstance = InstanceType<typeof Chart>;
+
+const charts = ref<Record<string, ChartInstance>>({});
+
+/**
+ * Registers or unregisters a Chart component instance for a specific timeframe.
+ *
+ * @param timeframeId - Unique identifier of the timeframe associated with the chart.
+ * @param instance - Vue component instance, DOM element, or null when the component is unmounted.
+ */
+const setChartRef = (
+  timeframeId: string,
+  el: Element | ComponentPublicInstance | null,
+) => {
+  //
+  // Vue passes null when the component is unmounted or the ref is removed.
+  //
+  if (!el) {
+    delete charts.value[timeframeId];
+    return;
+  }
+  //
+  // Cast the Vue component instance to the exposed Chart component type.
+  //
+  const chart = el as ChartInstance;
+  //
+  // Vue can invoke the ref callback more than once.
+  //
+  if (charts.value[timeframeId] === chart) {
+    return;
+  }
+  //
+  // Register the Chart instance under its corresponding timeframe.
+  //
+  charts.value[timeframeId] = chart;
+};
+
+// -----------------------------------------------------------------------------
+// Chart updates
+// -----------------------------------------------------------------------------
+
+/**
+ * Rebuilds and updates a chart for a specific timeframe.
+ */
+const updateChart = async (timeframeId: string, timeframe: ChartTimeframe) => {
+  //
+  // Get the Chart component registered for this timeframe.
+  //
+  const chart = charts.value[timeframeId];
+  if (!chart) return;
+  //
+  // Rebuild the chart structure and create all required series.
+  //
+  chart.applyLayout(timeframe);
+  //
+  // Wait for Vue and the chart DOM structure to finish updating.
+  //
+  await nextTick();
+  //
+  // Populate each series with its latest historical data.
+  //
+  for (const [seriesId, series] of Object.entries(timeframe.series)) {
+    chart.applyOptions(seriesId, {
+      legend: tabStore.globalState.symbol + " " + timeframe.id,
+    });
+
+    chart.patchData(seriesId, series?.history);
+  }
+};
+
+/**
+ * Updates all registered charts using the latest timeframe state.
+ */
+const updateCharts = async () => {
+  //
+  // Wait until Vue has completed the current rendering cycle.
+  //
+  await nextTick();
+  //
+  // Update each chart with its corresponding timeframe data.
+  //
+  const timeframes = tabStore.globalState.engine_state.timeframes;
+  for (const [timeframeId, timeframe] of Object.entries(timeframes)) {
+    updateChart(timeframeId, timeframe as ChartTimeframe);
+  }
+};
+
+// -----------------------------------------------------------------------------
+// Store subscription
+// -----------------------------------------------------------------------------
+
+const unsubscribe = tabStore.listeners.subscribe(async (event) => {
+  if (event.type !== "live-update") {
+    return;
+  }
+
+  await updateCharts();
+});
+
+// -----------------------------------------------------------------------------
+// Cleanup
+// -----------------------------------------------------------------------------
+
+onUnmounted(() => {
+  unsubscribe();
+});
+</script>
+
+<template>
+  <div class="backtesting-tab">
+    <BacktestingToolbar
+      :tab-id="tabId"
+      :timeframes="timeframeIds"
+      :active-timeframe="activeTimeframe"
+      @update:timeframe="activeTimeframe = $event"
+    />
+
+    <USeparator />
+
+    <div class="charts">
+      <div
+        v-for="timeframeId in timeframeIds"
+        :key="timeframeId"
+        class="chart-wrapper"
+        :class="{
+          'chart-wrapper--active': timeframeId === activeTimeframe,
+        }"
+      >
+        <Chart :key="timeframeId" :ref="(el) => setChartRef(timeframeId, el)" />
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.backtesting-tab {
+  gap: 0rem;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  padding: var(--tab-content-padding);
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.charts {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+ 
+}
+
+.chart-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.chart-wrapper--active {
+  visibility: visible;
+  pointer-events: auto;
+}
+</style>

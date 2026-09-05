@@ -1,0 +1,50 @@
+services:
+  pulsar-local:
+    image: apachepulsar/pulsar:4.2.2
+    container_name: pulsar
+
+    stop_grace_period: 60s
+    restart: unless-stopped
+
+    command:
+      - bash
+      - -c
+      - |
+        bin/apply-config-from-env.py conf/standalone.conf
+        exec bin/pulsar standalone
+
+    ports:
+      - "6650:6650"
+      - "8080:8080"
+
+    environment:
+      PULSAR_MEM: "-Xms8g -Xmx8g -XX:MaxDirectMemorySize=8g"
+
+      # 100 MiB
+      PULSAR_PREFIX_maxMessageSize: "104857600"
+
+      # 101 MiB, ligeramente por encima de maxMessageSize
+      PULSAR_PREFIX_nettyMaxFrameSizeBytes: "105906176"
+
+    volumes:
+      - pulsar_data:/pulsar/data
+
+  redis-local:
+    image: redis:7
+    container_name: redis_local
+    stop_grace_period: 60s
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --save ""
+      --appendonly no
+      --maxmemory 4gb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+
+volumes:
+  pulsar_data:
+  redis_data:

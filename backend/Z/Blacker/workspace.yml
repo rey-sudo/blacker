@@ -1,0 +1,12 @@
+opencollection: 1.0.0
+info:
+  name: "Blacker"
+  type: workspace
+
+collections:
+  - name: "backtest-api"
+    path: "collections/backtest-api"
+
+specs:
+
+docs: ''

@@ -1,0 +1,1 @@
+![Not Vibe Code Banner](docs/no-vibecode.jpeg)

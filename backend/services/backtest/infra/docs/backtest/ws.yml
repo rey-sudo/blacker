@@ -1,0 +1,15 @@
+info:
+  name: ws
+  type: websocket
+  seq: 4
+
+websocket:
+  url: http://localhost:3002/api/backtest/master/ws
+  message:
+    type: json
+    data: "{}"
+  auth: inherit
+
+settings:
+  timeout: 0
+  keepAliveInterval: 0

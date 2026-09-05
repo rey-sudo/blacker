@@ -1,0 +1,22 @@
+info:
+  name: binance
+  type: websocket
+  seq: 3
+
+websocket:
+  url: wss://fstream.binance.com/ws
+  message:
+    type: json
+    data: |-
+      {
+        "method": "SUBSCRIBE",
+        "params": [
+          "btcusdt@trade"
+        ],
+        "id": 0
+      }
+  auth: inherit
+
+settings:
+  timeout: 0
+  keepAliveInterval: 0

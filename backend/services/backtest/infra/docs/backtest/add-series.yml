@@ -1,0 +1,33 @@
+info:
+  name: add-series
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: http://localhost:3002/api/backtest/master/add-series
+  body:
+    type: json
+    data: |-
+      {
+        "timeframe_id": "1m",
+        "id": "ema",
+        "kind": "EMA",
+        "level": 1,
+        "params": {
+          "label": "EMA 200",
+          "layer": "foreground",
+          "color": "#FF9800",
+          "priceTagColor": "#FF9800",
+          "period": 200,
+          "lineWidth": 2
+        },
+        "parent_id": "candlestick-1m-705590009"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

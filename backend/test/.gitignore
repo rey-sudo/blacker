@@ -1,7 +1,0 @@
-secrets.sh
-__pycache__
-*.pyc
-*.pyo
-/output
-myenv
-*.db

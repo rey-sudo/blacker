@@ -1,0 +1,58 @@
+<script setup lang="ts">
+// BLACKER
+// Copyright (C) 2026 Juan José Caballero Rey 
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation version 3 of the License.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+import TradingTab from "./TradingTab.vue";
+import BacktestingTab from "./BacktestingTab.vue";
+import { useTabContentStore } from "~/stores/tabs";
+
+const props = defineProps<{ tabId: string }>();
+
+const tabsStore = useTabManager();
+
+// tab can be undefined if the id does not exist
+const tab: ComputedRef<Tab | undefined> = computed(() =>
+  tabsStore.getTabById(props.tabId),
+);
+
+// tabStore can be null — the template guards it with v-if
+const tabStore = computed(() =>
+  tab.value ? useTabContentStore(tab.value) : undefined,
+);
+
+// Dynamically resolves the component based on the tab's type.
+// Returns null if the tab is undefined or doesn't match a known type.
+const component = computed(() => {
+  if (!tab.value) return null;
+  switch (tab.value.kind) {
+    case TabKind.Trading:
+      return TradingTab;
+    case TabKind.Backtesting:
+      return BacktestingTab;
+  }
+});
+
+// Lifecycle — all stores implement onMount/onUnmount
+onMounted(() => tabStore.value?.onMount());
+onUnmounted(() => tabStore.value?.onUnmount());
+</script>
+
+<template>
+  <component
+    v-if="tabStore && component"
+    :is="component"
+    :tabId="tabStore.id"
+  />
+</template>
