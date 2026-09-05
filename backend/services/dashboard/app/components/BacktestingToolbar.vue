@@ -97,7 +97,7 @@ const timeframeModalItems = ref<SelectItem[]>([
   "4h",
   "6h",
 ]);
-const timeframeSelected = ref("");
+const timeframeSelected = ref("1m");
 
 //----------------------------------------------------------------------------------------------------------------------
 // SERIES
@@ -172,7 +172,7 @@ async function onTimeframeSelected() {
 async function onSeriesSelected(series: Series) {
   try {
     
-    await tabStore.addSeries(timeframeSelected.value, series)
+    await tabStore.addSeries(props.activeTimeframe, series)
 
     toast.add({
       title: "Success",

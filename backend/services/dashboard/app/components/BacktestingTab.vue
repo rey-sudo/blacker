@@ -172,7 +172,7 @@ onUnmounted(() => {
       @update:timeframe="activeTimeframe = $event"
     />
 
-    <USeparator />
+
 
     <div class="charts">
       <div
@@ -191,7 +191,7 @@ onUnmounted(() => {
 
 <style scoped>
 .backtesting-tab {
-  gap: 0rem;
+  gap: 0.25rem;
   height: 100%;
   min-height: 0;
   display: flex;
