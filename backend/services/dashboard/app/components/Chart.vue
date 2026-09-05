@@ -36,42 +36,48 @@ export interface ChartTimeframe {
   [key: string]: any;
 }
 
-interface RuntimeSeries {
+interface RuntimeSeries extends Series {
   chart: ChartEngine;
   serie: AnyChartSeries;
   kind: SeriesKind;
-  primary: boolean;
-  overlay: boolean;
-  params: Record<string, unknown>;
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Runtime series belonging to this Chart.vue instance.
+ * -------------------------------------------------------------------------
  */
 const allSeries = new Map<SeriesId, RuntimeSeries>();
 
 /**
+ * -------------------------------------------------------------------------
  * The single ChartEngine owned by the primary series.
- *
  * All overlay series use this same ChartEngine.
+ * -------------------------------------------------------------------------
  */
 let primaryChart: ChartEngine | null = null;
 
 /**
+ * -------------------------------------------------------------------------
  * Main Chart container.
+ * -------------------------------------------------------------------------
  */
 const container = ref<HTMLDivElement | null>(null);
 
 /**
+ * -------------------------------------------------------------------------
  * All ChartEngines created by this component.
  *
  * At the moment there should normally be only one,
  * but keeping this Set makes cleanup robust.
+ * -------------------------------------------------------------------------
  */
 const charts = new Set<ChartEngine>();
 
 /**
+ * -------------------------------------------------------------------------
  * Removes all series and charts created by this component.
+ * -------------------------------------------------------------------------
  */
 function cleanAllSeries() {
   const uniqueCharts = new Set<ChartEngine>();
@@ -105,7 +111,9 @@ function cleanAllSeries() {
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Creates the DOM element used by the primary chart.
+ * -------------------------------------------------------------------------
  */
 function addChartContainer(
   seriesId: SeriesId,
@@ -130,7 +138,9 @@ function addChartContainer(
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Builds the chart series configuration from a backend definition.
+ * -------------------------------------------------------------------------
  */
 function buildSeries(seriesId: SeriesId, seriesValue: Series) {
   const seriesFactory = seriesRegistry[seriesValue.kind as SeriesKind];
@@ -152,9 +162,10 @@ function buildSeries(seriesId: SeriesId, seriesValue: Series) {
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Validates the topology of a series.
- *
  * Exactly one of primary / overlay must be true.
+ * -------------------------------------------------------------------------
  */
 function validateSeries(series: Series) {
   if (series.primary === series.overlay) {
@@ -163,9 +174,10 @@ function validateSeries(series: Series) {
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Validates the complete timeframe topology.
- *
  * There can be exactly one primary.
+ * -------------------------------------------------------------------------
  */
 function validateLayout(definitions: Record<string, Series>) {
   let primaryCount = 0;
@@ -184,9 +196,10 @@ function validateLayout(definitions: Record<string, Series>) {
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Creates the runtime primary series.
- *
  * The primary owns the only ChartEngine.
+ * -------------------------------------------------------------------------
  */
 function createPrimarySeries(seriesId: SeriesId, seriesValue: Series) {
   if (primaryChart) {
@@ -207,20 +220,20 @@ function createPrimarySeries(seriesId: SeriesId, seriesValue: Series) {
   charts.add(chart);
 
   allSeries.set(seriesId, {
+    ...seriesValue,
     chart,
     serie,
     kind: seriesValue.kind as SeriesKind,
-    primary: true,
-    overlay: false,
-    params: seriesValue.params,
   });
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Creates the runtime overlay series.
  *
  * Overlays never create their own ChartEngine.
  * They are always added to the primary ChartEngine.
+ * -------------------------------------------------------------------------
  */
 function createOverlaySeries(seriesId: SeriesId, seriesValue: Series) {
   if (!primaryChart) {
@@ -234,17 +247,17 @@ function createOverlaySeries(seriesId: SeriesId, seriesValue: Series) {
   const serie = primaryChart.api.addSeries(build);
 
   allSeries.set(seriesId, {
+    ...seriesValue,
     chart: primaryChart,
     serie,
-    kind: seriesValue.kind as SeriesKind,
-    primary: false,
-    overlay: true,
-    params: seriesValue.params,
+    kind: seriesValue.kind as SeriesKind
   });
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Creates a runtime series according to its type.
+ * -------------------------------------------------------------------------
  */
 function _createRuntimeSeries(seriesId: SeriesId, seriesValue: Series) {
   validateSeries(seriesValue);
@@ -280,7 +293,9 @@ function resolveSeriesOrder(series: Record<string, Series>): Series[] {
 }
 
 /**
+ * -------------------------------------------------------------------------
  * Removes a single runtime series.
+ * -------------------------------------------------------------------------
  */
 function _destroySeries(seriesId: SeriesId) {
   const runtime = allSeries.get(seriesId);
@@ -384,9 +399,7 @@ function applyLayout(timeframe: ChartTimeframe) {
   validateLayout(definitions);
 
   /**
-   * -------------------------------------------------------------------------
    * Remove series that no longer exist.
-   * -------------------------------------------------------------------------
    */
   const nextSeriesIds = new Set(Object.keys(definitions));
 
@@ -399,9 +412,8 @@ function applyLayout(timeframe: ChartTimeframe) {
   }
 
   /**
-   * -------------------------------------------------------------------------
-   * Destroy overlays before the primary. The primary owns their ChartEngine.
-   * -------------------------------------------------------------------------
+   * Destroy overlays before the primary. 
+   * The primary owns their ChartEngine.
    */
   seriesToRemove.sort((a, b) => {
     const seriesA = definitions[a];
@@ -423,16 +435,12 @@ function applyLayout(timeframe: ChartTimeframe) {
   }
 
   /**
-   * -------------------------------------------------------------------------
    * Resolve primary -> overlay creation order.
-   * -------------------------------------------------------------------------
    */
   const orderedSeries = resolveSeriesOrder(definitions);
 
   /**
-   * -------------------------------------------------------------------------
    * Create new series or reuse existing ones.
-   * -------------------------------------------------------------------------
    */
   for (const seriesValue of orderedSeries) {
     const seriesId = seriesValue.id;
