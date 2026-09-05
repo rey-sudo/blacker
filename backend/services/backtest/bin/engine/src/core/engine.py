@@ -65,8 +65,9 @@ class TradingEngine:
                     state["id"],
                     state["kind"],
                     state["level"],
+                    state["primary"],
+                    state["overlay"],
                     state["params"],
-                    state["parent_id"],
                 )
                 series.set_state(state)
 

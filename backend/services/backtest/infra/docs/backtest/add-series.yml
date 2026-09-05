@@ -14,15 +14,16 @@ http:
         "id": "ema",
         "kind": "EMA",
         "level": 1,
+        "primary": false,
+        "overlay": true,
         "params": {
-          "label": "EMA 200",
+          "label": "EMA 55",
           "layer": "foreground",
           "color": "#FF9800",
           "priceTagColor": "#FF9800",
-          "period": 200,
-          "lineWidth": 2
-        },
-        "parent_id": "candlestick-1m-705590009"
+          "period": 55,
+          "lineWidth": 1
+        }
       }
   auth: inherit
 

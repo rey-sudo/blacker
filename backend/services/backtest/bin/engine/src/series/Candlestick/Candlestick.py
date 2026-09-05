@@ -42,15 +42,17 @@ class Candlestick(Series):
         id: str,
         kind: str,
         level: int,
+        primary: bool,
+        overlay: bool,
         params: dict,
-        parent_id: str | None,
     ):
         super().__init__(
             id,
             kind,
             level,
-            params,
-            parent_id,
+            primary,
+            overlay,
+            params
         )
 
         self._live: Candle | None = None
@@ -124,8 +126,9 @@ class Candlestick(Series):
             "id": self.id,
             "kind": self.kind,
             "level": self.level,
+            "primary": self.primary,
+            "overlay": self.overlay,
             "params": self.params,
-            "parent_id": self.parent_id,
 
             "live": (
                 asdict(self.live)

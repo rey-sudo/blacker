@@ -110,6 +110,8 @@ const seriesData: Series[] = [
     id: "ema",
     kind: "EMA",
     level: 1,
+    primary: false,
+    overlay: true,
     params: {
       label: "EMA 55",
       layer: "foreground",
@@ -118,8 +120,7 @@ const seriesData: Series[] = [
       period: 55,
       lineWidth: 1,
     },
-    parent_id: null,
-    name: "Exponential Moving Average",
+    name: "Exponential Moving Average"
   },
 ];
 
@@ -173,7 +174,6 @@ async function onSeriesSelected(event: Series) {
     const params = {
       ...event,
       timeframe_id: timeframeSelected.value,
-      parent_id: "candlestick-1m-705590009",
     };
 
     console.log(params);
@@ -184,7 +184,6 @@ async function onSeriesSelected(event: Series) {
       icon: "i-lucide-circle-check",
       color: "success",
     });
-
   } catch (err: any) {
     toast.add({
       title: "Error adding series",
