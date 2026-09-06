@@ -18,6 +18,7 @@ import { createChart } from "@/packages/src/index";
 import type { ChartOptions } from "~/packages/src/core/config";
 import type { AnyChartSeries, ChartEngine } from "~/packages/src/core/types";
 
+import {
   seriesRegistry,
   type SeriesId,
   type SeriesKind,
