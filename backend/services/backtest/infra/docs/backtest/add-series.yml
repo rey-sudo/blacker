@@ -15,13 +15,13 @@ http:
         "kind": "EMA",
         "level": 1,
         "primary": false,
-        "overlay": true,
+        "overlay": false,
         "params": {
           "label": "EMA 55",
           "layer": "foreground",
           "color": "#FF9800",
           "priceTagColor": "#FF9800",
-          "period": 55,
+          "period": 200,
           "lineWidth": 1
         }
       }
