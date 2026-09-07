@@ -84,6 +84,17 @@ const charts = new Set<ChartEngine>();
  * Removes all series and charts created by this component.
  * -------------------------------------------------------------------------
  */
+/**
+ * -------------------------------------------------------------------------
+ * Subscribes to every chart event of a ChartEngine.
+ * -------------------------------------------------------------------------
+ */
+function _subscribeChart(chart: ChartEngine) {
+  chart.subscribe((event) => {
+    console.log("[chart-event]", event.type, event);
+  });
+}
+
 function cleanAllSeries() {
   const uniqueCharts = new Set<ChartEngine>();
 
@@ -239,6 +250,8 @@ function createPrimarySeries(seriesId: SeriesId, seriesValue: Series) {
     addChartContainer(seriesId, build.width, build.height),
   );
 
+  _subscribeChart(chart);
+
   const serie = chart.api.addSeries(build);
 
   primaryChart = chart;
@@ -300,6 +313,8 @@ function createStandaloneSeries(seriesId: SeriesId, seriesValue: Series) {
   const chart = createChart(
     addChartContainer(seriesId, build.width, build.height),
   );
+
+  _subscribeChart(chart);
 
   const serie = chart.api.addSeries(build);
 
