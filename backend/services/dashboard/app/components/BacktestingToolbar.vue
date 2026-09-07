@@ -174,12 +174,6 @@ async function onSeriesSelected(series: Series) {
     
     await tabStore.addSeries(props.activeTimeframe, series)
 
-    toast.add({
-      title: "Success",
-      description: `Series ${series.kind} added`,
-      icon: "i-lucide-circle-check",
-      color: "success",
-    });
   } catch (err: any) {
     toast.add({
       title: "Error adding series",

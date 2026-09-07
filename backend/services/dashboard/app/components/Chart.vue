@@ -18,11 +18,7 @@ import { createChart } from "@/packages/src/index";
 import type { ChartOptions } from "~/packages/src/core/config";
 import type { AnyChartSeries, ChartEngine } from "~/packages/src/core/types";
 
-import {
-  seriesRegistry,
-  type SeriesId,
-  type SeriesKind,
-} from "~/stores/tabs";
+import { seriesRegistry, type SeriesId, type SeriesKind } from "~/stores/tabs";
 
 export interface Series {
   id: string;
@@ -150,12 +146,8 @@ function addChartContainer(
  * Builds the chart series configuration from a backend definition.
  * -------------------------------------------------------------------------
  */
-function buildSeries(
-  seriesId: SeriesId,
-  seriesValue: Series,
-) {
-  const seriesFactory =
-    seriesRegistry[seriesValue.kind as SeriesKind];
+function buildSeries(seriesId: SeriesId, seriesValue: Series) {
+  const seriesFactory = seriesRegistry[seriesValue.kind as SeriesKind];
 
   if (!seriesFactory) {
     throw new Error(
@@ -167,11 +159,8 @@ function buildSeries(
     id: seriesId,
     label: seriesValue.params?.label as string,
     color: seriesValue.params?.color as string,
-    layer: seriesValue.params?.layer as
-      | "background"
-      | "foreground",
-    priceTagColor:
-      seriesValue.params?.priceTagColor as string,
+    layer: seriesValue.params?.layer as "background" | "foreground",
+    priceTagColor: seriesValue.params?.priceTagColor as string,
     params: seriesValue.params as any,
   });
 }
@@ -196,15 +185,11 @@ function buildSeries(
  */
 function validateSeries(series: Series) {
   if (typeof series.primary !== "boolean") {
-    throw new Error(
-      `Series "${series.id}" must define primary as a boolean.`,
-    );
+    throw new Error(`Series "${series.id}" must define primary as a boolean.`);
   }
 
   if (typeof series.overlay !== "boolean") {
-    throw new Error(
-      `Series "${series.id}" must define overlay as a boolean.`,
-    );
+    throw new Error(`Series "${series.id}" must define overlay as a boolean.`);
   }
 }
 
@@ -212,12 +197,13 @@ function validateSeries(series: Series) {
  * -------------------------------------------------------------------------
  * Validates the complete timeframe topology.
  *
- * There must be exactly one primary.
+ * There can be at most one primary.
+ *
+ * Zero primaries is a legitimate transitional state: the primary
+ * is added by the user after the UI has started.
  * -------------------------------------------------------------------------
  */
-function validateLayout(
-  definitions: Record<string, Series>,
-) {
+function validateLayout(definitions: Record<string, Series>) {
   let primaryCount = 0;
 
   for (const series of Object.values(definitions)) {
@@ -228,10 +214,8 @@ function validateLayout(
     }
   }
 
-  if (primaryCount !== 1) {
-    throw new Error(
-      "Exactly one primary series is required.",
-    );
+  if (primaryCount > 1) {
+    throw new Error("At most one primary series is required.");
   }
 }
 
@@ -242,10 +226,7 @@ function validateLayout(
  * The primary owns the main ChartEngine.
  * -------------------------------------------------------------------------
  */
-function createPrimarySeries(
-  seriesId: SeriesId,
-  seriesValue: Series,
-) {
+function createPrimarySeries(seriesId: SeriesId, seriesValue: Series) {
   if (primaryChart) {
     throw new Error(
       `Primary series already exists. Cannot create "${seriesId}".`,
@@ -255,11 +236,7 @@ function createPrimarySeries(
   const build = buildSeries(seriesId, seriesValue);
 
   const chart = createChart(
-    addChartContainer(
-      seriesId,
-      build.width,
-      build.height,
-    ),
+    addChartContainer(seriesId, build.width, build.height),
   );
 
   const serie = chart.api.addSeries(build);
@@ -285,14 +262,12 @@ function createPrimarySeries(
  * They are always added to the primary ChartEngine.
  * -------------------------------------------------------------------------
  */
-function createOverlaySeries(
-  seriesId: SeriesId,
-  seriesValue: Series,
-) {
+function createOverlaySeries(seriesId: SeriesId, seriesValue: Series) {
   if (!primaryChart) {
-    throw new Error(
+    console.warn(
       `Cannot create overlay "${seriesId}" because no primary series exists.`,
     );
+    return;
   }
 
   const build = buildSeries(seriesId, seriesValue);
@@ -319,18 +294,11 @@ function createOverlaySeries(
  * It gets its OWN ChartEngine.
  * -------------------------------------------------------------------------
  */
-function createStandaloneSeries(
-  seriesId: SeriesId,
-  seriesValue: Series,
-) {
+function createStandaloneSeries(seriesId: SeriesId, seriesValue: Series) {
   const build = buildSeries(seriesId, seriesValue);
 
   const chart = createChart(
-    addChartContainer(
-      seriesId,
-      build.width,
-      build.height,
-    ),
+    addChartContainer(seriesId, build.width, build.height),
   );
 
   const serie = chart.api.addSeries(build);
@@ -359,10 +327,7 @@ function createStandaloneSeries(
  *      -> standalone ChartEngine
  * -------------------------------------------------------------------------
  */
-function _createRuntimeSeries(
-  seriesId: SeriesId,
-  seriesValue: Series,
-) {
+function _createRuntimeSeries(seriesId: SeriesId, seriesValue: Series) {
   validateSeries(seriesValue);
 
   // Primary
@@ -373,6 +338,13 @@ function _createRuntimeSeries(
 
   // Overlay on primary
   if (seriesValue.overlay) {
+    if (!primaryChart) {
+      // The primary has not been added yet.
+      // It is safe to defer; the overlay will be resolved
+      // on the next layout application once a primary exists.
+      return;
+    }
+
     createOverlaySeries(seriesId, seriesValue);
     return;
   }
@@ -398,9 +370,7 @@ function _createRuntimeSeries(
  * of the same topology.
  * -------------------------------------------------------------------------
  */
-function resolveSeriesOrder(
-  series: Record<string, Series>,
-): Series[] {
+function resolveSeriesOrder(series: Record<string, Series>): Series[] {
   return Object.values(series).sort((a, b) => {
     // Primary first
     if (a.primary !== b.primary) {
@@ -468,10 +438,7 @@ function requiresRecreation(
     return true;
   }
 
-  if (
-    JSON.stringify(runtime.params) !==
-    JSON.stringify(seriesValue.params)
-  ) {
+  if (JSON.stringify(runtime.params) !== JSON.stringify(seriesValue.params)) {
     return true;
   }
 
@@ -521,9 +488,7 @@ function _cleanupEmptyCharts() {
  * Data is intentionally NOT updated here.
  * -------------------------------------------------------------------------
  */
-function applyLayout(
-  timeframe: ChartTimeframe,
-) {
+function applyLayout(timeframe: ChartTimeframe) {
   const definitions = timeframe.series;
 
   validateLayout(definitions);
@@ -533,9 +498,7 @@ function applyLayout(
    * Remove series that no longer exist.
    * -----------------------------------------------------------------------
    */
-  const nextSeriesIds = new Set(
-    Object.keys(definitions),
-  );
+  const nextSeriesIds = new Set(Object.keys(definitions));
 
   const seriesToRemove: SeriesId[] = [];
 
@@ -582,8 +545,7 @@ function applyLayout(
    * Resolve primary -> overlay -> standalone creation order.
    * -----------------------------------------------------------------------
    */
-  const orderedSeries =
-    resolveSeriesOrder(definitions);
+  const orderedSeries = resolveSeriesOrder(definitions);
 
   /**
    * -----------------------------------------------------------------------
@@ -596,10 +558,7 @@ function applyLayout(
     const existing = allSeries.get(seriesId);
 
     if (!existing) {
-      _createRuntimeSeries(
-        seriesId,
-        seriesValue,
-      );
+      _createRuntimeSeries(seriesId, seriesValue);
 
       continue;
     }
@@ -609,18 +568,10 @@ function applyLayout(
      * Existing series whose runtime topology changed.
      * ---------------------------------------------------------------------
      */
-    if (
-      requiresRecreation(
-        existing,
-        seriesValue,
-      )
-    ) {
+    if (requiresRecreation(existing, seriesValue)) {
       _destroySeries(seriesId);
 
-      _createRuntimeSeries(
-        seriesId,
-        seriesValue,
-      );
+      _createRuntimeSeries(seriesId, seriesValue);
 
       continue;
     }
@@ -640,16 +591,11 @@ function applyLayout(
  * - standalone -> its own ChartEngine
  * -------------------------------------------------------------------------
  */
-function applyOptions(
-  seriesId: SeriesId,
-  config: Partial<ChartOptions>,
-) {
+function applyOptions(seriesId: SeriesId, config: Partial<ChartOptions>) {
   const runtime = allSeries.get(seriesId);
 
   if (!runtime) {
-    console.warn(
-      `Cannot apply options: series "${seriesId}" not found.`,
-    );
+    console.warn(`Cannot apply options: series "${seriesId}" not found.`);
 
     return;
   }
@@ -662,13 +608,8 @@ function applyOptions(
  * Sets the complete data of a series.
  * -------------------------------------------------------------------------
  */
-function setData(
-  seriesId: SeriesId,
-  data: any,
-) {
-  allSeries
-    .get(seriesId)
-    ?.serie.setData(data);
+function setData(seriesId: SeriesId, data: any) {
+  allSeries.get(seriesId)?.serie.setData(data);
 }
 
 /**
@@ -676,13 +617,8 @@ function setData(
  * Patches existing series data.
  * -------------------------------------------------------------------------
  */
-function patchData(
-  seriesId: SeriesId,
-  data: any,
-) {
-  allSeries
-    .get(seriesId)
-    ?.serie.patchData(data);
+function patchData(seriesId: SeriesId, data: any) {
+  allSeries.get(seriesId)?.serie.patchData(data);
 }
 
 /**
@@ -690,13 +626,8 @@ function patchData(
  * Updates the latest live candle/tick.
  * -------------------------------------------------------------------------
  */
-function updateLive(
-  seriesId: SeriesId,
-  candle: any,
-) {
-  allSeries
-    .get(seriesId)
-    ?.serie.update(candle);
+function updateLive(seriesId: SeriesId, candle: any) {
+  allSeries.get(seriesId)?.serie.update(candle);
 }
 
 /**
@@ -704,9 +635,7 @@ function updateLive(
  * Returns the runtime series.
  * -------------------------------------------------------------------------
  */
-function getSeriesById(
-  seriesId: SeriesId,
-) {
+function getSeriesById(seriesId: SeriesId) {
   return allSeries.get(seriesId);
 }
 
@@ -731,9 +660,7 @@ defineExpose({
  */
 onMounted(() => {
   if (!container.value) {
-    throw new Error(
-      "Chart container was not mounted.",
-    );
+    throw new Error("Chart container was not mounted.");
   }
 });
 
@@ -763,18 +690,18 @@ onBeforeUnmount(() => {
   overflow-x: hidden;
   box-sizing: border-box;
   scrollbar-gutter: stable;
-  background: var(--ui-bg);
   border-radius: var(--ui-radius);
 }
 
 .chart-area {
   border-radius: var(--ui-radius);
+  padding-right: 0.25rem;
 }
 
 /* Chrome / Edge / Safari */
 .chart-container::-webkit-scrollbar {
   background: var(--ui-bg-accented);
-  width: 16px;
+  width: 14px;
 }
 
 .chart-container::-webkit-scrollbar-track {
@@ -783,8 +710,9 @@ onBeforeUnmount(() => {
 
 .chart-container::-webkit-scrollbar-thumb {
   background: rgba(128, 128, 128, 0.45);
-  border-left: 0.25rem solid transparent;
+
   background-clip: padding-box;
+  border-radius: var(--ui-radius);
 }
 
 .chart-container::-webkit-scrollbar-thumb:hover {
