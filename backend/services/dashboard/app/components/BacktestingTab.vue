@@ -123,7 +123,7 @@ const updateChart = async (timeframeId: string, timeframe: ChartTimeframe) => {
       legend: tabStore.globalState.symbol + " " + timeframe.id,
     });
 
-    chart.setData(seriesId, series?.history);
+    chart.patchData(seriesId, series?.history);
   }
 };
 
