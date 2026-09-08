@@ -116,14 +116,14 @@ const updateChart = async (timeframeId: string, timeframe: ChartTimeframe) => {
   //
   await nextTick();
   //
-  // Populate each series with its latest historical data.
+  // Populate each series with the full authoritative history.
   //
   for (const [seriesId, series] of Object.entries(timeframe.series)) {
     chart.applyOptions(seriesId, {
       legend: tabStore.globalState.symbol + " " + timeframe.id,
     });
 
-    chart.patchData(seriesId, series?.history);
+    chart.setData(seriesId, series?.history);
   }
 };
 
@@ -140,7 +140,7 @@ const updateCharts = async () => {
   //
   const timeframes = tabStore.globalState.engine_state.timeframes;
   for (const [timeframeId, timeframe] of Object.entries(timeframes)) {
-    updateChart(timeframeId, timeframe as ChartTimeframe);
+    await updateChart(timeframeId, timeframe as ChartTimeframe);
   }
 };
 

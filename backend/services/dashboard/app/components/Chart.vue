@@ -404,6 +404,24 @@ function resolveSeriesOrder(series: Record<string, Series>): Series[] {
 
 /**
  * -------------------------------------------------------------------------
+ * Removes the DOM element owned by a ChartEngine.
+ *
+ * Overlay series share the primary ChartEngine, so only the primary
+ * and standalone charts own their own `.chart-area` element.
+ * -------------------------------------------------------------------------
+ */
+function _removeChartArea(runtime: RuntimeSeries) {
+  if (runtime.overlay) {
+    return;
+  }
+
+  const area = runtime.chart?.area;
+
+  area?.parentElement?.removeChild(area);
+}
+
+/**
+ * -------------------------------------------------------------------------
  * Removes a single runtime series.
  * -------------------------------------------------------------------------
  */
@@ -419,6 +437,13 @@ function _destroySeries(seriesId: SeriesId) {
   } catch {}
 
   allSeries.delete(seriesId);
+
+  /**
+   * The primary/standalone series owns its ChartEngine and its
+   * `.chart-area` DOM element. Remove both so no empty chart
+   * containers are left behind.
+   */
+  _removeChartArea(runtime);
 
   /**
    * If the primary itself was destroyed, its ChartEngine
@@ -479,6 +504,10 @@ function _cleanupEmptyCharts() {
 
     try {
       chart.api.destroy();
+    } catch {}
+
+    try {
+      chart.area?.parentElement?.removeChild(chart.area);
     } catch {}
 
     charts.delete(chart);
